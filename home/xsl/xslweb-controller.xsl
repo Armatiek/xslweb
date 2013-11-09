@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet 
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:xs="http://www.w3.org/2001/XMLSchema"
-  xmlns:xwc="http://www.armatiek.com/xslweb/configuration"
-  xmlns:xwr="http://www.armatiek.com/xslweb/request"
-  xmlns:xwp="http://www.armatiek.com/xslweb/pipeline"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"  
+  xmlns:request="http://www.armatiek.com/xslweb/request"
+  xmlns:pipeline="http://www.armatiek.com/xslweb/pipeline"
+  xmlns:configuration="http://www.armatiek.com/xslweb/configuration"
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:param name="xwc:properties" as="xs:string*"/>
+  <xsl:param name="configuration:development-mode" as="xs:string"/>
   
   <xsl:template match="/">
-    <xwp:pipeline>
+    <pipeline:pipeline>
       <xsl:apply-templates/>
-    </xwp:pipeline>
+    </pipeline:pipeline>
   </xsl:template>
   
-  <xsl:template match="/xwr:request[xwr:contextPath = '/hello-world']">
-    <xsl:variable name="lang" select="xwr:parameters/xwr:parameter[@name='lang']/@value"/>
-    <xwp:transformer path="concat('hello-world/hello-world-', $lang, '.xsl')"/>              
+  <xsl:template match="/request:request[request:path = '/hello-world']">
+    <xsl:variable name="lang-value" select="request:parameters/request:parameter[@name='lang']/@value" as="xs:string?"/>    
+    <xsl:variable name="lang" select="if ($lang-value) then $lang-value else 'en'" as="xs:string"/>    
+    <pipeline:transformer xsl-path="{concat('hello-world/hello-world-', $lang, '.xsl')}"/>              
   </xsl:template>
   
 </xsl:stylesheet>

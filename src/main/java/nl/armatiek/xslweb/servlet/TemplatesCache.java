@@ -34,7 +34,7 @@ public class TemplatesCache {
     Templates templates = (Templates) templatesCache.get(key);
     if (templates == null) {
       logger.info("Compiling and caching stylesheet \"" + transformationPath + "\" ...");
-      TransformerFactory factory = new net.sf.saxon.TransformerFactoryImpl(configuration);            
+      TransformerFactory factory = new net.sf.saxon.TransformerFactoryImpl(configuration);      
       if (errorListener != null) {
         factory.setErrorListener(errorListener);
       }

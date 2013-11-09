@@ -8,13 +8,13 @@
   <local-name>0:0:0:0:0:0:0:1</local-name>
   <local-port>8080</local-port>
   <method>GET</method>
+  <path>/hello-world</path>
   <path-info>/hello-world</path-info>
   <path-translated>C:\Users\Maarten\workspaces\xslweb\.metadata\.plugins\org.eclipse.wst.server.core\tmp0\wtpwebapps\xslweb\hello-world</path-translated>
   <protocol>HTTP/1.1</protocol>
-  <query-string>lang=nl</query-string>
   <remote-addr>0:0:0:0:0:0:0:1</remote-addr>
   <remote-host>0:0:0:0:0:0:0:1</remote-host>
-  <remote-port>55516</remote-port>
+  <remote-port>53132</remote-port>
   <request-uri>/xslweb/hello-world</request-uri>
   <request-url>http://localhost:8080/xslweb/hello-world</request-url>
   <scheme>http</scheme>
@@ -28,16 +28,12 @@
     <header name="host">localhost:8080</header>
     <header name="connection">keep-alive</header>
     <header name="cache-control">max-age=0</header>
+    <header name="pragma">no-cache</header>
     <header name="accept">text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</header>
     <header name="user-agent">Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.101 Safari/537.36</header>
     <header name="accept-encoding">gzip,deflate,sdch</header>
     <header name="accept-language">nl-NL,nl;q=0.8,en-US;q=0.6,en;q=0.4</header>
     <header name="cookie">fontSize=100</header>
   </headers>
-  <parameters>
-    <parameter name="lang">
-      <value>nl</value>
-    </parameter>
-  </parameters>
 </request>
 
