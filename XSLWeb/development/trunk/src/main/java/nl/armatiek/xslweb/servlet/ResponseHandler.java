@@ -8,6 +8,8 @@ import java.util.Properties;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.OutputKeys;
 
+import nl.armatiek.xslweb.configuration.Definitions;
+
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
@@ -34,7 +36,7 @@ public class ResponseHandler implements ContentHandler {
   @Override
   public void characters(char[] ch, int start, int len) throws SAXException {
     if (inBody) {
-      writer.characters(ch, start, len);
+      writer.characters(ch, start, len);      
     }
   }
 
@@ -47,8 +49,9 @@ public class ResponseHandler implements ContentHandler {
   
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {    
-    if (inBody && StringUtils.equals(uri, "") && localName.equals("body")) {
+    if (inBody && StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_RESPONSE) && localName.equals("body")) {
       this.inBody = false;
+      writer.endDocument();
     } else {    
       if (inBody) {
         writer.endElement(uri, localName, qName);
@@ -57,10 +60,8 @@ public class ResponseHandler implements ContentHandler {
   }
 
   @Override
-  public void endPrefixMapping(String prefix) throws SAXException {
-    if (inBody) {
-      writer.endPrefixMapping(prefix);
-    }
+  public void endPrefixMapping(String prefix) throws SAXException {    
+    writer.endPrefixMapping(prefix);
   }
 
   @Override
@@ -100,7 +101,7 @@ public class ResponseHandler implements ContentHandler {
   
   @Override
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {    
-    if (!inBody && StringUtils.equals(uri, "")) {
+    if (!inBody && StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_RESPONSE)) {
       if (localName.equals("response")) {
         int status = getIntAttribute(atts, "status", HttpServletResponse.SC_OK);
         String message = getAttribute(atts, "message", null);       
@@ -147,7 +148,8 @@ public class ResponseHandler implements ContentHandler {
               response.setContentType("application/xml");
             }            
           }          
-        }        
+        }
+        writer.startDocument();        
       }
     } else if (inBody) {                     
       writer.startElement(uri, localName, qName, atts);
@@ -155,10 +157,8 @@ public class ResponseHandler implements ContentHandler {
   }
 
   @Override
-  public void startPrefixMapping(String prefix, String uri) throws SAXException {
-    if (inBody) {
-      writer.startPrefixMapping(prefix, uri);
-    }
+  public void startPrefixMapping(String prefix, String uri) throws SAXException {    
+    writer.startPrefixMapping(prefix, uri);    
   }
   
   private String getAttribute(Attributes attr, String name, String defaultValue) {

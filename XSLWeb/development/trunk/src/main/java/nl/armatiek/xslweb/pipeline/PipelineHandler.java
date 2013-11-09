@@ -13,7 +13,7 @@ import org.xml.sax.SAXException;
 
 public class PipelineHandler implements ContentHandler {
   
-  private ArrayList<PipelineStep> pipelineSteps;
+  private ArrayList<PipelineStep> pipelineSteps = new ArrayList<PipelineStep>();
     
   @Override
   public void characters(char[] ch, int start, int len) throws SAXException { }

@@ -6,6 +6,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.TransformerException;
 
+import nl.armatiek.xslweb.configuration.Config;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -26,13 +28,13 @@ public class TransformationErrorListener implements ErrorListener {
   protected void handleError(TransformerException exception) throws TransformerException {
     try {
       logger.error(exception.getMessage(), exception);
-      // if (Config.getInstance().isDevelopmentMode()) {
+      if (Config.getInstance().isDevelopmentMode()) {
         if (firstError) {
           response.setContentType("text/plain;charset=UTF-8");
           firstError = false;
         }
         IOUtils.write(ExceptionUtils.getStackTrace(exception), response.getOutputStream(), "UTF-8");
-      // }
+      }
     } catch (IOException ioe) {
       throw new TransformerException("IOException dumping track trace");
     }

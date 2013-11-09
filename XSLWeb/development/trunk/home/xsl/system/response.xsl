@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"  
+  xmlns:response="http://www.armatiek.com/xslweb/request"
+  xmlns:error="http://www.armatiek.com/xslweb/error"  
+  exclude-result-prefixes="#all"
+  version="2.0">
+  
+  <xsl:param name="response"/>
+  
+  <xsl:template match="response:response">
+    <xsl:value-of select="if (response:status(@status)) then () else error(xs:QName('error:response-status'), 'Could not set status of response')"/>   
+    <xsl:apply-templates/>
+  </xsl:template>
+  
+  <xsl:template match="response:header">
+    <xsl:value-of select="if (response:header(@name, @value)) then () else error(xs:QName('error:response-header'), 'Could not set header of response')"/>
+  </xsl:template>
+  
+  <xsl:template match="response:body">
+    <xsl:apply-templates/>
+  </xsl:template>
+  
+  <xsl:template match="node()|@*">
+    <xsl:copy>
+      <xsl:apply-templates select="node()|@*"/>
+    </xsl:copy>
+  </xsl:template>
+  
+</xsl:stylesheet>

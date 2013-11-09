@@ -38,8 +38,9 @@ public class RequestSerializer {
     dataElement(dw, uri, "local-name", req.getLocalName());
     dataElement(dw, uri, "local-port", Integer.toString(req.getLocalPort()));
     dataElement(dw, uri, "method", req.getMethod());
+    dataElement(dw, uri, "path", safeString(req.getServletPath()) + safeString(req.getPathInfo()));
     dataElement(dw, uri, "path-info", req.getPathInfo());
-    dataElement(dw, uri, "path-translated", req.getPathTranslated());
+    dataElement(dw, uri, "path-translated", req.getPathTranslated());    
     dataElement(dw, uri, "protocol", req.getProtocol());
     dataElement(dw, uri, "query-string", req.getQueryString());      
     dataElement(dw, uri, "remote-addr", req.getRemoteAddr());
@@ -165,6 +166,10 @@ public class RequestSerializer {
     AttributesImpl atts = new AttributesImpl();
     atts.addAttribute("", "name", "name", "CDATA", value);
     return atts;
+  }
+  
+  public static String safeString(String str) {
+    return (str == null) ? "" : str;
   }
 
 }
