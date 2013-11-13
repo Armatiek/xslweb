@@ -54,15 +54,14 @@ public class ResponseStatus extends ExtensionFunctionDefinition {
         
     private static final long serialVersionUID = 1L;
 
-    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {
-      String xslPath = "";
+    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
       try {                
-        long status = ((IntegerValue) arguments[0].next()).longValue();               
-        HttpServletResponse response = (HttpServletResponse) context.getController().getParameter(null);        
+        long status = ((IntegerValue) arguments[0].next()).longValue();                        
+        HttpServletResponse response = (HttpServletResponse) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response");        
         response.setStatus((int) status);                
         return SingletonIterator.makeIterator(BooleanValue.get(true));        
       } catch (Exception e) {
-        throw new XPathException(String.format("Error executing transformation using \"%s\"", xslPath), e);
+        throw new XPathException("Error setting status of HTTP response", e);
       }
     }
     

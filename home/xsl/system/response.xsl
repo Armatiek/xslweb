@@ -2,12 +2,12 @@
 <xsl:stylesheet 
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
-  xmlns:response="http://www.armatiek.com/xslweb/request"
+  xmlns:response="http://www.armatiek.com/xslweb/response"
   xmlns:error="http://www.armatiek.com/xslweb/error"  
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:param name="response"/>
+  <xsl:param name="response:response"/>
   
   <xsl:template match="response:response">
     <xsl:value-of select="if (response:status(@status)) then () else error(xs:QName('error:response-status'), 'Could not set status of response')"/>   

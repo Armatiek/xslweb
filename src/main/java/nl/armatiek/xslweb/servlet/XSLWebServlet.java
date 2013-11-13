@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -19,6 +20,7 @@ import javax.xml.transform.Templates;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.sax.TransformerHandler;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import net.sf.saxon.Configuration;
@@ -31,9 +33,19 @@ import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.pipeline.PipelineStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
+import nl.armatiek.xslweb.saxon.functions.ResponseHeader;
+import nl.armatiek.xslweb.saxon.functions.ResponseStatus;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.expath.httpclient.saxon.SendRequestFunction;
+import org.expath.zip.saxon.BinaryEntryFunction;
+import org.expath.zip.saxon.EntriesFunction;
+import org.expath.zip.saxon.HtmlEntryFunction;
+import org.expath.zip.saxon.TextEntryFunction;
+import org.expath.zip.saxon.UpdateEntriesFunction;
+import org.expath.zip.saxon.XmlEntryFunction;
+import org.expath.zip.saxon.ZipFileFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +74,19 @@ public class XSLWebServlet extends HttpServlet {
       // configuration.setURIResolver();
       // configuration.setOutputURIResolver();      
       configuration.setXIncludeAware(true);
-      // configuration.registerExtensionFunction(new com.armatiek.infofuze.xslt.functions.request.Attribute());
+      
+      configuration.registerExtensionFunction(new ResponseHeader());
+      configuration.registerExtensionFunction(new ResponseStatus());
+      
+      configuration.registerExtensionFunction(new EntriesFunction());
+      configuration.registerExtensionFunction(new UpdateEntriesFunction());
+      configuration.registerExtensionFunction(new ZipFileFunction());
+      configuration.registerExtensionFunction(new BinaryEntryFunction());
+      configuration.registerExtensionFunction(new HtmlEntryFunction());
+      configuration.registerExtensionFunction(new TextEntryFunction());
+      configuration.registerExtensionFunction(new XmlEntryFunction());
+      
+      configuration.registerExtensionFunction(new SendRequestFunction());
   
       isDevelopmentMode = Config.getInstance().isDevelopmentMode();
       if (isDevelopmentMode) {
@@ -85,6 +109,21 @@ public class XSLWebServlet extends HttpServlet {
     }
   }
   
+  @Override
+  protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    try {
+      executeRequest(req, resp);
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      if (isDevelopmentMode) {              
+        resp.setContentType("text/plain; charset=UTF-8");        
+        e.printStackTrace(new PrintStream(resp.getOutputStream()));        
+      } else if (!resp.isCommitted()) {
+        resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      }
+    }  
+  }
+
   private void setPropertyParameters(Controller controller) throws IOException {
     Properties props = Config.getInstance().getProperties();
     for (String key : props.stringPropertyNames()) {
@@ -116,7 +155,6 @@ public class XSLWebServlet extends HttpServlet {
     // controllerTransformer.setURIResolver(uriResolver);
     // controllerTransformer.setOutputURIResolver(outputURIResolver);    
     controllerTransformer.setMessageEmitter(messageWarner);
-    
                              
     PipelineHandler pipelineHandler = new PipelineHandler();
     controllerTransformer.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(pipelineHandler));
@@ -125,19 +163,21 @@ public class XSLWebServlet extends HttpServlet {
     stf.setErrorListener(errorListener);
     // stf.setURIResolver(uriResolver);
     
-    TransformerHandler firstHandler = null;
-    TransformerHandler newHandler = null;
-    TransformerHandler currentHandler = null;    
-    Templates templates = null;
+    //TransformerHandler firstHandler = null;
+    //TransformerHandler newHandler = null;
+    //TransformerHandler currentHandler = null;    
+    // Templates templates = null;
     List<PipelineStep> steps = pipelineHandler.getPipelineSteps();
     if (steps == null) {
       resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Resource not found");
     }
-    steps.add(new TransformerStep(""));
+    steps.add(new TransformerStep("system/response.xsl"));
+    
+    /*
     for (PipelineStep step : steps) {
       if (step instanceof TransformerStep) {
         templates = TemplatesCache.tryTemplatesCache(new File(homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath(), errorListener, configuration);        
-        newHandler = stf.newTransformerHandler(templates);
+        newHandler = stf.newTransformerHandler(templates);        
         if (firstHandler == null) {
           firstHandler = newHandler;
         }
@@ -146,73 +186,48 @@ public class XSLWebServlet extends HttpServlet {
         }        
         currentHandler = newHandler;
       }                        
-    }    
-    if (newHandler == null) {
-      // 
     }
+    */ 
     
+    Templates templates = null;
+    TransformerHandler handler = null;
+    Controller transformer = null;
+    
+    List<TransformerHandler> handlers = new ArrayList<TransformerHandler>();
+    for (PipelineStep step : steps) {
+      templates = TemplatesCache.tryTemplatesCache(new File(homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath(), errorListener, configuration);      
+      handler = stf.newTransformerHandler(templates);
+      transformer = (Controller) handler.getTransformer();
+      setPropertyParameters(transformer);
+      transformer.setErrorListener(errorListener);
+      transformer.setMessageEmitter(messageWarner);
+      if (!handlers.isEmpty()) {
+        handlers.get(handlers.size()-1).setResult(new SAXResult(handler));
+      }
+      handlers.add(handler); 
+    }
+            
     OutputStream os = (Config.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : resp.getOutputStream();            
-    newHandler.setResult(new SAXResult(new ResponseHandler(resp, os, currentHandler.getTransformer().getOutputProperties())));
+    // newHandler.setResult(new SAXResult(new ResponseHandler(resp, os, currentHandler.getTransformer().getOutputProperties())));
+    handler.setResult(new StreamResult(os));
+    transformer.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response", resp);
+    TransformerHandler lastHandler = handlers.get(handlers.size()-2);
+    transformer.setOutputProperties(lastHandler.getTransformer().getOutputProperties());
     
-    Controller stepsTransformer = (Controller) stf.newTransformer();
-    setPropertyParameters(stepsTransformer);
-    stepsTransformer.setErrorListener(errorListener);
+    //Controller stepsTransformer = (Controller) stf.newTransformer();
+    //setPropertyParameters(stepsTransformer);
+    //stepsTransformer.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response", resp);
+    //stepsTransformer.setErrorListener(errorListener);    
     // stepsTransformer.setURIResolver(uriResolver);
     // stepsTransformer.setOutputURIResolver(outputURIResolver);    
-    stepsTransformer.setMessageEmitter(messageWarner);
-    stepsTransformer.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(firstHandler));
+    //stepsTransformer.setMessageEmitter(messageWarner);
+    transformer.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(handlers.get(0)));
     
     if (isDevelopmentMode) {
       byte[] body = ((ByteArrayOutputStream) os).toByteArray();
       FileUtils.writeByteArrayToFile(responseDebugFile, body);
       IOUtils.copy(new ByteArrayInputStream(body), resp.getOutputStream());
     }    
-  }
-
-  @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {       
-    try {
-      executeRequest(req, resp);
-    } catch (Exception e) {
-      logger.error(e.getMessage(), e);
-      if (isDevelopmentMode) {              
-        resp.setContentType("text/plain; charset=UTF-8");        
-        e.printStackTrace(new PrintStream(resp.getOutputStream()));        
-      } else if (!resp.isCommitted()) {
-        resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      }
-    }            
-  }
-  
-  @Override
-  protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    this.doGet(req, resp);        
-  }
-
-  @Override
-  protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {    
-    this.doGet(req, resp);
-  }
-
-  @Override
-  protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {    
-    this.doGet(req, resp);
-  }
-
-  @Override
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    this.doGet(req, resp);
-    
-  }
-
-  @Override
-  protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    this.doGet(req, resp);
-  }
-
-  @Override
-  protected void doTrace(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    this.doGet(req, resp);
   }
   
 }

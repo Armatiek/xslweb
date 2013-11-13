@@ -14,7 +14,7 @@
   <protocol>HTTP/1.1</protocol>
   <remote-addr>0:0:0:0:0:0:0:1</remote-addr>
   <remote-host>0:0:0:0:0:0:0:1</remote-host>
-  <remote-port>53132</remote-port>
+  <remote-port>52378</remote-port>
   <request-uri>/xslweb/hello-world</request-uri>
   <request-url>http://localhost:8080/xslweb/hello-world</request-url>
   <scheme>http</scheme>
@@ -28,7 +28,6 @@
     <header name="host">localhost:8080</header>
     <header name="connection">keep-alive</header>
     <header name="cache-control">max-age=0</header>
-    <header name="pragma">no-cache</header>
     <header name="accept">text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</header>
     <header name="user-agent">Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.101 Safari/537.36</header>
     <header name="accept-encoding">gzip,deflate,sdch</header>
