@@ -9,7 +9,7 @@
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:output method="xhtml"/>
+  <xsl:output method="xhtml" omit-xml-declaration="yes"/>
   
   <xsl:template match="/">
     <response:response status="200">
