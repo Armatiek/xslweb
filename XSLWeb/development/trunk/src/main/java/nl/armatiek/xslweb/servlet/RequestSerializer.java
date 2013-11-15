@@ -13,6 +13,9 @@ import java.util.UUID;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import nl.armatiek.xslweb.configuration.Config;
 import nl.armatiek.xslweb.configuration.Definitions;
@@ -23,18 +26,13 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.xmlbeans.XmlDateTime;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.AttributesImpl;
-
-import com.megginson.sax.DataWriter;
 
 public class RequestSerializer {
   
   private static final String URI = Definitions.NAMESPACEURI_XSLWEB_REQUEST;
   
   private HttpServletRequest req;
-  private DataWriter dw;
+  private XMLStreamWriter xsw;
   private File reposDir; 
     
   public RequestSerializer(HttpServletRequest req) {
@@ -42,13 +40,15 @@ public class RequestSerializer {
   }
     
   public String serializeToXML() throws Exception {
-    StringWriter sw = new StringWriter();      
-    this.dw = new DataWriter(sw);
-    this.dw.setIndentStep(2);
-            
-    dw.setPrefix(URI, "");    
-    dw.startDocument();    
-    dw.startElement(URI, "request");
+    StringWriter sw = new StringWriter();
+    
+    XMLOutputFactory output = XMLOutputFactory.newInstance();
+    this.xsw = output.createXMLStreamWriter(sw);
+    
+    xsw.writeStartDocument();       
+    xsw.setDefaultNamespace(URI);
+    xsw.writeStartElement(URI, "request");
+    xsw.writeDefaultNamespace(URI);
     
     serializeProperties();
     serializeHeaders();
@@ -58,8 +58,8 @@ public class RequestSerializer {
     serializeSession();    
     serializeCookies();
     
-    dw.endElement(URI, "request");
-    dw.endDocument();
+    xsw.writeEndElement();
+    xsw.writeEndDocument();
     
     return sw.toString();
   }
@@ -71,37 +71,37 @@ public class RequestSerializer {
   }
   
   private void serializeProperties() throws Exception {
-    dataElement(dw, URI, "auth-type", req.getAuthType());
-    dataElement(dw, URI, "character-encoding", req.getCharacterEncoding());
-    dataElement(dw, URI, "content-length", Integer.toString(req.getContentLength()));
-    dataElement(dw, URI, "context-path", req.getContextPath());
-    dataElement(dw, URI, "content-type", req.getContentType());
-    dataElement(dw, URI, "local-addr", req.getLocalAddr());
+    dataElement(xsw, URI, "auth-type", req.getAuthType());
+    dataElement(xsw, URI, "character-encoding", req.getCharacterEncoding());
+    dataElement(xsw, URI, "content-length", Integer.toString(req.getContentLength()));
+    dataElement(xsw, URI, "context-path", req.getContextPath());
+    dataElement(xsw, URI, "content-type", req.getContentType());
+    dataElement(xsw, URI, "local-addr", req.getLocalAddr());
     // locale
-    dataElement(dw, URI, "local-name", req.getLocalName());
-    dataElement(dw, URI, "local-port", Integer.toString(req.getLocalPort()));
-    dataElement(dw, URI, "method", req.getMethod());
-    dataElement(dw, URI, "path", safeString(req.getServletPath()) + safeString(req.getPathInfo()));
-    dataElement(dw, URI, "path-info", req.getPathInfo());
-    dataElement(dw, URI, "path-translated", req.getPathTranslated());    
-    dataElement(dw, URI, "protocol", req.getProtocol());
-    dataElement(dw, URI, "query-string", req.getQueryString());      
-    dataElement(dw, URI, "remote-addr", req.getRemoteAddr());
-    dataElement(dw, URI, "remote-host", req.getRemoteHost());
-    dataElement(dw, URI, "remote-port", Integer.toString(req.getRemotePort()));
-    dataElement(dw, URI, "remote-user", req.getRemoteUser());
-    dataElement(dw, URI, "requested-session-id", req.getRequestedSessionId());
-    dataElement(dw, URI, "request-URI", req.getRequestURI());
-    dataElement(dw, URI, "request-url", req.getRequestURL().toString());
-    dataElement(dw, URI, "scheme", req.getScheme());
-    dataElement(dw, URI, "server-name", req.getServerName());
-    dataElement(dw, URI, "server-port", Integer.toString(req.getServerPort()));
-    dataElement(dw, URI, "servlet-path", req.getServletPath());
+    dataElement(xsw, URI, "local-name", req.getLocalName());
+    dataElement(xsw, URI, "local-port", Integer.toString(req.getLocalPort()));
+    dataElement(xsw, URI, "method", req.getMethod());
+    dataElement(xsw, URI, "path", safeString(req.getServletPath()) + safeString(req.getPathInfo()));
+    dataElement(xsw, URI, "path-info", req.getPathInfo());
+    dataElement(xsw, URI, "path-translated", req.getPathTranslated());    
+    dataElement(xsw, URI, "protocol", req.getProtocol());
+    dataElement(xsw, URI, "query-string", req.getQueryString());      
+    dataElement(xsw, URI, "remote-addr", req.getRemoteAddr());
+    dataElement(xsw, URI, "remote-host", req.getRemoteHost());
+    dataElement(xsw, URI, "remote-port", Integer.toString(req.getRemotePort()));
+    dataElement(xsw, URI, "remote-user", req.getRemoteUser());
+    dataElement(xsw, URI, "requested-session-id", req.getRequestedSessionId());
+    dataElement(xsw, URI, "request-URI", req.getRequestURI());
+    dataElement(xsw, URI, "request-url", req.getRequestURL().toString());
+    dataElement(xsw, URI, "scheme", req.getScheme());
+    dataElement(xsw, URI, "server-name", req.getServerName());
+    dataElement(xsw, URI, "server-port", Integer.toString(req.getServerPort()));
+    dataElement(xsw, URI, "servlet-path", req.getServletPath());
     // userPrincipal
-    dataElement(dw, URI, "is-secure", Boolean.toString(req.isSecure()));
-    dataElement(dw, URI, "is-requested-session-id-from-cookie", Boolean.toString(req.isRequestedSessionIdFromCookie()));
-    dataElement(dw, URI, "is-requested-session-id-from-url", Boolean.toString(req.isRequestedSessionIdFromURL()));
-    dataElement(dw, URI, "is-requested-session-id-valid", Boolean.toString(req.isRequestedSessionIdValid()));
+    dataElement(xsw, URI, "is-secure", Boolean.toString(req.isSecure()));
+    dataElement(xsw, URI, "is-requested-session-id-from-cookie", Boolean.toString(req.isRequestedSessionIdFromCookie()));
+    dataElement(xsw, URI, "is-requested-session-id-from-url", Boolean.toString(req.isRequestedSessionIdFromURL()));
+    dataElement(xsw, URI, "is-requested-session-id-valid", Boolean.toString(req.isRequestedSessionIdValid()));
     // isUserInRole
     // login
     // logout
@@ -112,14 +112,15 @@ public class RequestSerializer {
   private void serializeHeaders() throws Exception {
     Enumeration headerNames = req.getHeaderNames();
     if (headerNames.hasMoreElements()) {
-      dw.startElement(URI, "headers");                                   
+      xsw.writeStartElement(URI, "headers");                                   
       while (headerNames.hasMoreElements()) {
         String headerName = (String) headerNames.nextElement();                  
-        dw.startElement(URI, "header", "", createAtts("name", headerName));
-        dw.characters(req.getHeader(headerName));
-        dw.endElement(URI, "header");                               
+        xsw.writeStartElement(URI, "header");
+        xsw.writeAttribute("name", headerName);
+        xsw.writeCharacters(req.getHeader(headerName));
+        xsw.writeEndElement();                               
       }
-      dw.endElement(URI, "headers");
+      xsw.writeEndElement();
     }
   }
   
@@ -127,17 +128,18 @@ public class RequestSerializer {
   private void serializeParameters() throws Exception {
     Enumeration paramNames = req.getParameterNames();
     if (paramNames.hasMoreElements()) {      
-      dw.startElement(URI, "parameters");        
+      xsw.writeStartElement(URI, "parameters");        
       while (paramNames.hasMoreElements()) {
         String paramName = (String) paramNames.nextElement();        
-        dw.startElement(URI, "parameter", "", createAtts("name", paramName));                    
+        xsw.writeStartElement(URI, "parameter");
+        xsw.writeAttribute("name", paramName);
         String[] values = req.getParameterValues(paramName);
         for (String value : values) {
-          dataElement(dw, URI, "value", value);                        
+          dataElement(xsw, URI, "value", value);                        
         }
-        dw.endElement(URI, "parameter");
+        xsw.writeEndElement();
       }
-      dw.endElement(URI, "parameters");
+      xsw.writeEndElement();
     }
   }
 
@@ -145,14 +147,15 @@ public class RequestSerializer {
   private void serializeAttributes() throws Exception {
     Enumeration attrNames = req.getAttributeNames();
     if (attrNames.hasMoreElements()) {
-      dw.startElement(URI, "attributes");                                   
+      xsw.writeStartElement(URI, "attributes");                                   
       while (attrNames.hasMoreElements()) {
         String attrName = (String) attrNames.nextElement();                  
-        dw.startElement(URI, "atribute", "", createAtts("name", attrName));
-        dw.characters(req.getAttribute(attrName).toString());
-        dw.endElement(URI, "attribute");                               
+        xsw.writeStartElement(URI, "atribute");
+        xsw.writeAttribute("name", attrName);
+        xsw.writeCharacters(req.getAttribute(attrName).toString());        
+        xsw.writeEndElement();                               
       }
-      dw.endElement(URI, "attributes");
+      xsw.writeEndElement();
     }
   }
   
@@ -169,23 +172,23 @@ public class RequestSerializer {
       List<FileItem> items = upload.parseRequest(req);
       Iterator<FileItem> iter = items.iterator();
       if (iter.hasNext()) {
-        dw.startElement(URI, "file-uploads");
+        xsw.writeStartElement(URI, "file-uploads");
         while (iter.hasNext()) {
           FileItem item = iter.next();
           if (!item.isFormField()) {
             String fileName = item.getName();
             File file = new File(reposDir, fileName);                      
-            dw.startElement(URI, "file-upload");
-            dw.dataElement(URI, "file-path", file.getAbsolutePath());
-            dw.dataElement(URI, "field-name", item.getFieldName());
-            dw.dataElement(URI, "file-name", item.getName());
-            dw.dataElement(URI, "content-type", item.getContentType());
-            dw.dataElement(URI, "size", Long.toString(item.getSize()));
-            dw.endElement(URI, "file-upload");
+            xsw.writeStartElement(URI, "file-upload");
+            dataElement(xsw, URI, "file-path", file.getAbsolutePath());
+            dataElement(xsw, URI, "field-name", item.getFieldName());
+            dataElement(xsw, URI, "file-name", item.getName());
+            dataElement(xsw, URI, "content-type", item.getContentType());
+            dataElement(xsw, URI, "size", Long.toString(item.getSize()));
+            xsw.writeEndElement();
             item.write(file);
           }
         }
-        dw.endElement(URI, "file-uploads");
+        xsw.writeEndElement();
       }
     }
   }
@@ -193,57 +196,54 @@ public class RequestSerializer {
   @SuppressWarnings("rawtypes")
   private void serializeSession() throws Exception {
     HttpSession session = req.getSession();
-    dw.startElement(URI, "session");
-    dw.dataElement(URI, "creation-time", getXsDateTimeString(new Date(session.getCreationTime())));
-    dw.dataElement(URI, "id", session.getId());
-    dw.dataElement(URI, "last-accessed-time", getXsDateTimeString(new Date(session.getLastAccessedTime())));
-    dw.dataElement(URI, "max-inactive-interval", Integer.toString(session.getMaxInactiveInterval()));
-    dw.dataElement(URI, "is-new", Boolean.toString(session.isNew()));    
+    xsw.writeStartElement(URI, "session");
+    dataElement(xsw, URI, "creation-time", getXsDateTimeString(new Date(session.getCreationTime())));
+    dataElement(xsw, URI, "id", session.getId());
+    dataElement(xsw, URI, "last-accessed-time", getXsDateTimeString(new Date(session.getLastAccessedTime())));
+    dataElement(xsw, URI, "max-inactive-interval", Integer.toString(session.getMaxInactiveInterval()));
+    dataElement(xsw, URI, "is-new", Boolean.toString(session.isNew()));    
     Enumeration attrNames = session.getAttributeNames();
     if (attrNames.hasMoreElements()) {
-      dw.startElement(URI, "attributes");                                   
+      xsw.writeStartElement(URI, "attributes");                                   
       while (attrNames.hasMoreElements()) {
         String attrName = (String) attrNames.nextElement();                  
-        dw.startElement(URI, "atribute", "", createAtts("name", attrName));
-        dw.characters(session.getAttribute(attrName).toString());
-        dw.endElement(URI, "attribute");                               
+        xsw.writeStartElement(URI, "atribute");
+        xsw.writeAttribute("name", attrName);
+        xsw.writeCharacters(session.getAttribute(attrName).toString());
+        xsw.writeEndElement();                               
       }
-      dw.endElement(URI, "attributes");
+      xsw.writeEndElement();
     }    
-    dw.endElement(URI, "session");
+    xsw.writeEndElement();
   }
   
   private void serializeCookies() throws Exception {
     Cookie[] cookies = req.getCookies();
     if (cookies != null && cookies.length > 0) {
-      dw.startElement(URI, "cookies");      
+      xsw.writeStartElement(URI, "cookies");      
       for (Cookie cookie : cookies) {
-        dw.startElement(URI, "cookie");
-        dataElement(dw, URI, "comment", cookie.getComment());
-        dataElement(dw, URI, "domain", cookie.getDomain());
-        dataElement(dw, URI, "max-age", Integer.toString(cookie.getMaxAge()));
-        dataElement(dw, URI, "name", cookie.getName());
-        dataElement(dw, URI, "path", cookie.getPath());
-        dataElement(dw, URI, "is-secure", Boolean.toString(cookie.getSecure()));
-        dataElement(dw, URI, "value", cookie.getValue());
-        dataElement(dw, URI, "version", Integer.toString(cookie.getVersion()));        
-        dw.endElement(URI, "cookie");
+        xsw.writeStartElement(URI, "cookie");
+        dataElement(xsw, URI, "comment", cookie.getComment());
+        dataElement(xsw, URI, "domain", cookie.getDomain());
+        dataElement(xsw, URI, "max-age", Integer.toString(cookie.getMaxAge()));
+        dataElement(xsw, URI, "name", cookie.getName());
+        dataElement(xsw, URI, "path", cookie.getPath());
+        dataElement(xsw, URI, "is-secure", Boolean.toString(cookie.getSecure()));
+        dataElement(xsw, URI, "value", cookie.getValue());
+        dataElement(xsw, URI, "version", Integer.toString(cookie.getVersion()));        
+        xsw.writeEndElement();
       }      
-      dw.endElement(URI, "cookies");                
+      xsw.writeEndElement();                
     }
   }
   
-  private void dataElement(DataWriter dw, String URI, String localName, String text) throws SAXException {
+  private void dataElement(XMLStreamWriter xsw, String uri, String localName, String text) throws XMLStreamException {
     if (StringUtils.isBlank(text)) {
       return;
     }    
-    dw.dataElement(URI, localName, text);    
-  }
-  
-  private Attributes createAtts(String name, String value) {
-    AttributesImpl atts = new AttributesImpl();
-    atts.addAttribute("", "name", "name", "CDATA", value);
-    return atts;
+    xsw.writeStartElement(uri, localName);
+    xsw.writeCharacters(text);
+    xsw.writeEndElement();        
   }
   
   private String safeString(String str) {

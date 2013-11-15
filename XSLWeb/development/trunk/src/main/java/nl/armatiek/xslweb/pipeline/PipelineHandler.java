@@ -45,12 +45,13 @@ public class PipelineHandler implements ContentHandler {
   @Override
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {    
     if (StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_PIPELINE)) {
-      if (localName.equals("transformer")) {
+      if (localName.equals("transformer")) {         
         String xslPath = getAttribute(atts, "xsl-path", null);
         if (StringUtils.isBlank(xslPath)) {
           throw new SAXException("Transformer step must have an attribute \"xsl-path\"");
-        }        
-        pipelineSteps.add(new TransformerStep(xslPath));
+        }
+        String name = getAttribute(atts, "name", "transformer-" + Integer.toString(pipelineSteps.size()+1));        
+        pipelineSteps.add(new TransformerStep(xslPath, name));
       } else if (localName.equals("pipeline")) {
       } else {
         throw new SAXException(String.format("Transformer step \"%s\" not supported", localName));

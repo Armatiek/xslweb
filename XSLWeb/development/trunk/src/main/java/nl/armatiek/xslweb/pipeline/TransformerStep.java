@@ -4,8 +4,9 @@ public class TransformerStep extends PipelineStep {
   
   private String xslPath;
   
-  public TransformerStep(String xslPath) {
-    this.xslPath = xslPath;
+  public TransformerStep(String xslPath, String name) {
+    super(name);
+    this.xslPath = xslPath;    
   }
   
   public String getXslPath() {

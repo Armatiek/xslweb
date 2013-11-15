@@ -42,7 +42,8 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FUNCTIONS     = "http://www.armatiek.com/xslweb/functions";
   public final static String NAMESPACEURI_XSLWEB_REQUEST       = "http://www.armatiek.com/xslweb/request";
   public final static String NAMESPACEURI_XSLWEB_RESPONSE      = "http://www.armatiek.com/xslweb/response";
-  public final static String NAMESPACEURI_XSLWEB_PIPELINE      = "http://www.armatiek.com/xslweb/pipeline";
+  public final static String NAMESPACEURI_XSLWEB_PIPELINE      = "http://www.armatiek.com/xslweb/pipeline";  
+  public final static String NAMESPACEURI_EXPATH_FILE          = "http://expath.org/ns/file";
     
   public final static String MIMETYPE_XML                      = "text/xml";
   public final static String MIMETYPE_HTML                     = "text/html";
@@ -65,5 +66,6 @@ public class Definitions {
   public final static String MIMETYPE_TEXTPLAIN                = "text/plain";
   
   public final static String PROPERTYNAME_DEVELOPMENTMODE      = "xslweb.developmentmode";
+  public final static String PROPERTYNAME_UPLOAD_MAX_SIZE      = "xslweb.uploadmaxsize";
   
 }

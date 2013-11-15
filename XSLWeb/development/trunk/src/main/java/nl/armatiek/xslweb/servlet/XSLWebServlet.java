@@ -1,8 +1,10 @@
 package nl.armatiek.xslweb.servlet;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -16,7 +18,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.ErrorListener;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Templates;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.sax.TransformerHandler;
@@ -33,8 +38,8 @@ import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.pipeline.PipelineStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
-import nl.armatiek.xslweb.saxon.functions.ResponseHeader;
-import nl.armatiek.xslweb.saxon.functions.ResponseStatus;
+import nl.armatiek.xslweb.saxon.functions.response.ResponseHeader;
+import nl.armatiek.xslweb.saxon.functions.response.ResponseStatus;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -48,6 +53,7 @@ import org.expath.zip.saxon.XmlEntryFunction;
 import org.expath.zip.saxon.ZipFileFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.ContentHandler;
 
 public class XSLWebServlet extends HttpServlet {
   
@@ -56,23 +62,16 @@ public class XSLWebServlet extends HttpServlet {
   private static final Logger logger = LoggerFactory.getLogger(XSLWebServlet.class);
   
   private Configuration configuration;
-  private File homeDir;
-  //private FileSystemManager fsManager;
-  //private VfsResolver vfsResolver;
+  private File homeDir;  
   private boolean isDevelopmentMode;
+  private File debugDir;
   private File requestDebugFile;
   private File responseDebugFile;
   
   public void init() throws ServletException {
     super.init();
-    try {
-      //fsManager = VFS.getManager();
-      // ((DefaultFileSystemManager) fsManager).setCacheStrategy(CacheStrategy.ON_CALL);
-      //vfsResolver = new VfsResolver(fsManager);
-      
-      configuration = new Configuration();
-      // configuration.setURIResolver();
-      // configuration.setOutputURIResolver();      
+    try {            
+      configuration = new Configuration();           
       configuration.setXIncludeAware(true);
       
       configuration.registerExtensionFunction(new ResponseHeader());
@@ -90,9 +89,9 @@ public class XSLWebServlet extends HttpServlet {
   
       isDevelopmentMode = Config.getInstance().isDevelopmentMode();
       if (isDevelopmentMode) {
-        File debugDir = new File(Config.getInstance().getHomeDir(), "debug");
-        requestDebugFile = new File(debugDir, "request.xml");
-        responseDebugFile = new File(debugDir, "response.xml");
+        this.debugDir = new File(Config.getInstance().getHomeDir(), "debug");
+        this.requestDebugFile = new File(debugDir, "request.xml");
+        this.responseDebugFile = new File(debugDir, "response.xml");
         if (!debugDir.exists()) {
           debugDir.mkdirs();
         } else {      
@@ -134,100 +133,106 @@ public class XSLWebServlet extends HttpServlet {
     }
   }
   
+  public static void serializeXMLToFile(String xml, File file) throws Exception {
+    TransformerFactory factory = TransformerFactory.newInstance();
+    Transformer transformer = factory.newTransformer();
+    transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+    transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+    transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+    transformer.setOutputProperty(OutputKeys.INDENT, "yes");    
+    transformer.transform(new StreamSource(new StringReader(xml)), new StreamResult(file));
+  }
+  
   private void executeRequest(HttpServletRequest req, HttpServletResponse resp) throws Exception {        
-    String requestXML = RequestSerializer.serializeToXML(req);
-    
-    if (isDevelopmentMode) {      
-      FileUtils.deleteQuietly(requestDebugFile);
-      FileUtils.deleteQuietly(responseDebugFile);
-      FileUtils.writeStringToFile(requestDebugFile, requestXML, "UTF-8");
-    }
-    
-    ErrorListener errorListener = new TransformationErrorListener(resp);
-    // URIResolver uriResolver = new VfsUriResolver(vfsResolver);
-    // OutputURIResolver outputURIResolver = new VfsOutputUriResolver(vfsResolver);
-    MessageWarner messageWarner = new MessageWarner();
-    
-    Templates controllerTemplates = TemplatesCache.tryTemplatesCache(Config.getInstance().getControllerXslPath(), errorListener, configuration);    
-    Controller controllerTransformer = (Controller) controllerTemplates.newTransformer();
-    setPropertyParameters(controllerTransformer);
-    controllerTransformer.setErrorListener(errorListener);
-    // controllerTransformer.setURIResolver(uriResolver);
-    // controllerTransformer.setOutputURIResolver(outputURIResolver);    
-    controllerTransformer.setMessageEmitter(messageWarner);
-                             
-    PipelineHandler pipelineHandler = new PipelineHandler();
-    controllerTransformer.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(pipelineHandler));
-    
-    SAXTransformerFactory stf = (SAXTransformerFactory) net.sf.saxon.TransformerFactoryImpl.newInstance();
-    stf.setErrorListener(errorListener);
-    // stf.setURIResolver(uriResolver);
-    
-    //TransformerHandler firstHandler = null;
-    //TransformerHandler newHandler = null;
-    //TransformerHandler currentHandler = null;    
-    // Templates templates = null;
-    List<PipelineStep> steps = pipelineHandler.getPipelineSteps();
-    if (steps == null) {
-      resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Resource not found");
-    }
-    steps.add(new TransformerStep("system/response.xsl"));
-    
-    /*
-    for (PipelineStep step : steps) {
-      if (step instanceof TransformerStep) {
-        templates = TemplatesCache.tryTemplatesCache(new File(homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath(), errorListener, configuration);        
-        newHandler = stf.newTransformerHandler(templates);        
-        if (firstHandler == null) {
-          firstHandler = newHandler;
-        }
-        if (currentHandler != null) {
-          currentHandler.setResult(new SAXResult(newHandler));
-        }        
-        currentHandler = newHandler;
-      }                        
-    }
-    */ 
-    
-    Templates templates = null;
-    TransformerHandler handler = null;
-    Controller transformer = null;
-    
-    List<TransformerHandler> handlers = new ArrayList<TransformerHandler>();
-    for (PipelineStep step : steps) {
-      templates = TemplatesCache.tryTemplatesCache(new File(homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath(), errorListener, configuration);      
-      handler = stf.newTransformerHandler(templates);
-      transformer = (Controller) handler.getTransformer();
-      setPropertyParameters(transformer);
-      transformer.setErrorListener(errorListener);
-      transformer.setMessageEmitter(messageWarner);
-      if (!handlers.isEmpty()) {
-        handlers.get(handlers.size()-1).setResult(new SAXResult(handler));
+    RequestSerializer requestSerializer = new RequestSerializer(req);    
+    try {    
+      String requestXML = requestSerializer.serializeToXML();
+      
+      if (isDevelopmentMode) {
+        FileUtils.cleanDirectory(debugDir);        
+        serializeXMLToFile(requestXML, requestDebugFile);
+        // FileUtils.writeStringToFile(requestDebugFile, requestXML, "UTF-8");
       }
-      handlers.add(handler); 
+      
+      ErrorListener errorListener = new TransformationErrorListener(resp);      
+      MessageWarner messageWarner = new MessageWarner();
+      
+      Templates controllerTemplates = TemplatesCache.tryTemplatesCache(Config.getInstance().getControllerXslPath(), errorListener, configuration);    
+      Controller controllerTransformer = (Controller) controllerTemplates.newTransformer();
+      setPropertyParameters(controllerTransformer);
+      controllerTransformer.setErrorListener(errorListener);        
+      controllerTransformer.setMessageEmitter(messageWarner);
+                               
+      PipelineHandler pipelineHandler = new PipelineHandler();
+      controllerTransformer.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(pipelineHandler));
+      
+      SAXTransformerFactory stf = (SAXTransformerFactory) net.sf.saxon.TransformerFactoryImpl.newInstance();
+      stf.setErrorListener(errorListener);
+      
+      List<PipelineStep> steps = pipelineHandler.getPipelineSteps();
+      if (steps == null) {
+        resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Resource not found");
+      }
+      steps.add(new TransformerStep("system/response.xsl", "response"));
+                   
+      Templates templates = null;
+      TransformerHandler handler = null;
+      Controller transformer = null;      
+      List<OutputStream> debugOutputStreams = null;
+      if (isDevelopmentMode) {
+        debugOutputStreams = new ArrayList<OutputStream>();
+      }
+      
+      try {
+        List<TransformerHandler> handlers = new ArrayList<TransformerHandler>();
+        String stepName = null;
+        for (PipelineStep step : steps) {
+          templates = TemplatesCache.tryTemplatesCache(new File(homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath(), errorListener, configuration);      
+          handler = stf.newTransformerHandler(templates);
+          transformer = (Controller) handler.getTransformer();          
+          setPropertyParameters(transformer);
+          transformer.setErrorListener(errorListener);
+          transformer.setMessageEmitter(messageWarner);
+          if (!handlers.isEmpty()) {
+            TransformerHandler prevHandler = handlers.get(handlers.size()-1);
+            ContentHandler contentHandler;
+            if (isDevelopmentMode) {              
+              OutputStream os = new BufferedOutputStream(new FileOutputStream(new File(this.debugDir, stepName + ".xml")));
+              debugOutputStreams.add(os);
+              contentHandler = new DebugContentHandler(handler, os, configuration, prevHandler.getTransformer().getOutputProperties());              
+            } else {
+              contentHandler = handler;
+            }            
+            prevHandler.setResult(new SAXResult(contentHandler));
+          }
+          handlers.add(handler);
+          stepName = step.getName();
+        }
+                
+        OutputStream os = (Config.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : resp.getOutputStream();             
+        handler.setResult(new StreamResult(os));
+        transformer.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response", resp);
+                
+        TransformerHandler lastHandler = handlers.get(handlers.size()-2);
+        transformer.setOutputProperties(lastHandler.getTransformer().getOutputProperties());            
+        transformer.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(handlers.get(0)));
+        
+        if (isDevelopmentMode) {
+          byte[] body = ((ByteArrayOutputStream) os).toByteArray();
+          FileUtils.writeByteArrayToFile(this.responseDebugFile, body);
+          IOUtils.copy(new ByteArrayInputStream(body), resp.getOutputStream());
+        }
+        
+      } finally {
+        if (debugOutputStreams != null) {
+          for (OutputStream os : debugOutputStreams) {
+            os.close();
+          }
+        }        
+      }      
+    } finally {
+      requestSerializer.close();
     }
-            
-    OutputStream os = (Config.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : resp.getOutputStream();            
-    // newHandler.setResult(new SAXResult(new ResponseHandler(resp, os, currentHandler.getTransformer().getOutputProperties())));
-    handler.setResult(new StreamResult(os));
-    transformer.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response", resp);
-    TransformerHandler lastHandler = handlers.get(handlers.size()-2);
-    transformer.setOutputProperties(lastHandler.getTransformer().getOutputProperties());
-    
-    //Controller stepsTransformer = (Controller) stf.newTransformer();
-    //setPropertyParameters(stepsTransformer);
-    //stepsTransformer.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response", resp);
-    //stepsTransformer.setErrorListener(errorListener);    
-    // stepsTransformer.setURIResolver(uriResolver);
-    // stepsTransformer.setOutputURIResolver(outputURIResolver);    
-    //stepsTransformer.setMessageEmitter(messageWarner);
-    transformer.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(handlers.get(0)));
-    
-    if (isDevelopmentMode) {
-      byte[] body = ((ByteArrayOutputStream) os).toByteArray();
-      FileUtils.writeByteArrayToFile(responseDebugFile, body);
-      IOUtils.copy(new ByteArrayInputStream(body), resp.getOutputStream());
-    }    
   }
   
 }
