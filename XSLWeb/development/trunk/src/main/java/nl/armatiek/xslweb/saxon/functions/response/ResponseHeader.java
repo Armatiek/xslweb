@@ -1,6 +1,6 @@
-package nl.armatiek.xslweb.saxon.functions.expath.file;
+package nl.armatiek.xslweb.saxon.functions.response;
 
-import java.io.File;
+import javax.servlet.http.HttpServletResponse;
 
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
@@ -10,15 +10,15 @@ import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
+import net.sf.saxon.value.IntegerValue;
 import net.sf.saxon.value.SequenceType;
-import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 
-public class IsFile extends ExtensionFunctionDefinition {
+public class ResponseHeader extends ExtensionFunctionDefinition {
 
   private static final long serialVersionUID = 1L;
   
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "is-file");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "header");
 
   @Override
   public StructuredQName getFunctionQName() {
@@ -27,17 +27,17 @@ public class IsFile extends ExtensionFunctionDefinition {
 
   @Override
   public int getMinimumNumberOfArguments() {
-    return 1;
+    return 2;
   }
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 1;
+    return 2;
   }
 
   @Override
   public SequenceType[] getArgumentTypes() {    
-    return new SequenceType[] { SequenceType.SINGLE_STRING };
+    return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.SINGLE_STRING };
   }
 
   @Override
@@ -47,21 +47,22 @@ public class IsFile extends ExtensionFunctionDefinition {
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    
-    return new IsFileCall();
+    return new ResponseHeaderCall();
   }
   
-  private static class IsFileCall extends FileExtensionFunctionCall {
+  private static class ResponseHeaderCall extends ExtensionFunctionCall {
         
     private static final long serialVersionUID = 1L;
 
-    @SuppressWarnings("rawtypes")
     public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
-      try {         
-        String path = ((StringValue) arguments[0].next()).getStringValue();        
-        File file = getFile(path);                                       
-        return SingletonIterator.makeIterator(BooleanValue.get(file.isFile()));        
+      try {                
+        String name = ((IntegerValue) arguments[0].next()).getStringValue();
+        String value = ((IntegerValue) arguments[1].next()).getStringValue();       
+        HttpServletResponse response = (HttpServletResponse) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response");        
+        response.setHeader(name, value);                
+        return SingletonIterator.makeIterator(BooleanValue.get(true));        
       } catch (Exception e) {
-        throw new XPathException(e);
+        throw new XPathException("Error setting HTTP response header", e);
       }
     } 
   }
