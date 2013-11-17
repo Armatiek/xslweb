@@ -59,7 +59,7 @@ public class ResolvePath extends ExtensionFunctionDefinition {
         String relPath = ((StringValue) arguments[0].next()).getStringValue();                        
         String fullPath = new File(System.getProperty("user.dir"), relPath).toString();                           
         return SingletonIterator.makeIterator(new StringValue(fullPath));
-      } catch (Exception e) {
+      } catch (Exception e) {        
         throw new XPathException(e);
       }
     } 

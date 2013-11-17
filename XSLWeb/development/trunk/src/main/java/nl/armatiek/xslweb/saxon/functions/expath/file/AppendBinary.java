@@ -39,7 +39,7 @@ public class AppendBinary extends ExtensionFunctionDefinition {
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 3;
+    return 2;
   }
 
   @Override
