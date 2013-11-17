@@ -1,7 +1,6 @@
 package nl.armatiek.xslweb.saxon.functions.expath.file;
 
 import java.io.File;
-import java.net.URI;
 
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
@@ -11,8 +10,8 @@ import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
-import net.sf.saxon.value.IntegerValue;
 import net.sf.saxon.value.SequenceType;
+import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 
 public class Exists extends ExtensionFunctionDefinition {
@@ -51,15 +50,15 @@ public class Exists extends ExtensionFunctionDefinition {
     return new ExistsCall();
   }
   
-  private static class ExistsCall extends ExtensionFunctionCall {
+  private static class ExistsCall extends FileExtensionFunctionCall {
         
     private static final long serialVersionUID = 1L;
 
     @SuppressWarnings("rawtypes")
     public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
       try {                
-        String path = ((IntegerValue) arguments[0].next()).getStringValue();        
-        File file = (path.startsWith("file:")) ? new File(new URI(path)) : new File(path);                                       
+        String path = ((StringValue) arguments[0].next()).getStringValue();        
+        File file = getFile(path);                                       
         return SingletonIterator.makeIterator(BooleanValue.get(file.exists()));        
       } catch (Exception e) {
         throw new XPathException(e);

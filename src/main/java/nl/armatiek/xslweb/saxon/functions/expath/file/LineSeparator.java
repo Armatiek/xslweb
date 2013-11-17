@@ -1,7 +1,5 @@
 package nl.armatiek.xslweb.saxon.functions.expath.file;
 
-import java.io.File;
-
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
@@ -9,16 +7,15 @@ import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.SingletonIterator;
-import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 
-public class IsFile extends ExtensionFunctionDefinition {
+public class LineSeparator extends ExtensionFunctionDefinition {
 
   private static final long serialVersionUID = 1L;
   
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "is-file");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "line-separator");
 
   @Override
   public StructuredQName getFunctionQName() {
@@ -42,27 +39,21 @@ public class IsFile extends ExtensionFunctionDefinition {
 
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
-    return SequenceType.SINGLE_BOOLEAN;
+    return SequenceType.SINGLE_STRING;
   }
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    
-    return new IsFileCall();
+    return new LineSeparatorCall();
   }
   
-  private static class IsFileCall extends FileExtensionFunctionCall {
+  private static class LineSeparatorCall extends FileExtensionFunctionCall {
         
     private static final long serialVersionUID = 1L;
 
     @SuppressWarnings("rawtypes")
-    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
-      try {         
-        String path = ((StringValue) arguments[0].next()).getStringValue();        
-        File file = getFile(path);                                       
-        return SingletonIterator.makeIterator(BooleanValue.get(file.isFile()));        
-      } catch (Exception e) {
-        throw new XPathException(e);
-      }
+    public SequenceIterator<StringValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {                                                                             
+      return SingletonIterator.makeIterator(new StringValue(System.getProperty("line.separator")));             
     } 
   }
 }
