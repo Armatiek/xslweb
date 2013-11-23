@@ -20,11 +20,11 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
 
 import org.apache.commons.io.FileUtils;
 
-public class Copy extends FileExtensionFunctionDefinition {
+public class Move extends FileExtensionFunctionDefinition {
 
   private static final long serialVersionUID = 1L;
   
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "copy");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "move");
 
   @Override
   public StructuredQName getFunctionQName() {
@@ -53,10 +53,10 @@ public class Copy extends FileExtensionFunctionDefinition {
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    
-    return new CopyCall();
+    return new MoveCall();
   }
   
-  private static class CopyCall extends FileExtensionFunctionCall {
+  private static class MoveCall extends FileExtensionFunctionCall {
         
     private static final long serialVersionUID = 1L;
     
@@ -80,16 +80,16 @@ public class Copy extends FileExtensionFunctionDefinition {
           throw new FILE0004Exception(targetDir);
         }        
         if (sourceFile.isFile()) {          
-          if (!targetFile.exists() || targetFile.isFile()) {
-            FileUtils.copyFile(sourceFile, targetFile);
-          } else if (targetFile.isDirectory()) {
-            FileUtils.copyFileToDirectory(sourceFile, targetFile);
+          if (!targetFile.exists() || targetFile.isFile()) {            
+            FileUtils.moveFile(sourceFile, targetFile);
+          } else if (targetFile.isDirectory()) {            
+            FileUtils.moveFileToDirectory(sourceFile, targetFile, false);
           }                    
         } else if (sourceFile.isDirectory()) {          
-          if (!targetFile.exists()) {            
-            FileUtils.copyDirectory(sourceFile, targetFile);           
+          if (!targetFile.exists()) {                        
+            FileUtils.moveDirectory(sourceFile, targetFile);           
           } else if (targetFile.isDirectory()) {
-            FileUtils.copyDirectoryToDirectory(sourceFile, targetFile);
+            FileUtils.moveDirectoryToDirectory(sourceFile, targetFile, false);
           }          
         }        
         return SingletonIterator.makeIterator(BooleanValue.TRUE);       

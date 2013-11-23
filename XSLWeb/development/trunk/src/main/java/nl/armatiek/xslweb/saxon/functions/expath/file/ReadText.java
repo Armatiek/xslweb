@@ -16,6 +16,7 @@ import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0004Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0005Exception;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
 
 import org.apache.commons.io.FileUtils;
 
@@ -81,7 +82,7 @@ public class ReadText extends ExtensionFunctionDefinition {
         }                
         return SingletonIterator.makeIterator(new StringValue(value));               
       } catch (Exception e) {
-         throw new XPathException(e);
+         throw new FILE9999Exception(e);
       }
     } 
   }

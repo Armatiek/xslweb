@@ -24,7 +24,6 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.xmlbeans.XmlDateTime;
 
 public class RequestSerializer {
@@ -238,12 +237,16 @@ public class RequestSerializer {
   }
   
   private void dataElement(XMLStreamWriter xsw, String uri, String localName, String text) throws XMLStreamException {
-    if (StringUtils.isBlank(text)) {
+    if (text == null) {
       return;
-    }    
-    xsw.writeStartElement(uri, localName);
-    xsw.writeCharacters(text);
-    xsw.writeEndElement();        
+    }           
+    if (text.equals("")) {
+      xsw.writeEmptyElement(uri, localName);
+    } else {
+      xsw.writeStartElement(uri, localName);
+      xsw.writeCharacters(text);
+      xsw.writeEndElement();
+    }
   }
   
   private String safeString(String str) {

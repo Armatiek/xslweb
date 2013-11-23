@@ -52,9 +52,22 @@ public class PipelineHandler implements ContentHandler {
         }
         String name = getAttribute(atts, "name", "transformer-" + Integer.toString(pipelineSteps.size()+1));        
         pipelineSteps.add(new TransformerStep(xslPath, name));
+      } else if (localName.equals("parameter")) {
+        if (pipelineSteps.isEmpty()) {
+          throw new SAXException("Element \"parameter\" not expected at this location in pipeline definition");
+        }
+        TransformerStep step = (TransformerStep) pipelineSteps.get(pipelineSteps.size()-1);
+        String name = getAttribute(atts, "name", null);
+        if (StringUtils.isBlank(name)) {
+          throw new SAXException("Element \"parameter\" must have an attribute \"name\"");
+        }        
+        step.addParameter(new StylesheetParameter(
+            getAttribute(atts, "uri", null),
+            name,
+            getAttribute(atts, "value", "")));               
       } else if (localName.equals("pipeline")) {
       } else {
-        throw new SAXException(String.format("Transformer step \"%s\" not supported", localName));
+        throw new SAXException(String.format("Pipeline element \"%s\" not supported", localName));
       }
     };            
   }

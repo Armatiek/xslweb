@@ -4,22 +4,21 @@ import java.io.File;
 
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
-import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.om.Item;
 import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.EmptyIterator;
+import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0004Exception;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
 
 import org.apache.commons.io.FileUtils;
 
-public class Delete extends ExtensionFunctionDefinition {
+public class Delete extends FileExtensionFunctionDefinition {
 
   private static final long serialVersionUID = 1L;
   
@@ -47,7 +46,7 @@ public class Delete extends ExtensionFunctionDefinition {
 
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
-    return SequenceType.EMPTY_SEQUENCE;
+    return SequenceType.SINGLE_BOOLEAN;
   }
 
   @Override
@@ -60,7 +59,7 @@ public class Delete extends ExtensionFunctionDefinition {
     private static final long serialVersionUID = 1L;
     
     @SuppressWarnings("rawtypes")
-    public SequenceIterator<Item> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
+    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
       try {         
         File file = getFile(((StringValue) arguments[0].next()).getStringValue());
         boolean recursive = false;
@@ -71,16 +70,16 @@ public class Delete extends ExtensionFunctionDefinition {
           throw new FILE0001Exception(file);          
         }
         if (file.isDirectory() && !recursive && file.list().length > 0) {
-          throw new FILE0004Exception(file); // TODO error message
+          throw new FILE0004Exception(file, String.format("The specified path points to a non-empty directory (%s)", file.getAbsolutePath()));
         }        
         if (file.isDirectory()) {
           FileUtils.deleteDirectory(file);                  
         } else {
           file.delete();
         }
-        return EmptyIterator.emptyIterator();       
+        return SingletonIterator.makeIterator(BooleanValue.TRUE);       
       } catch (Exception e) {
-        throw new XPathException(e);
+        throw new FILE9999Exception(e);
       }
     } 
   }

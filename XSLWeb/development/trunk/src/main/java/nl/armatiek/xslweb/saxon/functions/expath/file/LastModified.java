@@ -18,6 +18,7 @@ import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
 
 public class LastModified extends ExtensionFunctionDefinition {
 
@@ -61,9 +62,8 @@ public class LastModified extends ExtensionFunctionDefinition {
     
     @SuppressWarnings("rawtypes")
     public SequenceIterator<DateTimeValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
-      try {         
-        String path = ((StringValue) arguments[0].next()).getStringValue();        
-        File file = getFile(path);
+      try {                        
+        File file = getFile(((StringValue) arguments[0].next()).getStringValue());
         if (!file.exists()) {
           throw new FILE0001Exception(file);
         }        
@@ -71,7 +71,7 @@ public class LastModified extends ExtensionFunctionDefinition {
         cal.setTime(new Date(file.lastModified()));                 
         return SingletonIterator.makeIterator(new DateTimeValue(cal, false));        
       } catch (Exception e) {
-        throw new XPathException(e);
+        throw new FILE9999Exception(e);
       }
     } 
   }

@@ -10,9 +10,12 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -37,12 +40,42 @@ import nl.armatiek.xslweb.configuration.Config;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.pipeline.PipelineStep;
+import nl.armatiek.xslweb.pipeline.StylesheetParameter;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
+import nl.armatiek.xslweb.saxon.functions.expath.file.Append;
+import nl.armatiek.xslweb.saxon.functions.expath.file.AppendBinary;
+import nl.armatiek.xslweb.saxon.functions.expath.file.AppendText;
+import nl.armatiek.xslweb.saxon.functions.expath.file.AppendTextLines;
+import nl.armatiek.xslweb.saxon.functions.expath.file.BaseName;
+import nl.armatiek.xslweb.saxon.functions.expath.file.Copy;
+import nl.armatiek.xslweb.saxon.functions.expath.file.CreateDir;
+import nl.armatiek.xslweb.saxon.functions.expath.file.Delete;
+import nl.armatiek.xslweb.saxon.functions.expath.file.DirName;
+import nl.armatiek.xslweb.saxon.functions.expath.file.DirSeparator;
+import nl.armatiek.xslweb.saxon.functions.expath.file.Exists;
+import nl.armatiek.xslweb.saxon.functions.expath.file.IsDir;
+import nl.armatiek.xslweb.saxon.functions.expath.file.IsFile;
+import nl.armatiek.xslweb.saxon.functions.expath.file.LastModified;
+import nl.armatiek.xslweb.saxon.functions.expath.file.LineSeparator;
+import nl.armatiek.xslweb.saxon.functions.expath.file.Move;
+import nl.armatiek.xslweb.saxon.functions.expath.file.PathSeparator;
+import nl.armatiek.xslweb.saxon.functions.expath.file.PathToNative;
+import nl.armatiek.xslweb.saxon.functions.expath.file.PathToURI;
+import nl.armatiek.xslweb.saxon.functions.expath.file.ReadBinary;
+import nl.armatiek.xslweb.saxon.functions.expath.file.ReadText;
+import nl.armatiek.xslweb.saxon.functions.expath.file.ReadTextLines;
+import nl.armatiek.xslweb.saxon.functions.expath.file.ResolvePath;
+import nl.armatiek.xslweb.saxon.functions.expath.file.Size;
+import nl.armatiek.xslweb.saxon.functions.expath.file.Write;
+import nl.armatiek.xslweb.saxon.functions.expath.file.WriteBinary;
+import nl.armatiek.xslweb.saxon.functions.expath.file.WriteText;
+import nl.armatiek.xslweb.saxon.functions.expath.file.WriteTextLines;
 import nl.armatiek.xslweb.saxon.functions.response.ResponseHeader;
 import nl.armatiek.xslweb.saxon.functions.response.ResponseStatus;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.expath.httpclient.saxon.SendRequestFunction;
 import org.expath.zip.saxon.BinaryEntryFunction;
 import org.expath.zip.saxon.EntriesFunction;
@@ -60,23 +93,57 @@ public class XSLWebServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
   
   private static final Logger logger = LoggerFactory.getLogger(XSLWebServlet.class);
-  
+    
   private Configuration configuration;
   private File homeDir;  
   private boolean isDevelopmentMode;
   private File debugDir;
   private File requestDebugFile;
   private File responseDebugFile;
+  private File staticBaseDir;
+  private Pattern staticContentPattern;
   
   public void init() throws ServletException {
     super.init();
-    try {            
+    try {    
       configuration = new Configuration();           
       configuration.setXIncludeAware(true);
       
       configuration.registerExtensionFunction(new ResponseHeader());
       configuration.registerExtensionFunction(new ResponseStatus());
       
+      /* EXPath File: */
+      configuration.registerExtensionFunction(new Append());
+      configuration.registerExtensionFunction(new AppendBinary());
+      configuration.registerExtensionFunction(new AppendText());
+      configuration.registerExtensionFunction(new AppendTextLines());
+      configuration.registerExtensionFunction(new BaseName());
+      configuration.registerExtensionFunction(new Copy());
+      configuration.registerExtensionFunction(new CreateDir());
+      configuration.registerExtensionFunction(new Delete());
+      configuration.registerExtensionFunction(new DirName());
+      configuration.registerExtensionFunction(new DirSeparator());
+      configuration.registerExtensionFunction(new Exists());
+      configuration.registerExtensionFunction(new IsDir());
+      configuration.registerExtensionFunction(new IsFile());
+      configuration.registerExtensionFunction(new LastModified());
+      configuration.registerExtensionFunction(new LineSeparator());
+      configuration.registerExtensionFunction(new nl.armatiek.xslweb.saxon.functions.expath.file.List());
+      configuration.registerExtensionFunction(new Move());
+      configuration.registerExtensionFunction(new PathSeparator());
+      configuration.registerExtensionFunction(new PathToNative());
+      configuration.registerExtensionFunction(new PathToURI());
+      configuration.registerExtensionFunction(new ReadBinary());
+      configuration.registerExtensionFunction(new ReadText());
+      configuration.registerExtensionFunction(new ReadTextLines());
+      configuration.registerExtensionFunction(new ResolvePath());
+      configuration.registerExtensionFunction(new Size());
+      configuration.registerExtensionFunction(new Write());
+      configuration.registerExtensionFunction(new WriteBinary());
+      configuration.registerExtensionFunction(new WriteText());
+      configuration.registerExtensionFunction(new WriteTextLines());
+
+      /* EXPath Zip: */
       configuration.registerExtensionFunction(new EntriesFunction());
       configuration.registerExtensionFunction(new UpdateEntriesFunction());
       configuration.registerExtensionFunction(new ZipFileFunction());
@@ -85,6 +152,7 @@ public class XSLWebServlet extends HttpServlet {
       configuration.registerExtensionFunction(new TextEntryFunction());
       configuration.registerExtensionFunction(new XmlEntryFunction());
       
+      /* EXPath HttpClient: */
       configuration.registerExtensionFunction(new SendRequestFunction());
   
       isDevelopmentMode = Config.getInstance().isDevelopmentMode();
@@ -102,6 +170,11 @@ public class XSLWebServlet extends HttpServlet {
       
       homeDir = Config.getInstance().getHomeDir();
       
+      staticBaseDir = new File(homeDir, "static");
+      
+      String staticContentRegex = Config.getInstance().getProperties().getProperty(Definitions.PROPERTYNAME_STATICCONTENTPATTERN);
+      staticContentPattern = Pattern.compile(staticContentRegex, Pattern.CASE_INSENSITIVE);
+      
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new ServletException(e);
@@ -111,7 +184,13 @@ public class XSLWebServlet extends HttpServlet {
   @Override
   protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     try {
-      executeRequest(req, resp);
+      String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();
+      if (staticContentPattern.matcher(path).matches()) {
+        RequestDispatcher rq = req.getRequestDispatcher(new File(staticBaseDir, path).getAbsolutePath()); 
+        rq.forward(req, resp);
+      } else {      
+        executeRequest(req, resp);
+      }
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
       if (isDevelopmentMode) {              
@@ -133,6 +212,19 @@ public class XSLWebServlet extends HttpServlet {
     }
   }
   
+  private void setPipelineParameters(Controller controller, TransformerStep step) throws IOException {
+    Iterator<StylesheetParameter> params = step.getStylesheetParameters();
+    if (params == null) {
+      return;
+    }
+    while (params.hasNext()) {
+      StylesheetParameter param = params.next();
+      controller.setParameter(
+          new StructuredQName("", param.getUri(), param.getName()),
+          new StringValue(param.getValue()));
+    } 
+  }
+  
   public static void serializeXMLToFile(String xml, File file) throws Exception {
     TransformerFactory factory = TransformerFactory.newInstance();
     Transformer transformer = factory.newTransformer();
@@ -151,7 +243,6 @@ public class XSLWebServlet extends HttpServlet {
       if (isDevelopmentMode) {
         FileUtils.cleanDirectory(debugDir);        
         serializeXMLToFile(requestXML, requestDebugFile);
-        // FileUtils.writeStringToFile(requestDebugFile, requestXML, "UTF-8");
       }
       
       ErrorListener errorListener = new TransformationErrorListener(resp);      
@@ -191,6 +282,7 @@ public class XSLWebServlet extends HttpServlet {
           handler = stf.newTransformerHandler(templates);
           transformer = (Controller) handler.getTransformer();          
           setPropertyParameters(transformer);
+          setPipelineParameters(transformer, (TransformerStep) step);
           transformer.setErrorListener(errorListener);
           transformer.setMessageEmitter(messageWarner);
           if (!handlers.isEmpty()) {

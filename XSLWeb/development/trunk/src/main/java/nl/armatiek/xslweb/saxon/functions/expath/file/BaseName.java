@@ -61,8 +61,8 @@ public class BaseName extends ExtensionFunctionDefinition {
       if (arguments.length > 1) {
         suffix = ((StringValue) arguments[1].next()).getStringValue();
       }      
-      String baseName;
-      if (path.equals("/") || path.equals("\\")) {
+      String baseName;      
+      if (StringUtils.containsOnly("/\\")) {
         baseName = "";
       } else if (StringUtils.isBlank(path)) {
         baseName = ".";
