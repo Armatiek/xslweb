@@ -66,6 +66,7 @@ public class Definitions {
   public final static String MIMETYPE_TEXTPLAIN                = "text/plain";
   
   public final static String PROPERTYNAME_DEVELOPMENTMODE      = "xslweb.developmentmode";
+  public final static String PROPERTYNAME_STATICCONTENTPATTERN = "xslweb.staticcontentpattern";
   public final static String PROPERTYNAME_UPLOAD_MAX_SIZE      = "xslweb.uploadmaxsize";
   
 }

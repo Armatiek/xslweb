@@ -5,11 +5,11 @@ import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.value.SequenceType;
 import nl.armatiek.xslweb.configuration.Definitions;
 
-public class AppendText extends FileExtensionFunctionDefinition {
+public class WriteText extends FileExtensionFunctionDefinition {
 
   private static final long serialVersionUID = 1L;
   
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "append-text");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "write-text");
 
   @Override
   public StructuredQName getFunctionQName() {
@@ -41,7 +41,7 @@ public class AppendText extends FileExtensionFunctionDefinition {
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    
-    return new WriteTextCall(true);
+    return new WriteTextCall(false);
   }
   
 }

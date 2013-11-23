@@ -1,15 +1,17 @@
 package nl.armatiek.xslweb.saxon.functions.expath.file;
 
+import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.om.StructuredQName;
+import net.sf.saxon.type.AnyItemType;
 import net.sf.saxon.value.SequenceType;
 import nl.armatiek.xslweb.configuration.Definitions;
 
-public class AppendText extends FileExtensionFunctionDefinition {
+public class Write extends FileExtensionFunctionDefinition {
 
   private static final long serialVersionUID = 1L;
   
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "append-text");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "write");
 
   @Override
   public StructuredQName getFunctionQName() {
@@ -30,8 +32,8 @@ public class AppendText extends FileExtensionFunctionDefinition {
   public SequenceType[] getArgumentTypes() {    
     return new SequenceType[] { 
         SequenceType.SINGLE_STRING, 
-        SequenceType.SINGLE_STRING, 
-        SequenceType.SINGLE_STRING };
+        SequenceType.makeSequenceType(AnyItemType.getInstance(), StaticProperty.ALLOWS_ZERO_OR_MORE),
+        SequenceType.SINGLE_NODE };
   }
 
   @Override
@@ -41,7 +43,7 @@ public class AppendText extends FileExtensionFunctionDefinition {
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    
-    return new WriteTextCall(true);
+    return new WriteCall(false);
   }
   
 }

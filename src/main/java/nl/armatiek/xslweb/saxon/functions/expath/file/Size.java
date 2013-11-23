@@ -15,6 +15,7 @@ import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0004Exception;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
 
 public class Size extends ExtensionFunctionDefinition {
 
@@ -58,9 +59,8 @@ public class Size extends ExtensionFunctionDefinition {
     
     @SuppressWarnings("rawtypes")
     public SequenceIterator<Int64Value> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
-      try {         
-        String path = ((StringValue) arguments[0].next()).getStringValue();        
-        File file = getFile(path);
+      try {                        
+        File file = getFile(((StringValue) arguments[0].next()).getStringValue());
         if (!file.exists()) {
           throw new FILE0001Exception(file);
         }            
@@ -69,7 +69,7 @@ public class Size extends ExtensionFunctionDefinition {
         }
         return SingletonIterator.makeIterator(Int64Value.makeIntegerValue(file.length()));        
       } catch (Exception e) {
-        throw new XPathException(e);
+        throw new FILE9999Exception(e);
       }
     } 
   }

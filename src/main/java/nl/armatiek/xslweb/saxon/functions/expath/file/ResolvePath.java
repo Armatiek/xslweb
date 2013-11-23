@@ -54,14 +54,10 @@ public class ResolvePath extends ExtensionFunctionDefinition {
     private static final long serialVersionUID = 1L;
 
     @SuppressWarnings("rawtypes")
-    public SequenceIterator<StringValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {            
-      try {
-        String relPath = ((StringValue) arguments[0].next()).getStringValue();                        
-        String fullPath = new File(System.getProperty("user.dir"), relPath).toString();                           
-        return SingletonIterator.makeIterator(new StringValue(fullPath));
-      } catch (Exception e) {        
-        throw new XPathException(e);
-      }
+    public SequenceIterator<StringValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {                  
+      String relPath = ((StringValue) arguments[0].next()).getStringValue();                        
+      String fullPath = new File(System.getProperty("user.dir"), relPath).toString();                           
+      return SingletonIterator.makeIterator(new StringValue(fullPath));     
     } 
   }
 }

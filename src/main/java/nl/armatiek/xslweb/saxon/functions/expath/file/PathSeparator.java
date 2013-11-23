@@ -26,17 +26,17 @@ public class PathSeparator extends ExtensionFunctionDefinition {
 
   @Override
   public int getMinimumNumberOfArguments() {
-    return 1;
+    return 0;
   }
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 1;
+    return 0;
   }
 
   @Override
   public SequenceType[] getArgumentTypes() {    
-    return new SequenceType[] { SequenceType.SINGLE_STRING };
+    return new SequenceType[] { };
   }
 
   @Override

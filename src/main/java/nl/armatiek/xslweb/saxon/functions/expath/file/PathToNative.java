@@ -12,6 +12,7 @@ import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
 
 public class PathToNative extends ExtensionFunctionDefinition {
 
@@ -59,7 +60,7 @@ public class PathToNative extends ExtensionFunctionDefinition {
         File file = getFile(((StringValue) arguments[0].next()).getStringValue());                                                   
         return SingletonIterator.makeIterator(new StringValue(file.getCanonicalPath()));
       } catch (Exception e) {
-        throw new XPathException(e);
+        throw new FILE9999Exception(e);
       }
     } 
   }

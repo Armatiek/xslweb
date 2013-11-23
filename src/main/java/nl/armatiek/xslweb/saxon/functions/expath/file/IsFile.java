@@ -56,9 +56,8 @@ public class IsFile extends ExtensionFunctionDefinition {
 
     @SuppressWarnings("rawtypes")
     public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
-      try {         
-        String path = ((StringValue) arguments[0].next()).getStringValue();        
-        File file = getFile(path);                                       
+      try {
+        File file = getFile(((StringValue) arguments[0].next()).getStringValue());                                       
         return SingletonIterator.makeIterator(BooleanValue.get(file.isFile()));        
       } catch (Exception e) {
         throw new XPathException(e);
