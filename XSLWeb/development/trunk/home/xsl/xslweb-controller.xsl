@@ -4,11 +4,11 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
   xmlns:request="http://www.armatiek.com/xslweb/request"
   xmlns:pipeline="http://www.armatiek.com/xslweb/pipeline"
-  xmlns:configuration="http://www.armatiek.com/xslweb/configuration"
+  xmlns:config="http://www.armatiek.com/xslweb/configuration"
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:param name="configuration:development-mode" as="xs:string"/>
+  <xsl:param name="config:development-mode" as="xs:string"/>
   
   <xsl:template match="/">
     <pipeline:pipeline>
