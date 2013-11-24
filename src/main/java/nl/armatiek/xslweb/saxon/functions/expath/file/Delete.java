@@ -72,11 +72,7 @@ public class Delete extends FileExtensionFunctionDefinition {
         if (file.isDirectory() && !recursive && file.list().length > 0) {
           throw new FILE0004Exception(file, String.format("The specified path points to a non-empty directory (%s)", file.getAbsolutePath()));
         }        
-        if (file.isDirectory()) {
-          FileUtils.deleteDirectory(file);                  
-        } else {
-          file.delete();
-        }
+        FileUtils.forceDelete(file);                
         return SingletonIterator.makeIterator(BooleanValue.TRUE);       
       } catch (Exception e) {
         throw new FILE9999Exception(e);

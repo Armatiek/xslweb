@@ -19,11 +19,14 @@ import javax.xml.stream.XMLStreamWriter;
 
 import nl.armatiek.xslweb.configuration.Config;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.error.XSLWebException;
 
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.xmlbeans.XmlDateTime;
 
 public class RequestSerializer {
@@ -41,6 +44,8 @@ public class RequestSerializer {
   public String serializeToXML() throws Exception {
     StringWriter sw = new StringWriter();
     
+    List<FileItem> fileItems = getMultipartContentItems();
+ 
     XMLOutputFactory output = XMLOutputFactory.newInstance();
     this.xsw = output.createXMLStreamWriter(sw);
     
@@ -51,9 +56,9 @@ public class RequestSerializer {
     
     serializeProperties();
     serializeHeaders();
-    serializeParameters();
+    serializeParameters(fileItems);
     serializeAttributes();
-    serializeFileUploads();
+    serializeFileUploads(fileItems);
     serializeSession();    
     serializeCookies();
     
@@ -64,9 +69,45 @@ public class RequestSerializer {
   }
   
   public void close() throws IOException {
-    if (this.reposDir != null) {
-      FileUtils.deleteDirectory(this.reposDir);
+    if (reposDir != null) {
+      FileUtils.deleteDirectory(reposDir);
     }
+  }
+  
+  private List<FileItem> getMultipartContentItems() throws IOException, FileUploadException {
+    List<FileItem> items = null;
+    boolean isMultipart = ServletFileUpload.isMultipartContent(req);    
+    if (isMultipart) {
+      DiskFileItemFactory factory = new DiskFileItemFactory();
+      factory.setSizeThreshold(0);
+      reposDir = new File(FileUtils.getTempDirectory(), File.separatorChar + UUID.randomUUID().toString());
+      if (!reposDir.mkdirs()) {
+        throw new XSLWebException(String.format("Could not create DiskFileItemFactory repository directory (%s)", reposDir.getAbsolutePath()));
+      }
+      factory.setRepository(reposDir);
+      ServletFileUpload upload = new ServletFileUpload(factory);
+      String maxSize = Config.getInstance().getProperties().getProperty(Definitions.PROPERTYNAME_UPLOAD_MAX_SIZE, "50");
+      upload.setSizeMax(1024 * 1024 * Long.parseLong(maxSize));
+      items = upload.parseRequest(req);      
+    }
+    return items;
+  }
+  
+  private boolean hasItems(List<FileItem> fileItems, boolean formField) {
+    boolean result = false;
+    if (fileItems == null) {
+      return result;
+    }
+    Iterator<FileItem> iter = fileItems.iterator();    
+    while (iter.hasNext()) {
+      FileItem item = iter.next();
+      if (item.isFormField() && formField) {
+        return true;        
+      } else if (!item.isFormField() && !formField) {
+        return true;
+      }
+    }   
+    return result;
   }
   
   private void serializeProperties() throws Exception {
@@ -124,21 +165,42 @@ public class RequestSerializer {
   }
   
   @SuppressWarnings("rawtypes")
-  private void serializeParameters() throws Exception {
-    Enumeration paramNames = req.getParameterNames();
-    if (paramNames.hasMoreElements()) {      
-      xsw.writeStartElement(URI, "parameters");        
-      while (paramNames.hasMoreElements()) {
-        String paramName = (String) paramNames.nextElement();        
-        xsw.writeStartElement(URI, "parameter");
-        xsw.writeAttribute("name", paramName);
-        String[] values = req.getParameterValues(paramName);
-        for (String value : values) {
-          dataElement(xsw, URI, "value", value);                        
+  private void serializeParameters(List<FileItem> fileItems) throws Exception {
+    if (fileItems != null) {
+      if (hasItems(fileItems, true)) {
+        Iterator<FileItem> iter = fileItems.iterator();
+        if (iter.hasNext()) {        
+          xsw.writeStartElement(URI, "parameters");
+          while (iter.hasNext()) {
+            FileItem item = iter.next();
+            if (item.isFormField()) {
+              String paramName = item.getFieldName();
+              String value = item.getString();
+              xsw.writeStartElement(URI, "parameter");
+              xsw.writeAttribute("name", paramName);
+              dataElement(xsw, URI, "value", value);            
+              xsw.writeEndElement();
+            }
+          }
+          xsw.writeEndElement();
+        }
+      }
+    } else {
+      Enumeration paramNames = req.getParameterNames();
+      if (paramNames.hasMoreElements()) {      
+        xsw.writeStartElement(URI, "parameters");        
+        while (paramNames.hasMoreElements()) {
+          String paramName = (String) paramNames.nextElement();        
+          xsw.writeStartElement(URI, "parameter");
+          xsw.writeAttribute("name", paramName);
+          String[] values = req.getParameterValues(paramName);
+          for (String value : values) {
+            dataElement(xsw, URI, "value", value);                        
+          }
+          xsw.writeEndElement();
         }
         xsw.writeEndElement();
       }
-      xsw.writeEndElement();
     }
   }
 
@@ -158,37 +220,29 @@ public class RequestSerializer {
     }
   }
   
-  private void serializeFileUploads() throws Exception {
-    boolean isMultipart = ServletFileUpload.isMultipartContent(req);
-    if (isMultipart) {   
-      DiskFileItemFactory factory = new DiskFileItemFactory();
-      factory.setSizeThreshold(0);
-      this.reposDir = new File(FileUtils.getTempDirectory(), "xslweb-uploads/" + UUID.randomUUID().toString());
-      factory.setRepository(reposDir);
-      ServletFileUpload upload = new ServletFileUpload(factory);
-      String maxSize = Config.getInstance().getProperties().getProperty(Definitions.PROPERTYNAME_UPLOAD_MAX_SIZE, "50");
-      upload.setSizeMax(1024 * 1024 * Long.parseLong(maxSize));
-      List<FileItem> items = upload.parseRequest(req);
-      Iterator<FileItem> iter = items.iterator();
-      if (iter.hasNext()) {
-        xsw.writeStartElement(URI, "file-uploads");
-        while (iter.hasNext()) {
-          FileItem item = iter.next();
-          if (!item.isFormField()) {
-            String fileName = item.getName();
-            File file = new File(reposDir, fileName);                      
-            xsw.writeStartElement(URI, "file-upload");
-            dataElement(xsw, URI, "file-path", file.getAbsolutePath());
-            dataElement(xsw, URI, "field-name", item.getFieldName());
-            dataElement(xsw, URI, "file-name", item.getName());
-            dataElement(xsw, URI, "content-type", item.getContentType());
-            dataElement(xsw, URI, "size", Long.toString(item.getSize()));
-            xsw.writeEndElement();
-            item.write(file);
-          }
+  private void serializeFileUploads(List<FileItem> fileItems) throws Exception {
+    if (!hasItems(fileItems, false)) {
+      return;
+    }        
+    Iterator<FileItem> iter = fileItems.iterator();
+    if (iter.hasNext()) {        
+      xsw.writeStartElement(URI, "file-uploads");
+      while (iter.hasNext()) {
+        FileItem item = iter.next();
+        if (!item.isFormField() && StringUtils.isNotBlank(item.getName())) {
+          String fileName = item.getName();
+          File file = new File(reposDir, fileName);                      
+          xsw.writeStartElement(URI, "file-upload");
+          dataElement(xsw, URI, "file-path", file.getAbsolutePath());
+          dataElement(xsw, URI, "field-name", item.getFieldName());
+          dataElement(xsw, URI, "file-name", item.getName());
+          dataElement(xsw, URI, "content-type", item.getContentType());
+          dataElement(xsw, URI, "size", Long.toString(item.getSize()));
+          xsw.writeEndElement();
+          item.write(file);
         }
-        xsw.writeEndElement();
       }
+      xsw.writeEndElement();      
     }
   }
   
