@@ -10,8 +10,6 @@
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:param name="config:home-dir" as="xs:string"/>
-  
   <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   
   <xsl:template match="/">
@@ -27,23 +25,24 @@
       <head>
         <title>File upload example</title>
       </head>
-      <body>        
+      <body>    
+        <h3>File upload example</h3>
         <form 
           method="post"           
           name="uploadform"          
           enctype="multipart/form-data"
-          action="{/req:request/req:context-path}/examples/upload/upload-save.xsl">
-          <fieldset>
-            <ol>              
-              <li>
-                <label for="file">File</label>
-                <input type="file" name="file"/>
-              </li>
-              <li>
-                <label for="title">Description</label>
-                <input type="text" name="title"/>
-              </li>
-            </ol>
+          action="{/req:request/req:context-path}/examples/upload/upload-save.html">
+          <fieldset>            
+            <label for="file">File 1: </label>
+            <input type="file" name="file1"/>
+            <br/>
+            <label for="file">File 2: </label>
+            <input type="file" name="file2"/>
+            <br/>
+            <label for="description">Description: </label>
+            <input type="text" name="description"/>
+            <br/>
+            <input type="submit" value="Upload files"/>
           </fieldset>          
         </form>
       </body>

@@ -2,6 +2,8 @@ package nl.armatiek.xslweb.saxon.functions.expath.file;
 
 import java.io.File;
 
+import org.apache.commons.io.FileUtils;
+
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.om.SequenceIterator;
@@ -61,8 +63,9 @@ public class CreateDir extends FileExtensionFunctionDefinition {
         File dir = getFile(((StringValue) arguments[0].next()).getStringValue());
         if (dir.isFile()) {
           throw new FILE0002Exception(dir);
-        }                                                             
-        return SingletonIterator.makeIterator(BooleanValue.get(dir.mkdirs()));        
+        }                      
+        FileUtils.forceMkdir(dir);
+        return SingletonIterator.makeIterator(BooleanValue.TRUE);        
       } catch (Exception e) {
         throw new FILE9999Exception(e);
       }

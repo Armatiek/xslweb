@@ -54,6 +54,7 @@ public class ResponseHeader extends ExtensionFunctionDefinition {
         
     private static final long serialVersionUID = 1L;
 
+    @SuppressWarnings("rawtypes")
     public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
       try {                
         String name = ((IntegerValue) arguments[0].next()).getStringValue();

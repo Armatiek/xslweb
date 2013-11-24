@@ -6,7 +6,9 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
   xmlns:config="http://www.armatiek.com/xslweb/configuration"
   xmlns:req="http://www.armatiek.com/xslweb/request"
-  xmlns:resp="http://www.armatiek.com/xslweb/response"  
+  xmlns:resp="http://www.armatiek.com/xslweb/response"
+  xmlns:file="http://expath.org/ns/file"  
+  xmlns:err="http://expath.org/ns/error"
   exclude-result-prefixes="#all"
   version="2.0">
   
@@ -28,7 +30,25 @@
         <title>File upload example</title>
       </head>
       <body>
-        <p>Thanks man!</p>        
+        <h3>Thanks for the upload!</h3>
+        <p>You can download your files again from:</p>
+        
+        <!-- Create target directory to copy the uploaded files to: -->
+        <xsl:variable name="target-dir" select="concat($config:home-dir, '/static/downloads')"/>
+        <xsl:value-of select="if (file:create-dir($target-dir)) then () else (error(xs:QName('err:FILE9999'), 'Could not create directory'))"/>
+        
+        <!-- Iterate over uploaded files: -->
+        <xsl:for-each select="/req:request/req:file-uploads/req:file-upload">                             
+          
+          <!-- Copy the file to the target directory: -->          
+          <xsl:value-of select="if (file:copy(req:file-path, $target-dir)) then () else (error(xs:QName('err:FILE9999'), 'Could not copy file'))"/>
+          
+          <!-- Output a hyperlink to the copied file: -->
+          <a href="{concat(/req:request/req:context-path, '/downloads/', req:file-name)}">
+            <xsl:value-of select="concat(req:file-name, ' (', req:size, ' bytes)')"/>
+          </a>
+          <br/>
+        </xsl:for-each>                       
       </body>
     </html>
   </xsl:template>
