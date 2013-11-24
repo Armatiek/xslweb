@@ -4,33 +4,38 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
-  xmlns:req="http://www.armatiek.com/xslweb/request"
-  xmlns:resp="http://www.armatiek.com/xslweb/response"  
+  xmlns:request="http://www.armatiek.com/xslweb/request"
+  xmlns:response="http://www.armatiek.com/xslweb/response"
+  xmlns:zip="http://expath.org/ns/zip"
+  xmlns:file="http://expath.org/ns/file"
+  xmlns:http="http://expath.org/ns/http-client"
   exclude-result-prefixes="#all"
   version="2.0">
   
   <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   
   <xsl:template match="/">
-    <resp:response status="200">
-      <resp:body>
+    <response:response status="200">
+      <response:body>
         <xsl:call-template name="body"/>
-      </resp:body>
-    </resp:response>          
+      </response:body>
+    </response:response>          
   </xsl:template>
   
   <xsl:template name="body">
-    <html>
+    <html xmlns="http://www.w3.org/1999/xhtml">
       <head>
         <title>Hello World!</title>
       </head>
       <body>
-        <!-- Create image that references an image in home/static/images: -->
-        <img src="{/req:request/req:context-path}/images/hello-world.jpg"/>
+        <img src="{/request:request/request:context-path}/images/hello-world.jpg" align="middle"/>
         <p></p>
         <br/>
         <p>Hello World!</p>
-        <p>Your IP adress is <xsl:value-of select="/req:request/req:remote-addr"/></p>        
+        <p>Your IP adress is <xsl:value-of select="/request:request/request:remote-addr"/></p>
+        <xmp>
+          <xsl:sequence select="/"/>
+        </xmp>
       </body>
     </html>
   </xsl:template>

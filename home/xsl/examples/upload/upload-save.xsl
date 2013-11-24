@@ -4,10 +4,13 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xmlns:config="http://www.armatiek.com/xslweb/configuration"
   xmlns:req="http://www.armatiek.com/xslweb/request"
   xmlns:resp="http://www.armatiek.com/xslweb/response"  
   exclude-result-prefixes="#all"
   version="2.0">
+  
+  <xsl:param name="config:home-dir" as="xs:string"/>
   
   <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   
@@ -22,15 +25,10 @@
   <xsl:template name="body">
     <html>
       <head>
-        <title>Hello World!</title>
+        <title>File upload example</title>
       </head>
       <body>
-        <!-- Create image that references an image in home/static/images: -->
-        <img src="{/req:request/req:context-path}/images/hello-world.jpg"/>
-        <p></p>
-        <br/>
-        <p>Hello World!</p>
-        <p>Your IP adress is <xsl:value-of select="/req:request/req:remote-addr"/></p>        
+        <p>Thanks man!</p>        
       </body>
     </html>
   </xsl:template>

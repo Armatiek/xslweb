@@ -11,10 +11,7 @@
   
   <xsl:template match="/">        
     <xsl:apply-templates select="response:response"/>
-    <xsl:apply-templates select="response:response/response:headers/response:header"/>
-    <!--
-    <xsl:sequence select="response:response/response:body/node()" exclude-result-prefixes="response"/>
-    -->    
+    <xsl:apply-templates select="response:response/response:headers/response:header"/>       
     <xsl:sequence select="response:response/response:body/node()"/>
   </xsl:template>
   
@@ -24,18 +21,6 @@
   
   <xsl:template match="response:header">
     <xsl:value-of select="if (response:header(@name, @value)) then () else error(xs:QName('error:response-header'), 'Could not set header of response')"/>
-  </xsl:template>
-  
-  <!--
-  <xsl:template match="response:body">
-    <xsl:apply-templates exclude-result-prefixes="response"/>
-  </xsl:template>
-  -->
-    
-  <xsl:template match="node()|@*" mode="debug">
-    <xsl:copy>
-      <xsl:apply-templates select="node()|@*" mode="debug"/>
-    </xsl:copy>
   </xsl:template>
   
 </xsl:stylesheet>
