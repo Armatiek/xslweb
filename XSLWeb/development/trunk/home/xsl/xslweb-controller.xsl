@@ -16,10 +16,30 @@
     </pipeline:pipeline>
   </xsl:template>
   
+  <xsl:template match="/req:request[req:path = '/examples']">    
+    <pipeline:transformer name="index" xsl-path="examples/index.xsl"/>              
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/docs']">    
+    <pipeline:transformer name="upload-form" xsl-path="docs/index.xsl"/>              
+  </xsl:template>
+  
   <xsl:template match="/req:request[req:path = '/examples/hello-world.html']">
     <xsl:variable name="lang-value" select="req:parameters/req:parameter[@name='lang']/@value" as="xs:string?"/>    
     <xsl:variable name="lang" select="if ($lang-value) then $lang-value else 'en'" as="xs:string"/>    
     <pipeline:transformer name="hello-world" xsl-path="{concat('examples/hello-world/hello-world-', $lang, '.xsl')}"/>              
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/examples/static.html']">    
+    <pipeline:transformer name="upload-form" xsl-path="examples/static/static.xsl"/>              
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/examples/request.html']">    
+    <pipeline:transformer name="upload-form" xsl-path="examples/request/request.xsl"/>              
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/examples/expath-file.html']">    
+    <pipeline:transformer name="upload-form" xsl-path="examples/expath-file/expath-file.xsl"/>              
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/examples/upload.html']">    

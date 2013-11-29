@@ -9,7 +9,9 @@
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
+  <xsl:import href="xmlverbatim.xsl"/>
+  
+  <xsl:output method="xhtml" indent="no" omit-xml-declaration="yes" xml:space="preserve"/>
   
   <xsl:template match="/">
     <resp:response status="200">
@@ -22,11 +24,15 @@
   <xsl:template name="body">
     <html>
       <head>
-        <title>Hello World!</title>
+        <title>Request example</title>
+        <link rel="stylesheet" type="text/css" href="{/req:request/req:context-path}/styles/examples/request/xmlverbatim.css"/>
       </head>
       <body>        
-        <h3>Hello World!</h3>
-        <p>Your IP adress is <xsl:value-of select="/req:request/req:remote-addr"/></p>        
+        <h3>Request example</h3>
+        <p>This is your HTTP request serialized to XML:</p> 
+        <tt>
+          <xsl:apply-templates select="/*" mode="xmlverb"/>  
+        </tt>        
       </body>
     </html>
   </xsl:template>

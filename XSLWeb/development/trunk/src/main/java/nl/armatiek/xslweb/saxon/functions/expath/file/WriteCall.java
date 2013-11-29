@@ -17,6 +17,7 @@ import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.StringValue;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0003Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0004Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
@@ -93,6 +94,8 @@ public class WriteCall extends FileExtensionFunctionCall {
         os.close();
       }
       return SingletonIterator.makeIterator(BooleanValue.TRUE);
+    } catch (ExpectedFileException e) {
+      throw e;
     } catch (Exception e) {
       throw new FILE9999Exception(e);
     }

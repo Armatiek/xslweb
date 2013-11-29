@@ -1,8 +1,7 @@
 package nl.armatiek.xslweb.saxon.functions.expath.file.error;
 
-import net.sf.saxon.trans.XPathException;
 
-public class FILE0005Exception extends XPathException {
+public class FILE0005Exception extends ExpectedFileException {
   
   private static final long serialVersionUID = 1L;
 

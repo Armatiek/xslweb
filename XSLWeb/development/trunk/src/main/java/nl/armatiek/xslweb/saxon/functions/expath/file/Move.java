@@ -12,6 +12,7 @@ import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0002Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0003Exception;
@@ -92,7 +93,9 @@ public class Move extends FileExtensionFunctionDefinition {
             FileUtils.moveDirectoryToDirectory(sourceFile, targetFile, false);
           }          
         }        
-        return SingletonIterator.makeIterator(BooleanValue.TRUE);       
+        return SingletonIterator.makeIterator(BooleanValue.TRUE); 
+      } catch (ExpectedFileException e) {
+        throw e;
       } catch (Exception e) {
         throw new FILE9999Exception(e);
       }

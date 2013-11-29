@@ -101,6 +101,7 @@ public class XSLWebServlet extends HttpServlet {
   private File responseDebugFile;
   private File staticBaseDir;
   private Pattern staticContentPattern;
+  private Pattern dynamicContentPattern;
   
   public void init() throws ServletException {
     super.init();
@@ -176,8 +177,14 @@ public class XSLWebServlet extends HttpServlet {
       
       staticBaseDir = new File(homeDir, "static");
       
-      String staticContentRegex = Config.getInstance().getProperties().getProperty(Definitions.PROPERTYNAME_STATICPATTERN);
-      staticContentPattern = Pattern.compile(staticContentRegex, Pattern.CASE_INSENSITIVE);
+      String pattern = Config.getInstance().getProperties().getProperty(Definitions.PROPERTYNAME_STATICPATTERN);
+      if (StringUtils.isNotBlank(pattern)) {
+        staticContentPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
+      }
+      pattern = Config.getInstance().getProperties().getProperty(Definitions.PROPERTYNAME_DYNAMICPATTERN);
+      if (StringUtils.isNotBlank(pattern)) {
+        dynamicContentPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
+      }
       
     } catch (Exception e) {
       logger.error(e.getMessage());
@@ -188,11 +195,12 @@ public class XSLWebServlet extends HttpServlet {
   @Override
   protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     try {
-      String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();
-      if (staticContentPattern.matcher(path).matches()) {
-        FileUtils.copyFile(new File(staticBaseDir, path), resp.getOutputStream());        
+      String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();            
+      if ((dynamicContentPattern != null && dynamicContentPattern.matcher(path).matches()) || 
+          (staticContentPattern != null && !staticContentPattern.matcher(path).matches())) {
+        executeRequest(req, resp);               
       } else {      
-        executeRequest(req, resp);
+        FileUtils.copyFile(new File(staticBaseDir, path), resp.getOutputStream());
       }
     } catch (Exception e) {
       logger.error(e.getMessage(), e);

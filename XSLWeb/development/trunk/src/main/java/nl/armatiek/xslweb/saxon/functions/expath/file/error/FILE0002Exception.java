@@ -2,9 +2,7 @@ package nl.armatiek.xslweb.saxon.functions.expath.file.error;
 
 import java.io.File;
 
-import net.sf.saxon.trans.XPathException;
-
-public class FILE0002Exception extends XPathException {
+public class FILE0002Exception extends ExpectedFileException {
   
   private static final long serialVersionUID = 1L;
 
