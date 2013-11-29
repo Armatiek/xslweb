@@ -14,6 +14,7 @@ import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0002Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
 
@@ -65,7 +66,9 @@ public class CreateDir extends FileExtensionFunctionDefinition {
           throw new FILE0002Exception(dir);
         }                      
         FileUtils.forceMkdir(dir);
-        return SingletonIterator.makeIterator(BooleanValue.TRUE);        
+        return SingletonIterator.makeIterator(BooleanValue.TRUE);
+      } catch (ExpectedFileException e) {
+        throw e;
       } catch (Exception e) {
         throw new FILE9999Exception(e);
       }

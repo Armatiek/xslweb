@@ -4,6 +4,7 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xmlns:config="http://www.armatiek.com/xslweb/configuration"
   xmlns:req="http://www.armatiek.com/xslweb/request"
   xmlns:resp="http://www.armatiek.com/xslweb/response"  
   exclude-result-prefixes="#all"
@@ -22,11 +23,22 @@
   <xsl:template name="body">
     <html>
       <head>
-        <title>Hello World!</title>
+        <title>XSLWeb Documentation</title>
       </head>
-      <body>        
-        <h3>Hello World!</h3>
-        <p>Your IP adress is <xsl:value-of select="/req:request/req:remote-addr"/></p>        
+      <body>    
+        <h3>XSLWeb Documentation</h3>
+        <ul>          
+          <li>
+            <a href="http://expath.org/spec/file" target="expath-file">EXPath File Handling</a>
+          </li>
+          <li>
+            <a href="http://expath.org/spec/http-client" target="expath-httpclient">EXPath HTTP Client</a>
+          </li>
+          <li>
+            <a href="http://expath.org/spec/zip" target="expath-zip">EXPath ZIP Facility</a>
+          </li>          
+        </ul>
+        <a href="{/*/req:context-path}/examples">XSLWeb examples</a>
       </body>
     </html>
   </xsl:template>

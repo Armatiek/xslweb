@@ -15,6 +15,7 @@ import net.sf.saxon.value.Base64BinaryValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0004Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
@@ -72,7 +73,9 @@ public class ReadBinary extends ExtensionFunctionDefinition {
           throw new FILE0004Exception(file);
         }
         byte[] value = FileUtils.readFileToByteArray(file);        
-        return SingletonIterator.makeIterator(new Base64BinaryValue(value));               
+        return SingletonIterator.makeIterator(new Base64BinaryValue(value));
+      } catch (ExpectedFileException e) {
+        throw e;
       } catch (Exception e) {
         throw new FILE9999Exception(e);
       }

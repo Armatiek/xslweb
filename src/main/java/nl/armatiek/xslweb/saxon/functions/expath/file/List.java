@@ -17,6 +17,7 @@ import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0003Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
 
@@ -93,7 +94,9 @@ public class List extends ExtensionFunctionDefinition {
           String relPath = StringUtils.substringAfter(filePath, dirPath);          
           fileList.add(new StringValue(relPath));                    
         }                        
-        return new ArrayIterator<StringValue>(fileList.toArray(new StringValue[fileList.size()]));       
+        return new ArrayIterator<StringValue>(fileList.toArray(new StringValue[fileList.size()]));
+      } catch (ExpectedFileException e) {
+        throw e;
       } catch (Exception e) {
         throw new FILE9999Exception(e);
       }

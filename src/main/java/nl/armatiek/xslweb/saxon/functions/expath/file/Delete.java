@@ -12,6 +12,7 @@ import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0004Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
@@ -73,7 +74,9 @@ public class Delete extends FileExtensionFunctionDefinition {
           throw new FILE0004Exception(file, String.format("The specified path points to a non-empty directory (%s)", file.getAbsolutePath()));
         }        
         FileUtils.forceDelete(file);                
-        return SingletonIterator.makeIterator(BooleanValue.TRUE);       
+        return SingletonIterator.makeIterator(BooleanValue.TRUE);
+      } catch (ExpectedFileException e) {
+        throw e;
       } catch (Exception e) {
         throw new FILE9999Exception(e);
       }

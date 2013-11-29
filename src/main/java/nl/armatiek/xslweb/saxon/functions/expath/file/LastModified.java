@@ -17,6 +17,7 @@ import net.sf.saxon.value.DateTimeValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
 
@@ -69,7 +70,9 @@ public class LastModified extends ExtensionFunctionDefinition {
         }        
         Calendar cal = Calendar.getInstance();        
         cal.setTime(new Date(file.lastModified()));                 
-        return SingletonIterator.makeIterator(new DateTimeValue(cal, false));        
+        return SingletonIterator.makeIterator(new DateTimeValue(cal, false));
+      } catch (ExpectedFileException e) {
+        throw e;
       } catch (Exception e) {
         throw new FILE9999Exception(e);
       }

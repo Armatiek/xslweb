@@ -17,6 +17,7 @@ import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0004Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0005Exception;
@@ -89,6 +90,8 @@ public class ReadTextLines extends ExtensionFunctionDefinition {
           lines.add(new StringValue(linesIter.next()));                    
         }                        
         return new ArrayIterator<StringValue>(lines.toArray(new StringValue[lines.size()]));
+      } catch (ExpectedFileException e) {
+        throw e;
       } catch (Exception e) {
         throw new FILE9999Exception(e);
       }
