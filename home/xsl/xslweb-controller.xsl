@@ -21,7 +21,7 @@
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/docs']">    
-    <pipeline:transformer name="upload-form" xsl-path="docs/index.xsl"/>              
+    <pipeline:transformer name="docs" xsl-path="docs/index.xsl"/>              
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/examples/hello-world.html']">
@@ -31,15 +31,15 @@
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/examples/static.html']">    
-    <pipeline:transformer name="upload-form" xsl-path="examples/static/static.xsl"/>              
+    <pipeline:transformer name="static" xsl-path="examples/static/static.xsl"/>              
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/examples/request.html']">    
-    <pipeline:transformer name="upload-form" xsl-path="examples/request/request.xsl"/>              
+    <pipeline:transformer name="request" xsl-path="examples/request/request.xsl"/>              
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/examples/expath-file.html']">    
-    <pipeline:transformer name="upload-form" xsl-path="examples/expath-file/expath-file.xsl"/>              
+    <pipeline:transformer name="expath-file" xsl-path="examples/expath-file/expath-file.xsl"/>              
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/examples/upload.html']">    

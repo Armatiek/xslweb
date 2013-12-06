@@ -97,7 +97,7 @@ public class Config {
     if (properties != null) {
       return properties;
     }    
-    File file = new File(homeDir, Definitions.FILENAME_PROPERTIES);
+    File file = new File(homeDir, "config" + File.separatorChar + Definitions.FILENAME_PROPERTIES);
     if (!file.isFile()) {
       throw new FileNotFoundException("Could not find properties file \"" + file.getAbsolutePath() + "\"");
     }

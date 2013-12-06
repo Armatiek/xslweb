@@ -69,8 +69,10 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.Write;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteBinary;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteText;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteTextLines;
-import nl.armatiek.xslweb.saxon.functions.response.ResponseHeader;
-import nl.armatiek.xslweb.saxon.functions.response.ResponseStatus;
+import nl.armatiek.xslweb.saxon.functions.response.Cookies;
+import nl.armatiek.xslweb.saxon.functions.response.Headers;
+import nl.armatiek.xslweb.saxon.functions.response.Session;
+import nl.armatiek.xslweb.saxon.functions.response.SetStatus;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -109,9 +111,11 @@ public class XSLWebServlet extends HttpServlet {
       configuration = new Configuration();           
       configuration.setXIncludeAware(true);
       
-      configuration.registerExtensionFunction(new ResponseHeader());
-      configuration.registerExtensionFunction(new ResponseStatus());
-      
+      configuration.registerExtensionFunction(new SetStatus());
+      configuration.registerExtensionFunction(new Headers());
+      configuration.registerExtensionFunction(new Session());
+      configuration.registerExtensionFunction(new Cookies());
+            
       /* EXPath File: */
       configuration.registerExtensionFunction(new Append());
       configuration.registerExtensionFunction(new AppendBinary());
@@ -279,7 +283,7 @@ public class XSLWebServlet extends HttpServlet {
         resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Resource not found");
         return;
       }
-      steps.add(new TransformerStep("system/response.xsl", "response"));
+      steps.add(new TransformerStep("system/response.xsl", "client-response"));
                    
       Templates templates = null;
       TransformerHandler nextHandler = null;
@@ -292,7 +296,8 @@ public class XSLWebServlet extends HttpServlet {
       try {
         List<TransformerHandler> handlers = new ArrayList<TransformerHandler>();
         String stepName = null;
-        for (PipelineStep step : steps) {
+        for (int i=0; i<steps.size(); i++) {
+          PipelineStep step = steps.get(i);
           templates = TemplatesCache.tryTemplatesCache(new File(homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath(), errorListener, configuration);      
           nextHandler = stf.newTransformerHandler(templates);
           transformer = (Controller) nextHandler.getTransformer();          
@@ -303,7 +308,7 @@ public class XSLWebServlet extends HttpServlet {
           if (!handlers.isEmpty()) {            
             TransformerHandler prevHandler = handlers.get(handlers.size()-1);
             ContentHandler nextContentHandler;
-            if (isDevelopmentMode) {              
+            if (isDevelopmentMode) {
               OutputStream os = new BufferedOutputStream(new FileOutputStream(new File(this.debugDir, stepName + ".xml")));
               debugOutputStreams.add(os);
               nextContentHandler = new DebugContentHandler(nextHandler, os, configuration, nextHandler.getTransformer().getOutputProperties()); // TODO             
@@ -316,6 +321,7 @@ public class XSLWebServlet extends HttpServlet {
           stepName = step.getName();
         }
         
+        transformer.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_REQUEST + "}request", req);
         transformer.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response", resp);
                 
         OutputStream os = (Config.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : resp.getOutputStream();             

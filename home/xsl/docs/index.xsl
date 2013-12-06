@@ -27,7 +27,13 @@
       </head>
       <body>    
         <h3>XSLWeb Documentation</h3>
-        <ul>          
+        <ul>    
+          <li>
+            <a href="http://www.xsltfunctions.com" target="basex">XSLWeb BaseX module</a>
+          </li>
+          <li>
+            <a href="http://www.xsltfunctions.com" target="exist">XSLWeb eXist/DB module</a>
+          </li>
           <li>
             <a href="http://expath.org/spec/file" target="expath-file">EXPath File Handling</a>
           </li>
@@ -36,7 +42,10 @@
           </li>
           <li>
             <a href="http://expath.org/spec/zip" target="expath-zip">EXPath ZIP Facility</a>
-          </li>          
+          </li>
+          <li>
+            <a href="http://www.xsltfunctions.com" target="functx">FunctX XSLT Function Library</a>
+          </li>                    
         </ul>
         <a href="{/*/req:context-path}/examples">XSLWeb examples</a>
       </body>

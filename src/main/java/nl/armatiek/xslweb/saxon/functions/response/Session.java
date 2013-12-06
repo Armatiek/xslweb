@@ -61,37 +61,33 @@ public class Session extends ExtensionFunctionDefinition {
     private static final long serialVersionUID = 1L;
 
     @SuppressWarnings("rawtypes")
-    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
-      try {                
-        NodeInfo nodeInfo = (NodeInfo) arguments[0].next();
-        NodeOverNodeInfo nodeOverNodeInfo = NodeOverNodeInfo.wrap(nodeInfo);
-        Element sessionElem = nodeOverNodeInfo.getOwnerDocument().getDocumentElement();
-        
-        HttpServletRequest request = (HttpServletRequest) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_REQUEST + "}request");
-        HttpSession session = request.getSession();
-        
-        String interval = XMLUtils.getValueOfChildElementByLocalName(sessionElem, "max-inactive-interval");
-        if (interval != null) {
-          session.setMaxInactiveInterval(Integer.parseInt(interval));
-        }
-        if (StringUtils.equals(sessionElem.getAttribute("invalidate"), "true")) {
-          session.invalidate();
-        }                                
-        Element attrsElem = XMLUtils.getChildElementByLocalName(sessionElem, "attributes");                
-        Element attrElem = XMLUtils.getFirstChildElement(attrsElem);
-        while (attrElem != null) {
-          String name = attrElem.getAttribute("name");
-          if (StringUtils.isBlank(name)) {
-            throw new XPathException("Session element \"attribute\" must have an attribute \"name\"");
-          }          
-          String value = attrElem.getTextContent();          
-          session.setAttribute(name, value);          
-          attrElem = XMLUtils.getNextSiblingElement(attrElem);
-        }                                           
-        return SingletonIterator.makeIterator(BooleanValue.get(true));        
-      } catch (Exception e) {
-        throw new XPathException("Error adding cookies to HTTP response", e);
+    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {                            
+      HttpServletRequest request = (HttpServletRequest) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_REQUEST + "}request");
+      HttpSession session = request.getSession();
+      
+      NodeInfo nodeInfo = (NodeInfo) arguments[0].next();
+      NodeOverNodeInfo nodeOverNodeInfo = NodeOverNodeInfo.wrap(nodeInfo);
+      Element sessionElem = nodeOverNodeInfo.getOwnerDocument().getDocumentElement();
+      
+      String interval = XMLUtils.getValueOfChildElementByLocalName(sessionElem, "max-inactive-interval");
+      if (interval != null) {
+        session.setMaxInactiveInterval(Integer.parseInt(interval));
       }
+      if (StringUtils.equals(sessionElem.getAttribute("invalidate"), "true")) {
+        session.invalidate();
+      }                                
+      Element attrsElem = XMLUtils.getChildElementByLocalName(sessionElem, "attributes");                
+      Element attrElem = XMLUtils.getFirstChildElement(attrsElem);
+      while (attrElem != null) {
+        String name = attrElem.getAttribute("name");
+        if (StringUtils.isBlank(name)) {
+          throw new XPathException("Session element \"attribute\" must have an attribute \"name\"");
+        }          
+        String value = attrElem.getTextContent();          
+        session.setAttribute(name, value);          
+        attrElem = XMLUtils.getNextSiblingElement(attrElem);
+      }                                           
+      return SingletonIterator.makeIterator(BooleanValue.get(true));              
     }
     
   }
