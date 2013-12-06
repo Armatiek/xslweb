@@ -14,11 +14,11 @@ import net.sf.saxon.value.IntegerValue;
 import net.sf.saxon.value.SequenceType;
 import nl.armatiek.xslweb.configuration.Definitions;
 
-public class ResponseHeader extends ExtensionFunctionDefinition {
+public class SetStatus extends ExtensionFunctionDefinition {
 
   private static final long serialVersionUID = 1L;
   
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "header");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "set-status");
 
   @Override
   public StructuredQName getFunctionQName() {
@@ -27,17 +27,17 @@ public class ResponseHeader extends ExtensionFunctionDefinition {
 
   @Override
   public int getMinimumNumberOfArguments() {
-    return 2;
+    return 1;
   }
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 2;
+    return 1;
   }
 
   @Override
   public SequenceType[] getArgumentTypes() {    
-    return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.SINGLE_STRING };
+    return new SequenceType[] { SequenceType.SINGLE_INT };
   }
 
   @Override
@@ -47,24 +47,25 @@ public class ResponseHeader extends ExtensionFunctionDefinition {
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    
-    return new ResponseHeaderCall();
+    return new ResponseStatusCall();
   }
   
-  private static class ResponseHeaderCall extends ExtensionFunctionCall {
+  private static class ResponseStatusCall extends ExtensionFunctionCall {
         
     private static final long serialVersionUID = 1L;
 
     @SuppressWarnings("rawtypes")
     public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
       try {                
-        String name = ((IntegerValue) arguments[0].next()).getStringValue();
-        String value = ((IntegerValue) arguments[1].next()).getStringValue();       
+        long status = ((IntegerValue) arguments[0].next()).longValue();                        
         HttpServletResponse response = (HttpServletResponse) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response");        
-        response.setHeader(name, value);                
+        response.setStatus((int) status);                
         return SingletonIterator.makeIterator(BooleanValue.get(true));        
       } catch (Exception e) {
-        throw new XPathException("Error setting HTTP response header", e);
+        throw new XPathException("Error setting status of HTTP response", e);
       }
-    } 
+    }
+    
   }
+
 }
