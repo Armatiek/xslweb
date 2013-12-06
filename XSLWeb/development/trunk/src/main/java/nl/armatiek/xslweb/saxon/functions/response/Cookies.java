@@ -60,36 +60,32 @@ public class Cookies extends ExtensionFunctionDefinition {
     private static final long serialVersionUID = 1L;
 
     @SuppressWarnings("rawtypes")
-    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
-      try {                
-        NodeInfo nodeInfo = (NodeInfo) arguments[0].next();
-        NodeOverNodeInfo nodeOverNodeInfo = NodeOverNodeInfo.wrap(nodeInfo);
-        Element cookiesElem = nodeOverNodeInfo.getOwnerDocument().getDocumentElement();        
-        Element cookieElem = XMLUtils.getFirstChildElement(cookiesElem);        
-        while (cookieElem != null) {
-          String comment = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "comment");
-          String domain = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "domain");
-          String maxAge = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "max-age");
-          String name = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "name");
-          String path = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "path");
-          String isSecure = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "is-secure");
-          String value = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "value");
-          String version = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "version");
-          Cookie cookie = new Cookie(name, value);
-          if (comment != null) cookie.setComment(comment);
-          if (domain != null) cookie.setDomain(domain);
-          if (maxAge != null) cookie.setMaxAge(Integer.parseInt(maxAge));
-          if (path != null) cookie.setPath(path);
-          if (isSecure != null) cookie.setSecure(Boolean.parseBoolean(isSecure));
-          if (version != null) cookie.setVersion(Integer.parseInt(version));        
-          HttpServletResponse response = (HttpServletResponse) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response");
-          response.addCookie(cookie);
-          cookieElem = XMLUtils.getNextSiblingElement(cookieElem);
-        }                                           
-        return SingletonIterator.makeIterator(BooleanValue.get(true));        
-      } catch (Exception e) {
-        throw new XPathException("Error adding cookies to HTTP response", e);
-      }
+    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {                            
+      HttpServletResponse response = (HttpServletResponse) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response");
+      NodeInfo nodeInfo = (NodeInfo) arguments[0].next();
+      NodeOverNodeInfo nodeOverNodeInfo = NodeOverNodeInfo.wrap(nodeInfo);
+      Element cookiesElem = nodeOverNodeInfo.getOwnerDocument().getDocumentElement();        
+      Element cookieElem = XMLUtils.getFirstChildElement(cookiesElem);        
+      while (cookieElem != null) {
+        String comment = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "comment");
+        String domain = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "domain");
+        String maxAge = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "max-age");
+        String name = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "name");
+        String path = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "path");
+        String isSecure = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "is-secure");
+        String value = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "value");
+        String version = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "version");
+        Cookie cookie = new Cookie(name, value);
+        if (comment != null) cookie.setComment(comment);
+        if (domain != null) cookie.setDomain(domain);
+        if (maxAge != null) cookie.setMaxAge(Integer.parseInt(maxAge));
+        if (path != null) cookie.setPath(path);
+        if (isSecure != null) cookie.setSecure(Boolean.parseBoolean(isSecure));
+        if (version != null) cookie.setVersion(Integer.parseInt(version));                
+        response.addCookie(cookie);
+        cookieElem = XMLUtils.getNextSiblingElement(cookieElem);
+      }                                           
+      return SingletonIterator.makeIterator(BooleanValue.get(true));              
     }
     
   }

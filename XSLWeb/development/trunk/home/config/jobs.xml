@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job-scheduling-data
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.quartz-scheduler.org/xml/JobSchedulingData xsd/quartz/job_scheduling_data_1_8.xsd"
+  xmlns="http://www.quartz-scheduler.org/xml/JobSchedulingData"
+  version="1.8">
+
+  <pre-processing-commands>
+    <delete-jobs-in-group>*</delete-jobs-in-group>
+    <!-- clear all jobs in scheduler -->
+    <delete-triggers-in-group>*</delete-triggers-in-group>
+    <!-- clear all triggers in scheduler -->
+  </pre-processing-commands>
+
+  <processing-directives>
+    <!-- if there are any jobs/trigger in scheduler of same name (as in this file), overwrite them -->
+    <overwrite-existing-data>true</overwrite-existing-data>
+    <!-- if there are any jobs/trigger in scheduler of same name (as in this file), and over-write is false, ignore them rather then generating an error -->
+    <ignore-duplicates>false</ignore-duplicates>
+  </processing-directives>
+
+  <schedule>
+    <job>
+      <name>job-local-to-solr-enterprise-search</name>
+      <group>ANT</group>
+      <description/>
+      <job-class>com.armatiek.infofuze.job.AntJob</job-class>
+      <volatility>true</volatility>
+      <durability>true</durability>
+      <recover>false</recover>
+      <job-data-map>
+        <entry>
+          <key>uri</key>
+          <value>local-to-solr-enterprise-search</value>
+        </entry>
+      </job-data-map>
+    </job>
+    <trigger>
+      <cron>
+        <name>trigger-local-to-solr-enterprise-search</name>
+        <group>ANT</group>
+        <job-name>job-local-to-solr-enterprise-search</job-name>
+        <job-group>ANT</job-group>
+        <cron-expression>0 11 11 11 11 ?</cron-expression>
+      </cron>
+    </trigger>
+    
+  </schedule>
+  
+</job-scheduling-data>

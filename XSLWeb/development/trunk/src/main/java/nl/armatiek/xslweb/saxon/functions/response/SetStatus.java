@@ -55,15 +55,11 @@ public class SetStatus extends ExtensionFunctionDefinition {
     private static final long serialVersionUID = 1L;
 
     @SuppressWarnings("rawtypes")
-    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
-      try {                
-        long status = ((IntegerValue) arguments[0].next()).longValue();                        
-        HttpServletResponse response = (HttpServletResponse) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response");        
-        response.setStatus((int) status);                
-        return SingletonIterator.makeIterator(BooleanValue.get(true));        
-      } catch (Exception e) {
-        throw new XPathException("Error setting status of HTTP response", e);
-      }
+    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {                      
+      long status = ((IntegerValue) arguments[0].next()).longValue();                        
+      HttpServletResponse response = (HttpServletResponse) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response");        
+      response.setStatus((int) status);                
+      return SingletonIterator.makeIterator(BooleanValue.get(true));              
     }
     
   }
