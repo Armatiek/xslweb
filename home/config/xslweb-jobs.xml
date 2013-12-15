@@ -21,26 +21,26 @@
 
   <schedule>
     <job>
-      <name>job-local-to-solr-enterprise-search</name>
-      <group>ANT</group>
-      <description/>
-      <job-class>com.armatiek.infofuze.job.AntJob</job-class>
+      <name>example-job</name>
+      <group>XSLWeb</group>
+      <description>Example Job</description>
+      <job-class>nl.armatiek.xslweb.quartz.XSLWebJob</job-class>
       <volatility>true</volatility>
       <durability>true</durability>
       <recover>false</recover>
       <job-data-map>
         <entry>
           <key>uri</key>
-          <value>local-to-solr-enterprise-search</value>
-        </entry>
+          <value>http://${xslweb.localhost}:${xslweb.port}/xslweb/examples/hello-world.html</value>
+        </entry>        
       </job-data-map>
     </job>
     <trigger>
       <cron>
-        <name>trigger-local-to-solr-enterprise-search</name>
-        <group>ANT</group>
-        <job-name>job-local-to-solr-enterprise-search</job-name>
-        <job-group>ANT</job-group>
+        <name>example-trigger</name>
+        <group>XSLWeb</group>
+        <job-name>example-job</job-name>
+        <job-group>XSLWeb</job-group>
         <cron-expression>0 11 11 11 11 ?</cron-expression>
       </cron>
     </trigger>

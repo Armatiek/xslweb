@@ -13,6 +13,7 @@ public class Definitions {
   public final static String PROJECT_NAME                      = "xslweb";
   public final static String FILENAME_CONTROLLER_XSL           = "xslweb-controller.xsl";
   public final static String FILENAME_PROPERTIES               = "xslweb.properties";
+  public final static String FILENAME_QUARTZ                   = "xslweb-quartz.properties";
   
   public final static String XML_EXTENSION                     = "xml";
   public final static String XSL_EXTENSION                     = "xsl";
@@ -66,6 +67,8 @@ public class Definitions {
   public final static String MIMETYPE_TEXTPLAIN                = "text/plain";
   
   public final static String PROPERTYNAME_DEVELOPMENTMODE      = "xslweb.developmentmode";
+  public final static String PROPERTYNAME_PORT                 = "xslweb.port";
+  public final static String PROPERTYNAME_LOCALHOST            = "xslweb.localhost";
   public final static String PROPERTYNAME_STATICPATTERN        = "xslweb.staticcontentpattern";
   public final static String PROPERTYNAME_DYNAMICPATTERN       = "xslweb.dynamiccontentpattern";
   public final static String PROPERTYNAME_UPLOAD_MAX_SIZE      = "xslweb.uploadmaxsize";

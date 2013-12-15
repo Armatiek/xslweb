@@ -44,10 +44,8 @@
     <url-pattern>/*</url-pattern>
   </servlet-mapping>
   
-  <!--
   <listener>
-    <listener-class>com.armatiek.armaedit.web.servlet.WebAppEventListener</listener-class>
+    <listener-class>nl.armatiek.xslweb.web.listener.WebAppEventListener</listener-class>
   </listener>
-  -->
   
 </web-app>

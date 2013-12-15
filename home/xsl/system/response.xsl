@@ -18,7 +18,7 @@
   </xsl:template>
   
   <xsl:template match="resp:response">
-    <xsl:value-of select="if (resp:status(@status)) then () else error(xs:QName('error:response-status'), 'Could not set status of response')"/>       
+    <xsl:value-of select="if (resp:set-status(@status)) then () else error(xs:QName('error:response-status'), 'Could not set status of response')"/>       
   </xsl:template>
   
   <xsl:template match="resp:headers">
