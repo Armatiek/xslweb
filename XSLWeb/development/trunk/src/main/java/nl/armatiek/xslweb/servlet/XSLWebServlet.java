@@ -69,6 +69,7 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.Write;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteBinary;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteText;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteTextLines;
+import nl.armatiek.xslweb.saxon.functions.log.Log;
 import nl.armatiek.xslweb.saxon.functions.response.Cookies;
 import nl.armatiek.xslweb.saxon.functions.response.Headers;
 import nl.armatiek.xslweb.saxon.functions.response.Session;
@@ -111,6 +112,10 @@ public class XSLWebServlet extends HttpServlet {
       configuration = new Configuration();           
       configuration.setXIncludeAware(true);
       
+      /* Log */
+      configuration.registerExtensionFunction(new Log());
+      
+      /* Response */
       configuration.registerExtensionFunction(new SetStatus());
       configuration.registerExtensionFunction(new Headers());
       configuration.registerExtensionFunction(new Session());

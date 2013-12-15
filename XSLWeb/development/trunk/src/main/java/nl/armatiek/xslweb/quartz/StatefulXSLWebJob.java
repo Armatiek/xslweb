@@ -1,8 +1,9 @@
 package nl.armatiek.xslweb.quartz;
 
-import org.quartz.StatefulJob;
+import org.quartz.DisallowConcurrentExecution;
 
-public class StatefulXSLWebJob extends XSLWebJob implements StatefulJob {
+@DisallowConcurrentExecution
+public class StatefulXSLWebJob extends XSLWebJob {
 	
 	public StatefulXSLWebJob() {
     super();

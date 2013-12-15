@@ -13,6 +13,18 @@
   
   <xsl:template match="/">
     <resp:response status="200">
+      <resp:headers>               
+        <resp:header name="Expires">0</resp:header>
+        <resp:header name="Pragma">no-cache</resp:header>
+        <resp:header name="Cache-Control">no-store, no-cache, must-revalidate</resp:header>        
+      </resp:headers>
+      <!--
+      <resp:session>
+        <resp:attributes>
+          <resp:attribute name="foo">bar</resp:attribute>
+        </resp:attributes>
+      </resp:session>      
+      -->
       <resp:body>
         <xsl:call-template name="body"/>
       </resp:body>
@@ -26,7 +38,7 @@
       </head>
       <body>        
         <h3>Hello World!</h3>
-        <p>Your IP adress is <xsl:value-of select="/req:request/req:remote-addr"/></p>        
+        <p>It's <xsl:value-of select="substring(xs:string(current-time()), 1, 8)"/>, and your IP adress is <xsl:value-of select="/req:request/req:remote-addr"/></p>        
       </body>
     </html>
   </xsl:template>

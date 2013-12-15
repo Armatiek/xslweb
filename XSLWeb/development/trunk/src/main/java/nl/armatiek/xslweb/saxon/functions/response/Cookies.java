@@ -62,9 +62,8 @@ public class Cookies extends ExtensionFunctionDefinition {
     @SuppressWarnings("rawtypes")
     public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {                            
       HttpServletResponse response = (HttpServletResponse) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response");
-      NodeInfo nodeInfo = (NodeInfo) arguments[0].next();
-      NodeOverNodeInfo nodeOverNodeInfo = NodeOverNodeInfo.wrap(nodeInfo);
-      Element cookiesElem = nodeOverNodeInfo.getOwnerDocument().getDocumentElement();        
+      NodeInfo nodeInfo = (NodeInfo) arguments[0].next();      
+      Element cookiesElem = (Element) NodeOverNodeInfo.wrap(nodeInfo);        
       Element cookieElem = XMLUtils.getFirstChildElement(cookiesElem);        
       while (cookieElem != null) {
         String comment = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "comment");

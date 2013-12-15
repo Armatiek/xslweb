@@ -65,9 +65,8 @@ public class Session extends ExtensionFunctionDefinition {
       HttpServletRequest request = (HttpServletRequest) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_REQUEST + "}request");
       HttpSession session = request.getSession();
       
-      NodeInfo nodeInfo = (NodeInfo) arguments[0].next();
-      NodeOverNodeInfo nodeOverNodeInfo = NodeOverNodeInfo.wrap(nodeInfo);
-      Element sessionElem = nodeOverNodeInfo.getOwnerDocument().getDocumentElement();
+      NodeInfo nodeInfo = (NodeInfo) arguments[0].next();      
+      Element sessionElem = (Element) NodeOverNodeInfo.wrap(nodeInfo);
       
       String interval = XMLUtils.getValueOfChildElementByLocalName(sessionElem, "max-inactive-interval");
       if (interval != null) {

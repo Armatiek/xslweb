@@ -8,19 +8,45 @@
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:function name="basex:query" as="node()*">
+  <xsl:function name="basex:create-db">
+    
+  </xsl:function>
+  
+  <xsl:function name="basex:delete-db">
+    
+  </xsl:function>
+  
+  <xsl:function name="basex:create-resource">
+    
+  </xsl:function>
+  
+  <xsl:function name="basex:delete-resource">
+    
+  </xsl:function>
+  
+  <xsl:function name="basex:query" as="item()*">
+    <xsl:param name="uri" as="xs:anyURI"/>
     <xsl:param name="username" as="xs:string"/>
-    <xsl:param name="password" as="xs:string"/>  
+    <xsl:param name="password" as="xs:string"/> 
+    <xsl:param name="query" as="xs:string"/>
+    <xsl:param name="variables" as="element()*"/>
+    <xsl:param name="options" as="element()*"/>
     <xsl:variable name="req" as="element()">
       <http:request 
         href="''"
-        method="get"
+        method="post"
         username="{$username}"
         password="{$password}"
         auth-method="basic"
-        send-authorization="true"/>
+        send-authorization="true">
+        <http:body content-type="application/xml">
+          <rest:query>
+            <rest:text><xsl:value-of select="$query"/></rest:text>           
+          </rest:query>  
+        </http:body>
+      </http:request>
     </xsl:variable>
-    <xsl:sequence select="http:send-request($req)[2]"/>
+    <xsl:sequence select="http:send-request($req)"/>
   </xsl:function>
   
   <xsl:function name="basex:run">

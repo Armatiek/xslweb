@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.util.Properties;
 
 import javax.naming.Context;
@@ -25,7 +26,9 @@ public class Config {
   private static Config _instance;
   
   private Properties properties;
-  private boolean developmentMode = false;  
+  private boolean developmentMode = false;
+  private String localHost; 
+  private int port = 80;
   private String controllerXslPath;
   private File homeDir;
   
@@ -109,6 +112,9 @@ public class Config {
       is.close();
     }            
     developmentMode = Boolean.parseBoolean(props.getProperty(Definitions.PROPERTYNAME_DEVELOPMENTMODE, "false"));
+    port = Integer.parseInt(props.getProperty(Definitions.PROPERTYNAME_PORT, "80"));    
+    props.put(Definitions.PROPERTYNAME_LOCALHOST, InetAddress.getLocalHost().getHostName());
+    localHost = InetAddress.getLocalHost().getHostName();
     if (!developmentMode) {
       this.properties = props;
     }    
@@ -117,6 +123,14 @@ public class Config {
   
   public boolean isDevelopmentMode() {
     return developmentMode;
+  }
+  
+  public String getLocalHost() {
+    return localHost;
+  }
+  
+  public int getPort() {
+    return port;
   }
   
   public String getControllerXslPath() {

@@ -62,9 +62,8 @@ public class Headers extends ExtensionFunctionDefinition {
     @SuppressWarnings("rawtypes")
     public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
       HttpServletResponse response = (HttpServletResponse) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response");
-      NodeInfo nodeInfo = (NodeInfo) arguments[0].next();
-      NodeOverNodeInfo nodeOverNodeInfo = NodeOverNodeInfo.wrap(nodeInfo);
-      Element headersElem = nodeOverNodeInfo.getOwnerDocument().getDocumentElement();        
+      NodeInfo nodeInfo = (NodeInfo) arguments[0].next();      
+      Element headersElem = (Element) NodeOverNodeInfo.wrap(nodeInfo);        
       Element headerElem = XMLUtils.getFirstChildElement(headersElem);        
       while (headerElem != null) {                     
         String name = headerElem.getAttribute("name");
