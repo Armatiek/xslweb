@@ -5,7 +5,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -25,8 +24,6 @@ import nl.armatiek.xslweb.error.XSLWebException;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.xmlbeans.XmlDate;
-import org.apache.xmlbeans.XmlDateTime;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -41,9 +38,6 @@ import org.xml.sax.InputSource;
  * @author Maarten Kroon
  */
 public class XMLUtils {
-  
-  // private static final String xsdDateTimePattern        = "yyyy-MM-dd'T'HH:mm:ss";
-  private static final String xsdDatePattern            = "yyyy-MM-dd";
   
   public static DocumentBuilder getDocumentBuilder(boolean validate, 
       boolean namespaceAware, boolean xincludeAware) throws XSLWebException {
@@ -167,25 +161,11 @@ public class XMLUtils {
     if (dateTime != null) {
       cal.setTime(dateTime);
     } 
-    XmlDateTime dt = XmlDateTime.Factory.newInstance();
-    dt.setCalendarValue(cal);
-    return dt.getStringValue();   
+    return DatatypeConverter.printDateTime(cal);   
   }
   
   public static String getDateTimeString() {
     return getDateTimeString(new Date());           
-  }
-  
-  public static Date getDateFromString(String dateTime) throws ParseException {
-    if (dateTime.length() == xsdDatePattern.length()) {
-      XmlDate d = XmlDate.Factory.newInstance();
-      d.setStringValue(dateTime);
-      return d.getDateValue();
-    } else {
-      XmlDateTime dt = XmlDateTime.Factory.newInstance();
-      dt.setStringValue(dateTime);
-      return dt.getDateValue();
-    }    
   }
   
   public static String xmlEncode(String value) {
