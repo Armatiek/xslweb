@@ -23,16 +23,16 @@
     <html>
       <head>
         <title>Static files example</title>
-        <link rel="stylesheet" type="text/css" href="{/req:request/req:context-path}/styles/examples/static/style.css"/>
+        <link rel="stylesheet" type="text/css" href="{/*/req:context-path}{/*/req:webapp-path}/styles/static.css"/>
       </head>
       <body>
         <h3>Static file example</h3>
         
-        <p>This is a link to a static image file in <i>&lt;&lt;xslweb-home&gt;&gt;</i>/static/images/examples/static</p>
+        <p>This is a link to the static image file <i>&lt;&lt;webapp-home&gt;&gt;</i>/static/images/hello-world.jpg</p>
         <!-- Create image that references an image in home/static/images: -->
-        <img src="{/req:request/req:context-path}/images/examples/hello-world/hello-world.jpg"/>
+        <img src="{/*/req:context-path}{/*/req:webapp-path}/images/hello-world.jpg"/>
         
-        <p>This word <span class="red">red</span> is <span class="red">red</span> because that is defined in a static css file in <i>&lt;&lt;xslweb-home&gt;&gt;</i>/static/styles/examples/static</p>
+        <p>This word <span class="red">red</span> is <span class="red">red</span> because that is defined in the css file <i>&lt;&lt;webapp-home&gt;&gt;</i>/static/styles/static.css</p>
       </body>
     </html>
   </xsl:template>

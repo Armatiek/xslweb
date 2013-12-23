@@ -5,13 +5,11 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
   xmlns:req="http://www.armatiek.com/xslweb/request"
-  xmlns:resp="http://www.armatiek.com/xslweb/response"  
+  xmlns:resp="http://www.armatiek.com/xslweb/response"   
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:import href="xmlverbatim.xsl"/>
-  
-  <xsl:output method="xhtml" indent="no" omit-xml-declaration="yes" xml:space="preserve"/>
+  <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   
   <xsl:template match="/">
     <resp:response status="200">
@@ -24,15 +22,11 @@
   <xsl:template name="body">
     <html>
       <head>
-        <title>Request example</title>
-        <link rel="stylesheet" type="text/css" href="{/req:request/req:context-path}/styles/examples/request/xmlverbatim.css"/>
+        <title>It works!</title>
       </head>
       <body>        
-        <h3>Request example</h3>
-        <p>This is your HTTP request serialized to XML:</p> 
-        <tt>
-          <xsl:apply-templates select="/*" mode="xmlverb"/>  
-        </tt>        
+        <h1>It works!</h1>        
+        <p>Go to the <a href="{/*/req:context-path}/examples">examples</a> or <a href="{/*/req:context-path}/documentation">documentation</a>.</p>        
       </body>
     </html>
   </xsl:template>

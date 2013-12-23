@@ -11,7 +11,7 @@ import java.util.Set;
 public class Definitions {
   
   public final static String PROJECT_NAME                      = "xslweb";
-  public final static String FILENAME_CONTROLLER_XSL           = "xslweb-controller.xsl";
+  public final static String FILENAME_REQUESTDISPATCHER_XSL    = "request-dispatcher.xsl";
   public final static String FILENAME_PROPERTIES               = "xslweb.properties";
   public final static String FILENAME_QUARTZ                   = "xslweb-quartz.properties";
   
@@ -39,6 +39,7 @@ public class Definitions {
   public final static String NAMESPACEURI_STX                  = "http://stx.sourceforge.net/2002/ns";
  
   public final static String NAMESPACEURI_SAXON_CONFIGURATION  = "urn:net.sf.saxon.Configuration";
+  public final static String NAMESPACEURI_XSLWEB_WEBAPP        = "http://www.armatiek.com/xslweb/webapp";
   public final static String NAMESPACEURI_XSLWEB_CONFIGURATION = "http://www.armatiek.com/xslweb/configuration";
   public final static String NAMESPACEURI_XSLWEB_FUNCTIONS     = "http://www.armatiek.com/xslweb/functions";
   public final static String NAMESPACEURI_XSLWEB_REQUEST       = "http://www.armatiek.com/xslweb/request";

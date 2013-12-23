@@ -23,34 +23,39 @@
   <xsl:template name="body">
     <html>
       <head>
-        <title>XSLWeb examples</title>
+        <title>XSLWeb Documentation</title>
       </head>
       <body>    
-        <h3>XSLWeb examples</h3>
-        <ul>
+        <h3>XSLWeb Documentation</h3>
+        <ul>   
           <li>
-            <a href="{/*/req:context-path}/examples/hello-world.html">Hello world</a>
+            <a href="quickstart.html" target="basex">XSLWeb Quick Start</a>
           </li>
+          <!--
           <li>
-            <a href="{/*/req:context-path}/examples/static.html">Static files (i.e. images and css files)</a>
-          </li>
-          <li>            
-            <a href="{/*/req:context-path}/examples/request.html">Serialized HTTP request</a>              
+            <a href="http://www.xsltfunctions.com" target="basex">XSLWeb BaseX module</a>
           </li>
           <li>
-            <a href="{/*/req:context-path}/examples/expath-file.html">EXPath File Handling</a>
+            <a href="http://www.xsltfunctions.com" target="exist">XSLWeb eXist/DB module</a>
+          </li>
+          -->
+          <li>
+            <a href="http://expath.org/spec/file" target="expath-file">EXPath File Handling</a>
           </li>
           <li>
-            <a href="{/*/req:context-path}/examples/expath-httpclient.html">EXPath HTTP Client</a>
+            <a href="http://expath.org/spec/http-client" target="expath-httpclient">EXPath HTTP Client</a>
           </li>
           <li>
-            <a href="{/*/req:context-path}/examples/expath-zip.html">EXPath ZIP Facility</a>
+            <a href="http://expath.org/spec/zip" target="expath-zip">EXPath ZIP Facility</a>
           </li>
           <li>
-            <a href="{/*/req:context-path}/examples/upload.html">File upload</a>
+            <a href="http://www.xsltfunctions.com" target="functx">XSLWeb Email Module</a>
           </li>
+          <li>
+            <a href="http://www.xsltfunctions.com" target="functx">FunctX XSLT Function Library</a>
+          </li>                    
         </ul>
-        <a href="{/*/req:context-path}/docs">XSLWeb documentation</a>
+        <a href="{/*/req:context-path}/examples">XSLWeb examples</a>
       </body>
     </html>
   </xsl:template>

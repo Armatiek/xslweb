@@ -19,6 +19,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 import nl.armatiek.xslweb.configuration.Config;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.error.XSLWebException;
 
 import org.apache.commons.fileupload.FileItem;
@@ -34,11 +35,13 @@ public class RequestSerializer {
   private static final String URI = Definitions.NAMESPACEURI_XSLWEB_REQUEST;
   
   private HttpServletRequest req;
+  private WebApp webApp;
   private XMLStreamWriter xsw;
   private File reposDir; 
     
-  public RequestSerializer(HttpServletRequest req) {
-    this.req = req;         
+  public RequestSerializer(HttpServletRequest req, WebApp webApp) {
+    this.req = req;     
+    this.webApp = webApp;
   }
     
   public String serializeToXML() throws Exception {
@@ -121,7 +124,11 @@ public class RequestSerializer {
     dataElement(xsw, URI, "local-name", req.getLocalName());
     dataElement(xsw, URI, "local-port", Integer.toString(req.getLocalPort()));
     dataElement(xsw, URI, "method", req.getMethod());
-    dataElement(xsw, URI, "path", safeString(req.getServletPath()) + safeString(req.getPathInfo()));
+    String path = StringUtils.substringAfter(safeString(req.getServletPath()) + safeString(req.getPathInfo()), webApp.getPath());
+    if (StringUtils.isBlank(path)) {
+      path = "/";
+    }    
+    dataElement(xsw, URI, "path", path);
     dataElement(xsw, URI, "path-info", req.getPathInfo());
     dataElement(xsw, URI, "path-translated", req.getPathTranslated());    
     dataElement(xsw, URI, "protocol", req.getProtocol());
@@ -137,6 +144,7 @@ public class RequestSerializer {
     dataElement(xsw, URI, "server-name", req.getServerName());
     dataElement(xsw, URI, "server-port", Integer.toString(req.getServerPort()));
     dataElement(xsw, URI, "servlet-path", req.getServletPath());
+    dataElement(xsw, URI, "webapp-path", webApp.getPath());
     // userPrincipal
     dataElement(xsw, URI, "is-secure", Boolean.toString(req.isSecure()));
     dataElement(xsw, URI, "is-requested-session-id-from-cookie", Boolean.toString(req.isRequestedSessionIdFromCookie()));

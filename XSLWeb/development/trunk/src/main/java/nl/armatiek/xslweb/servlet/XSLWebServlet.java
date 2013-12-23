@@ -10,10 +10,8 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -37,9 +35,12 @@ import net.sf.saxon.serialize.MessageWarner;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Config;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.configuration.Parameter;
+import nl.armatiek.xslweb.configuration.Resource;
+import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.pipeline.PipelineStep;
-import nl.armatiek.xslweb.pipeline.StylesheetParameter;
+import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
 import nl.armatiek.xslweb.saxon.functions.expath.file.Append;
 import nl.armatiek.xslweb.saxon.functions.expath.file.AppendBinary;
@@ -102,9 +103,6 @@ public class XSLWebServlet extends HttpServlet {
   private File debugDir;
   private File requestDebugFile;
   private File responseDebugFile;
-  private File staticBaseDir;
-  private Pattern staticContentPattern;
-  private Pattern dynamicContentPattern;
   
   public void init() throws ServletException {
     super.init();
@@ -184,17 +182,6 @@ public class XSLWebServlet extends HttpServlet {
       
       homeDir = Config.getInstance().getHomeDir();
       
-      staticBaseDir = new File(homeDir, "static");
-      
-      String pattern = Config.getInstance().getProperties().getProperty(Definitions.PROPERTYNAME_STATICPATTERN);
-      if (StringUtils.isNotBlank(pattern)) {
-        staticContentPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
-      }
-      pattern = Config.getInstance().getProperties().getProperty(Definitions.PROPERTYNAME_DYNAMICPATTERN);
-      if (StringUtils.isNotBlank(pattern)) {
-        dynamicContentPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
-      }
-      
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new ServletException(e);
@@ -204,12 +191,18 @@ public class XSLWebServlet extends HttpServlet {
   @Override
   protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     try {
-      String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();            
-      if ((dynamicContentPattern != null && dynamicContentPattern.matcher(path).matches()) || 
-          (staticContentPattern != null && !staticContentPattern.matcher(path).matches())) {
-        executeRequest(req, resp);               
-      } else {      
-        FileUtils.copyFile(new File(staticBaseDir, path), resp.getOutputStream());
+      String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();      
+      WebApp webApp = Config.getInstance().getWebApp(path);
+      if (webApp == null) {
+        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      } else {
+        Resource resource = webApp.matchesResource(webApp.getRelativePath(path));
+        if (resource == null) {                                
+          executeRequest(webApp, req, resp);               
+        } else {          
+          resp.setContentType(resource.getMediaType());        
+          FileUtils.copyFile(webApp.getStaticFile(path), resp.getOutputStream());
+        }
       }
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
@@ -222,30 +215,33 @@ public class XSLWebServlet extends HttpServlet {
     }  
   }
 
-  private void setPropertyParameters(Controller controller) throws IOException {
+  private void setPropertyParameters(Controller controller, WebApp webApp) throws IOException {
     Properties props = Config.getInstance().getProperties();
     for (String key : props.stringPropertyNames()) {
       String value = props.getProperty(key);      
       controller.setParameter(
           new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, key),
           new StringValue(value));
-    }
+    }    
     controller.setParameter(
         new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "home-dir"),
         new StringValue(homeDir.getAbsolutePath()));
+    controller.setParameter(
+        new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "webapp-dir"),
+        new StringValue(webApp.getHomeDir().getAbsolutePath()));
   }
   
-  private void setPipelineParameters(Controller controller, TransformerStep step) throws IOException {
-    Iterator<StylesheetParameter> params = step.getStylesheetParameters();
-    if (params == null) {
+  private void setParameters(Controller controller, List<Parameter> parameters) throws IOException {
+    if (parameters == null) {
       return;
     }
-    while (params.hasNext()) {
-      StylesheetParameter param = params.next();
-      controller.setParameter(
-          new StructuredQName("", param.getUri(), param.getName()),
-          new StringValue(param.getValue()));
-    } 
+    for (Parameter param : parameters) {
+      String name = param.getName();
+      if (param.getURI() != null) {
+        name = "{" + param.getURI() + "}" + name;
+      }            
+      controller.setParameter(name, param.getValue());                  
+    }        
   }
   
   public static void serializeXMLToFile(String xml, File file) throws Exception {
@@ -258,8 +254,8 @@ public class XSLWebServlet extends HttpServlet {
     transformer.transform(new StreamSource(new StringReader(xml)), new StreamResult(file));
   }
   
-  private void executeRequest(HttpServletRequest req, HttpServletResponse resp) throws Exception {        
-    RequestSerializer requestSerializer = new RequestSerializer(req);    
+  private void executeRequest(WebApp webApp, HttpServletRequest req, HttpServletResponse resp) throws Exception {        
+    RequestSerializer requestSerializer = new RequestSerializer(req, webApp);    
     try {    
       String requestXML = requestSerializer.serializeToXML();
       
@@ -271,9 +267,9 @@ public class XSLWebServlet extends HttpServlet {
       ErrorListener errorListener = new TransformationErrorListener(resp);      
       MessageWarner messageWarner = new MessageWarner();
       
-      Templates controllerTemplates = TemplatesCache.tryTemplatesCache(Config.getInstance().getControllerXslPath(), errorListener, configuration);    
-      Controller controllerTransformer = (Controller) controllerTemplates.newTransformer();
-      setPropertyParameters(controllerTransformer);
+      Templates requestDispatcherTemplates = webApp.getRequestDispatcherTemplates(errorListener, configuration);    
+      Controller controllerTransformer = (Controller) requestDispatcherTemplates.newTransformer();
+      setPropertyParameters(controllerTransformer, webApp);
       controllerTransformer.setErrorListener(errorListener);        
       controllerTransformer.setMessageEmitter(messageWarner);
                                
@@ -288,7 +284,7 @@ public class XSLWebServlet extends HttpServlet {
         resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Resource not found");
         return;
       }
-      steps.add(new TransformerStep("system/response.xsl", "client-response"));
+      steps.add(new SystemTransformerStep("system/response.xsl", "client-response"));
                    
       Templates templates = null;
       TransformerHandler nextHandler = null;
@@ -302,12 +298,17 @@ public class XSLWebServlet extends HttpServlet {
         List<TransformerHandler> handlers = new ArrayList<TransformerHandler>();
         String stepName = null;
         for (int i=0; i<steps.size(); i++) {
-          PipelineStep step = steps.get(i);
-          templates = TemplatesCache.tryTemplatesCache(new File(homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath(), errorListener, configuration);      
+          PipelineStep step = steps.get(i);          
+          if (step instanceof SystemTransformerStep) {
+            templates = TemplatesCache.getTemplates(new File(this.homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath(), errorListener, configuration);
+          } else {          
+            templates = webApp.getTemplates(((TransformerStep) step).getXslPath(), errorListener, configuration);
+          }
           nextHandler = stf.newTransformerHandler(templates);
           transformer = (Controller) nextHandler.getTransformer();          
-          setPropertyParameters(transformer);
-          setPipelineParameters(transformer, (TransformerStep) step);
+          setPropertyParameters(transformer, webApp);
+          setParameters(transformer, webApp.getParameters());
+          setParameters(transformer, ((TransformerStep) step).getParameters());          
           transformer.setErrorListener(errorListener);
           transformer.setMessageEmitter(messageWarner);
           if (!handlers.isEmpty()) {            
