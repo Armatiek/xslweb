@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.configuration.Parameter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.Attributes;
@@ -14,15 +15,26 @@ import org.xml.sax.SAXException;
 public class PipelineHandler implements ContentHandler {
   
   private ArrayList<PipelineStep> pipelineSteps = new ArrayList<PipelineStep>();
+  private StringBuilder chars = new StringBuilder();  
+  private Parameter parameter;
     
   @Override
-  public void characters(char[] ch, int start, int len) throws SAXException { }
+  public void characters(char[] ch, int start, int len) throws SAXException { 
+    chars.append(ch, start, len);
+  }
 
   @Override
   public void endDocument() throws SAXException { }
   
   @Override
-  public void endElement(String uri, String localName, String qName) throws SAXException { }
+  public void endElement(String uri, String localName, String qName) throws SAXException { 
+    if (StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_PIPELINE)) {
+      if (localName.equals("value")) { 
+        parameter.addValue(chars.toString());
+      }
+    }
+    chars.setLength(0);
+  }
 
   @Override
   public void endPrefixMapping(String prefix) throws SAXException { }
@@ -60,12 +72,14 @@ public class PipelineHandler implements ContentHandler {
         String name = getAttribute(atts, "name", null);
         if (StringUtils.isBlank(name)) {
           throw new SAXException("Element \"parameter\" must have an attribute \"name\"");
-        }        
-        step.addParameter(new StylesheetParameter(
+        }                 
+        this.parameter = new Parameter(
             getAttribute(atts, "uri", null),
             name,
-            getAttribute(atts, "value", "")));               
+            getAttribute(atts, "type", "xs:string"));                
+        step.addParameter(this.parameter);          
       } else if (localName.equals("pipeline")) {
+      } else if (localName.equals("value")) {
       } else {
         throw new SAXException(String.format("Pipeline element \"%s\" not supported", localName));
       }

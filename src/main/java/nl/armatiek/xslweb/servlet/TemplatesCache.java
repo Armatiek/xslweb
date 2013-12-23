@@ -28,7 +28,7 @@ public class TemplatesCache {
   private static Map<String, Templates> templatesCache = 
       Collections.synchronizedMap(new HashMap<String, Templates>());
   
-  public static Templates tryTemplatesCache(String transformationPath,  
+  public static Templates getTemplates(String transformationPath,  
       ErrorListener errorListener, Configuration configuration) throws Exception {
     String key = FilenameUtils.normalize(transformationPath);
     Templates templates = (Templates) templatesCache.get(key);

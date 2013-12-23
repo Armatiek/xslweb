@@ -4,9 +4,13 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.naming.Context;
@@ -16,6 +20,8 @@ import javax.naming.NoInitialContextException;
 
 import nl.armatiek.xslweb.error.XSLWebException;
 
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,17 +31,18 @@ public class Config {
   
   private static Config _instance;
   
+  private Map<String, WebApp> webApps = Collections.synchronizedMap(new HashMap<String, WebApp>());
   private Properties properties;
   private boolean developmentMode = false;
   private String localHost; 
-  private int port = 80;
-  private String controllerXslPath;
+  private int port = 80;  
   private File homeDir;
   
   private Config() {
     try {
       getHomeDir();      
-      getProperties();      
+      getProperties(); 
+      getWebApps();
     } catch (Exception e) {
       throw new XSLWebException(e);
     }
@@ -121,6 +128,19 @@ public class Config {
     return props;
   }
   
+  public void getWebApps() throws Exception {
+    File webAppsDir = new File(getHomeDir(), "webapps");
+    File[] dirs = webAppsDir.listFiles();
+    for (File dir : dirs) {
+      File[] webAppFiles = dir.listFiles((FilenameFilter) new NameFileFilter("webapp.xml"));
+      if (webAppFiles.length == 0) {
+        continue;
+      }
+      WebApp webApp = new WebApp(webAppFiles[0]);
+      webApps.put(webApp.getName(), webApp);     
+    }    
+  }
+  
   public boolean isDevelopmentMode() {
     return developmentMode;
   }
@@ -133,15 +153,13 @@ public class Config {
     return port;
   }
   
-  public String getControllerXslPath() {
-    if (controllerXslPath != null) {
-      return controllerXslPath;
+  public WebApp getWebApp(String path) {
+    String name = StringUtils.substringBefore(path.substring(1), "/");
+    WebApp webApp = webApps.get(name);
+    if (webApp == null) {
+      webApp = webApps.get("root");
     }
-    String path = new File(getHomeDir(), "xsl" + File.separatorChar + Definitions.FILENAME_CONTROLLER_XSL).getAbsolutePath();
-    if (!developmentMode) {
-      this.controllerXslPath = path;
-    } 
-    return path;
+    return webApp;    
   }
-
+  
 }

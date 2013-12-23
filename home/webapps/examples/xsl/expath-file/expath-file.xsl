@@ -14,6 +14,7 @@
   <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   
   <xsl:param name="config:home-dir" as="xs:string"/>
+  <xsl:param name="config:webapp-dir" as="xs:string"/>
   
   <xsl:template match="/">
     <resp:response status="200">
@@ -31,21 +32,21 @@
       <body>
         <h3>EXPath File Handling example</h3>
         
-        <xsl:variable name="dir-path" select="concat($config:home-dir, '/static/downloads/examples/expath-file')" as="xs:string"/>
+        <xsl:variable name="dir-path" select="concat($config:webapp-dir, '/static/downloads/expath-file')" as="xs:string"/>
         <xsl:variable name="file-path" select="concat($dir-path, '/text-file.txt')" as="xs:string"/>
         <xsl:variable name="file-path2" select="concat($dir-path, '/text-file2.txt')" as="xs:string"/>
         
         <p>
-          <a href="{/*/req:context-path}/examples/expath-file.html?create=">Create or append text to</a> text file <i>&lt;&lt;xslweb-home&gt;&gt;</i>/static/downloads/examples/expath-file/text-file.txt
+          <a href="{/*/req:context-path}{/*/req:webapp-path}/expath-file.html?create=">Create or append text to</a> text file <i>&lt;&lt;webapp-home&gt;&gt;</i>/static/downloads/expath-file/text-file.txt
           <xsl:if test="/*/req:parameters/req:parameter[@name='create']">            
-            <xsl:variable name="lines" select="(concat('This is a the first line, created on: ', current-dateTime()),  concat('This is a the first line, created on: ', current-dateTime()))" as="xs:string+"/>
+            <xsl:variable name="lines" select="(concat('This is a the first line, created on: ', current-dateTime()),  concat('This is a the second line, created on: ', current-dateTime()))" as="xs:string+"/>
             <xsl:value-of select="if (file:create-dir($dir-path)) then () else (error(xs:QName('err:FILE9999'), 'Could not create directory'))"/>
             <xsl:value-of select="if (file:append-text-lines($file-path, $lines)) then () else (error(xs:QName('err:FILE9999'), 'Could not append lines to file'))"/>
           </xsl:if>
         </p>
         
         <p>
-          <a href="{/*/req:context-path}/examples/expath-file.html?view=">View</a> the contents of the text file <i>&lt;&lt;xslweb-home&gt;&gt;</i>/static/downloads/examples/expath-file/text-file.txt          
+          <a href="{/*/req:context-path}{/*/req:webapp-path}/expath-file.html?view=">View</a> the contents of the text file <i>&lt;&lt;webapp-home&gt;&gt;</i>/static/downloads/expath-file/text-file.txt          
           <xsl:if test="/*/req:parameters/req:parameter[@name='view']">
             <br/><br/>                                 
             <xsl:for-each select="file:read-text-lines($file-path)">
@@ -56,14 +57,14 @@
         </p>
         
         <p>
-          <a href="{/*/req:context-path}/examples/expath-file.html?copy=">Copy</a> the text file <i>&lt;&lt;xslweb-home&gt;&gt;</i>/static/downloads/examples/expath-file/text-file.txt to text-file2.txt           
+          <a href="{/*/req:context-path}{/*/req:webapp-path}/expath-file.html?copy=">Copy</a> the text file <i>&lt;&lt;webapp-home&gt;&gt;</i>/static/downloads/expath-file/text-file.txt to text-file2.txt           
           <xsl:if test="/*/req:parameters/req:parameter[@name='copy']">                       
             <xsl:value-of select="if (file:copy($file-path, $file-path2)) then () else (error(xs:QName('err:FILE9999'), 'Could not copy file'))"/>
           </xsl:if>
         </p>
         
         <p>
-          <a href="{/*/req:context-path}/examples/expath-file.html?delete=">Delete</a> the text file <i>&lt;&lt;xslweb-home&gt;&gt;</i>/static/downloads/examples/expath-file/text-file2.txt           
+          <a href="{/*/req:context-path}{/*/req:webapp-path}/expath-file.html?delete=">Delete</a> the text file <i>&lt;&lt;webapp-home&gt;&gt;</i>/static/downloads/expath-file/text-file2.txt           
           <xsl:if test="/*/req:parameters/req:parameter[@name='delete']">                                                                                  
             <xsl:choose>
               <xsl:when test="file:exists($file-path2)">
@@ -76,11 +77,11 @@
           </xsl:if>
         </p>
         
-        <p>This is the contents of your xslweb home directory:</p>
+        <p>This is the contents of your webapp home directory:</p>
         <ol>
-          <xsl:for-each select="file:list($config:home-dir, true())">
+          <xsl:for-each select="file:list($config:webapp-dir, true())">
             <li>
-              <xsl:value-of select="concat(., ' (', file:size(concat($config:home-dir, '/', .)), ' bytes)')"/>
+              <xsl:value-of select="concat(., ' (', file:size(concat($config:webapp-dir, '/', .)), ' bytes)')"/>
             </li>          
           </xsl:for-each>
         </ol>

@@ -6,9 +6,13 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 
+import javax.xml.bind.DatatypeConverter;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -20,6 +24,7 @@ import javax.xml.transform.stream.StreamResult;
 import nl.armatiek.xslweb.error.XSLWebException;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.xmlbeans.XmlDate;
 import org.apache.xmlbeans.XmlDateTime;
 import org.w3c.dom.Attr;
@@ -300,5 +305,63 @@ public class XMLUtils {
             || '-' == c
             || '\u06DD' == c
             || '\u06DE' == c;
+  }
+  
+  public static NamespaceContext getNamespaceContext(final String prefix, final String uri) {
+    return new NamespaceContext() {
+      @Override
+      public String getNamespaceURI(String prefix) {      
+        return uri;
+      }
+
+      @Override
+      public String getPrefix(String uri) {
+        return prefix;
+      }
+
+      @Override
+      public Iterator<String> getPrefixes(String uri) {        
+         ArrayList<String> prefixes = new ArrayList<String>();
+         prefixes.add(prefix);
+         return prefixes.iterator();
+      }      
+    };    
+  }
+  
+  public static Object getObject(String type, String value) {
+    String t = StringUtils.substringAfter(type, ":");
+    if (t.equals("string")) {
+      return value;
+    } else if (t.equals("boolean")) {
+      return new Boolean(DatatypeConverter.parseBoolean(value));
+    } else if (t.equals("byte")) {
+      return new Byte(DatatypeConverter.parseByte(value));
+    } else if (t.equals("date")) {
+      return DatatypeConverter.parseDate(value);
+    } else if (t.equals("dateTime")) {
+      return DatatypeConverter.parseDateTime(value);
+    } else if (t.equals("decimal")) {
+      return DatatypeConverter.parseDecimal(value);
+    } else if (t.equals("float")) {
+      return DatatypeConverter.parseFloat(value);
+    } else if (t.equals("double")) {
+      return DatatypeConverter.parseDouble(value);
+    } else if (t.equals("int")) {
+      return new Integer(DatatypeConverter.parseInt(value));
+    } else if (t.equals("integer")) {
+      return DatatypeConverter.parseInteger(value);
+    } else if (t.equals("long")) {
+      return new Long(DatatypeConverter.parseLong(value));
+    } else if (t.equals("short")) {
+      return new Short(DatatypeConverter.parseShort(value));
+    } else if (t.equals("time")) {
+      return DatatypeConverter.parseTime(value);
+    } else if (t.equals("unsignedInt")) {
+      return new Long(DatatypeConverter.parseUnsignedInt(value));
+    } else if (t.equals("unsignedShort")) {
+      return new Integer(DatatypeConverter.parseUnsignedShort(value));      
+    } else {
+      throw new XSLWebException(String.format("Datatype \"%s\" not supported", type));
+    }    
   }
 }

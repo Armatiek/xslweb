@@ -1,0 +1,34 @@
+<webapp xmlns="http://www.armatiek.com/xslweb/webapp" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  
+  <title>Root web application</title>
+  <description>Root web application</description>
+  
+  <!-- Resources to serve straight away: -->
+  <resources>
+    <resource pattern="/favicon.ico" media-type="image/x-icon"/>    
+    <resource pattern="/images/.+\.png" media-type="image/png"/>
+    <resource pattern="/images/.+\.gif" media-type="image/gif"/>
+    <resource pattern="/images/.+\.(jpg|jpeg)" media-type="image/jpg"/>
+    <resource pattern="/scripts/.+\.js" media-type="text/javascript"/>
+    <resource pattern="/styles/.+\.css" media-type="text/css"/>
+  </resources>
+
+  <!-- Stylesheet parameters: -->
+  <parameters>
+    <parameter name="foo" type="xs:integer">
+      <value>1</value>
+      <value>2</value>
+      <value>3</value>
+    </parameter>    
+  </parameters>
+  
+  <!-- Scheduled job definitions: -->
+  <jobs>
+    <job>
+      <name></name>
+      <uri></uri>
+      <cron></cron>      
+    </job>  
+  </jobs>
+  
+</webapp>

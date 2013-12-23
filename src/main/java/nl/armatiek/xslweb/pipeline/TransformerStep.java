@@ -1,12 +1,13 @@
 package nl.armatiek.xslweb.pipeline;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+
+import nl.armatiek.xslweb.configuration.Parameter;
 
 public class TransformerStep extends PipelineStep {
   
-  private List<StylesheetParameter> params;
+  private List<Parameter> params;
   private String xslPath;
   
   public TransformerStep(String xslPath, String name) {
@@ -14,18 +15,15 @@ public class TransformerStep extends PipelineStep {
     this.xslPath = xslPath;    
   }
   
-  public void addParameter(StylesheetParameter param) {
+  public void addParameter(Parameter param) {
     if (params == null) {
-      params = new ArrayList<StylesheetParameter>();
+      params = new ArrayList<Parameter>();
     }
     params.add(param);
   }
     
-  public Iterator<StylesheetParameter> getStylesheetParameters() {
-    if (params != null) {
-      return params.iterator();
-    }
-    return null;
+  public List<Parameter> getParameters() {    
+    return params;
   }
   
   public String getXslPath() {
