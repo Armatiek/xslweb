@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xslweb="http://www.armatiek.com/xslweb/webapp" targetNamespace="http://www.armatiek.com/xslweb/webapp" elementFormDefault="qualified">
+
+  <xs:element name="webapp">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="title" type="xs:string"/>
+        <xs:element name="description" type="xs:string"/>
+        <xs:element minOccurs="0" name="resources">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" minOccurs="0" name="resource">
+                <xs:complexType>
+                  <xs:attribute name="pattern" type="xs:string" use="required"/>
+                  <xs:attribute name="media-type" type="xs:string" use="required"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="parameters">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" minOccurs="0" name="parameter">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element maxOccurs="unbounded" name="value" type="xs:string"/>
+                  </xs:sequence>
+                  <xs:attribute name="uri" type="xs:anyURI"/>
+                  <xs:attribute name="name" type="xs:string" use="required"/>
+                  <xs:attribute name="type" use="required">
+                    <xs:simpleType>
+                      <xs:restriction base="xs:string">
+                        <xs:enumeration value="xs:string"/>
+                        <xs:enumeration value="xs:boolean"/>
+                        <xs:enumeration value="xs:integer"/>
+                        <xs:enumeration value="xs:double"/>
+                        <xs:enumeration value="xs:float"/>
+                        <xs:enumeration value="xs:decimal"/>
+                        <xs:enumeration value="xs:integer"/>
+                        <xs:enumeration value="xs:dateTime"/>
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="jobs">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" minOccurs="0" name="job">
+                <xs:complexType>
+                  <xs:all>
+                    <xs:element name="name" type="xs:string"/>
+                    <xs:element name="uri" type="xs:string"/>
+                    <xs:element name="cron" type="xs:string"/>
+                  </xs:all>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
