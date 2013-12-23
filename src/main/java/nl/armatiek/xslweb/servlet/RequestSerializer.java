@@ -13,6 +13,7 @@ import java.util.UUID;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -28,7 +29,6 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.xmlbeans.XmlDateTime;
 
 public class RequestSerializer {
   
@@ -320,9 +320,7 @@ public class RequestSerializer {
     if (date != null) {
       cal.setTime(date);
     } 
-    XmlDateTime dt = XmlDateTime.Factory.newInstance();
-    dt.setCalendarValue(cal);
-    return dt.getStringValue();   
+    return DatatypeConverter.printDateTime(cal);          
   }
 
 }

@@ -1,4 +1,8 @@
-<webapp xmlns="http://www.armatiek.com/xslweb/webapp" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<webapp 
+  xmlns="http://www.armatiek.com/xslweb/webapp"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
   
   <title>XSLWeb Documentation</title>
   <description>XSLWeb Documentation</description>
@@ -17,11 +21,11 @@
   <parameters>
     <parameter name="foo" uri="http://www.x.y" type="xs:string">
       <value>bar</value>
-    </parameter>    
+    </parameter>      
   </parameters>
   
   <!-- Scheduled job definitions: -->
-  <jobs>
+  <jobs>    
     <job>
       <name></name>
       <uri></uri>
