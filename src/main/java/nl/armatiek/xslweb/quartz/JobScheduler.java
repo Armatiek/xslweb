@@ -72,7 +72,7 @@ public class JobScheduler {
   }
   
   /**
-   * Stops the Quartz Scheduler but only when not in development mode.
+   * Stops the Quartz Scheduler.
    * 
    * @throws SchedulerException
    */

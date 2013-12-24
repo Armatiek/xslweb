@@ -17,6 +17,9 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.naming.NoInitialContextException;
+import javax.xml.XMLConstants;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 
 import nl.armatiek.xslweb.error.XSLWebException;
 
@@ -32,6 +35,7 @@ public class Config {
   private static Config _instance;
   
   private Map<String, WebApp> webApps = Collections.synchronizedMap(new HashMap<String, WebApp>());
+  private Schema webAppSchema;
   private Properties properties;
   private boolean developmentMode = false;
   private String localHost; 
@@ -41,7 +45,8 @@ public class Config {
   private Config() {
     try {
       getHomeDir();      
-      getProperties(); 
+      getProperties();
+      getXMLSchemas();
       getWebApps();
     } catch (Exception e) {
       throw new XSLWebException(e);
@@ -128,6 +133,16 @@ public class Config {
     return props;
   }
   
+  public void getXMLSchemas() throws Exception {   
+    SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    File schemaFile = new File(homeDir, "config/xsd/xslweb/webapp.xsd");
+    if (!schemaFile.isFile()) {
+      logger.warn(String.format("XML Schema \"%s\" not found", schemaFile.getAbsolutePath()));
+    } else {
+      webAppSchema = factory.newSchema(schemaFile);
+    }
+  }
+  
   public void getWebApps() throws Exception {
     File webAppsDir = new File(getHomeDir(), "webapps");
     File[] dirs = webAppsDir.listFiles();
@@ -136,8 +151,13 @@ public class Config {
       if (webAppFiles.length == 0) {
         continue;
       }
-      WebApp webApp = new WebApp(webAppFiles[0]);
-      webApps.put(webApp.getName(), webApp);     
+      File file = webAppFiles[0];
+      try {       
+        WebApp webApp = new WebApp(webAppFiles[0], webAppSchema);
+        webApps.put(webApp.getName(), webApp);     
+      } catch (Exception e) {
+        logger.error(String.format("Error creating webapp \"%s\"", file.getAbsolutePath()), e);
+      }
     }    
   }
   

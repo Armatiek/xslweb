@@ -17,7 +17,7 @@
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/']">    
-    <pipeline:transformer name="itworks" xsl-path="itworks.xsl"/>                        
+    <pipeline:transformer name="itworks" xsl-path="itworks.xsl"/>
   </xsl:template>
   
 </xsl:stylesheet>

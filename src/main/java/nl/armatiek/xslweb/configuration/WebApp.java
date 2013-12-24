@@ -1,15 +1,18 @@
 package nl.armatiek.xslweb.configuration;
 
+import static org.quartz.JobBuilder.newJob;
+import static org.quartz.TriggerBuilder.newTrigger;
+import static org.quartz.CronScheduleBuilder.*;
+
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.ErrorListener;
@@ -17,53 +20,61 @@ import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXSource;
+import javax.xml.validation.Schema;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import net.sf.saxon.Configuration;
+import nl.armatiek.xslweb.quartz.JobScheduler;
+import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.utils.XMLUtils;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.quartz.JobDetail;
+import org.quartz.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 
-public class WebApp {
+public class WebApp implements ErrorHandler {
   
   private static final Logger logger = LoggerFactory.getLogger(WebApp.class);
   
   private static Map<String, Templates> templatesCache = 
       Collections.synchronizedMap(new HashMap<String, Templates>());
   
+  private File definition;
   private File homeDir;
   private String name;
   private String title;
   private String description;
   private List<Resource> resources = new ArrayList<Resource>();
   private List<Parameter> parameters = new ArrayList<Parameter>();
-  private List<Job> jobs = new ArrayList<Job>();
   
-  public WebApp(File webAppDefinition) throws XPathExpressionException, SAXException, IOException, ParserConfigurationException {   
+  public WebApp(File webAppDefinition, Schema webAppSchema) throws Exception {   
     logger.info(String.format("Loading webapp definition \"%s\" ...", webAppDefinition.getAbsolutePath()));
     
+    this.definition = webAppDefinition;
     this.homeDir = webAppDefinition.getParentFile();
     this.name = this.homeDir.getName();
     
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    dbf.setNamespaceAware(true);
-    dbf.setValidating(true);
-    // dbf.setSchema(schema);
+    dbf.setNamespaceAware(true);    
+    dbf.setSchema(webAppSchema);    
     dbf.setXIncludeAware(true);
-    Document webAppDoc = dbf.newDocumentBuilder().parse(webAppDefinition);
+    DocumentBuilder db = dbf.newDocumentBuilder();
+    db.setErrorHandler(this);    
+    Document webAppDoc = db.parse(webAppDefinition);
         
     XPath xpath = XPathFactory.newInstance().newXPath();
     xpath.setNamespaceContext(XMLUtils.getNamespaceContext("webapp", Definitions.NAMESPACEURI_XSLWEB_WEBAPP));    
@@ -80,8 +91,27 @@ public class WebApp {
     }
     NodeList jobNodes = (NodeList) xpath.evaluate("webapp:jobs/webapp:job", docElem, XPathConstants.NODESET);
     for (int i=0; i<jobNodes.getLength(); i++) {
-      jobs.add(new Job((Element) jobNodes.item(i)));
+      Element jobElem = (Element) jobNodes.item(i);      
+      String jobName = XMLUtils.getValueOfChildElementByLocalName(jobElem, "name");
+      String jobUri = XMLUtils.getValueOfChildElementByLocalName(jobElem, "uri");
+      String jobCron = XMLUtils.getValueOfChildElementByLocalName(jobElem, "cron");  
+      String jobId = "job_" + name + "_" + jobName;
+      JobDetail job = newJob(XSLWebJob.class)
+          .withIdentity(jobId, name)
+          .usingJobData("uri", jobUri)
+          .build();      
+      Trigger trigger = newTrigger()
+          .withIdentity("trigger_" + name + "_" + jobName, name)
+          .withSchedule(cronSchedule(jobCron))
+          .forJob(jobId, name)                     
+          .build(); 
+      logger.info("Adding job to scheduler");
+      // JobScheduler.getInstance().getScheduler().scheduleJob(job, trigger);
     }    
+  }
+  
+  public void close() {
+    //
   }
   
   public File getHomeDir() {
@@ -112,10 +142,6 @@ public class WebApp {
     return parameters;
   }
 
-  public List<Job> getJobs() {
-    return jobs;
-  }
-  
   public Templates getRequestDispatcherTemplates(ErrorListener errorListener, Configuration configuration) throws Exception {
     return tryTemplatesCache(new File(getHomeDir(), Definitions.FILENAME_REQUESTDISPATCHER_XSL).getAbsolutePath(), errorListener, configuration);
   }
@@ -169,6 +195,23 @@ public class WebApp {
       }      
     }
     return templates;
+  }
+  
+  @Override
+  public void error(SAXParseException e) throws SAXException {
+    logger.error(String.format("Error parsing \"%s\"", definition.getAbsolutePath()), e); 
+    throw e;
+  }
+
+  @Override
+  public void fatalError(SAXParseException e) throws SAXException {
+    logger.error(String.format("Error parsing \"%s\"", definition.getAbsolutePath()), e); 
+    throw e;
+  }
+
+  @Override
+  public void warning(SAXParseException e) throws SAXException {
+    logger.warn(String.format("Error parsing \"%s\"", definition.getAbsolutePath()), e);     
   }
   
 }
