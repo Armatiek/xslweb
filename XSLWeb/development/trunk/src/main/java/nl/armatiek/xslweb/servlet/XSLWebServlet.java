@@ -80,6 +80,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.expath.httpclient.saxon.SendRequestFunction;
+import org.expath.pkg.saxon.EXPathFunctionDefinition;
 import org.expath.zip.saxon.BinaryEntryFunction;
 import org.expath.zip.saxon.EntriesFunction;
 import org.expath.zip.saxon.HtmlEntryFunction;
@@ -151,16 +152,16 @@ public class XSLWebServlet extends HttpServlet {
       configuration.registerExtensionFunction(new WriteTextLines());
 
       /* EXPath Zip: */
-      configuration.registerExtensionFunction(new EntriesFunction());
-      configuration.registerExtensionFunction(new UpdateEntriesFunction());
-      configuration.registerExtensionFunction(new ZipFileFunction());
+      registerEXPathFunction(new EntriesFunction(), configuration);
+      registerEXPathFunction(new UpdateEntriesFunction(), configuration);
+      registerEXPathFunction(new ZipFileFunction(), configuration);
       configuration.registerExtensionFunction(new BinaryEntryFunction());
       configuration.registerExtensionFunction(new HtmlEntryFunction());
       configuration.registerExtensionFunction(new TextEntryFunction());
       configuration.registerExtensionFunction(new XmlEntryFunction());
       
-      /* EXPath HttpClient: */
-      configuration.registerExtensionFunction(new SendRequestFunction());
+      /* EXPath HttpClient: */           
+      registerEXPathFunction(new SendRequestFunction(), configuration);
   
       isDevelopmentMode = Config.getInstance().isDevelopmentMode();
       if (isDevelopmentMode) {
@@ -186,6 +187,11 @@ public class XSLWebServlet extends HttpServlet {
       logger.error(e.getMessage());
       throw new ServletException(e);
     }
+  }
+  
+  private void registerEXPathFunction(EXPathFunctionDefinition function, Configuration configuration) {
+    function.setConfiguration(configuration);      
+    configuration.registerExtensionFunction(function);
   }
   
   @Override

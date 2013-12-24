@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xslweb="http://www.armatiek.com/xslweb/pipeline" targetNamespace="http://www.armatiek.com/xslweb/pipeline" elementFormDefault="qualified">
+
+  <xs:element name="pipeline">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="transformer" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" minOccurs="0" name="parameter">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element maxOccurs="unbounded" name="value" type="xs:string"/>
+                  </xs:sequence>
+                  <xs:attribute name="uri" type="xs:anyURI"/>
+                  <xs:attribute name="name" type="xs:string" use="required"/>
+                  <xs:attribute name="type" use="required">
+                    <xs:simpleType>
+                      <xs:restriction base="xs:string">
+                        <xs:enumeration value="xs:string"/>
+                        <xs:enumeration value="xs:boolean"/>
+                        <xs:enumeration value="xs:integer"/>
+                        <xs:enumeration value="xs:double"/>
+                        <xs:enumeration value="xs:float"/>
+                        <xs:enumeration value="xs:decimal"/>
+                        <xs:enumeration value="xs:integer"/>
+                        <xs:enumeration value="xs:dateTime"/>
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="name">
+              <xs:simpleType>
+                <xs:restriction base="baseType"/>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="xsl-path" use="required">
+              <xs:simpleType>
+                <xs:restriction base="baseType"/>
+              </xs:simpleType>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -39,10 +39,13 @@
             <a href="{$path}/expath-file.html">EXPath File Handling</a>
           </li>
           <li>
-            <a href="{$path}/expath-httpclient.html">EXPath HTTP Client</a>
+            <a href="{$path}/expath-http.html">EXPath HTTP Client</a>
           </li>
           <li>
+            <!--
             <a href="{$path}/expath-zip.html">EXPath ZIP Facility</a>
+            -->
+            EXPath ZIP Facility (nog geen voorbeeld beschikbaar) 
           </li>
           <li>
             <a href="{$path}/upload.html">File upload</a>

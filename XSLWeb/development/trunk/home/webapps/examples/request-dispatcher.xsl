@@ -34,6 +34,10 @@
     <pipeline:transformer name="expath-file" xsl-path="expath-file/expath-file.xsl"/>              
   </xsl:template>
   
+  <xsl:template match="/req:request[req:path = '/expath-http.html']">    
+    <pipeline:transformer name="expath-file" xsl-path="expath-http/expath-http.xsl"/>              
+  </xsl:template>
+  
   <xsl:template match="/req:request[req:path = '/upload.html']">    
     <pipeline:transformer name="upload-form" xsl-path="upload/upload-form.xsl"/>              
   </xsl:template>

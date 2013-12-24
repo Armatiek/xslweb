@@ -18,24 +18,20 @@ public class WebAppEventListener implements ServletContextListener {
 
   private final static Logger logger = LoggerFactory.getLogger(WebAppEventListener.class);
 
-  public void contextInitialized(ServletContextEvent sce) {
-    /*
+  public void contextInitialized(ServletContextEvent sce) {    
     try {
       JobScheduler.getInstance().startScheduler();
     } catch (Exception e) {
       logger.error("Could not start job scheduler ", e);
-    }
-    */
+    }    
     Config.getInstance();
   }
 
-  public void contextDestroyed(ServletContextEvent sce) {
-    /*
+  public void contextDestroyed(ServletContextEvent sce) {    
     try { 
       JobScheduler.getInstance().stopScheduler();
     } catch (Exception e) {
       logger.error("Could not stop job scheduler: ", e);
-    }
-    */
+    }    
   }
 }
