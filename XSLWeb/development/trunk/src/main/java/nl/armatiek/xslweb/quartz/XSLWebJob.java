@@ -1,8 +1,10 @@
 package nl.armatiek.xslweb.quartz;
 
-import nl.armatiek.xslweb.configuration.Config;
-import nl.armatiek.xslweb.utils.XSLWebUtils;
+import java.net.URI;
 
+import nl.armatiek.xslweb.configuration.Context;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -30,11 +32,13 @@ public class XSLWebJob implements Job {
   public void execute(JobExecutionContext context) throws JobExecutionException {
     logger.info(String.format("Executing job \"%s\"", context.getJobDetail().getKey().getName()));
     try {
-      Config config = Config.getInstance();
+      Context ctx = Context.getInstance();
       JobDataMap dataMap = context.getMergedJobDataMap();
-      String uri = XSLWebUtils.resolveProperties(dataMap.getString("uri"), config.getProperties());           
+      String webAppPath = dataMap.getString("webapp-path");
+      String path = dataMap.getString("uri");      
       CloseableHttpClient httpClient = HttpClients.createDefault();
-      try {
+      try {                       
+        URI uri = new URI("http", null, ctx.getLocalHost(), ctx.getPort(), ctx.getContextPath() + webAppPath + "/" + StringUtils.stripStart(path, "/"), null, null);
         HttpGet httpget = new HttpGet(uri);
         CloseableHttpResponse response = httpClient.execute(httpget);
         try {

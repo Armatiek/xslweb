@@ -18,7 +18,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import nl.armatiek.xslweb.configuration.Config;
+import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.error.XSLWebException;
@@ -89,7 +89,7 @@ public class RequestSerializer {
       }
       factory.setRepository(reposDir);
       ServletFileUpload upload = new ServletFileUpload(factory);
-      String maxSize = Config.getInstance().getProperties().getProperty(Definitions.PROPERTYNAME_UPLOAD_MAX_SIZE, "50");
+      String maxSize = Context.getInstance().getProperties().getProperty(Definitions.PROPERTYNAME_UPLOAD_MAX_SIZE, "50");
       upload.setSizeMax(1024 * 1024 * Long.parseLong(maxSize));
       items = upload.parseRequest(req);      
     }
@@ -268,7 +268,7 @@ public class RequestSerializer {
       xsw.writeStartElement(URI, "attributes");                                   
       while (attrNames.hasMoreElements()) {
         String attrName = (String) attrNames.nextElement();                  
-        xsw.writeStartElement(URI, "atribute");
+        xsw.writeStartElement(URI, "attribute");
         xsw.writeAttribute("name", attrName);
         xsw.writeCharacters(session.getAttribute(attrName).toString());
         xsw.writeEndElement();                               

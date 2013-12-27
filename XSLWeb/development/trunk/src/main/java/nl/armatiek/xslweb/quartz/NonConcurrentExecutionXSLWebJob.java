@@ -3,9 +3,9 @@ package nl.armatiek.xslweb.quartz;
 import org.quartz.DisallowConcurrentExecution;
 
 @DisallowConcurrentExecution
-public class StatefulXSLWebJob extends XSLWebJob {
+public class NonConcurrentExecutionXSLWebJob extends XSLWebJob {
 	
-	public StatefulXSLWebJob() {
+	public NonConcurrentExecutionXSLWebJob() {
     super();
   }
 

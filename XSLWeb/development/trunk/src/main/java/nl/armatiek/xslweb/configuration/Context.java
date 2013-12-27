@@ -1,19 +1,15 @@
 package nl.armatiek.xslweb.configuration;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.naming.NoInitialContextException;
@@ -22,36 +18,33 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import nl.armatiek.xslweb.error.XSLWebException;
+import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.SchedulerFactory;
-import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Config {
+public class Context {
   
-  private static final Logger logger = LoggerFactory.getLogger(Config.class);
+  private static final Logger logger = LoggerFactory.getLogger(Context.class);
   
-  private static Config _instance;
+  private static Context _instance;
   
   private Map<String, WebApp> webApps = Collections.synchronizedMap(new HashMap<String, WebApp>());
-  private Scheduler quartzScheduler;
   private Schema webAppSchema;
   private Properties properties;
   private boolean developmentMode = false;
+  private String contextPath;
   private String localHost; 
   private int port = 80;  
   private File homeDir;
   
-  private Config() {
+  private Context() {
     try {
       initHomeDir();      
-      initProperties();
-      initScheduler();
+      initProperties();      
       initXMLSchemas();
       initWebApps();
     } catch (Exception e) {
@@ -62,26 +55,22 @@ public class Config {
   /**
    * Returns the singleton Config instance.
    */
-  public static synchronized Config getInstance() {
+  public static synchronized Context getInstance() {
     if (_instance == null) {
-      _instance = new Config();
+      _instance = new Context();
     }
     return _instance;
   }
-  
+
   public void open() throws Exception {
     logger.info("Opening XSLWeb Context ...");
-    logger.info("Starting Quartz scheduler ...");
-    quartzScheduler.start();
-    logger.info("Started Quartz scheduler.");
+    
     logger.info("XSLWeb Context opened.");
   }
   
   public void close() throws SchedulerException {
     logger.info("Closing XSLWeb Context ...");
-    logger.info("Shutting down Quartz scheduler ...");
-    quartzScheduler.shutdown(!Config.getInstance().isDevelopmentMode());
-    logger.info("Shutdown Quartz scheduler complete.");
+    
     logger.info("XSLWeb Context closed.");
   }
   
@@ -94,7 +83,7 @@ public class Config {
     String home = null;
     // Try JNDI
     try {
-      Context c = new InitialContext();
+      javax.naming.Context c = new InitialContext();
       home = (String) c.lookup("java:comp/env/" + Definitions.PROJECT_NAME + "/home");
       logger.info("Using JNDI infofuze.home: " + home);
     } catch (NoInitialContextException e) {
@@ -127,32 +116,13 @@ public class Config {
     }    
   }
   
-  private void initProperties() throws IOException {       
-    File file = new File(homeDir, "config" + File.separatorChar + Definitions.FILENAME_PROPERTIES);
-    if (!file.isFile()) {
-      throw new FileNotFoundException("Could not find properties file \"" + file.getAbsolutePath() + "\"");
-    }
-    Properties props = new Properties();
-    InputStream is = new BufferedInputStream(new FileInputStream(file));
-    try {
-      props.load(is);
-    } finally {
-      is.close();
-    }            
-    developmentMode = Boolean.parseBoolean(props.getProperty(Definitions.PROPERTYNAME_DEVELOPMENTMODE, "false"));
-    port = Integer.parseInt(props.getProperty(Definitions.PROPERTYNAME_PORT, "80"));    
-    props.put(Definitions.PROPERTYNAME_LOCALHOST, InetAddress.getLocalHost().getHostName());
+  private void initProperties() throws IOException {                 
+    File propsFile = new File(homeDir, "config" + File.separatorChar + Definitions.FILENAME_PROPERTIES);
+    this.properties = XSLWebUtils.readProperties(propsFile);                   
+    developmentMode = Boolean.parseBoolean(properties.getProperty(Definitions.PROPERTYNAME_DEVELOPMENTMODE, "false"));
+    port = Integer.parseInt(properties.getProperty(Definitions.PROPERTYNAME_PORT, "80"));    
+    properties.put(Definitions.PROPERTYNAME_LOCALHOST, InetAddress.getLocalHost().getHostName());
     localHost = InetAddress.getLocalHost().getHostName();    
-  }
-  
-  private void initScheduler() throws Exception {
-    File quartzFile = new File(homeDir, "config" + File.separatorChar + Definitions.FILENAME_QUARTZ);
-    if (!quartzFile.isFile()) {
-      throw new FileNotFoundException("Could not find quartz properties file \"" + quartzFile.getAbsolutePath() + "\"");
-    }    
-    logger.info("Initializing Quartz scheduler using properties file \"" + quartzFile.getAbsolutePath() + "\" ...");
-    SchedulerFactory sf = new StdSchedulerFactory(quartzFile.getAbsolutePath());
-    quartzScheduler = sf.getScheduler();
   }
   
   private void initXMLSchemas() throws Exception {   
@@ -175,8 +145,9 @@ public class Config {
       }
       File file = webAppFiles[0];
       try {       
-        WebApp webApp = new WebApp(webAppFiles[0], webAppSchema);
-        webApps.put(webApp.getName(), webApp);     
+        WebApp webApp = new WebApp(webAppFiles[0], webAppSchema, homeDir);
+        webApps.put(webApp.getName(), webApp);  
+        webApp.open();
       } catch (Exception e) {
         logger.error(String.format("Error creating webapp \"%s\"", file.getAbsolutePath()), e);
       }
@@ -198,10 +169,6 @@ public class Config {
     return this.properties;    
   }
   
-  public Scheduler getScheduler() {
-    return quartzScheduler;
-  }
-  
   public boolean isDevelopmentMode() {
     return developmentMode;
   }
@@ -221,6 +188,14 @@ public class Config {
       webApp = webApps.get("root");
     }
     return webApp;    
+  }
+  
+  public String getContextPath() {
+    return this.contextPath;
+  }
+  
+  public void setContextPath(String contextPath) {
+    this.contextPath = contextPath;
   }
   
 }

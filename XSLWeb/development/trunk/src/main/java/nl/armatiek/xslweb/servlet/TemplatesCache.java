@@ -13,7 +13,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXSource;
 
 import net.sf.saxon.Configuration;
-import nl.armatiek.xslweb.configuration.Config;
+import nl.armatiek.xslweb.configuration.Context;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -51,7 +51,7 @@ public class TemplatesCache {
         logger.error("Could not compile stylesheet \"" + transformationPath + "\"", e);
         throw e;
       }      
-      if (!Config.getInstance().isDevelopmentMode()) {
+      if (!Context.getInstance().isDevelopmentMode()) {
         templatesCache.put(key, templates);
       }      
     }
