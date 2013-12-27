@@ -25,6 +25,10 @@ import nl.armatiek.xslweb.error.XSLWebException;
 
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SchedulerFactory;
+import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +39,7 @@ public class Config {
   private static Config _instance;
   
   private Map<String, WebApp> webApps = Collections.synchronizedMap(new HashMap<String, WebApp>());
+  private Scheduler quartzScheduler;
   private Schema webAppSchema;
   private Properties properties;
   private boolean developmentMode = false;
@@ -44,10 +49,11 @@ public class Config {
   
   private Config() {
     try {
-      getHomeDir();      
-      getProperties();
-      getXMLSchemas();
-      getWebApps();
+      initHomeDir();      
+      initProperties();
+      initScheduler();
+      initXMLSchemas();
+      initWebApps();
     } catch (Exception e) {
       throw new XSLWebException(e);
     }
@@ -63,55 +69,65 @@ public class Config {
     return _instance;
   }
   
+  public void open() throws Exception {
+    logger.info("Opening XSLWeb Context ...");
+    logger.info("Starting Quartz scheduler ...");
+    quartzScheduler.start();
+    logger.info("Started Quartz scheduler.");
+    logger.info("XSLWeb Context opened.");
+  }
+  
+  public void close() throws SchedulerException {
+    logger.info("Closing XSLWeb Context ...");
+    logger.info("Shutting down Quartz scheduler ...");
+    quartzScheduler.shutdown(!Config.getInstance().isDevelopmentMode());
+    logger.info("Shutdown Quartz scheduler complete.");
+    logger.info("XSLWeb Context closed.");
+  }
+  
   /**
    * Returns a file object denoting the Infofuze home directory
    * 
    * @throws FileNotFoundException
    */
-  public File getHomeDir() {
-    if (homeDir == null) {
-      String home = null;
-      // Try JNDI
-      try {
-        Context c = new InitialContext();
-        home = (String) c.lookup("java:comp/env/" + Definitions.PROJECT_NAME + "/home");
-        logger.info("Using JNDI infofuze.home: " + home);
-      } catch (NoInitialContextException e) {
-        logger.info("JNDI not configured for " + Definitions.PROJECT_NAME + " (NoInitialContextEx)");
-      } catch (NamingException e) {
-        logger.info("No /" + Definitions.PROJECT_NAME + "/home in JNDI");
-      } catch( RuntimeException ex ) {
-        logger.warn("Odd RuntimeException while testing for JNDI: " + ex.getMessage());
-      } 
-      
-      // Now try system property
-      if (home == null) {
-        String prop = Definitions.PROJECT_NAME + ".home";
-        home = System.getProperty(prop);
-        if (home != null) {
-          logger.info("Using system property " + prop + ": " + home);
-        }
-      }
-       
-      if (home == null) {
-        String error = "FATAL: Could not find system property or JNDI for \"" + Definitions.PROJECT_NAME + ".infofuze.home\"";
-        logger.error(error);
-        throw new XSLWebException(error);
-      }
-      homeDir = new File(home);
-      if (!homeDir.isDirectory()) {
-        String error = "FATAL: Directory \"" + Definitions.PROJECT_NAME + ".infofuze.home\" not found";
-        logger.error(error);
-        throw new XSLWebException(error);
-      }
+  private void initHomeDir() {    
+    String home = null;
+    // Try JNDI
+    try {
+      Context c = new InitialContext();
+      home = (String) c.lookup("java:comp/env/" + Definitions.PROJECT_NAME + "/home");
+      logger.info("Using JNDI infofuze.home: " + home);
+    } catch (NoInitialContextException e) {
+      logger.info("JNDI not configured for " + Definitions.PROJECT_NAME + " (NoInitialContextEx)");
+    } catch (NamingException e) {
+      logger.info("No /" + Definitions.PROJECT_NAME + "/home in JNDI");
+    } catch( RuntimeException ex ) {
+      logger.warn("Odd RuntimeException while testing for JNDI: " + ex.getMessage());
     } 
-    return homeDir;
+    
+    // Now try system property
+    if (home == null) {
+      String prop = Definitions.PROJECT_NAME + ".home";
+      home = System.getProperty(prop);
+      if (home != null) {
+        logger.info("Using system property " + prop + ": " + home);
+      }
+    }
+     
+    if (home == null) {
+      String error = "FATAL: Could not find system property or JNDI for \"" + Definitions.PROJECT_NAME + ".infofuze.home\"";
+      logger.error(error);
+      throw new XSLWebException(error);
+    }
+    homeDir = new File(home);
+    if (!homeDir.isDirectory()) {
+      String error = "FATAL: Directory \"" + Definitions.PROJECT_NAME + ".infofuze.home\" not found";
+      logger.error(error);
+      throw new XSLWebException(error);
+    }    
   }
   
-  public Properties getProperties() throws IOException {
-    if (properties != null) {
-      return properties;
-    }    
+  private void initProperties() throws IOException {       
     File file = new File(homeDir, "config" + File.separatorChar + Definitions.FILENAME_PROPERTIES);
     if (!file.isFile()) {
       throw new FileNotFoundException("Could not find properties file \"" + file.getAbsolutePath() + "\"");
@@ -126,14 +142,20 @@ public class Config {
     developmentMode = Boolean.parseBoolean(props.getProperty(Definitions.PROPERTYNAME_DEVELOPMENTMODE, "false"));
     port = Integer.parseInt(props.getProperty(Definitions.PROPERTYNAME_PORT, "80"));    
     props.put(Definitions.PROPERTYNAME_LOCALHOST, InetAddress.getLocalHost().getHostName());
-    localHost = InetAddress.getLocalHost().getHostName();
-    if (!developmentMode) {
-      this.properties = props;
-    }    
-    return props;
+    localHost = InetAddress.getLocalHost().getHostName();    
   }
   
-  public void getXMLSchemas() throws Exception {   
+  private void initScheduler() throws Exception {
+    File quartzFile = new File(homeDir, "config" + File.separatorChar + Definitions.FILENAME_QUARTZ);
+    if (!quartzFile.isFile()) {
+      throw new FileNotFoundException("Could not find quartz properties file \"" + quartzFile.getAbsolutePath() + "\"");
+    }    
+    logger.info("Initializing Quartz scheduler using properties file \"" + quartzFile.getAbsolutePath() + "\" ...");
+    SchedulerFactory sf = new StdSchedulerFactory(quartzFile.getAbsolutePath());
+    quartzScheduler = sf.getScheduler();
+  }
+  
+  private void initXMLSchemas() throws Exception {   
     SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     File schemaFile = new File(homeDir, "config/xsd/xslweb/webapp.xsd");
     if (!schemaFile.isFile()) {
@@ -143,8 +165,8 @@ public class Config {
     }
   }
   
-  public void getWebApps() throws Exception {
-    File webAppsDir = new File(getHomeDir(), "webapps");
+  private void initWebApps() throws Exception {
+    File webAppsDir = new File(homeDir, "webapps");
     File[] dirs = webAppsDir.listFiles();
     for (File dir : dirs) {
       File[] webAppFiles = dir.listFiles((FilenameFilter) new NameFileFilter("webapp.xml"));
@@ -159,6 +181,25 @@ public class Config {
         logger.error(String.format("Error creating webapp \"%s\"", file.getAbsolutePath()), e);
       }
     }    
+  }
+  
+  public File getHomeDir() {
+    return this.homeDir;
+  }
+  
+  public Properties getProperties() {
+    if (developmentMode) {
+      try {
+        initProperties();
+      } catch (Exception e) {
+        throw new XSLWebException("Error reading properties", e);
+      }
+    }    
+    return this.properties;    
+  }
+  
+  public Scheduler getScheduler() {
+    return quartzScheduler;
   }
   
   public boolean isDevelopmentMode() {
