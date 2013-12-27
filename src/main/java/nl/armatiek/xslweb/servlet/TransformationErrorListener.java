@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.TransformerException;
 
-import nl.armatiek.xslweb.configuration.Config;
+import nl.armatiek.xslweb.configuration.Context;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -28,7 +28,7 @@ public class TransformationErrorListener implements ErrorListener {
   protected void handleError(TransformerException exception) throws TransformerException {
     try {
       logger.error(exception.getMessage(), exception);
-      if (Config.getInstance().isDevelopmentMode()) {
+      if (Context.getInstance().isDevelopmentMode()) {
         if (firstError) {
           response.setContentType("text/plain;charset=UTF-8");
           firstError = false;

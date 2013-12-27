@@ -1,5 +1,11 @@
 package nl.armatiek.xslweb.utils;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,5 +35,18 @@ public class XSLWebUtils {
     m.appendTail(result);
     return result.toString();
   }
-
+  
+  public static Properties readProperties(File propsFile) throws IOException {    
+    if (!propsFile.isFile()) {
+      throw new FileNotFoundException(String.format("Properties file \"%s\" not found", propsFile.getAbsolutePath()));
+    }
+    Properties props = new Properties();
+    InputStream is = new BufferedInputStream(new FileInputStream(propsFile));
+    try {
+      props.load(is);
+    } finally {
+      is.close();
+    } 
+    return props;
+  }
 }

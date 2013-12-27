@@ -1,8 +1,8 @@
 package nl.armatiek.xslweb.configuration;
 
+import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
-import static org.quartz.CronScheduleBuilder.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -26,14 +27,18 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
 import net.sf.saxon.Configuration;
-import nl.armatiek.xslweb.quartz.JobScheduler;
+import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
 import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.utils.XMLUtils;
+import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerFactory;
 import org.quartz.Trigger;
+import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -58,10 +63,11 @@ public class WebApp implements ErrorHandler {
   private String name;
   private String title;
   private String description;
+  private Scheduler scheduler;
   private List<Resource> resources = new ArrayList<Resource>();
   private List<Parameter> parameters = new ArrayList<Parameter>();
   
-  public WebApp(File webAppDefinition, Schema webAppSchema) throws Exception {   
+  public WebApp(File webAppDefinition, Schema webAppSchema, File contextHomeDir) throws Exception {   
     logger.info(String.format("Loading webapp definition \"%s\" ...", webAppDefinition.getAbsolutePath()));
     
     this.definition = webAppDefinition;
@@ -90,28 +96,61 @@ public class WebApp implements ErrorHandler {
       parameters.add(new Parameter((Element) paramNodes.item(i)));
     }
     NodeList jobNodes = (NodeList) xpath.evaluate("webapp:jobs/webapp:job", docElem, XPathConstants.NODESET);
-    for (int i=0; i<jobNodes.getLength(); i++) {
-      Element jobElem = (Element) jobNodes.item(i);      
-      String jobName = XMLUtils.getValueOfChildElementByLocalName(jobElem, "name");
-      String jobUri = XMLUtils.getValueOfChildElementByLocalName(jobElem, "uri");
-      String jobCron = XMLUtils.getValueOfChildElementByLocalName(jobElem, "cron");  
-      String jobId = "job_" + name + "_" + jobName;
-      JobDetail job = newJob(XSLWebJob.class)
-          .withIdentity(jobId, name)
-          .usingJobData("uri", jobUri)
-          .build();      
-      Trigger trigger = newTrigger()
-          .withIdentity("trigger_" + name + "_" + jobName, name)
-          .withSchedule(cronSchedule(jobCron))
-          .forJob(jobId, name)                     
-          .build(); 
-      logger.info("Adding job to scheduler");
-      // JobScheduler.getInstance().getScheduler().scheduleJob(job, trigger);
-    }    
+    if (jobNodes.getLength() > 0) {
+      File quartzFile = new File(homeDir, Definitions.FILENAME_QUARTZ); 
+      quartzFile = (quartzFile.isFile()) ? quartzFile : new File(contextHomeDir, "config" + File.separatorChar + Definitions.FILENAME_QUARTZ);
+      SchedulerFactory sf;
+      if (quartzFile.isFile()) {
+        logger.info(String.format("Initializing Quartz scheduler using properties file \"%s\" ...", quartzFile.getAbsolutePath()));        
+        Properties props = XSLWebUtils.readProperties(quartzFile);
+        props.setProperty(StdSchedulerFactory.PROP_SCHED_INSTANCE_NAME, name);        
+        sf = new StdSchedulerFactory(props);        
+      } else {
+        logger.info("Initializing Quartz scheduler ...");
+        sf = new StdSchedulerFactory();        
+      }
+      scheduler = sf.getScheduler();      
+      for (int i=0; i<jobNodes.getLength(); i++) {
+        Element jobElem = (Element) jobNodes.item(i);      
+        String jobName = XMLUtils.getValueOfChildElementByLocalName(jobElem, "name");
+        String jobUri = XMLUtils.getValueOfChildElementByLocalName(jobElem, "uri");
+        String jobCron = XMLUtils.getValueOfChildElementByLocalName(jobElem, "cron");
+        boolean concurrent = XMLUtils.getBooleanValue(XMLUtils.getValueOfChildElementByLocalName(jobElem, "concurrent"), true);
+        String jobId = "job_" + name + "_" + jobName;
+        JobDetail job = newJob(concurrent ? XSLWebJob.class : NonConcurrentExecutionXSLWebJob.class)
+            .withIdentity(jobId, name)
+            .usingJobData("webapp-path", getPath())
+            .usingJobData("uri", jobUri)            
+            .build();            
+        Trigger trigger = newTrigger()
+            .withIdentity("trigger_" + name + "_" + jobName, name)
+            .withSchedule(cronSchedule(jobCron))
+            .forJob(jobId, name)                     
+            .build(); 
+        logger.info(String.format("Scheduling job \"%s\" of webapp \"%s\" ...", jobName, name));
+        scheduler.scheduleJob(job, trigger);
+      }
+    }   
   }
   
-  public void close() {
-    //
+  public void open() throws Exception {
+    logger.info(String.format("Opening webapp \"%s\" ...", name));
+    if (scheduler != null) {
+      logger.info("Starting Quartz scheduler ...");    
+      scheduler.start();    
+      logger.info("Quartz scheduler started.");
+    }
+    logger.info(String.format("Webapp \"%s\" opened.", name));    
+  }
+  
+  public void close() throws Exception {    
+    logger.info(String.format("Closing webapp \"%s\" ...", name));
+    if (scheduler != null) {
+      logger.info("Shutting down Quartz scheduler ...");
+      scheduler.shutdown(!Context.getInstance().isDevelopmentMode());
+      logger.info("Shutdown of Quartz scheduler complete.");
+    }
+    logger.info(String.format("Webapp \"%s\" closed.", name));
   }
   
   public File getHomeDir() {
@@ -190,7 +229,7 @@ public class WebApp implements ErrorHandler {
         logger.error("Could not compile stylesheet \"" + transformationPath + "\"", e);
         throw e;
       }      
-      if (!Config.getInstance().isDevelopmentMode()) {
+      if (!Context.getInstance().isDevelopmentMode()) {
         templatesCache.put(key, templates);
       }      
     }

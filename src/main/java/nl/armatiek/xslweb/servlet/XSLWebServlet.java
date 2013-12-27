@@ -33,7 +33,7 @@ import net.sf.saxon.Controller;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.serialize.MessageWarner;
 import net.sf.saxon.value.StringValue;
-import nl.armatiek.xslweb.configuration.Config;
+import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.Parameter;
 import nl.armatiek.xslweb.configuration.Resource;
@@ -163,9 +163,9 @@ public class XSLWebServlet extends HttpServlet {
       /* EXPath HttpClient: */           
       registerEXPathFunction(new SendRequestFunction(), configuration);
   
-      isDevelopmentMode = Config.getInstance().isDevelopmentMode();
+      isDevelopmentMode = Context.getInstance().isDevelopmentMode();
       if (isDevelopmentMode) {
-        this.debugDir = new File(Config.getInstance().getHomeDir(), "debug");
+        this.debugDir = new File(Context.getInstance().getHomeDir(), "debug");
         this.requestDebugFile = new File(debugDir, "request.xml");
         this.responseDebugFile = new File(debugDir, "response.xml");
         if (!debugDir.exists()) {
@@ -181,7 +181,7 @@ public class XSLWebServlet extends HttpServlet {
         */
       }
       
-      homeDir = Config.getInstance().getHomeDir();
+      homeDir = Context.getInstance().getHomeDir();
       
     } catch (Exception e) {
       logger.error(e.getMessage());
@@ -198,7 +198,7 @@ public class XSLWebServlet extends HttpServlet {
   protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     try {
       String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();      
-      WebApp webApp = Config.getInstance().getWebApp(path);
+      WebApp webApp = Context.getInstance().getWebApp(path);
       if (webApp == null) {
         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
       } else {
@@ -222,7 +222,7 @@ public class XSLWebServlet extends HttpServlet {
   }
 
   private void setPropertyParameters(Controller controller, WebApp webApp) throws IOException {
-    Properties props = Config.getInstance().getProperties();
+    Properties props = Context.getInstance().getProperties();
     for (String key : props.stringPropertyNames()) {
       String value = props.getProperty(key);      
       controller.setParameter(
@@ -336,13 +336,13 @@ public class XSLWebServlet extends HttpServlet {
         transformer.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_REQUEST + "}request", req);
         transformer.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response", resp);
                 
-        OutputStream os = (Config.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : resp.getOutputStream();             
+        OutputStream os = (Context.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : resp.getOutputStream();             
         nextHandler.setResult(new StreamResult(os));
                         
         TransformerHandler lastHandler = handlers.get(handlers.size()-2);
         
         Transformer t = stf.newTransformer();                                
-        t.setOutputProperties(lastHandler.getTransformer().getOutputProperties());            
+        t.setOutputProperties(lastHandler.getTransformer().getOutputProperties());                
         t.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(handlers.get(0)));
         
         if (isDevelopmentMode) {
@@ -362,5 +362,7 @@ public class XSLWebServlet extends HttpServlet {
       requestSerializer.close();
     }
   }
+  
+  
   
 }
