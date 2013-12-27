@@ -41,7 +41,10 @@
             method="post">
             <http:body media-type="application/xml">
               <basex:query>
-                <basex:text><![CDATA[ (collection('bwb')/toestand[@bwb-id='BWBR0001822']) ]]></basex:text>
+                <basex:text><![CDATA[ collection('bwb')/toestand[@bwb-id='BWBR0001822'] ]]></basex:text>
+                <!--
+                <basex:parameter name="method" value="xml"/>
+                -->                
               </basex:query>
             </http:body>            
           </http:request>
@@ -52,8 +55,8 @@
           <xsl:apply-templates select="$response[1]" mode="xmlverb"/>
         </tt>
         <h4>Response body:</h4>
-        <tt>                   
-          <xsl:apply-templates select="$response[2]" mode="xmlverb"/>  
+        <tt>                                      
+          <xsl:apply-templates select="$response[2]" mode="xmlverb"/>                   
         </tt>                         
       </body>
     </html>

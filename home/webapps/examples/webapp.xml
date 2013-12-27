@@ -30,9 +30,10 @@
   <!-- Scheduled job definitions: -->
   <jobs>
     <job>
-      <name>TestJob</name>
-      <uri>http://${xslweb.localhost}:${xslweb.port}/xslweb/examples/hello-world.html</uri>
-      <cron>0 11 11 11 11 ?</cron>      
+      <name>WriteTimeJob</name>
+      <uri>execute-writetime-job.html</uri>
+      <cron>0/10 * * * * ?</cron> <!-- Execute every 10 seconds -->
+      <concurrent>true</concurrent>
     </job>  
   </jobs>
   
