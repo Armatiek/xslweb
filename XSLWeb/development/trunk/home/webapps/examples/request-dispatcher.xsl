@@ -46,4 +46,8 @@
     <pipeline:transformer name="upload-save" xsl-path="upload/upload-save.xsl"/>              
   </xsl:template>
   
+  <xsl:template match="/req:request[req:path = '/execute-writetime-job.html']">    
+    <pipeline:transformer name="expath-file" xsl-path="job-scheduling/writetime-job.xsl"/>
+  </xsl:template>
+  
 </xsl:stylesheet>

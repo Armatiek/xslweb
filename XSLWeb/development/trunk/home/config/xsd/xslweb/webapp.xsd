@@ -56,6 +56,7 @@
                     <xs:element name="name" type="xs:string"/>
                     <xs:element name="uri" type="xs:string"/>
                     <xs:element name="cron" type="xs:string"/>
+                    <xs:element name="concurrent" type="xs:boolean" minOccurs="0"/>
                   </xs:all>
                 </xs:complexType>
               </xs:element>
