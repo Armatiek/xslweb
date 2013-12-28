@@ -32,7 +32,7 @@
     <job>
       <name>WriteTimeJob</name>
       <uri>execute-writetime-job.html</uri>
-      <cron>0/10 * * * * ?</cron> <!-- Execute every 10 seconds -->
+      <cron>0/60 * * * * ?</cron> <!-- Execute every 60 seconds -->
       <concurrent>true</concurrent>
     </job>  
   </jobs>

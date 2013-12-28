@@ -33,6 +33,13 @@ import nl.armatiek.xslweb.utils.XMLUtils;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.HiddenFileFilter;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
+import org.apache.commons.io.monitor.FileAlterationMonitor;
+import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
@@ -66,6 +73,7 @@ public class WebApp implements ErrorHandler {
   private Scheduler scheduler;
   private List<Resource> resources = new ArrayList<Resource>();
   private List<Parameter> parameters = new ArrayList<Parameter>();
+  private FileAlterationMonitor monitor;
   
   public WebApp(File webAppDefinition, Schema webAppSchema, File contextHomeDir) throws Exception {   
     logger.info(String.format("Loading webapp definition \"%s\" ...", webAppDefinition.getAbsolutePath()));
@@ -130,27 +138,68 @@ public class WebApp implements ErrorHandler {
         logger.info(String.format("Scheduling job \"%s\" of webapp \"%s\" ...", jobName, name));
         scheduler.scheduleJob(job, trigger);
       }
-    }   
+    }
+    
+    initFileAlterationObservers();
   }
   
   public void open() throws Exception {
     logger.info(String.format("Opening webapp \"%s\" ...", name));
+    
+    logger.info("Starting XSL stylesheet alteration monitor ...");
+    monitor.start();
+    
     if (scheduler != null) {
       logger.info("Starting Quartz scheduler ...");    
       scheduler.start();    
       logger.info("Quartz scheduler started.");
-    }
+    }    
     logger.info(String.format("Webapp \"%s\" opened.", name));    
   }
   
   public void close() throws Exception {    
     logger.info(String.format("Closing webapp \"%s\" ...", name));
+    
+    logger.info("Stopping XSL stylesheet alteration monitor ...");
+    monitor.stop();
+    
     if (scheduler != null) {
       logger.info("Shutting down Quartz scheduler ...");
       scheduler.shutdown(!Context.getInstance().isDevelopmentMode());
       logger.info("Shutdown of Quartz scheduler complete.");
     }
     logger.info(String.format("Webapp \"%s\" closed.", name));
+  }
+  
+  private void onStylesheetAltered(File file, String message) {
+    if (!file.isFile()) {
+      return;
+    }    
+    logger.info(String.format(message, file.getAbsolutePath()));    
+    templatesCache.clear();           
+  }
+  
+  private void initFileAlterationObservers() {       
+    IOFileFilter directories = FileFilterUtils.and(FileFilterUtils.directoryFileFilter(), HiddenFileFilter.VISIBLE);
+    IOFileFilter files = FileFilterUtils.and(FileFilterUtils.fileFileFilter(), new WildcardFileFilter("*.xsl?"));
+    IOFileFilter filter = FileFilterUtils.or(directories, files);    
+    FileAlterationObserver webAppObserver = new FileAlterationObserver(homeDir, filter);
+    webAppObserver.addListener(new FileAlterationListenerAdaptor() {
+
+      @Override
+      public void onFileChange(File file) {
+        onStylesheetAltered(file, "Change in XSL stylesheet \"%s\" detected. Emptying stylesheet cache ...");
+      }
+
+      @Override
+      public void onFileDelete(File file) {
+        onStylesheetAltered(file, "Deletion of XSL stylesheet \"%s\" detected. Emptying stylesheet cache ...");
+      }
+      
+    });
+    
+    monitor = new FileAlterationMonitor(10);
+    monitor.addObserver(webAppObserver);    
   }
   
   public File getHomeDir() {
