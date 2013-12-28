@@ -277,7 +277,7 @@ public class XSLWebServlet extends HttpServlet {
       Controller controllerTransformer = (Controller) requestDispatcherTemplates.newTransformer();
       setPropertyParameters(controllerTransformer, webApp);
       controllerTransformer.setErrorListener(errorListener);        
-      controllerTransformer.setMessageEmitter(messageWarner);
+      controllerTransformer.setMessageEmitter(messageWarner);            
                                
       PipelineHandler pipelineHandler = new PipelineHandler();
       controllerTransformer.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(pipelineHandler));
@@ -315,7 +315,7 @@ public class XSLWebServlet extends HttpServlet {
           setPropertyParameters(transformer, webApp);
           setParameters(transformer, webApp.getParameters());
           setParameters(transformer, ((TransformerStep) step).getParameters());          
-          transformer.setErrorListener(errorListener);
+          transformer.setErrorListener(errorListener);          
           transformer.setMessageEmitter(messageWarner);
           if (!handlers.isEmpty()) {            
             TransformerHandler prevHandler = handlers.get(handlers.size()-1);
@@ -340,9 +340,11 @@ public class XSLWebServlet extends HttpServlet {
         nextHandler.setResult(new StreamResult(os));
                         
         TransformerHandler lastHandler = handlers.get(handlers.size()-2);
-        
-        Transformer t = stf.newTransformer();                                
-        t.setOutputProperties(lastHandler.getTransformer().getOutputProperties());                
+                
+        Transformer t = stf.newTransformer();
+        Properties outputProperties = lastHandler.getTransformer().getOutputProperties();
+        handlers.get(handlers.size()-1).getTransformer().setOutputProperties(outputProperties);
+        t.setOutputProperties(outputProperties);                       
         t.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(handlers.get(0)));
         
         if (isDevelopmentMode) {

@@ -20,9 +20,14 @@ import javax.xml.validation.SchemaFactory;
 import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.HiddenFileFilter;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
+import org.apache.commons.io.monitor.FileAlterationMonitor;
+import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +38,7 @@ public class Context {
   private static Context _instance;
   
   private Map<String, WebApp> webApps = Collections.synchronizedMap(new HashMap<String, WebApp>());
+  private FileAlterationMonitor monitor;
   private Schema webAppSchema;
   private Properties properties;
   private boolean developmentMode = false;
@@ -46,6 +52,7 @@ public class Context {
       initHomeDir();      
       initProperties();      
       initXMLSchemas();
+      initFileAlterationObservers();
       initWebApps();
     } catch (Exception e) {
       throw new XSLWebException(e);
@@ -65,12 +72,23 @@ public class Context {
   public void open() throws Exception {
     logger.info("Opening XSLWeb Context ...");
     
+    logger.info("Starting webapps file alteration monitor ...");
+    monitor.start();
+    
     logger.info("XSLWeb Context opened.");
   }
   
-  public void close() throws SchedulerException {
+  public void close() throws Exception {
     logger.info("Closing XSLWeb Context ...");
     
+    logger.info("Stopping webapps file alteration monitor ...");
+    monitor.stop();
+    
+    logger.info("Closing webapps ...");
+    for (WebApp app : webApps.values()) {
+      app.close();      
+    }
+        
     logger.info("XSLWeb Context closed.");
   }
   
@@ -133,6 +151,64 @@ public class Context {
     } else {
       webAppSchema = factory.newSchema(schemaFile);
     }
+  }
+  
+  private void onWebAppAltered(File file, String message, boolean createNew) {
+    if (!file.isFile()) {
+      return;
+    }
+    String webAppName = file.getParentFile().getName();
+    logger.info(String.format(message, webAppName));        
+    WebApp webApp = webApps.get(webAppName);       
+    if (webApp != null) {
+      logger.info(String.format("Stopping existing webapp \"%s\" ...", webAppName));
+      try {       
+        webApp.close();
+        webApps.remove(webAppName);
+      } catch (Exception e) {
+        logger.error(String.format("Error stopping existing webapp \"%s\"", webAppName), e);
+      }
+    }
+    if (!createNew) {
+      return;
+    }
+    logger.info(String.format("Creating new webapp \"%s\" ...", webAppName));
+    try {       
+      webApp = new WebApp(file, webAppSchema, homeDir);
+      webApps.put(webApp.getName(), webApp);  
+      webApp.open();
+    } catch (Exception e) {
+      logger.error(String.format("Error creating new webapp \"%s\"", webAppName), e);
+    }
+  }
+  
+  private void initFileAlterationObservers() {
+    File webAppsDir = new File(homeDir, "webapps");    
+    IOFileFilter directories = FileFilterUtils.and(FileFilterUtils.directoryFileFilter(), HiddenFileFilter.VISIBLE);
+    IOFileFilter files = FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.nameFileFilter("webapp.xml"));
+    IOFileFilter filter = FileFilterUtils.or(directories, files);    
+    FileAlterationObserver webAppObserver = new FileAlterationObserver(webAppsDir, filter);
+    webAppObserver.addListener(new FileAlterationListenerAdaptor() {
+
+      @Override
+      public void onFileCreate(File file) {
+        onWebAppAltered(file, "New webapp \"%s\" detected", true);
+      }
+
+      @Override
+      public void onFileChange(File file) {
+        onWebAppAltered(file, "Change in webapp \"%s\" detected", true);
+      }
+
+      @Override
+      public void onFileDelete(File file) {
+        onWebAppAltered(file, "Deletion of webapp \"%s\" detected", true);
+      }
+      
+    });
+    
+    monitor = new FileAlterationMonitor(10);
+    monitor.addObserver(webAppObserver);    
   }
   
   private void initWebApps() throws Exception {
