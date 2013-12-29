@@ -43,11 +43,13 @@ public class Context {
   private Properties properties;
   private boolean developmentMode = false;
   private String contextPath;
+  private File webInfDir;
   private String localHost; 
   private int port = 80;  
   private File homeDir;
   
   private Context() {
+    /*
     try {
       initHomeDir();      
       initProperties();      
@@ -57,6 +59,7 @@ public class Context {
     } catch (Exception e) {
       throw new XSLWebException(e);
     }
+    */
   }
   
   /**
@@ -71,6 +74,12 @@ public class Context {
 
   public void open() throws Exception {
     logger.info("Opening XSLWeb Context ...");
+    
+    initHomeDir();      
+    initProperties();      
+    initXMLSchemas();
+    initFileAlterationObservers();
+    initWebApps();
     
     logger.info("Starting webapps file alteration monitor ...");
     monitor.start();
@@ -174,7 +183,7 @@ public class Context {
     }
     logger.info(String.format("Creating new webapp \"%s\" ...", webAppName));
     try {       
-      webApp = new WebApp(file, webAppSchema, homeDir);
+      webApp = new WebApp(file, webAppSchema, homeDir, webInfDir);
       webApps.put(webApp.getName(), webApp);  
       webApp.open();
     } catch (Exception e) {
@@ -221,7 +230,7 @@ public class Context {
       }
       File file = webAppFiles[0];
       try {       
-        WebApp webApp = new WebApp(webAppFiles[0], webAppSchema, homeDir);
+        WebApp webApp = new WebApp(webAppFiles[0], webAppSchema, homeDir, webInfDir);
         webApps.put(webApp.getName(), webApp);  
         webApp.open();
       } catch (Exception e) {
@@ -272,6 +281,14 @@ public class Context {
   
   public void setContextPath(String contextPath) {
     this.contextPath = contextPath;
+  }
+  
+  public File getWebInfDir() {
+    return this.webInfDir;
+  }
+  
+  public void setWebInfDir(File webInfDir) {
+    this.webInfDir = webInfDir;
   }
   
 }

@@ -1,9 +1,15 @@
 package nl.armatiek.xslweb.saxon.configuration;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.xml.transform.TransformerException;
 
 import net.sf.saxon.Configuration;
+import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.lib.Initializer;
+import nl.armatiek.xslweb.saxon.functions.base64.Base64Decode;
+import nl.armatiek.xslweb.saxon.functions.base64.Base64Encode;
 import nl.armatiek.xslweb.saxon.functions.expath.file.Append;
 import nl.armatiek.xslweb.saxon.functions.expath.file.AppendBinary;
 import nl.armatiek.xslweb.saxon.functions.expath.file.AppendText;
@@ -49,6 +55,8 @@ import org.expath.zip.saxon.XmlEntryFunction;
 import org.expath.zip.saxon.ZipFileFunction;
 
 public class XSLWebInitializer implements Initializer {
+  
+  private Set<String> functionClassNames = new HashSet<String>(); 
 
   @Override
   public void initialize(Configuration configuration) throws TransformerException {    
@@ -62,6 +70,10 @@ public class XSLWebInitializer implements Initializer {
     configuration.registerExtensionFunction(new Headers());
     configuration.registerExtensionFunction(new Session());
     configuration.registerExtensionFunction(new Cookies());
+    
+    /* Base64 */
+    configuration.registerExtensionFunction(new Base64Encode());
+    configuration.registerExtensionFunction(new Base64Decode());
           
     /* EXPath File: */
     configuration.registerExtensionFunction(new Append());
@@ -107,9 +119,16 @@ public class XSLWebInitializer implements Initializer {
     registerEXPathFunction(new SendRequestFunction(), configuration);    
   }
   
-  private void registerEXPathFunction(EXPathFunctionDefinition function, Configuration configuration) {
-    function.setConfiguration(configuration);      
+  private void registerEXPathFunction(ExtensionFunctionDefinition function, Configuration configuration) {
+    if (function instanceof EXPathFunctionDefinition) {
+      ((EXPathFunctionDefinition) function).setConfiguration(configuration);
+    }              
     configuration.registerExtensionFunction(function);
+    functionClassNames.add(function.getClass().getName());
+  }
+  
+  public boolean isFunctionRegistered(String className) {
+    return functionClassNames.contains(className);
   }
   
 }

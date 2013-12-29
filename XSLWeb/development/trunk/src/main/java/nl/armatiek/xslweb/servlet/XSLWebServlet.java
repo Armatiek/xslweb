@@ -42,6 +42,8 @@ import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.pipeline.PipelineStep;
 import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
+import nl.armatiek.xslweb.saxon.functions.base64.Base64Decode;
+import nl.armatiek.xslweb.saxon.functions.base64.Base64Encode;
 import nl.armatiek.xslweb.saxon.functions.expath.file.Append;
 import nl.armatiek.xslweb.saxon.functions.expath.file.AppendBinary;
 import nl.armatiek.xslweb.saxon.functions.expath.file.AppendText;
@@ -119,6 +121,10 @@ public class XSLWebServlet extends HttpServlet {
       configuration.registerExtensionFunction(new Headers());
       configuration.registerExtensionFunction(new Session());
       configuration.registerExtensionFunction(new Cookies());
+      
+      /* Base64 */
+      configuration.registerExtensionFunction(new Base64Encode());
+      configuration.registerExtensionFunction(new Base64Decode());
             
       /* EXPath File: */
       configuration.registerExtensionFunction(new Append());
@@ -273,7 +279,7 @@ public class XSLWebServlet extends HttpServlet {
       ErrorListener errorListener = new TransformationErrorListener(resp);      
       MessageWarner messageWarner = new MessageWarner();
       
-      Templates requestDispatcherTemplates = webApp.getRequestDispatcherTemplates(errorListener, configuration);    
+      Templates requestDispatcherTemplates = webApp.getRequestDispatcherTemplates(errorListener);    
       Controller controllerTransformer = (Controller) requestDispatcherTemplates.newTransformer();
       setPropertyParameters(controllerTransformer, webApp);
       controllerTransformer.setErrorListener(errorListener);        
@@ -308,7 +314,7 @@ public class XSLWebServlet extends HttpServlet {
           if (step instanceof SystemTransformerStep) {
             templates = TemplatesCache.getTemplates(new File(this.homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath(), errorListener, configuration);
           } else {          
-            templates = webApp.getTemplates(((TransformerStep) step).getXslPath(), errorListener, configuration);
+            templates = webApp.getTemplates(((TransformerStep) step).getXslPath(), errorListener);
           }
           nextHandler = stf.newTransformerHandler(templates);
           transformer = (Controller) nextHandler.getTransformer();          

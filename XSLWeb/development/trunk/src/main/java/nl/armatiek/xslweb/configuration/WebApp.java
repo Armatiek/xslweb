@@ -6,6 +6,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -26,13 +27,16 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
-import net.sf.saxon.Configuration;
+import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
 import nl.armatiek.xslweb.quartz.XSLWebJob;
+import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
 import nl.armatiek.xslweb.utils.XMLUtils;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.HiddenFileFilter;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -41,6 +45,14 @@ import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
+import org.clapper.util.classutil.AbstractClassFilter;
+import org.clapper.util.classutil.AndClassFilter;
+import org.clapper.util.classutil.ClassFilter;
+import org.clapper.util.classutil.ClassFinder;
+import org.clapper.util.classutil.ClassInfo;
+import org.clapper.util.classutil.ClassLoaderBuilder;
+import org.clapper.util.classutil.NotClassFilter;
+import org.clapper.util.classutil.SubclassClassFilter;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerFactory;
@@ -67,19 +79,22 @@ public class WebApp implements ErrorHandler {
   
   private File definition;
   private File homeDir;
+  private File webInfDir;
   private String name;
   private String title;
   private String description;
   private Scheduler scheduler;
   private List<Resource> resources = new ArrayList<Resource>();
   private List<Parameter> parameters = new ArrayList<Parameter>();
+  private XSLWebConfiguration configuration;
   private FileAlterationMonitor monitor;
   
-  public WebApp(File webAppDefinition, Schema webAppSchema, File contextHomeDir) throws Exception {   
+  public WebApp(File webAppDefinition, Schema webAppSchema, File contextHomeDir, File webInfDir) throws Exception {   
     logger.info(String.format("Loading webapp definition \"%s\" ...", webAppDefinition.getAbsolutePath()));
     
     this.definition = webAppDefinition;
     this.homeDir = webAppDefinition.getParentFile();
+    this.webInfDir = webInfDir;
     this.name = this.homeDir.getName();
     
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -140,6 +155,10 @@ public class WebApp implements ErrorHandler {
       }
     }
     
+    this.configuration = new XSLWebConfiguration();
+    
+    initExtensionFunctions();
+    
     initFileAlterationObservers();
   }
   
@@ -177,6 +196,47 @@ public class WebApp implements ErrorHandler {
     }    
     logger.info(String.format(message, file.getAbsolutePath()));    
     templatesCache.clear();           
+  }
+    
+  private void initExtensionFunctions() throws Exception {            
+    File libDir = new File(homeDir, "lib");    
+    List<File> classPath = new ArrayList<File>();       
+    classPath.add(new File(webInfDir, "classes"));
+    classPath.addAll(FileUtils.listFiles(new File(webInfDir, "lib"), new WildcardFileFilter("*.jar"), DirectoryFileFilter.DIRECTORY));    
+    classPath.add(libDir);        
+    classPath.addAll(FileUtils.listFiles(libDir, new WildcardFileFilter("*.jar"), DirectoryFileFilter.DIRECTORY));
+    if (classPath.isEmpty()) {
+      return;
+    }
+    logger.info("Initializing custom extension functions ...");
+    
+    ClassFinder finder = new ClassFinder();    
+    finder.addClassPath();    
+    finder.add(classPath);    
+    
+    ClassFilter filter =
+        new AndClassFilter(            
+            // Must extend ExtensionFunctionDefinition class
+            new SubclassClassFilter (ExtensionFunctionDefinition.class),
+            // Must not be abstract
+            new NotClassFilter (new AbstractClassFilter()));
+    
+    Collection<ClassInfo> foundClasses = new ArrayList<ClassInfo>();    
+    finder.findClasses(foundClasses, filter);
+    if (foundClasses.isEmpty()) {
+      logger.info("No custom extension functions found.");
+      return;
+    }    
+    ClassLoaderBuilder builder = new ClassLoaderBuilder();    
+    builder.add(classPath);
+    // builder.addClassPath();
+    ClassLoader classLoader = builder.createClassLoader();
+    for (ClassInfo classInfo : foundClasses) { 
+      // Class<?> clazz = classLoader.loadClass(classInfo.getClassName());      
+      Class<?> clazz = classInfo.getClass();           
+      logger.info(String.format("Adding custom extension function class \"%s\" ...", clazz.getName()));
+      classLoader.loadClass(clazz.getName()).newInstance();      
+    }
   }
   
   private void initFileAlterationObservers() {       
@@ -230,12 +290,12 @@ public class WebApp implements ErrorHandler {
     return parameters;
   }
 
-  public Templates getRequestDispatcherTemplates(ErrorListener errorListener, Configuration configuration) throws Exception {
-    return tryTemplatesCache(new File(getHomeDir(), Definitions.FILENAME_REQUESTDISPATCHER_XSL).getAbsolutePath(), errorListener, configuration);
+  public Templates getRequestDispatcherTemplates(ErrorListener errorListener) throws Exception {
+    return tryTemplatesCache(new File(getHomeDir(), Definitions.FILENAME_REQUESTDISPATCHER_XSL).getAbsolutePath(), errorListener);
   }
   
-  public Templates getTemplates(String path, ErrorListener errorListener, Configuration configuration) throws Exception {
-    return tryTemplatesCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener, configuration);
+  public Templates getTemplates(String path, ErrorListener errorListener) throws Exception {
+    return tryTemplatesCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener);
   }
   
   public File getStaticFile(String path) {
@@ -256,7 +316,7 @@ public class WebApp implements ErrorHandler {
   }
   
   public Templates tryTemplatesCache(String transformationPath,  
-      ErrorListener errorListener, Configuration configuration) throws Exception {
+      ErrorListener errorListener) throws Exception {
     String key = FilenameUtils.normalize(transformationPath);
     Templates templates = (Templates) templatesCache.get(key);
     if (templates == null) {
