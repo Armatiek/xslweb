@@ -344,4 +344,5 @@ public class XMLUtils {
       throw new XSLWebException(String.format("Datatype \"%s\" not supported", type));
     }    
   }
+  
 }

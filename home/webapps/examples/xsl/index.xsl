@@ -50,6 +50,12 @@
           <li>
             <a href="{$path}/upload.html">File upload</a>
           </li>
+          <li>
+            <a href="{$path}/email.html">E-Mail extension function</a>
+          </li>
+          <li>
+            <a href="{$path}/custom-extension-function.html">Custom XPath extension function</a>
+          </li>                   
         </ul>
         <a href="{/*/req:context-path}/documentation">XSLWeb documentation</a>
       </body>

@@ -1,7 +1,5 @@
 package nl.armatiek.xslweb.web.listener;
 
-import java.io.File;
-
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -22,8 +20,7 @@ public class WebAppEventListener implements ServletContextListener {
   public void contextInitialized(ServletContextEvent sce) {        
     try { 
       Context context = Context.getInstance();
-      context.setContextPath(sce.getServletContext().getContextPath());
-      context.setWebInfDir(new File(sce.getServletContext().getRealPath("/WEB-INF")));
+      context.setServletContext(sce.getServletContext());      
       context.open();
     } catch (Exception e) {
       logger.error("Could not open XSLWeb Context", e);

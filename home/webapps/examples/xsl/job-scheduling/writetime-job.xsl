@@ -5,7 +5,7 @@
   xmlns:config="http://www.armatiek.com/xslweb/configuration"
   xmlns:resp="http://www.armatiek.com/xslweb/response"
   xmlns:file="http://expath.org/ns/file"
-  xmlns:xslweb="http://www.armatiek.com/xslweb/functions"  
+  xmlns:log="http://www.armatiek.com/xslweb/functions/log"  
   exclude-result-prefixes="#all"
   version="2.0">
   
@@ -17,7 +17,7 @@
     <resp:response status="200">      
       <resp:body>
         <xsl:value-of select="if (file:write-text(concat($config:webapp-dir, '/xsl/job-scheduling/time.txt'), xs:string(current-dateTime()))) then () else (error(xs:QName('err:FILE9999'), 'Could not write to file'))"/>
-        <xsl:value-of select="if (xslweb:log('INFO', 'Time written to file')) then () else (error(xs:QName('err:XSLWEB0001'), 'Could not write to log'))"/>        
+        <xsl:value-of select="if (log:log('INFO', 'Time written to file')) then () else (error(xs:QName('err:XSLWEB0001'), 'Could not write to log'))"/>        
         <xsl:text>Time written to file</xsl:text>
       </resp:body>
     </resp:response>   

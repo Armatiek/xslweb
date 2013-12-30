@@ -26,7 +26,7 @@ public class Log extends ExtensionFunctionDefinition {
   
   private static final Logger log = LoggerFactory.getLogger(Log.class);
   
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FUNCTIONS, "log");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_LOG, "log");
 
   public StructuredQName getFunctionQName() {
     return qName;

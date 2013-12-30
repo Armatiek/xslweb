@@ -2,6 +2,7 @@ package nl.armatiek.xslweb.utils;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -11,6 +12,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import nl.armatiek.xslweb.error.XSLWebException;
+
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
 
 public class XSLWebUtils {
   
@@ -48,5 +51,9 @@ public class XSLWebUtils {
       is.close();
     } 
     return props;
+  }
+  
+  public static boolean hasSubDirectories(File file) {
+    return file.listFiles((FileFilter) DirectoryFileFilter.INSTANCE).length > 0;
   }
 }
