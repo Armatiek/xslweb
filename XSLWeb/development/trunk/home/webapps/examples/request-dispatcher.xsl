@@ -47,7 +47,19 @@
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/execute-writetime-job.html']">    
-    <pipeline:transformer name="expath-file" xsl-path="job-scheduling/writetime-job.xsl"/>
+    <pipeline:transformer name="execute-writetime-job" xsl-path="job-scheduling/writetime-job.xsl"/>
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/email.html']">    
+    <pipeline:transformer name="email-form" xsl-path="email/email-form.xsl"/>
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/email/email-send.html']">    
+    <pipeline:transformer name="email-send" xsl-path="email/email-send.xsl"/>
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/custom-extension-function.html']">    
+    <pipeline:transformer name="custom-extension-function" xsl-path="custom-extension-function/custom-extension-function.xsl"/>
   </xsl:template>
   
 </xsl:stylesheet>

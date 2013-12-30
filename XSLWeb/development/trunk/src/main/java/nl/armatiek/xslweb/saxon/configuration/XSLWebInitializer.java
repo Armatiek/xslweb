@@ -39,6 +39,7 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.WriteBinary;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteText;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteTextLines;
 import nl.armatiek.xslweb.saxon.functions.log.Log;
+import nl.armatiek.xslweb.saxon.functions.mail.SendMail;
 import nl.armatiek.xslweb.saxon.functions.response.Cookies;
 import nl.armatiek.xslweb.saxon.functions.response.Headers;
 import nl.armatiek.xslweb.saxon.functions.response.Session;
@@ -63,57 +64,60 @@ public class XSLWebInitializer implements Initializer {
     configuration.setXIncludeAware(true);
     
     /* Log */
-    configuration.registerExtensionFunction(new Log());
+    registerEXPathFunction(new Log(), configuration);
     
     /* Response */
-    configuration.registerExtensionFunction(new SetStatus());
-    configuration.registerExtensionFunction(new Headers());
-    configuration.registerExtensionFunction(new Session());
-    configuration.registerExtensionFunction(new Cookies());
+    registerEXPathFunction(new SetStatus(), configuration);
+    registerEXPathFunction(new Headers(), configuration);
+    registerEXPathFunction(new Session(), configuration);
+    registerEXPathFunction(new Cookies(), configuration);
     
     /* Base64 */
-    configuration.registerExtensionFunction(new Base64Encode());
-    configuration.registerExtensionFunction(new Base64Decode());
-          
+    registerEXPathFunction(new Base64Encode(), configuration);
+    registerEXPathFunction(new Base64Decode(), configuration);
+    
+    /* Email */
+    registerEXPathFunction(new SendMail(), configuration);      
+    
     /* EXPath File: */
-    configuration.registerExtensionFunction(new Append());
-    configuration.registerExtensionFunction(new AppendBinary());
-    configuration.registerExtensionFunction(new AppendText());
-    configuration.registerExtensionFunction(new AppendTextLines());
-    configuration.registerExtensionFunction(new BaseName());
-    configuration.registerExtensionFunction(new Copy());
-    configuration.registerExtensionFunction(new CreateDir());
-    configuration.registerExtensionFunction(new Delete());
-    configuration.registerExtensionFunction(new DirName());
-    configuration.registerExtensionFunction(new DirSeparator());
-    configuration.registerExtensionFunction(new Exists());
-    configuration.registerExtensionFunction(new IsDir());
-    configuration.registerExtensionFunction(new IsFile());
-    configuration.registerExtensionFunction(new LastModified());
-    configuration.registerExtensionFunction(new LineSeparator());
-    configuration.registerExtensionFunction(new nl.armatiek.xslweb.saxon.functions.expath.file.List());
-    configuration.registerExtensionFunction(new Move());
-    configuration.registerExtensionFunction(new PathSeparator());
-    configuration.registerExtensionFunction(new PathToNative());
-    configuration.registerExtensionFunction(new PathToURI());
-    configuration.registerExtensionFunction(new ReadBinary());
-    configuration.registerExtensionFunction(new ReadText());
-    configuration.registerExtensionFunction(new ReadTextLines());
-    configuration.registerExtensionFunction(new ResolvePath());
-    configuration.registerExtensionFunction(new Size());
-    configuration.registerExtensionFunction(new Write());
-    configuration.registerExtensionFunction(new WriteBinary());
-    configuration.registerExtensionFunction(new WriteText());
-    configuration.registerExtensionFunction(new WriteTextLines());
+    registerEXPathFunction(new Append(), configuration);
+    registerEXPathFunction(new AppendBinary(), configuration);
+    registerEXPathFunction(new AppendText(), configuration);
+    registerEXPathFunction(new AppendTextLines(), configuration);
+    registerEXPathFunction(new BaseName(), configuration);
+    registerEXPathFunction(new Copy(), configuration);
+    registerEXPathFunction(new CreateDir(), configuration);
+    registerEXPathFunction(new Delete(), configuration);
+    registerEXPathFunction(new DirName(), configuration);
+    registerEXPathFunction(new DirSeparator(), configuration);
+    registerEXPathFunction(new Exists(), configuration);
+    registerEXPathFunction(new IsDir(), configuration);
+    registerEXPathFunction(new IsFile(), configuration);
+    registerEXPathFunction(new LastModified(), configuration);
+    registerEXPathFunction(new LineSeparator(), configuration);
+    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.expath.file.List(), configuration);
+    registerEXPathFunction(new Move(), configuration);
+    registerEXPathFunction(new PathSeparator(), configuration);
+    registerEXPathFunction(new PathToNative(), configuration);
+    registerEXPathFunction(new PathToURI(), configuration);
+    registerEXPathFunction(new ReadBinary(), configuration);
+    registerEXPathFunction(new ReadText(), configuration);
+    registerEXPathFunction(new ReadTextLines(), configuration);
+    registerEXPathFunction(new ResolvePath(), configuration);
+    registerEXPathFunction(new Size(), configuration);
+    registerEXPathFunction(new Write(), configuration);
+    registerEXPathFunction(new WriteBinary(), configuration);
+    registerEXPathFunction(new WriteText(), configuration);
+    registerEXPathFunction(new WriteTextLines(), configuration);
 
     /* EXPath Zip: */
     registerEXPathFunction(new EntriesFunction(), configuration);
     registerEXPathFunction(new UpdateEntriesFunction(), configuration);
     registerEXPathFunction(new ZipFileFunction(), configuration);
-    configuration.registerExtensionFunction(new BinaryEntryFunction());
-    configuration.registerExtensionFunction(new HtmlEntryFunction());
-    configuration.registerExtensionFunction(new TextEntryFunction());
-    configuration.registerExtensionFunction(new XmlEntryFunction());
+    registerEXPathFunction(new BinaryEntryFunction(), configuration);
+    registerEXPathFunction(new HtmlEntryFunction(), configuration);
+    registerEXPathFunction(new TextEntryFunction(), configuration);
+    registerEXPathFunction(new XmlEntryFunction(), configuration);
     
     /* EXPath HttpClient: */           
     registerEXPathFunction(new SendRequestFunction(), configuration);    

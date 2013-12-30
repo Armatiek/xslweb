@@ -13,6 +13,7 @@ import java.util.Properties;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.naming.NoInitialContextException;
+import javax.servlet.ServletContext;
 import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -48,19 +49,7 @@ public class Context {
   private int port = 80;  
   private File homeDir;
   
-  private Context() {
-    /*
-    try {
-      initHomeDir();      
-      initProperties();      
-      initXMLSchemas();
-      initFileAlterationObservers();
-      initWebApps();
-    } catch (Exception e) {
-      throw new XSLWebException(e);
-    }
-    */
-  }
+  private Context() { }
   
   /**
    * Returns the singleton Config instance.
@@ -183,7 +172,7 @@ public class Context {
     }
     logger.info(String.format("Creating new webapp \"%s\" ...", webAppName));
     try {       
-      webApp = new WebApp(file, webAppSchema, homeDir, webInfDir);
+      webApp = new WebApp(file);
       webApps.put(webApp.getName(), webApp);  
       webApp.open();
     } catch (Exception e) {
@@ -230,7 +219,7 @@ public class Context {
       }
       File file = webAppFiles[0];
       try {       
-        WebApp webApp = new WebApp(webAppFiles[0], webAppSchema, homeDir, webInfDir);
+        WebApp webApp = new WebApp(webAppFiles[0]);
         webApps.put(webApp.getName(), webApp);  
         webApp.open();
       } catch (Exception e) {
@@ -266,6 +255,10 @@ public class Context {
     return port;
   }
   
+  public Schema getWebAppSchema() {
+    return this.webAppSchema;
+  }
+  
   public WebApp getWebApp(String path) {
     String name = StringUtils.substringBefore(path.substring(1), "/");
     WebApp webApp = webApps.get(name);
@@ -275,20 +268,17 @@ public class Context {
     return webApp;    
   }
   
+  public void setServletContext(ServletContext sc) {
+    this.contextPath = sc.getContextPath();
+    this.webInfDir = new File(sc.getRealPath("/WEB-INF"));
+  }
+  
   public String getContextPath() {
     return this.contextPath;
   }
   
-  public void setContextPath(String contextPath) {
-    this.contextPath = contextPath;
-  }
-  
   public File getWebInfDir() {
     return this.webInfDir;
-  }
-  
-  public void setWebInfDir(File webInfDir) {
-    this.webInfDir = webInfDir;
   }
   
 }

@@ -24,7 +24,23 @@
   <parameters>
     <parameter name="basex-rest-base-uri" uri="http://www.armatiek.com/xslweb/configuration" type="xs:string">
       <value>http://localhost:8984/rest</value>
-    </parameter>    
+    </parameter>
+
+    <parameter name="hostname" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:string">
+      <value>smtp.googlemail.com</value>
+    </parameter>
+    <parameter name="port" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:integer">
+      <value>465</value>
+    </parameter>
+    <parameter name="username" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:string">
+      <value>MYUSERNAME</value>
+    </parameter>
+    <parameter name="password" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:string">
+      <value>MYPASSWORD</value>
+    </parameter>
+    <parameter name="use-ssl" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:boolean">
+      <value>true</value>
+    </parameter>
   </parameters>
   
   <!-- Scheduled job definitions: -->

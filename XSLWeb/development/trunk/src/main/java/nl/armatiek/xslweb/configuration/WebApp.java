@@ -6,7 +6,6 @@ import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -22,21 +21,17 @@ import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXSource;
-import javax.xml.validation.Schema;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
-import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
 import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
 import nl.armatiek.xslweb.utils.XMLUtils;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.HiddenFileFilter;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -45,14 +40,6 @@ import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
-import org.clapper.util.classutil.AbstractClassFilter;
-import org.clapper.util.classutil.AndClassFilter;
-import org.clapper.util.classutil.ClassFilter;
-import org.clapper.util.classutil.ClassFinder;
-import org.clapper.util.classutil.ClassInfo;
-import org.clapper.util.classutil.ClassLoaderBuilder;
-import org.clapper.util.classutil.NotClassFilter;
-import org.clapper.util.classutil.SubclassClassFilter;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerFactory;
@@ -78,8 +65,7 @@ public class WebApp implements ErrorHandler {
       Collections.synchronizedMap(new HashMap<String, Templates>());
   
   private File definition;
-  private File homeDir;
-  private File webInfDir;
+  private File homeDir;  
   private String name;
   private String title;
   private String description;
@@ -89,17 +75,17 @@ public class WebApp implements ErrorHandler {
   private XSLWebConfiguration configuration;
   private FileAlterationMonitor monitor;
   
-  public WebApp(File webAppDefinition, Schema webAppSchema, File contextHomeDir, File webInfDir) throws Exception {   
+  public WebApp(File webAppDefinition) throws Exception {   
     logger.info(String.format("Loading webapp definition \"%s\" ...", webAppDefinition.getAbsolutePath()));
     
+    Context context = Context.getInstance();
     this.definition = webAppDefinition;
     this.homeDir = webAppDefinition.getParentFile();
-    this.webInfDir = webInfDir;
     this.name = this.homeDir.getName();
     
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);    
-    dbf.setSchema(webAppSchema);    
+    dbf.setSchema(context.getWebAppSchema());    
     dbf.setXIncludeAware(true);
     DocumentBuilder db = dbf.newDocumentBuilder();
     db.setErrorHandler(this);    
@@ -121,7 +107,7 @@ public class WebApp implements ErrorHandler {
     NodeList jobNodes = (NodeList) xpath.evaluate("webapp:jobs/webapp:job", docElem, XPathConstants.NODESET);
     if (jobNodes.getLength() > 0) {
       File quartzFile = new File(homeDir, Definitions.FILENAME_QUARTZ); 
-      quartzFile = (quartzFile.isFile()) ? quartzFile : new File(contextHomeDir, "config" + File.separatorChar + Definitions.FILENAME_QUARTZ);
+      quartzFile = (quartzFile.isFile()) ? quartzFile : new File(context.getHomeDir(), "config" + File.separatorChar + Definitions.FILENAME_QUARTZ);
       SchedulerFactory sf;
       if (quartzFile.isFile()) {
         logger.info(String.format("Initializing Quartz scheduler using properties file \"%s\" ...", quartzFile.getAbsolutePath()));        
@@ -155,9 +141,9 @@ public class WebApp implements ErrorHandler {
       }
     }
     
-    this.configuration = new XSLWebConfiguration();
+    this.configuration = new XSLWebConfiguration(this);
     
-    initExtensionFunctions();
+    // initExtensionFunctions();
     
     initFileAlterationObservers();
   }
@@ -198,11 +184,13 @@ public class WebApp implements ErrorHandler {
     templatesCache.clear();           
   }
     
+  /*
   private void initExtensionFunctions() throws Exception {            
     File libDir = new File(homeDir, "lib");    
-    List<File> classPath = new ArrayList<File>();       
-    classPath.add(new File(webInfDir, "classes"));
-    classPath.addAll(FileUtils.listFiles(new File(webInfDir, "lib"), new WildcardFileFilter("*.jar"), DirectoryFileFilter.DIRECTORY));    
+    List<File> classPath = new ArrayList<File>();
+    Collection<File> saxonJars = FileUtils.listFiles(new File(Context.getInstance().getWebInfDir(), "lib"), 
+        new WildcardFileFilter("*saxon*.jar", IOCase.INSENSITIVE), FalseFileFilter.INSTANCE);    
+    classPath.addAll(saxonJars);
     classPath.add(libDir);        
     classPath.addAll(FileUtils.listFiles(libDir, new WildcardFileFilter("*.jar"), DirectoryFileFilter.DIRECTORY));
     if (classPath.isEmpty()) {
@@ -210,8 +198,7 @@ public class WebApp implements ErrorHandler {
     }
     logger.info("Initializing custom extension functions ...");
     
-    ClassFinder finder = new ClassFinder();    
-    finder.addClassPath();    
+    ClassFinder finder = new ClassFinder();
     finder.add(classPath);    
     
     ClassFilter filter =
@@ -228,16 +215,19 @@ public class WebApp implements ErrorHandler {
       return;
     }    
     ClassLoaderBuilder builder = new ClassLoaderBuilder();    
-    builder.add(classPath);
-    // builder.addClassPath();
-    ClassLoader classLoader = builder.createClassLoader();
+    builder.add(classPath);    
+    ClassLoader classLoader = builder.createClassLoader();    
     for (ClassInfo classInfo : foundClasses) { 
-      // Class<?> clazz = classLoader.loadClass(classInfo.getClassName());      
-      Class<?> clazz = classInfo.getClass();           
-      logger.info(String.format("Adding custom extension function class \"%s\" ...", clazz.getName()));
-      classLoader.loadClass(clazz.getName()).newInstance();      
+      String className = classInfo.getClassName();
+      if (configuration.isFunctionRegistered(className) || saxonJars.contains(classInfo.getClassLocation())) {
+        continue;
+      }      
+      Class<?> clazz = classLoader.loadClass(className);
+      logger.info(String.format("Adding custom extension function class \"%s\" ...", className));     
+      configuration.registerExtensionFunction((ExtensionFunctionDefinition) clazz.newInstance());      
     }
   }
+  */
   
   private void initFileAlterationObservers() {       
     IOFileFilter directories = FileFilterUtils.and(FileFilterUtils.directoryFileFilter(), HiddenFileFilter.VISIBLE);

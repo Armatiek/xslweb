@@ -1,13 +1,20 @@
 package nl.armatiek.xslweb.saxon.functions.mail;
 
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.namespace.NamespaceContext;
-import javax.xml.xpath.XPath;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Templates;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 
-import net.sf.saxon.dom.NodeOverNodeInfo;
+import net.sf.saxon.Configuration;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
@@ -18,22 +25,19 @@ import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
+import net.sf.saxon.xpath.XPathEvaluator;
 import nl.armatiek.xslweb.configuration.Definitions;
-import nl.armatiek.xslweb.utils.XMLUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.HtmlEmail;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public class SendMail extends ExtensionFunctionDefinition {
 
   private static final long serialVersionUID = 1L;
   
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "send-mail");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_EMAIL, "send-mail");
 
   @Override
   public StructuredQName getFunctionQName() {
@@ -69,22 +73,52 @@ public class SendMail extends ExtensionFunctionDefinition {
         
     private static final long serialVersionUID = 1L;
     
-    @SuppressWarnings("rawtypes")
+    private String stripXHTML(NodeInfo node, Configuration configuration) throws Exception {
+      StringWriter sw = new StringWriter();
+      StreamResult result = new StreamResult(sw);   
+      String xsl = "<xsl:stylesheet version='2.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'>" +
+          "<xsl:template match='/|comment()|processing-instruction()'>" +
+          "  <xsl:copy>" +
+          "    <xsl:apply-templates/>" +
+          "  </xsl:copy>" +
+          "</xsl:template>" +
+          "<xsl:template match='*'>" +
+          "  <xsl:element name='{local-name()}'>" +
+          "    <xsl:apply-templates select='@*|node()'/>" +
+          "  </xsl:element>" +
+          "</xsl:template>" +
+          "<xsl:template match='@*'>" +
+          "  <xsl:attribute name='{local-name()}'>" +
+          "    <xsl:value-of select='.'/>" +
+          "  </xsl:attribute>" +
+          "</xsl:template>" +
+          "</xsl:stylesheet>";            
+      TransformerFactory factory = new net.sf.saxon.TransformerFactoryImpl(configuration);
+      Templates templates = factory.newTemplates(new StreamSource(new StringReader(xsl)));
+      Transformer transformer = templates.newTransformer();
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+      transformer.setOutputProperty(OutputKeys.METHOD, "xhtml");
+      transformer.setOutputProperty(OutputKeys.INDENT, "no");        
+      transformer.transform(node, result);      
+      return sw.toString();
+    }
+    
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {                            
-      try {        
-        NodeInfo nodeInfo = (NodeInfo) arguments[0].next();      
-        Element mailElem = (Element) NodeOverNodeInfo.wrap(nodeInfo);        
-        
-        XPath xpath = XPathFactory.newInstance().newXPath();
+      try {                        
+        NodeInfo mailElem = (NodeInfo) arguments[0].next();
+        XPathEvaluator xpath = new XPathEvaluator(context.getConfiguration());
+        xpath.setSource(mailElem);        
         xpath.setNamespaceContext(new NamespaceContext() {
           @Override
           public String getNamespaceURI(String prefix) {          
-            return null;
+            return Definitions.NAMESPACEURI_XSLWEB_FX_EMAIL;
           }
   
           @Override
           public String getPrefix(String namespace) {        
-            return null;
+            return "email";
           }
   
           @Override
@@ -94,14 +128,14 @@ public class SendMail extends ExtensionFunctionDefinition {
         });
                         
         HtmlEmail email = new HtmlEmail();
-        String hostName = (String) xpath.evaluate("hostname", mailElem, XPathConstants.STRING);        
-        String port = (String) xpath.evaluate("port", mailElem, XPathConstants.STRING);
-        String username = (String) xpath.evaluate("username", mailElem, XPathConstants.STRING);
-        String password = (String) xpath.evaluate("password", mailElem, XPathConstants.STRING);
-        String useSSLVal = (String) xpath.evaluate("use-ssl", mailElem, XPathConstants.STRING);
+        String hostName = (String) xpath.evaluate("email:hostname", mailElem, XPathConstants.STRING);        
+        String port = (String) xpath.evaluate("email:port", mailElem, XPathConstants.STRING);
+        String username = (String) xpath.evaluate("email:username", mailElem, XPathConstants.STRING);
+        String password = (String) xpath.evaluate("email:password", mailElem, XPathConstants.STRING);
+        String useSSLVal = (String) xpath.evaluate("email:use-ssl", mailElem, XPathConstants.STRING);
         boolean useSSL = useSSLVal.equals("true") || useSSLVal.equals("1");
-        String startTLSEnabled = (String) xpath.evaluate("start-tls-enabled", mailElem, XPathConstants.STRING);
-        String startTLSRequired = (String) xpath.evaluate("start-tls-required", mailElem, XPathConstants.STRING);
+        String startTLSEnabled = (String) xpath.evaluate("email:start-tls-enabled", mailElem, XPathConstants.STRING);
+        String startTLSRequired = (String) xpath.evaluate("email:start-tls-required", mailElem, XPathConstants.STRING);
         
         email.setHostName(hostName);        
         if (StringUtils.isNotBlank(port)) {
@@ -128,68 +162,64 @@ public class SendMail extends ExtensionFunctionDefinition {
         // email.setSSLCheckServerIdentity(sslCheckServerIdentity);
         
         email.setFrom(
-            (String) xpath.evaluate("from/email", mailElem, XPathConstants.STRING), 
-            (String) xpath.evaluate("from/name", mailElem, XPathConstants.STRING), 
-            (String) xpath.evaluate("from/charset", mailElem, XPathConstants.STRING));
+            (String) xpath.evaluate("email:from/email:email", mailElem, XPathConstants.STRING), 
+            (String) xpath.evaluate("email:from/email:name", mailElem, XPathConstants.STRING), 
+            (String) xpath.evaluate("email:from/email:charset", mailElem, XPathConstants.STRING));
         
-        NodeList replyToNodes = (NodeList) xpath.evaluate("reply-to", mailElem, XPathConstants.NODESET);
-        for (int i=0; i<replyToNodes.getLength(); i++) {
-          Node replyToNode = replyToNodes.item(i);
+        List<NodeInfo> replyToNodes = (List<NodeInfo>) xpath.evaluate("email:reply-to", mailElem, XPathConstants.NODESET);
+        for (NodeInfo replyToNode : replyToNodes) {          
           email.addReplyTo(
-              (String) xpath.evaluate("email", replyToNode, XPathConstants.STRING), 
-              (String) xpath.evaluate("name", replyToNode, XPathConstants.STRING), 
-              (String) xpath.evaluate("charset", replyToNode, XPathConstants.STRING));          
-        }
-        NodeList toNodes = (NodeList) xpath.evaluate("to", mailElem, XPathConstants.NODESET);
-        for (int i=0; i<toNodes.getLength(); i++) {
-          Node toNode = toNodes.item(i);
+              (String) xpath.evaluate("email:email", replyToNode, XPathConstants.STRING), 
+              (String) xpath.evaluate("email:name", replyToNode, XPathConstants.STRING), 
+              (String) xpath.evaluate("email:charset", replyToNode, XPathConstants.STRING));          
+        }        
+        List<NodeInfo> toNodes = (List<NodeInfo>) xpath.evaluate("email:to", mailElem, XPathConstants.NODESET);
+        for (NodeInfo toNode : toNodes) {          
           email.addTo(
-              (String) xpath.evaluate("email", toNode, XPathConstants.STRING), 
-              (String) xpath.evaluate("name", toNode, XPathConstants.STRING), 
-              (String) xpath.evaluate("charset", toNode, XPathConstants.STRING));          
+              (String) xpath.evaluate("email:email", toNode, XPathConstants.STRING), 
+              (String) xpath.evaluate("email:name", toNode, XPathConstants.STRING), 
+              (String) xpath.evaluate("email:charset", toNode, XPathConstants.STRING));          
         }
-        NodeList bccNodes = (NodeList) xpath.evaluate("bcc", mailElem, XPathConstants.NODESET);
-        for (int i=0; i<bccNodes.getLength(); i++) {
-          Node bccNode = bccNodes.item(i);
+        List<NodeInfo> ccNodes = (List<NodeInfo>) xpath.evaluate("email:cc", mailElem, XPathConstants.NODESET);
+        for (NodeInfo ccNode : ccNodes) {          
+          email.addCc(
+              (String) xpath.evaluate("email:email", ccNode, XPathConstants.STRING), 
+              (String) xpath.evaluate("email:name", ccNode, XPathConstants.STRING), 
+              (String) xpath.evaluate("email:charset", ccNode, XPathConstants.STRING));          
+        }
+        List<NodeInfo> bccNodes = (List<NodeInfo>) xpath.evaluate("email:bcc", mailElem, XPathConstants.NODESET);
+        for (NodeInfo bccNode : bccNodes) {          
           email.addBcc(
-              (String) xpath.evaluate("email", bccNode, XPathConstants.STRING), 
-              (String) xpath.evaluate("name", bccNode, XPathConstants.STRING), 
-              (String) xpath.evaluate("charset", bccNode, XPathConstants.STRING));          
+              (String) xpath.evaluate("email:email", bccNode, XPathConstants.STRING), 
+              (String) xpath.evaluate("email:name", bccNode, XPathConstants.STRING), 
+              (String) xpath.evaluate("email:charset", bccNode, XPathConstants.STRING));          
         }
-        email.setSubject((String) xpath.evaluate("subject", mailElem, XPathConstants.STRING));
+        email.setSubject((String) xpath.evaluate("email:subject", mailElem, XPathConstants.STRING));
         
-        String textMessage = (String) xpath.evaluate("message/text", mailElem, XPathConstants.STRING);
+        String textMessage = (String) xpath.evaluate("email:message/email:text", mailElem, XPathConstants.STRING);
         if (StringUtils.isNotBlank(textMessage)) {
           email.setTextMsg(textMessage);
         }
-        NodeList htmlMessageNodes = (NodeList) xpath.evaluate("message/html/node()", mailElem, XPathConstants.NODESET);                
-        if (htmlMessageNodes.getLength() > 0) {
+        List<NodeInfo> htmlMessageNodes = (List<NodeInfo>) xpath.evaluate("email:message/email:html/node()", mailElem, XPathConstants.NODESET);                
+        if (htmlMessageNodes.size() > 0) {
           StringBuilder sb = new StringBuilder();
-          for (int i=0; i<htmlMessageNodes.getLength(); i++) {
-            sb.append(XMLUtils.nodeToString(htmlMessageNodes.item(i)));
+          for (NodeInfo htmlMessageNode : htmlMessageNodes) {
+            sb.append(stripXHTML(htmlMessageNode, context.getConfiguration()));
           }          
           email.setHtmlMsg(sb.toString());
         }
         
-        NodeList attachmentNodes = (NodeList) xpath.evaluate("attachment", mailElem, XPathConstants.NODESET);
-        for (int i=0; i<attachmentNodes.getLength(); i++) {
-          Element attachmentElem = (Element) attachmentNodes.item(i);           
-          EmailAttachment attachment = new EmailAttachment();
-          attachment.setPath(attachmentElem.getAttribute("file-path"));
+        List<NodeInfo> attachmentNodes = (List<NodeInfo>) xpath.evaluate("email:attachment", mailElem, XPathConstants.NODESET);
+        for (NodeInfo attachmentNode : attachmentNodes) {                              
+          EmailAttachment attachment = new EmailAttachment();          
+          attachment.setPath((String) xpath.evaluate("email:file-path", attachmentNode, XPathConstants.STRING));
           attachment.setDisposition(EmailAttachment.ATTACHMENT);
-          attachment.setDescription(attachmentElem.getAttribute("description"));
-          attachment.setName(attachmentElem.getAttribute("name"));          
+          attachment.setDescription((String) xpath.evaluate("email:description", attachmentNode, XPathConstants.STRING));
+          attachment.setName((String) xpath.evaluate("email:name", attachmentNode, XPathConstants.STRING));          
           email.attach(attachment);
         }
         
         email.send();
-        
-        
-        
-        
-        
-        // <mail> <hostname/> <from/> <reply-to/> <to/> <cc/> <bcc/> <subject/> <message> <text/> <xhtml/> </message> <attachment filename="" mimetype="">xs:base64Binary</attachment>
-        
         
         return SingletonIterator.makeIterator(BooleanValue.get(true));
       } catch (Exception e) {
