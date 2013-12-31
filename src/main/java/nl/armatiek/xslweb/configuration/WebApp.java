@@ -6,6 +6,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -61,8 +62,11 @@ public class WebApp implements ErrorHandler {
   
   private static final Logger logger = LoggerFactory.getLogger(WebApp.class);
   
-  private static Map<String, Templates> templatesCache = 
+  private Map<String, Templates> templatesCache = 
       Collections.synchronizedMap(new HashMap<String, Templates>());
+  
+  private Map<String, Collection<Attribute>> attributes = 
+      Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
   
   private File definition;
   private File homeDir;  
@@ -333,6 +337,18 @@ public class WebApp implements ErrorHandler {
       }      
     }
     return templates;
+  }
+  
+  public Collection<Attribute> getAttribute(String name) {
+    return attributes.get(name);
+  }
+  
+  public void removeAttribute(String name) {
+    attributes.remove(name);
+  }
+  
+  public void setAttribute(String name, Collection<Attribute> attrs) {
+    attributes.put(name, attrs);
   }
   
   @Override

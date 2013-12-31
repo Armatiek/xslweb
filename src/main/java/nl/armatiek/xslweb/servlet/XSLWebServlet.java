@@ -256,6 +256,12 @@ public class XSLWebServlet extends HttpServlet {
     }        
   }
   
+  private void setObjectParameters(Controller controller, WebApp webApp, HttpServletRequest req, HttpServletResponse resp) throws IOException {    
+    controller.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_REQUEST + "}request", req);
+    controller.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response", resp);
+    controller.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_WEBAPP + "}webapp", webApp);               
+  }
+  
   public static void serializeXMLToFile(String xml, File file) throws Exception {
     TransformerFactory factory = TransformerFactory.newInstance();
     Transformer transformer = factory.newTransformer();
@@ -282,6 +288,7 @@ public class XSLWebServlet extends HttpServlet {
       Templates requestDispatcherTemplates = webApp.getRequestDispatcherTemplates(errorListener);    
       Controller controllerTransformer = (Controller) requestDispatcherTemplates.newTransformer();
       setPropertyParameters(controllerTransformer, webApp);
+      setObjectParameters(controllerTransformer, webApp, req, resp);
       controllerTransformer.setErrorListener(errorListener);        
       controllerTransformer.setMessageEmitter(messageWarner);            
                                
@@ -339,8 +346,7 @@ public class XSLWebServlet extends HttpServlet {
           stepName = step.getName();
         }
         
-        transformer.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_REQUEST + "}request", req);
-        transformer.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response", resp);
+        setObjectParameters(transformer, webApp, req, resp);
                 
         OutputStream os = (Context.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : resp.getOutputStream();             
         nextHandler.setResult(new StreamResult(os));

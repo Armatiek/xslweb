@@ -5,10 +5,41 @@
   xmlns:req="http://www.armatiek.com/xslweb/request"
   xmlns:pipeline="http://www.armatiek.com/xslweb/pipeline"
   xmlns:config="http://www.armatiek.com/xslweb/configuration"
+  xmlns:auth="http://www.armatiek.com/xslweb/auth"
   exclude-result-prefixes="#all"
   version="2.0">
   
+  <xsl:include href="../../xsl/system/authentication/basic-authentication.xsl"/>
+  
   <xsl:param name="config:development-mode" as="xs:string"/>
+      
+  <!-- Authentication functions: -->
+  <xsl:function name="auth:must-authenticate" as="xs:boolean">    
+    <xsl:param name="request" as="document-node()"/>       
+    <xsl:value-of select="starts-with($request/*/req:path, '/authentication')"/>
+  </xsl:function>
+  
+  <xsl:function name="auth:get-realm" as="xs:string">
+    <xsl:text>XSLWeb examples realm</xsl:text>
+  </xsl:function>
+  
+  <xsl:function name="auth:login" as="element()?">
+    <xsl:param name="username" as="xs:string"/>
+    <xsl:param name="password" as="xs:string"/>
+    <xsl:if test="true()">
+      <authentication>
+        <ID>
+          <xsl:value-of select="$username"/>
+        </ID>
+        <!--
+        <role>rolename</role>
+        -->
+        <data>        
+          <mydata/>
+        </data>
+      </authentication>  
+    </xsl:if>
+  </xsl:function>
   
   <xsl:template match="/">
     <pipeline:pipeline>
@@ -60,6 +91,10 @@
   
   <xsl:template match="/req:request[req:path = '/custom-extension-function.html']">    
     <pipeline:transformer name="custom-extension-function" xsl-path="custom-extension-function/custom-extension-function.xsl"/>
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/authentication.html']">    
+    <pipeline:transformer name="authentication" xsl-path="authentication/authentication.xsl"/>
   </xsl:template>
   
 </xsl:stylesheet>
