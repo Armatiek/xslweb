@@ -12,7 +12,12 @@
   <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   
   <xsl:template match="/">
-    <resp:response status="200">      
+    <resp:response status="200">
+      <resp:headers>               
+        <resp:header name="Expires">0</resp:header>
+        <resp:header name="Pragma">no-cache</resp:header>
+        <resp:header name="Cache-Control">no-store, no-cache, must-revalidate</resp:header>        
+      </resp:headers>      
       <resp:body>
         <xsl:call-template name="body"/>
       </resp:body>
@@ -26,7 +31,15 @@
       </head>
       <body>        
         <h3>Authentication Example</h3>
-        <p>You are authenticated!</p>        
+        <p>You are authenticated!</p>
+        <xsl:choose>
+          <xsl:when test="true()">
+            <a href="authentication.html?logout=true">Log out</a>    
+          </xsl:when>
+          <xsl:otherwise>
+            <a href="authentication.html">Log in</a>
+          </xsl:otherwise>
+        </xsl:choose>
       </body>
     </html>
   </xsl:template>

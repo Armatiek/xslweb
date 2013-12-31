@@ -26,7 +26,7 @@
   <xsl:function name="auth:login" as="element()?">
     <xsl:param name="username" as="xs:string"/>
     <xsl:param name="password" as="xs:string"/>
-    <xsl:if test="true()">
+    <xsl:if test="$username = 'guest' and $password = 'secret'">
       <authentication>
         <ID>
           <xsl:value-of select="$username"/>

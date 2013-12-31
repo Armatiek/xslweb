@@ -52,10 +52,10 @@ public class GetAttribute extends ExtensionFunctionDefinition {
       @Override
       protected Collection<Attribute> getAttributes(String name, XPathContext context) {
         HttpServletRequest request = (HttpServletRequest) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_REQUEST + "}request");
-        HttpSession session = request.getSession();
-        
+        HttpSession session = request.getSession();       
         return (Collection<Attribute>) session.getAttribute(name);
       }
     };    
   }
+  
 }

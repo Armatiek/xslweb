@@ -26,6 +26,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
+import net.sf.saxon.Configuration;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
 import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
@@ -188,51 +189,6 @@ public class WebApp implements ErrorHandler {
     templatesCache.clear();           
   }
     
-  /*
-  private void initExtensionFunctions() throws Exception {            
-    File libDir = new File(homeDir, "lib");    
-    List<File> classPath = new ArrayList<File>();
-    Collection<File> saxonJars = FileUtils.listFiles(new File(Context.getInstance().getWebInfDir(), "lib"), 
-        new WildcardFileFilter("*saxon*.jar", IOCase.INSENSITIVE), FalseFileFilter.INSTANCE);    
-    classPath.addAll(saxonJars);
-    classPath.add(libDir);        
-    classPath.addAll(FileUtils.listFiles(libDir, new WildcardFileFilter("*.jar"), DirectoryFileFilter.DIRECTORY));
-    if (classPath.isEmpty()) {
-      return;
-    }
-    logger.info("Initializing custom extension functions ...");
-    
-    ClassFinder finder = new ClassFinder();
-    finder.add(classPath);    
-    
-    ClassFilter filter =
-        new AndClassFilter(            
-            // Must extend ExtensionFunctionDefinition class
-            new SubclassClassFilter (ExtensionFunctionDefinition.class),
-            // Must not be abstract
-            new NotClassFilter (new AbstractClassFilter()));
-    
-    Collection<ClassInfo> foundClasses = new ArrayList<ClassInfo>();    
-    finder.findClasses(foundClasses, filter);
-    if (foundClasses.isEmpty()) {
-      logger.info("No custom extension functions found.");
-      return;
-    }    
-    ClassLoaderBuilder builder = new ClassLoaderBuilder();    
-    builder.add(classPath);    
-    ClassLoader classLoader = builder.createClassLoader();    
-    for (ClassInfo classInfo : foundClasses) { 
-      String className = classInfo.getClassName();
-      if (configuration.isFunctionRegistered(className) || saxonJars.contains(classInfo.getClassLocation())) {
-        continue;
-      }      
-      Class<?> clazz = classLoader.loadClass(className);
-      logger.info(String.format("Adding custom extension function class \"%s\" ...", className));     
-      configuration.registerExtensionFunction((ExtensionFunctionDefinition) clazz.newInstance());      
-    }
-  }
-  */
-  
   private void initFileAlterationObservers() {       
     IOFileFilter directories = FileFilterUtils.and(FileFilterUtils.directoryFileFilter(), HiddenFileFilter.VISIBLE);
     IOFileFilter files = FileFilterUtils.and(FileFilterUtils.fileFileFilter(), new WildcardFileFilter("*.xsl?"));
@@ -283,12 +239,19 @@ public class WebApp implements ErrorHandler {
   public List<Parameter> getParameters() {
     return parameters;
   }
+  
+  public Configuration getConfiguration() {
+    return configuration;
+  }
 
   public Templates getRequestDispatcherTemplates(ErrorListener errorListener) throws Exception {
     return tryTemplatesCache(new File(getHomeDir(), Definitions.FILENAME_REQUESTDISPATCHER_XSL).getAbsolutePath(), errorListener);
   }
   
-  public Templates getTemplates(String path, ErrorListener errorListener) throws Exception {
+  public Templates getTemplates(String path, ErrorListener errorListener) throws Exception {    
+    if (new File(path).isAbsolute()) {
+      return tryTemplatesCache(path, errorListener);
+    }    
     return tryTemplatesCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener);
   }
   

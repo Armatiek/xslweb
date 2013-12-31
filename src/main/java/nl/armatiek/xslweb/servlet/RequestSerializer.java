@@ -2,8 +2,10 @@ package nl.armatiek.xslweb.servlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -18,6 +20,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import nl.armatiek.xslweb.configuration.Attribute;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
@@ -29,6 +32,12 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLFilterImpl;
+import org.xml.sax.helpers.XMLReaderFactory;
+
+import com.sun.xml.ws.util.xml.ContentHandlerToXMLStreamWriter;
 
 public class RequestSerializer {
   
@@ -254,7 +263,7 @@ public class RequestSerializer {
     }
   }
   
-  @SuppressWarnings("rawtypes")
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private void serializeSession() throws Exception {
     HttpSession session = req.getSession();
     xsw.writeStartElement(URI, "session");
@@ -269,8 +278,27 @@ public class RequestSerializer {
       while (attrNames.hasMoreElements()) {
         String attrName = (String) attrNames.nextElement();                  
         xsw.writeStartElement(URI, "attribute");
-        xsw.writeAttribute("name", attrName);
-        xsw.writeCharacters(session.getAttribute(attrName).toString());
+        xsw.writeAttribute("name", attrName);                
+        Object attr = session.getAttribute(attrName);
+        if (attr instanceof Collection) {
+          Collection<Attribute> attrs = (Collection<Attribute>) attr;
+          for (Attribute a: attrs) {
+            if (a.isSerialized()) {
+              XMLFilterImpl filter = new BodyFilter();
+              filter.setContentHandler(new ContentHandlerToXMLStreamWriter(xsw));           
+              XMLReader xmlreader = XMLReaderFactory.createXMLReader();
+              xmlreader.setFeature("http://xml.org/sax/features/validation", false);
+              xmlreader.setFeature("http://xml.org/sax/features/namespaces", true);
+              xmlreader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+              xmlreader.setContentHandler(filter);            
+              xmlreader.parse(new InputSource(new StringReader(a.getSerializedValue())));            
+            } else {
+              xsw.writeCharacters(a.getValue().toString());
+            }
+          }                    
+        } else {
+          xsw.writeCharacters(attr.toString());
+        }        
         xsw.writeEndElement();                               
       }
       xsw.writeEndElement();

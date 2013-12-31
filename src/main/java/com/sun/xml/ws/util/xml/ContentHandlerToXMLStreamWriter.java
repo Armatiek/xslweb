@@ -66,11 +66,11 @@ public class ContentHandlerToXMLStreamWriter extends DefaultHandler {
     private final XMLStreamWriter staxWriter;
 
     // storage for prefix bindings
-    private final Stack prefixBindings;
+    private final Stack<String> prefixBindings;
 
     public ContentHandlerToXMLStreamWriter(XMLStreamWriter staxCore) {
         this.staxWriter = staxCore;
-        prefixBindings = new Stack(); // default of 10 seems reasonable
+        prefixBindings = new Stack<String>(); // default of 10 seems reasonable
     }
 
     /*

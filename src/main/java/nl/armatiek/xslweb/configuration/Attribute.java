@@ -24,4 +24,15 @@ public class Attribute {
     }
     return value;
   }
+  
+  public String getSerializedValue() {
+    if (value instanceof String) {
+      return (String) value;
+    }
+    return null;
+  }
+  
+  public boolean isSerialized() {
+    return this.isSerialized;
+  }
 }
