@@ -55,7 +55,10 @@
           </li>
           <li>
             <a href="{$path}/custom-extension-function.html">Custom XPath extension function</a>
-          </li>                   
+          </li>
+          <li>
+            <a href="{$path}/authentication.html">Authentication</a>
+          </li>
         </ul>
         <a href="{/*/req:context-path}/documentation">XSLWeb documentation</a>
       </body>

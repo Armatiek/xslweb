@@ -43,8 +43,11 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_CONFIGURATION = "http://www.armatiek.com/xslweb/configuration";
   public final static String NAMESPACEURI_XSLWEB_FUNCTIONS     = "http://www.armatiek.com/xslweb/functions";
   public final static String NAMESPACEURI_XSLWEB_FX_BASE64     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/base64";
+  public final static String NAMESPACEURI_XSLWEB_FX_CONTEXT    = NAMESPACEURI_XSLWEB_FUNCTIONS + "/context";
   public final static String NAMESPACEURI_XSLWEB_FX_LOG        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/log";
   public final static String NAMESPACEURI_XSLWEB_FX_EMAIL      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/email";
+  public final static String NAMESPACEURI_XSLWEB_FX_SESSION    = NAMESPACEURI_XSLWEB_FUNCTIONS + "/session";
+  public final static String NAMESPACEURI_XSLWEB_FX_WEBAPP     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/webapp";
   public final static String NAMESPACEURI_XSLWEB_REQUEST       = "http://www.armatiek.com/xslweb/request";
   public final static String NAMESPACEURI_XSLWEB_RESPONSE      = "http://www.armatiek.com/xslweb/response";
   public final static String NAMESPACEURI_XSLWEB_PIPELINE      = "http://www.armatiek.com/xslweb/pipeline";  

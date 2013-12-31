@@ -21,7 +21,7 @@ public class Base64Encode extends ExtensionFunctionDefinition {
 
   private static final long serialVersionUID = 1L;
   
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_BASE64, "base64-encode");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_BASE64, "encode");
 
   public StructuredQName getFunctionQName() {
     return qName;

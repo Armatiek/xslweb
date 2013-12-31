@@ -81,7 +81,7 @@ public class Session extends ExtensionFunctionDefinition {
         String name = attrElem.getAttribute("name");
         if (StringUtils.isBlank(name)) {
           throw new XPathException("Session element \"attribute\" must have an attribute \"name\"");
-        }          
+        }                  
         String value = attrElem.getTextContent();          
         session.setAttribute(name, value);          
         attrElem = XMLUtils.getNextSiblingElement(attrElem);

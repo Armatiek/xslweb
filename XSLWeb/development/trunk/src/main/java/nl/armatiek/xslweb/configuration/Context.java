@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class Context {
   private static Context _instance;
   
   private Map<String, WebApp> webApps = Collections.synchronizedMap(new HashMap<String, WebApp>());
+  private Map<String, Collection<Attribute>> attributes = Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
   private FileAlterationMonitor monitor;
   private Schema webAppSchema;
   private Properties properties;
@@ -279,6 +281,18 @@ public class Context {
   
   public File getWebInfDir() {
     return this.webInfDir;
+  }
+  
+  public Collection<Attribute> getAttribute(String name) {
+    return attributes.get(name);
+  }
+  
+  public void removeAttribute(String name) {
+    attributes.remove(name);
+  }
+  
+  public void setAttribute(String name, Collection<Attribute> attrs) {
+    attributes.put(name, attrs);
   }
   
 }
