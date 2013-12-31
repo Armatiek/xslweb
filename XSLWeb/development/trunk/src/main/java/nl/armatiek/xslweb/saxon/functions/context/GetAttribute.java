@@ -45,12 +45,12 @@ public class GetAttribute extends ExtensionFunctionDefinition {
 
   @SuppressWarnings("serial")
   public ExtensionFunctionCall makeCallExpression() {
-    return new GetAttributeCall() {
-      
+    return new GetAttributeCall() {      
       @Override
       protected Collection<Attribute> getAttributes(String name, XPathContext context) {
         return Context.getInstance().getAttribute(name);
       }
     };    
   }
+  
 }

@@ -53,4 +53,5 @@ public class GetAttribute extends ExtensionFunctionDefinition {
       }
     };    
   }
+  
 }

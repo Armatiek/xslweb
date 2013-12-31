@@ -28,7 +28,6 @@ import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import net.sf.saxon.Configuration;
 import net.sf.saxon.Controller;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.serialize.MessageWarner;
@@ -40,56 +39,13 @@ import nl.armatiek.xslweb.configuration.Resource;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.pipeline.PipelineStep;
+import nl.armatiek.xslweb.pipeline.ResponseStep;
 import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
-import nl.armatiek.xslweb.saxon.functions.base64.Base64Decode;
-import nl.armatiek.xslweb.saxon.functions.base64.Base64Encode;
-import nl.armatiek.xslweb.saxon.functions.expath.file.Append;
-import nl.armatiek.xslweb.saxon.functions.expath.file.AppendBinary;
-import nl.armatiek.xslweb.saxon.functions.expath.file.AppendText;
-import nl.armatiek.xslweb.saxon.functions.expath.file.AppendTextLines;
-import nl.armatiek.xslweb.saxon.functions.expath.file.BaseName;
-import nl.armatiek.xslweb.saxon.functions.expath.file.Copy;
-import nl.armatiek.xslweb.saxon.functions.expath.file.CreateDir;
-import nl.armatiek.xslweb.saxon.functions.expath.file.Delete;
-import nl.armatiek.xslweb.saxon.functions.expath.file.DirName;
-import nl.armatiek.xslweb.saxon.functions.expath.file.DirSeparator;
-import nl.armatiek.xslweb.saxon.functions.expath.file.Exists;
-import nl.armatiek.xslweb.saxon.functions.expath.file.IsDir;
-import nl.armatiek.xslweb.saxon.functions.expath.file.IsFile;
-import nl.armatiek.xslweb.saxon.functions.expath.file.LastModified;
-import nl.armatiek.xslweb.saxon.functions.expath.file.LineSeparator;
-import nl.armatiek.xslweb.saxon.functions.expath.file.Move;
-import nl.armatiek.xslweb.saxon.functions.expath.file.PathSeparator;
-import nl.armatiek.xslweb.saxon.functions.expath.file.PathToNative;
-import nl.armatiek.xslweb.saxon.functions.expath.file.PathToURI;
-import nl.armatiek.xslweb.saxon.functions.expath.file.ReadBinary;
-import nl.armatiek.xslweb.saxon.functions.expath.file.ReadText;
-import nl.armatiek.xslweb.saxon.functions.expath.file.ReadTextLines;
-import nl.armatiek.xslweb.saxon.functions.expath.file.ResolvePath;
-import nl.armatiek.xslweb.saxon.functions.expath.file.Size;
-import nl.armatiek.xslweb.saxon.functions.expath.file.Write;
-import nl.armatiek.xslweb.saxon.functions.expath.file.WriteBinary;
-import nl.armatiek.xslweb.saxon.functions.expath.file.WriteText;
-import nl.armatiek.xslweb.saxon.functions.expath.file.WriteTextLines;
-import nl.armatiek.xslweb.saxon.functions.log.Log;
-import nl.armatiek.xslweb.saxon.functions.response.Cookies;
-import nl.armatiek.xslweb.saxon.functions.response.Headers;
-import nl.armatiek.xslweb.saxon.functions.response.Session;
-import nl.armatiek.xslweb.saxon.functions.response.SetStatus;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.expath.httpclient.saxon.SendRequestFunction;
-import org.expath.pkg.saxon.EXPathFunctionDefinition;
-import org.expath.zip.saxon.BinaryEntryFunction;
-import org.expath.zip.saxon.EntriesFunction;
-import org.expath.zip.saxon.HtmlEntryFunction;
-import org.expath.zip.saxon.TextEntryFunction;
-import org.expath.zip.saxon.UpdateEntriesFunction;
-import org.expath.zip.saxon.XmlEntryFunction;
-import org.expath.zip.saxon.ZipFileFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.ContentHandler;
@@ -100,7 +56,6 @@ public class XSLWebServlet extends HttpServlet {
   
   private static final Logger logger = LoggerFactory.getLogger(XSLWebServlet.class);
     
-  private Configuration configuration;
   private File homeDir;  
   private boolean isDevelopmentMode;
   private File debugDir;
@@ -108,67 +63,8 @@ public class XSLWebServlet extends HttpServlet {
   private File responseDebugFile;
   
   public void init() throws ServletException {
-    super.init();
+    super.init();   
     try {    
-      configuration = new Configuration();           
-      configuration.setXIncludeAware(true);
-      
-      /* Log */
-      configuration.registerExtensionFunction(new Log());
-      
-      /* Response */
-      configuration.registerExtensionFunction(new SetStatus());
-      configuration.registerExtensionFunction(new Headers());
-      configuration.registerExtensionFunction(new Session());
-      configuration.registerExtensionFunction(new Cookies());
-      
-      /* Base64 */
-      configuration.registerExtensionFunction(new Base64Encode());
-      configuration.registerExtensionFunction(new Base64Decode());
-            
-      /* EXPath File: */
-      configuration.registerExtensionFunction(new Append());
-      configuration.registerExtensionFunction(new AppendBinary());
-      configuration.registerExtensionFunction(new AppendText());
-      configuration.registerExtensionFunction(new AppendTextLines());
-      configuration.registerExtensionFunction(new BaseName());
-      configuration.registerExtensionFunction(new Copy());
-      configuration.registerExtensionFunction(new CreateDir());
-      configuration.registerExtensionFunction(new Delete());
-      configuration.registerExtensionFunction(new DirName());
-      configuration.registerExtensionFunction(new DirSeparator());
-      configuration.registerExtensionFunction(new Exists());
-      configuration.registerExtensionFunction(new IsDir());
-      configuration.registerExtensionFunction(new IsFile());
-      configuration.registerExtensionFunction(new LastModified());
-      configuration.registerExtensionFunction(new LineSeparator());
-      configuration.registerExtensionFunction(new nl.armatiek.xslweb.saxon.functions.expath.file.List());
-      configuration.registerExtensionFunction(new Move());
-      configuration.registerExtensionFunction(new PathSeparator());
-      configuration.registerExtensionFunction(new PathToNative());
-      configuration.registerExtensionFunction(new PathToURI());
-      configuration.registerExtensionFunction(new ReadBinary());
-      configuration.registerExtensionFunction(new ReadText());
-      configuration.registerExtensionFunction(new ReadTextLines());
-      configuration.registerExtensionFunction(new ResolvePath());
-      configuration.registerExtensionFunction(new Size());
-      configuration.registerExtensionFunction(new Write());
-      configuration.registerExtensionFunction(new WriteBinary());
-      configuration.registerExtensionFunction(new WriteText());
-      configuration.registerExtensionFunction(new WriteTextLines());
-
-      /* EXPath Zip: */
-      registerEXPathFunction(new EntriesFunction(), configuration);
-      registerEXPathFunction(new UpdateEntriesFunction(), configuration);
-      registerEXPathFunction(new ZipFileFunction(), configuration);
-      configuration.registerExtensionFunction(new BinaryEntryFunction());
-      configuration.registerExtensionFunction(new HtmlEntryFunction());
-      configuration.registerExtensionFunction(new TextEntryFunction());
-      configuration.registerExtensionFunction(new XmlEntryFunction());
-      
-      /* EXPath HttpClient: */           
-      registerEXPathFunction(new SendRequestFunction(), configuration);
-  
       isDevelopmentMode = Context.getInstance().isDevelopmentMode();
       if (isDevelopmentMode) {
         this.debugDir = new File(Context.getInstance().getHomeDir(), "debug");
@@ -193,11 +89,6 @@ public class XSLWebServlet extends HttpServlet {
       logger.error(e.getMessage());
       throw new ServletException(e);
     }
-  }
-  
-  private void registerEXPathFunction(EXPathFunctionDefinition function, Configuration configuration) {
-    function.setConfiguration(configuration);      
-    configuration.registerExtensionFunction(function);
   }
   
   @Override
@@ -292,7 +183,7 @@ public class XSLWebServlet extends HttpServlet {
       controllerTransformer.setErrorListener(errorListener);        
       controllerTransformer.setMessageEmitter(messageWarner);            
                                
-      PipelineHandler pipelineHandler = new PipelineHandler();
+      PipelineHandler pipelineHandler = new PipelineHandler(webApp.getConfiguration());
       controllerTransformer.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(pipelineHandler));
       
       SAXTransformerFactory stf = (SAXTransformerFactory) net.sf.saxon.TransformerFactoryImpl.newInstance();      
@@ -318,11 +209,17 @@ public class XSLWebServlet extends HttpServlet {
         String stepName = null;
         for (int i=0; i<steps.size(); i++) {
           PipelineStep step = steps.get(i);          
+          String xslPath = null;
           if (step instanceof SystemTransformerStep) {
-            templates = TemplatesCache.getTemplates(new File(this.homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath(), errorListener, configuration);
-          } else {          
-            templates = webApp.getTemplates(((TransformerStep) step).getXslPath(), errorListener);
+            xslPath = new File(homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath();                      
+          } else if (step instanceof TransformerStep) {          
+            xslPath = ((TransformerStep) step).getXslPath();            
+          } else if (step instanceof ResponseStep) {
+            requestXML = ((ResponseStep) step).getResponse();
+            continue;
           }
+          templates = webApp.getTemplates(xslPath, errorListener);
+          
           nextHandler = stf.newTransformerHandler(templates);
           transformer = (Controller) nextHandler.getTransformer();          
           setPropertyParameters(transformer, webApp);
@@ -336,7 +233,7 @@ public class XSLWebServlet extends HttpServlet {
             if (isDevelopmentMode) {
               OutputStream os = new BufferedOutputStream(new FileOutputStream(new File(this.debugDir, stepName + ".xml")));
               debugOutputStreams.add(os);
-              nextContentHandler = new DebugContentHandler(nextHandler, os, configuration, nextHandler.getTransformer().getOutputProperties()); // TODO             
+              nextContentHandler = new DebugContentHandler(nextHandler, os, webApp.getConfiguration(), nextHandler.getTransformer().getOutputProperties()); // TODO             
             } else {
               nextContentHandler = nextHandler;
             }           
@@ -350,13 +247,20 @@ public class XSLWebServlet extends HttpServlet {
                 
         OutputStream os = (Context.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : resp.getOutputStream();             
         nextHandler.setResult(new StreamResult(os));
-                        
-        TransformerHandler lastHandler = handlers.get(handlers.size()-2);
-                
+        
         Transformer t = stf.newTransformer();
-        Properties outputProperties = lastHandler.getTransformer().getOutputProperties();
-        handlers.get(handlers.size()-1).getTransformer().setOutputProperties(outputProperties);
-        t.setOutputProperties(outputProperties);                       
+        Properties outputProperties;
+        if (handlers.size() > 1) {
+          TransformerHandler lastHandler = handlers.get(handlers.size()-2);
+          outputProperties = lastHandler.getTransformer().getOutputProperties();
+          handlers.get(handlers.size()-1).getTransformer().setOutputProperties(outputProperties);          
+        } else {
+          outputProperties = new Properties();
+          outputProperties.setProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+          outputProperties.setProperty(OutputKeys.METHOD, "html");
+          outputProperties.setProperty(OutputKeys.INDENT, "no");
+        }
+        t.setOutputProperties(outputProperties);
         t.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(handlers.get(0)));
         
         if (isDevelopmentMode) {
@@ -376,7 +280,5 @@ public class XSLWebServlet extends HttpServlet {
       requestSerializer.close();
     }
   }
-  
-  
   
 }

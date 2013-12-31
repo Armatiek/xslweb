@@ -41,7 +41,7 @@ public class Log extends ExtensionFunctionDefinition {
   }
 
   public SequenceType[] getArgumentTypes() {
-    return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.SINGLE_STRING };
+    return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.OPTIONAL_STRING };
   }
 
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
@@ -60,7 +60,10 @@ public class Log extends ExtensionFunctionDefinition {
     public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {
       try {
         String level = ((StringValue) arguments[0].next()).getStringValue();
-        String message = ((StringValue) arguments[1].next()).getStringValue();
+        String message = "";
+        if (arguments[1].next() != null) {
+          message = ((StringValue) arguments[1].current()).getStringValue();
+        }        
         if (level.equals("ERROR")) {
           log.error(message);
         } else if (level.equals("WARN")) {
