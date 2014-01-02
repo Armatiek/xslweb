@@ -194,7 +194,7 @@ public class XSLWebServlet extends HttpServlet {
         resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Resource not found");
         return;
       }
-      steps.add(new SystemTransformerStep("system/response.xsl", "client-response"));
+      steps.add(new SystemTransformerStep("system/response/response.xsl", "client-response"));
                    
       Templates templates = null;
       TransformerHandler nextHandler = null;
@@ -223,6 +223,7 @@ public class XSLWebServlet extends HttpServlet {
           nextHandler = stf.newTransformerHandler(templates);
           transformer = (Controller) nextHandler.getTransformer();          
           setPropertyParameters(transformer, webApp);
+          setObjectParameters(transformer, webApp, req, resp);
           setParameters(transformer, webApp.getParameters());
           setParameters(transformer, ((TransformerStep) step).getParameters());          
           transformer.setErrorListener(errorListener);          
@@ -243,12 +244,12 @@ public class XSLWebServlet extends HttpServlet {
           stepName = step.getName();
         }
         
-        setObjectParameters(transformer, webApp, req, resp);
+        // setObjectParameters(transformer, webApp, req, resp);
                 
         OutputStream os = (Context.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : resp.getOutputStream();             
         nextHandler.setResult(new StreamResult(os));
         
-        Transformer t = stf.newTransformer();
+        Transformer t = stf.newTransformer();        
         Properties outputProperties;
         if (handlers.size() > 1) {
           TransformerHandler lastHandler = handlers.get(handlers.size()-2);
@@ -261,6 +262,7 @@ public class XSLWebServlet extends HttpServlet {
           outputProperties.setProperty(OutputKeys.INDENT, "no");
         }
         t.setOutputProperties(outputProperties);
+        t.setErrorListener(errorListener);        
         t.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(handlers.get(0)));
         
         if (isDevelopmentMode) {

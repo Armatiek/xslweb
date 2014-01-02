@@ -33,6 +33,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
@@ -46,6 +47,7 @@ public class RequestSerializer {
   private HttpServletRequest req;
   private WebApp webApp;
   private XMLStreamWriter xsw;
+  private XMLReader xmlReader;
   private File reposDir; 
     
   public RequestSerializer(HttpServletRequest req, WebApp webApp) {
@@ -263,7 +265,7 @@ public class RequestSerializer {
     }
   }
   
-  @SuppressWarnings({ "rawtypes", "unchecked" })
+  @SuppressWarnings("rawtypes")
   private void serializeSession() throws Exception {
     HttpSession session = req.getSession();
     xsw.writeStartElement(URI, "session");
@@ -281,20 +283,18 @@ public class RequestSerializer {
         xsw.writeAttribute("name", attrName);                
         Object attr = session.getAttribute(attrName);
         if (attr instanceof Collection) {
+          @SuppressWarnings("unchecked")
           Collection<Attribute> attrs = (Collection<Attribute>) attr;
           for (Attribute a: attrs) {
-            if (a.isSerialized()) {
-              XMLFilterImpl filter = new BodyFilter();
-              filter.setContentHandler(new ContentHandlerToXMLStreamWriter(xsw));           
-              XMLReader xmlreader = XMLReaderFactory.createXMLReader();
-              xmlreader.setFeature("http://xml.org/sax/features/validation", false);
-              xmlreader.setFeature("http://xml.org/sax/features/namespaces", true);
-              xmlreader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
-              xmlreader.setContentHandler(filter);            
-              xmlreader.parse(new InputSource(new StringReader(a.getSerializedValue())));            
-            } else {
+            xsw.writeStartElement(URI, "item");
+            if (a.isSerialized()) { 
+              xsw.writeAttribute("type", a.getType());
+              getFilteredXMLReader().parse(new InputSource(new StringReader(a.getSerializedValue())));            
+            } else {              
+              xsw.writeAttribute("type", a.getType());
               xsw.writeCharacters(a.getValue().toString());
             }
+            xsw.writeEndElement();
           }                    
         } else {
           xsw.writeCharacters(attr.toString());
@@ -337,6 +337,19 @@ public class RequestSerializer {
       xsw.writeCharacters(text);
       xsw.writeEndElement();
     }
+  }
+  
+  private XMLReader getFilteredXMLReader() throws SAXException {
+    if (this.xmlReader == null) {
+      XMLFilterImpl filter = new BodyFilter();
+      filter.setContentHandler(new ContentHandlerToXMLStreamWriter(xsw));           
+      this.xmlReader = XMLReaderFactory.createXMLReader();              
+      this.xmlReader.setFeature("http://xml.org/sax/features/validation", false);
+      this.xmlReader.setFeature("http://xml.org/sax/features/namespaces", true);
+      this.xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
+      this.xmlReader.setContentHandler(filter);      
+    }
+    return this.xmlReader;
   }
   
   private String safeString(String str) {

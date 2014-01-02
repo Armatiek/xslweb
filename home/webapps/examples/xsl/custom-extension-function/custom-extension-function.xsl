@@ -27,7 +27,7 @@
       <body>
         <h3>Custom extension function example</h3>        
         <p>
-          <xsl:value-of select="ext:hello-world('Output of extension function')"/>
+          <xsl:value-of select="ext:hello-world('Output of extension function')"/>          
         </p>        
       </body>
     </html>

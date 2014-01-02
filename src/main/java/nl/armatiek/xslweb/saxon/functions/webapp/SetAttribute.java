@@ -36,7 +36,7 @@ public class SetAttribute extends ExtensionFunctionDefinition {
   }
 
   public SequenceType[] getArgumentTypes() {
-    return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.OPTIONAL_ITEM };
+    return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.ANY_SEQUENCE };
   }
 
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {

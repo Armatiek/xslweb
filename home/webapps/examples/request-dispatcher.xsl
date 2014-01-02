@@ -89,6 +89,10 @@
     <pipeline:transformer name="email-send" xsl-path="email/email-send.xsl"/>
   </xsl:template>
   
+  <xsl:template match="/req:request[req:path = '/attributes.html']">    
+    <pipeline:transformer name="email-send" xsl-path="attributes/attributes.xsl"/>
+  </xsl:template>
+  
   <xsl:template match="/req:request[req:path = '/custom-extension-function.html']">    
     <pipeline:transformer name="custom-extension-function" xsl-path="custom-extension-function/custom-extension-function.xsl"/>
   </xsl:template>

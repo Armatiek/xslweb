@@ -1,5 +1,8 @@
 package nl.armatiek.xslweb.saxon.functions.response;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -14,6 +17,7 @@ import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
+import nl.armatiek.xslweb.configuration.Attribute;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.utils.XMLUtils;
 
@@ -62,31 +66,48 @@ public class Session extends ExtensionFunctionDefinition {
 
     @SuppressWarnings("rawtypes")
     public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {                            
-      HttpServletRequest request = (HttpServletRequest) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_REQUEST + "}request");
-      HttpSession session = request.getSession();
-      
-      NodeInfo nodeInfo = (NodeInfo) arguments[0].next();      
-      Element sessionElem = (Element) NodeOverNodeInfo.wrap(nodeInfo);
-      
-      String interval = XMLUtils.getValueOfChildElementByLocalName(sessionElem, "max-inactive-interval");
-      if (interval != null) {
-        session.setMaxInactiveInterval(Integer.parseInt(interval));
+      try {
+        HttpServletRequest request = (HttpServletRequest) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_REQUEST + "}request");
+        HttpSession session = request.getSession();
+        
+        NodeInfo nodeInfo = (NodeInfo) arguments[0].next();      
+        Element sessionElem = (Element) NodeOverNodeInfo.wrap(nodeInfo);
+        
+        String interval = XMLUtils.getValueOfChildElementByLocalName(sessionElem, "max-inactive-interval");
+        if (interval != null) {
+          session.setMaxInactiveInterval(Integer.parseInt(interval));
+        }
+        if (StringUtils.equals(sessionElem.getAttribute("invalidate"), "true")) {
+          session.invalidate();
+        }      
+        Element attrsElem = XMLUtils.getChildElementByLocalName(sessionElem, "attributes");                
+        Element attrElem = XMLUtils.getFirstChildElement(attrsElem);
+        while (attrElem != null) {
+          String name = attrElem.getAttribute("name");
+          if (StringUtils.isBlank(name)) {
+            throw new XPathException("Session element \"attribute\" must have an attribute \"name\"");
+          }
+          List<Attribute> attrs = new ArrayList<Attribute>();
+          Element itemElem = XMLUtils.getFirstChildElement(attrElem);
+          while (itemElem != null) {
+            String type = itemElem.getAttribute("type");
+            if (StringUtils.isBlank(type)) {
+              throw new XPathException("Session element \"item\" must have an attribute \"type\"");
+            }            
+            if (type.equals("node()") || type.equals("element()")) {
+              attrs.add(new Attribute(XMLUtils.nodeToString(XMLUtils.getFirstChildElement(itemElem)), type, true));                                        
+            } else {
+              attrs.add(new Attribute(XMLUtils.getObject(type, itemElem.getTextContent()), type, false));
+            }             
+            itemElem = XMLUtils.getNextSiblingElement(itemElem);
+          }          
+          session.setAttribute(name, attrs);          
+          attrElem = XMLUtils.getNextSiblingElement(attrElem);
+        }                                           
+        return SingletonIterator.makeIterator(BooleanValue.get(true));              
+      } catch (Exception e) {
+        throw new XPathException(e);
       }
-      if (StringUtils.equals(sessionElem.getAttribute("invalidate"), "true")) {
-        session.invalidate();
-      }                                
-      Element attrsElem = XMLUtils.getChildElementByLocalName(sessionElem, "attributes");                
-      Element attrElem = XMLUtils.getFirstChildElement(attrsElem);
-      while (attrElem != null) {
-        String name = attrElem.getAttribute("name");
-        if (StringUtils.isBlank(name)) {
-          throw new XPathException("Session element \"attribute\" must have an attribute \"name\"");
-        }                  
-        String value = attrElem.getTextContent();          
-        session.setAttribute(name, value);          
-        attrElem = XMLUtils.getNextSiblingElement(attrElem);
-      }                                           
-      return SingletonIterator.makeIterator(BooleanValue.get(true));              
     }
     
   }
