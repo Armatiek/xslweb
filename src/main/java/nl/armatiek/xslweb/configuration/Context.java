@@ -23,7 +23,6 @@ import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.HiddenFileFilter;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
@@ -152,57 +151,68 @@ public class Context {
       webAppSchema = factory.newSchema(schemaFile);
     }
   }
-  
-  private void onWebAppAltered(File file, String message, boolean createNew) {
-    if (!file.isFile()) {
+    
+  public void reloadWebApp(File webAppDefFile, boolean createNew) {
+    try {
+      Thread.sleep(1000);     
+    } catch (Exception e) { }
+    if (!webAppDefFile.isFile()) {
       return;
     }
-    String webAppName = file.getParentFile().getName();
-    logger.info(String.format(message, webAppName));        
-    WebApp webApp = webApps.get(webAppName);       
-    if (webApp != null) {
-      logger.info(String.format("Stopping existing webapp \"%s\" ...", webAppName));
-      try {       
-        webApp.close();
-        webApps.remove(webAppName);
-      } catch (Exception e) {
-        logger.error(String.format("Error stopping existing webapp \"%s\"", webAppName), e);
+    synchronized(webApps) {
+      String webAppName = webAppDefFile.getParentFile().getName();             
+      WebApp webApp = webApps.get(webAppName);
+      Map<String, Collection<Attribute>> attributes = null;
+      if (webApp != null) {
+        logger.info(String.format("Stopping existing webapp \"%s\" ...", webAppName));
+        try {
+          attributes = webApp.getAttributes();
+          webApp.close();
+          // webApps.remove(webAppName);
+        } catch (Exception e) {
+          logger.error(String.format("Error stopping existing webapp \"%s\"", webAppName), e);
+        }
       }
-    }
-    if (!createNew) {
-      return;
-    }
-    logger.info(String.format("Creating new webapp \"%s\" ...", webAppName));
-    try {       
-      webApp = new WebApp(file);
-      webApps.put(webApp.getName(), webApp);  
-      webApp.open();
-    } catch (Exception e) {
-      logger.error(String.format("Error creating new webapp \"%s\"", webAppName), e);
-    }
+      if (!createNew) {
+        return;
+      }
+      logger.info(String.format("Creating new webapp \"%s\" ...", webAppName));
+      try {       
+        webApp = new WebApp(webAppDefFile);
+        if (attributes != null) {
+          webApp.setAttributes(attributes);
+        }
+        webApp.open();
+        webApps.put(webAppName, webApp);
+      } catch (Exception e) {
+        logger.error(String.format("Error creating new webapp \"%s\"", webAppName), e);
+      }      
+    }    
   }
   
   private void initFileAlterationObservers() {
-    File webAppsDir = new File(homeDir, "webapps");    
-    IOFileFilter directories = FileFilterUtils.and(FileFilterUtils.directoryFileFilter(), HiddenFileFilter.VISIBLE);
-    IOFileFilter files = FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.nameFileFilter("webapp.xml"));
-    IOFileFilter filter = FileFilterUtils.or(directories, files);    
+    File webAppsDir = new File(homeDir, "webapps");        
+    IOFileFilter webAppFiles = FileFilterUtils.and(FileFilterUtils.fileFileFilter(), FileFilterUtils.nameFileFilter("webapp.xml"));    
+    IOFileFilter filter = FileFilterUtils.or(FileFilterUtils.directoryFileFilter(), webAppFiles);    
     FileAlterationObserver webAppObserver = new FileAlterationObserver(webAppsDir, filter);
     webAppObserver.addListener(new FileAlterationListenerAdaptor() {
 
       @Override
       public void onFileCreate(File file) {
-        onWebAppAltered(file, "New webapp \"%s\" detected", true);
+        logger.info("New webapp detected ..."); 
+        reloadWebApp(file, true);
       }
 
       @Override
       public void onFileChange(File file) {
-        onWebAppAltered(file, "Change in webapp \"%s\" detected", true);
+        logger.info("Change in webapp definition detected ...");
+        reloadWebApp(file, true);
       }
 
       @Override
       public void onFileDelete(File file) {
-        onWebAppAltered(file, "Deletion of webapp \"%s\" detected", true);
+        logger.info("Deletion of webapp detected ...");
+        reloadWebApp(file, true);
       }
       
     });
