@@ -43,7 +43,9 @@ public class XSLWebJob implements Job {
         CloseableHttpResponse response = httpClient.execute(httpget);
         try {
           String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
-          logger.info(responseBody);
+          if (StringUtils.isNotBlank(responseBody)) {
+            logger.info(responseBody);
+          }
         } finally {
           response.close();        
         }

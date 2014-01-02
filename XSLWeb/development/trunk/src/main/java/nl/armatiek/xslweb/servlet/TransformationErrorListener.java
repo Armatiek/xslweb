@@ -37,8 +37,7 @@ public class TransformationErrorListener implements ErrorListener {
       }
     } catch (IOException ioe) {
       throw new TransformerException("IOException dumping track trace");
-    }
-    throw exception;
+    }    
   }
 
   @Override

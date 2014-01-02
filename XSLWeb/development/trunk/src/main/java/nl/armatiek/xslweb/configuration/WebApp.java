@@ -20,13 +20,15 @@ import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
 import net.sf.saxon.Configuration;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.XsltCompiler;
+import net.sf.saxon.s9api.XsltExecutable;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
 import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
@@ -78,6 +80,7 @@ public class WebApp implements ErrorHandler {
   private List<Resource> resources = new ArrayList<Resource>();
   private List<Parameter> parameters = new ArrayList<Parameter>();
   private XSLWebConfiguration configuration;
+  private Processor processor;
   private FileAlterationMonitor monitor;
   
   public WebApp(File webAppDefinition) throws Exception {   
@@ -147,6 +150,7 @@ public class WebApp implements ErrorHandler {
     }
     
     this.configuration = new XSLWebConfiguration(this);
+    this.processor = new Processor(configuration);
     
     // initExtensionFunctions();
     
@@ -272,10 +276,11 @@ public class WebApp implements ErrorHandler {
     return null;
   }
   
+  /*
   public Templates tryTemplatesCache(String transformationPath,  
       ErrorListener errorListener) throws Exception {
     String key = FilenameUtils.normalize(transformationPath);
-    Templates templates = (Templates) templatesCache.get(key);
+    Templates templates = (Templates) templatesCache.get(key);    
     if (templates == null) {
       logger.info("Compiling and caching stylesheet \"" + transformationPath + "\" ...");
       TransformerFactory factory = new net.sf.saxon.TransformerFactoryImpl(configuration);      
@@ -288,9 +293,39 @@ public class WebApp implements ErrorHandler {
         spf.setXIncludeAware(true);
         spf.setValidating(false);
         SAXParser parser = spf.newSAXParser();
-        XMLReader reader = parser.getXMLReader();
+        XMLReader reader = parser.getXMLReader();        
         Source source = new SAXSource(reader, new InputSource(transformationPath));
-        templates = factory.newTemplates(source);
+        templates = factory.newTemplates(source);        
+      } catch (Exception e) {
+        logger.error("Could not compile stylesheet \"" + transformationPath + "\"", e);
+        throw e;
+      }      
+      if (!Context.getInstance().isDevelopmentMode()) {
+        templatesCache.put(key, templates);
+      }      
+    }
+    return templates;
+  }
+  */
+  
+  public Templates tryTemplatesCache(String transformationPath,  
+      ErrorListener errorListener) throws Exception {
+    String key = FilenameUtils.normalize(transformationPath);
+    Templates templates = (Templates) templatesCache.get(key);    
+    if (templates == null) {
+      logger.info("Compiling and caching stylesheet \"" + transformationPath + "\" ...");      
+      XsltCompiler compiler = processor.newXsltCompiler();
+      compiler.setErrorListener(errorListener);      
+      try {
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        spf.setNamespaceAware(true);
+        spf.setXIncludeAware(true);
+        spf.setValidating(false);
+        SAXParser parser = spf.newSAXParser();
+        XMLReader reader = parser.getXMLReader();        
+        Source source = new SAXSource(reader, new InputSource(transformationPath));
+        XsltExecutable executable = compiler.compile(source);        
+        templates = executable.getUnderlyingCompiledStylesheet();               
       } catch (Exception e) {
         logger.error("Could not compile stylesheet \"" + transformationPath + "\"", e);
         throw e;

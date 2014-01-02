@@ -54,6 +54,9 @@
             <a href="{$path}/email.html">E-Mail extension function</a>
           </li>
           <li>
+            <a href="{$path}/attributes.html">Session/Webapp/Context attributes example</a>
+          </li>
+          <li>
             <a href="{$path}/custom-extension-function.html">Custom XPath extension function</a>
           </li>
           <li>

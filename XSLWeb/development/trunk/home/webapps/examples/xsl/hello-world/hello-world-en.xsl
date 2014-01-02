@@ -8,7 +8,7 @@
   xmlns:resp="http://www.armatiek.com/xslweb/response"  
   exclude-result-prefixes="#all"
   version="2.0">
-  
+   
   <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   
   <xsl:template match="/">
@@ -21,10 +21,18 @@
       <!--
       <resp:session>
         <resp:attributes>
-          <resp:attribute name="foo">bar</resp:attribute>
+          <resp:attribute name="foo">
+            <resp:item type="xs:string">bar1</resp:item>
+            <resp:item type="node()">
+              <node1>
+                <x>x</x>
+                <y>y</y>
+              </node1>
+            </resp:item>
+          </resp:attribute>
         </resp:attributes>
-      </resp:session>      
-      -->
+      </resp:session>
+      -->      
       <resp:body>
         <xsl:call-template name="body"/>
       </resp:body>

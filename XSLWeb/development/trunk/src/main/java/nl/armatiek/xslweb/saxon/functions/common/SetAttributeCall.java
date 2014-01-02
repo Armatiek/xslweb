@@ -9,6 +9,8 @@ import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.SingletonIterator;
+import net.sf.saxon.type.ItemType;
+import net.sf.saxon.type.Type;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.StringValue;
 import net.sf.saxon.value.Value;
@@ -30,17 +32,21 @@ public abstract class SetAttributeCall extends ExtensionFunctionCall {
     } else {
       ArrayList<Attribute> attrs = new ArrayList<Attribute>();
       Item item;
-      while ((item = arguments[1].next()) != null) {
+      while ((item = arguments[1].next()) != null) {                
         Object value;
+        String type;
         boolean isSerialized;
         if (item instanceof NodeInfo) {
           value = serialize((NodeInfo) item);
+          type = "node()";
           isSerialized = true;
-        } else {
-          value = Value.convertToJava(item);            
+        } else {                             
+          value = Value.convertToJava(item);
+          ItemType itemType = Type.getItemType(item, null);
+          type = itemType.toString();
           isSerialized = false;
         }
-        attrs.add(new Attribute(name, value, isSerialized));
+        attrs.add(new Attribute(value, type, isSerialized));
       }
       setAttributes(name, attrs, context);      
     }
