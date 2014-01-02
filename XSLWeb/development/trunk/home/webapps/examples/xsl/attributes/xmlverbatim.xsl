@@ -25,7 +25,7 @@
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:verb="http://informatik.hu-berlin.de/xmlverbatim"
                 xmlns="http://www.w3.org/1999/xhtml"
-                exclude-result-prefixes="verb">
+                exclude-result-prefixes="verb" >
 
    
    <xsl:output method="xhtml" omit-xml-declaration="yes" indent="no" xml:space="preserve"/>
