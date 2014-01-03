@@ -217,7 +217,7 @@ public class Context {
       
     });
     
-    monitor = new FileAlterationMonitor(10);
+    monitor = new FileAlterationMonitor(5000);
     monitor.addObserver(webAppObserver);    
   }
   

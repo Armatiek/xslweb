@@ -11,10 +11,10 @@
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:variable name="session:attr-name-user-profile" as="xs:string">xslweb-user-profile</xsl:variable>
+  <xsl:variable name="session:attr-name-userprofile" as="xs:string">xslweb-userprofile</xsl:variable>
   
   <xsl:function name="auth:logout" as="xs:string*">
-    <xsl:value-of select="if (session:set-attribute($session:attr-name-user-profile)) then () 
+    <xsl:value-of select="if (session:set-attribute($session:attr-name-userprofile)) then () 
       else (error(xs:QName('err:XSLWEB0001'), 'Could not set session attribute'))"/>
   </xsl:function>
     
@@ -25,7 +25,7 @@
   </xsl:function>
   
   <xsl:template match="/req:request[auth:must-authenticate(/)]" priority="9">
-    <xsl:variable name="user-profile" select="session:get-attribute($session:attr-name-user-profile)" as="element()?"/>
+    <xsl:variable name="user-profile" select="session:get-attribute($session:attr-name-userprofile)" as="element()?"/>
     <xsl:choose>
       <xsl:when test="$user-profile">        
         <xsl:next-match/>
@@ -37,7 +37,7 @@
             <xsl:variable name="user-profile" select="auth:login($credentials[1], $credentials[2])" as="element()?"/>
             <xsl:choose>
               <xsl:when test="$user-profile">
-                <xsl:value-of select="if (session:set-attribute($session:attr-name-user-profile, $user-profile)) then () 
+                <xsl:value-of select="if (session:set-attribute($session:attr-name-userprofile, $user-profile)) then () 
                   else (error(xs:QName('err:XSLWEB0001'), 'Could not set session attribute'))"/>                
                 <xsl:next-match/>    
               </xsl:when>

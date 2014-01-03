@@ -160,7 +160,7 @@ public class WebApp implements ErrorHandler {
   public void open() throws Exception {
     logger.info(String.format("Opening webapp \"%s\" ...", name));
     
-    logger.info("Starting XSL stylesheet alteration monitor ...");
+    logger.info("Starting file alteration monitor ...");
     monitor.start();
     
     if (scheduler != null) {
@@ -174,7 +174,7 @@ public class WebApp implements ErrorHandler {
   public void close() throws Exception {    
     logger.info(String.format("Closing webapp \"%s\" ...", name));
     
-    logger.info("Stopping XSL stylesheet alteration monitor ...");
+    logger.info("Stopping file alteration monitor ...");
     monitor.stop();
     
     if (scheduler != null) {
@@ -241,22 +241,22 @@ public class WebApp implements ErrorHandler {
 
       @Override
       public void onFileCreate(File file) {        
-        onFileChanged(file, "New custom extension function jar or class file \"%s\" detected. Reloading webapp ...");
+        onFileChanged(file, "New plugin jar or class file \"%s\" detected. Reloading webapp ...");
       }
 
       @Override
       public void onFileChange(File file) {
-        onFileChanged(file, "Change in custom extension function jar or class file \"%s\" detected. Reloading webapp ...");
+        onFileChanged(file, "Change in plugin jar or class file \"%s\" detected. Reloading webapp ...");
       }
 
       @Override
       public void onFileDelete(File file) {
-        onFileChanged(file, "Deletion of custom extension function jar or class file \"%s\" detected. Reloading webapp ...");
+        onFileChanged(file, "Deletion of plugin jar or class file \"%s\" detected. Reloading webapp ...");
       }
       
     });
     
-    monitor = new FileAlterationMonitor(10);
+    monitor = new FileAlterationMonitor(5000);
     monitor.addObserver(xslObserver);
     monitor.addObserver(classObserver);
   }

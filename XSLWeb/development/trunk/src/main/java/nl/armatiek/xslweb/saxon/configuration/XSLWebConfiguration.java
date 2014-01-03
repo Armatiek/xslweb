@@ -42,7 +42,10 @@ public class XSLWebConfiguration extends Configuration {
   }
   
   private void addCustomExtensionFunctions(WebApp webApp) throws Exception {            
-    File libDir = new File(webApp.getHomeDir(), "lib");    
+    File libDir = new File(webApp.getHomeDir(), "lib");
+    if (!libDir.isDirectory()) {
+      return;
+    }
     List<File> classPath = new ArrayList<File>();                
     classPath.addAll(FileUtils.listFiles(libDir, new WildcardFileFilter("*.jar"), DirectoryFileFilter.DIRECTORY));
     if (classPath.isEmpty() && !XSLWebUtils.hasSubDirectories(libDir)) {
