@@ -12,7 +12,7 @@
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:import href="xmlverbatim.xsl"/>
+  <xsl:import href="../common/xmlverbatim.xsl"/>
   
   <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes" xml:space="preserve"/>
   

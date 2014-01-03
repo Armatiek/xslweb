@@ -9,7 +9,7 @@
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:include href="../../xsl/system/authentication/basic-authentication.xsl"/>
+  <xsl:include href="../../../xsl/system/authentication/basic-authentication.xsl"/>
   
   <xsl:param name="config:development-mode" as="xs:string"/>
       
@@ -34,8 +34,11 @@
         <!--
         <role>rolename</role>
         -->
-        <data>        
-          <mydata/>
+        <data>    
+          <email>email@email.com</email>
+          <tel>1234567</tel>
+          <mydata1/>
+          <mydata2/>
         </data>
       </authentication>  
     </xsl:if>
@@ -97,7 +100,7 @@
     <pipeline:transformer name="custom-extension-function" xsl-path="custom-extension-function/custom-extension-function.xsl"/>
   </xsl:template>
   
-  <xsl:template match="/req:request[req:path = '/authentication.html']">    
+  <xsl:template match="/req:request[req:path = '/authentication/authentication.html']">    
     <pipeline:transformer name="authentication" xsl-path="authentication/authentication.xsl"/>
   </xsl:template>
   

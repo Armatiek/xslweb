@@ -60,7 +60,7 @@
             <a href="{$path}/custom-extension-function.html">Custom XPath extension function</a>
           </li>
           <li>
-            <a href="{$path}/authentication.html">Authentication (credentials: guest/secret)</a>
+            <a href="{$path}/authentication/authentication.html">Authentication (credentials: guest/secret)</a>
           </li>
         </ul>
         <a href="{/*/req:context-path}/documentation">XSLWeb documentation</a>
