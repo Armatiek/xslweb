@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -75,12 +76,7 @@ public class XSLWebServlet extends HttpServlet {
         } else {      
           FileUtils.deleteQuietly(requestDebugFile);
           FileUtils.deleteQuietly(responseDebugFile);
-        }                
-        /*
-        XSLTTraceListener listener = new XSLTTraceListener();
-        listener.setOutputDestination(stream);
-        configuration.setTraceListener();
-        */
+        }
       }
       
       homeDir = Context.getInstance().getHomeDir();
@@ -102,8 +98,14 @@ public class XSLWebServlet extends HttpServlet {
         Resource resource = webApp.matchesResource(webApp.getRelativePath(path));
         if (resource == null) {                                
           executeRequest(webApp, req, resp);               
-        } else {          
-          resp.setContentType(resource.getMediaType());        
+        } else {
+          resp.setContentType(resource.getMediaType());
+          Date currentDate = new Date();
+          long now = currentDate.getTime();
+          long duration = resource.getDuration().getTimeInMillis(currentDate);
+          resp.addHeader("Cache-Control", "max-age=" + duration * 1000);
+          resp.setDateHeader("Last-Modified", now);
+          resp.setDateHeader("Expires", now + duration);
           FileUtils.copyFile(webApp.getStaticFile(path), resp.getOutputStream());
         }
       }

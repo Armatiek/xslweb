@@ -80,7 +80,7 @@ public class Context {
   public void close() throws Exception {
     logger.info("Closing XSLWeb Context ...");
     
-    logger.info("Stopping webapps file alteration monitor ...");
+    logger.info("Stopping webapps file alteration monitor ...");    
     monitor.stop();
     
     logger.info("Closing webapps ...");
@@ -217,7 +217,7 @@ public class Context {
       
     });
     
-    monitor = new FileAlterationMonitor(5000);
+    monitor = new FileAlterationMonitor(3000);
     monitor.addObserver(webAppObserver);    
   }
   

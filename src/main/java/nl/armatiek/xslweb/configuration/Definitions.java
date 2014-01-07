@@ -47,6 +47,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_LOG        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/log";
   public final static String NAMESPACEURI_XSLWEB_FX_EMAIL      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/email";
   public final static String NAMESPACEURI_XSLWEB_FX_SESSION    = NAMESPACEURI_XSLWEB_FUNCTIONS + "/session";
+  public final static String NAMESPACEURI_XSLWEB_FX_SERIALIZE  = NAMESPACEURI_XSLWEB_FUNCTIONS + "/serialize";
   public final static String NAMESPACEURI_XSLWEB_FX_WEBAPP     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/webapp";
   public final static String NAMESPACEURI_XSLWEB_REQUEST       = "http://www.armatiek.com/xslweb/request";
   public final static String NAMESPACEURI_XSLWEB_RESPONSE      = "http://www.armatiek.com/xslweb/response";

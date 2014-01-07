@@ -152,6 +152,12 @@ public class WebApp implements ErrorHandler {
     this.configuration = new XSLWebConfiguration(this);
     this.processor = new Processor(configuration);
     
+    /*
+    XSLTTraceListener listener = new XSLTTraceListener();
+    listener.setOutputDestination(System.out);
+    configuration.setTraceListener(listener);
+    */
+    
     // initExtensionFunctions();
     
     initFileAlterationObservers();
@@ -185,31 +191,6 @@ public class WebApp implements ErrorHandler {
     logger.info(String.format("Webapp \"%s\" closed.", name));
   }
   
-  /*
-  private void onStylesheetAltered(File file, String message) {
-    if (!file.isFile()) {
-      return;
-    }    
-    logger.info(String.format(message, file.getAbsolutePath()));    
-    templatesCache.clear();           
-  }
-  
-  private void onJarOrClassAltered(File file, String message) {    
-    if (!file.isFile()) {
-      return;
-    }    
-    logger.info(String.format(message, file.getAbsolutePath()));
-    try {
-      synchronized(this.configuration) {
-        XSLWebConfiguration newConfiguration = new XSLWebConfiguration(this); 
-        this.configuration = newConfiguration;
-      }
-    } catch (Exception e) {
-      logger.error("Error creating new Saxon configuration", e);
-    }
-  }
-  */
-  
   private void onFileChanged(File file, String message) {
     if (!file.isFile()) {
       return;
@@ -218,22 +199,27 @@ public class WebApp implements ErrorHandler {
     Context.getInstance().reloadWebApp(this.definition, true);
   }
     
-  private void initFileAlterationObservers() {        
-    IOFileFilter xslFiles = FileFilterUtils.and(FileFilterUtils.fileFileFilter(), new SuffixFileFilter(new String[] {".xsl", ".xslt"}, IOCase.INSENSITIVE));
-    FileAlterationObserver xslObserver = new FileAlterationObserver(new File(homeDir, "xsl"), FileFilterUtils.or(FileFilterUtils.directoryFileFilter(), xslFiles));        
-    xslObserver.addListener(new FileAlterationListenerAdaptor() {
-
-      @Override
-      public void onFileChange(File file) {        
-        onFileChanged(file, "Change in XSL stylesheet \"%s\" detected. Reloading webapp ...");
-      }
-
-      @Override
-      public void onFileDelete(File file) {
-        onFileChanged(file, "Deletion of XSL stylesheet \"%s\" detected. Reloading webapp ...");
-      }
-      
-    });
+  private void initFileAlterationObservers() { 
+    monitor = new FileAlterationMonitor(3000);    
+    
+    if (!Context.getInstance().isDevelopmentMode()) {
+      IOFileFilter xslFiles = FileFilterUtils.and(FileFilterUtils.fileFileFilter(), new SuffixFileFilter(new String[] {".xsl", ".xslt"}, IOCase.INSENSITIVE));
+      FileAlterationObserver xslObserver = new FileAlterationObserver(new File(homeDir, "xsl"), FileFilterUtils.or(FileFilterUtils.directoryFileFilter(), xslFiles));        
+      xslObserver.addListener(new FileAlterationListenerAdaptor() {
+  
+        @Override
+        public void onFileChange(File file) {        
+          onFileChanged(file, "Change in XSL stylesheet \"%s\" detected. Reloading webapp ...");
+        }
+  
+        @Override
+        public void onFileDelete(File file) {
+          onFileChanged(file, "Deletion of XSL stylesheet \"%s\" detected. Reloading webapp ...");
+        }
+        
+      });
+      monitor.addObserver(xslObserver);
+    }
     
     IOFileFilter jarAndClassFiles = FileFilterUtils.and(FileFilterUtils.fileFileFilter(), new SuffixFileFilter(new String[] {".jar", ".class"}, IOCase.INSENSITIVE));       
     FileAlterationObserver classObserver = new FileAlterationObserver(new File(homeDir, "lib"), FileFilterUtils.or(FileFilterUtils.directoryFileFilter(), jarAndClassFiles));
@@ -255,9 +241,6 @@ public class WebApp implements ErrorHandler {
       }
       
     });
-    
-    monitor = new FileAlterationMonitor(5000);
-    monitor.addObserver(xslObserver);
     monitor.addObserver(classObserver);
   }
   
@@ -327,7 +310,7 @@ public class WebApp implements ErrorHandler {
     Templates templates = (Templates) templatesCache.get(key);    
     if (templates == null) {
       logger.info("Compiling and caching stylesheet \"" + transformationPath + "\" ...");      
-      XsltCompiler compiler = processor.newXsltCompiler();
+      XsltCompiler compiler = processor.newXsltCompiler();      
       compiler.setErrorListener(errorListener);      
       try {
         SAXParserFactory spf = SAXParserFactory.newInstance();

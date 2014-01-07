@@ -44,6 +44,7 @@ import nl.armatiek.xslweb.saxon.functions.response.Cookies;
 import nl.armatiek.xslweb.saxon.functions.response.Headers;
 import nl.armatiek.xslweb.saxon.functions.response.Session;
 import nl.armatiek.xslweb.saxon.functions.response.SetStatus;
+import nl.armatiek.xslweb.saxon.functions.serialize.Serialize;
 
 import org.expath.httpclient.saxon.SendRequestFunction;
 import org.expath.pkg.saxon.EXPathFunctionDefinition;
@@ -89,7 +90,10 @@ public class XSLWebInitializer implements Initializer {
     registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.SetAttribute(), configuration);
     
     /* Email */
-    registerEXPathFunction(new SendMail(), configuration);      
+    registerEXPathFunction(new SendMail(), configuration);   
+    
+    /* Serialize */
+    registerEXPathFunction(new Serialize(), configuration);   
     
     /* EXPath File: */
     registerEXPathFunction(new Append(), configuration);
