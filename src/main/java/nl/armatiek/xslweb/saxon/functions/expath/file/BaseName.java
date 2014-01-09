@@ -69,7 +69,7 @@ public class BaseName extends ExtensionFunctionDefinition {
       } else {
         baseName = FilenameUtils.getName(path);
       }       
-      if (baseName.endsWith(suffix)) {
+      if (suffix != null && baseName.endsWith(suffix)) {
         baseName = StringUtils.substringBeforeLast(baseName, suffix);
       }            
       return SingletonIterator.makeIterator(new StringValue(baseName));             
