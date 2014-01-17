@@ -87,7 +87,7 @@ public class List extends ExtensionFunctionDefinition {
         ArrayList<StringValue> fileList = new ArrayList<StringValue>();
         IOFileFilter fileFilter = (pattern != null) ? new WildcardFileFilter(pattern) : TrueFileFilter.INSTANCE;
         IOFileFilter dirFilter = (recursive) ? TrueFileFilter.INSTANCE : null;                       
-        Iterator<File> files = FileUtils.listFiles(dir, fileFilter, dirFilter).iterator();
+        Iterator<File> files = FileUtils.listFilesAndDirs(dir, fileFilter, dirFilter).iterator();
         while (files.hasNext()) {
           File file = files.next();    
           String filePath = FilenameUtils.normalizeNoEndSeparator(file.getAbsolutePath(), true);
