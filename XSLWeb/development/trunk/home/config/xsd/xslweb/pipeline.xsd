@@ -31,16 +31,8 @@
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
-            <xs:attribute name="name">
-              <xs:simpleType>
-                <xs:restriction base="baseType"/>
-              </xs:simpleType>
-            </xs:attribute>
-            <xs:attribute name="xsl-path" use="required">
-              <xs:simpleType>
-                <xs:restriction base="baseType"/>
-              </xs:simpleType>
-            </xs:attribute>
+            <xs:attribute name="name" type="xs:string"/>            
+            <xs:attribute name="xsl-path" use="required" type="xs:string"/>            
           </xs:complexType>
         </xs:element>
       </xs:sequence>

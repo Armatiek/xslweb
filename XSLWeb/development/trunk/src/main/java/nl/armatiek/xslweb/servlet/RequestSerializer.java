@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+import javanet.staxutils.IndentingXMLStreamWriter;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -46,13 +48,15 @@ public class RequestSerializer {
   
   private HttpServletRequest req;
   private WebApp webApp;
+  private boolean developmentMode;
   private XMLStreamWriter xsw;
   private XMLReader xmlReader;
   private File reposDir; 
     
-  public RequestSerializer(HttpServletRequest req, WebApp webApp) {
-    this.req = req;     
+  public RequestSerializer(HttpServletRequest req, WebApp webApp, boolean developmentMode) {
+    this.req = req;         
     this.webApp = webApp;
+    this.developmentMode = developmentMode;
   }
     
   public String serializeToXML() throws Exception {
@@ -60,8 +64,11 @@ public class RequestSerializer {
     
     List<FileItem> fileItems = getMultipartContentItems();
  
-    XMLOutputFactory output = XMLOutputFactory.newInstance();
+    XMLOutputFactory output = XMLOutputFactory.newInstance();    
     this.xsw = output.createXMLStreamWriter(sw);
+    if (developmentMode) {
+      this.xsw = new IndentingXMLStreamWriter(this.xsw);
+    }
     
     xsw.writeStartDocument();       
     xsw.setDefaultNamespace(URI);

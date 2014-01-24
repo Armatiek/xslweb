@@ -17,7 +17,7 @@
     <resource pattern="/scripts/.+\.js" media-type="text/javascript"/>
     <resource pattern="/styles/.+\.css" media-type="text/css"/>
     
-    <resource pattern="/downloads/.+\.doc" media-type="application/msword"/>    
+    <resource pattern="/downloads/.+\.docx?" media-type="application/msword"/>    
   </resources>
 
   <!-- Stylesheet parameters: -->

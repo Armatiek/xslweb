@@ -25,11 +25,11 @@ public class DebugContentHandler implements ContentHandler {
   private ContentHandler writer;
   private StreamWriterToReceiver xsw;
   
-  public DebugContentHandler(ContentHandler handler, OutputStream os, Configuration conf, 
+  public DebugContentHandler(ContentHandler handler, LogWriter logWriter, Configuration conf, 
       Properties outputProperties) throws IOException, XPathException {
     this.handler = handler;             
     SerializerFactory sf = new SerializerFactory(conf);    
-    this.xsw = sf.getXMLStreamWriter(new StreamResult(os), outputProperties);    
+    this.xsw = sf.getXMLStreamWriter(new StreamResult(logWriter), outputProperties);    
     this.writer = new ContentHandlerToXMLStreamWriter(xsw);          
   }
   
