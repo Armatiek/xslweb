@@ -10,7 +10,7 @@ import org.w3c.dom.Element;
 
 public class Resource {
   
-  private static String defaultDuration = "P0DT1H0M0S";
+  private static String defaultDuration = "P0DT4H0M0S";
   
   private Pattern pattern; 
   private String mediaType;
