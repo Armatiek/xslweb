@@ -90,7 +90,7 @@ public class RequestSerializer {
   }
   
   public void close() throws IOException {
-    if (reposDir != null) {
+    if (reposDir != null && reposDir.exists()) {
       FileUtils.deleteDirectory(reposDir);
     }
   }
