@@ -100,6 +100,8 @@ public class XSLWebServlet extends HttpServlet {
         e.printStackTrace(new PrintStream(resp.getOutputStream()));        
       } else if (!resp.isCommitted()) {
         resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        resp.setContentType("text/plain; charset=UTF-8");
+        resp.getWriter().write("Internal Server Error");
       }
     }  
   }
