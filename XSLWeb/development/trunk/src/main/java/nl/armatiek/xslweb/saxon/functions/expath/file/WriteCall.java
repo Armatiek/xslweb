@@ -79,7 +79,7 @@ public class WriteCall extends FileExtensionFunctionCall {
        * </output:serialization-parameters>
        */
 
-      OutputStream os = FileUtils.openOutputStream(parentFile, append);
+      OutputStream os = FileUtils.openOutputStream(file, append);
       try {
         SequenceIterator itemsArg = arguments[1];
         Item item;
