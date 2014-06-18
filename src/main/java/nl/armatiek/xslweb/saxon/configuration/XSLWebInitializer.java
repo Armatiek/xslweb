@@ -7,6 +7,7 @@ import javax.xml.transform.TransformerException;
 
 import net.sf.saxon.Configuration;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
+import net.sf.saxon.lib.FeatureKeys;
 import net.sf.saxon.lib.Initializer;
 import nl.armatiek.xslweb.saxon.functions.base64.Base64Decode;
 import nl.armatiek.xslweb.saxon.functions.base64.Base64Encode;
@@ -63,6 +64,8 @@ public class XSLWebInitializer implements Initializer {
   @Override
   public void initialize(Configuration configuration) throws TransformerException {    
     configuration.setXIncludeAware(true);
+    
+    configuration.setConfigurationProperty(FeatureKeys.RECOVERY_POLICY_NAME, "recoverWithWarnings");
     
     /* Log */
     registerEXPathFunction(new Log(), configuration);

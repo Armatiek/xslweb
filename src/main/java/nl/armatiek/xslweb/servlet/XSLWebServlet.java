@@ -237,7 +237,7 @@ public class XSLWebServlet extends HttpServlet {
         outputProperties.setProperty(OutputKeys.INDENT, "no");
       }
       t.setOutputProperties(outputProperties);
-      t.setErrorListener(errorListener);        
+      t.setErrorListener(errorListener);
       t.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(handlers.get(0)));
       
       if (isDevelopmentMode) {
