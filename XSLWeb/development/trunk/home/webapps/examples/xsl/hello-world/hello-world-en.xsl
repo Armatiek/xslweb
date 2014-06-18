@@ -44,7 +44,8 @@
       <head>
         <title>Hello World!</title>
       </head>
-      <body>        
+      <body>  
+        <xsl:comment>Dit is een comment!</xsl:comment>
         <h3>Hello World!</h3>
         <p>It's <xsl:value-of select="substring(xs:string(current-time()), 1, 8)"/>, and your IP adress is <xsl:value-of select="/req:request/req:remote-addr"/></p>        
       </body>
