@@ -1,6 +1,7 @@
 package nl.armatiek.xslweb.configuration;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -22,6 +23,7 @@ import javax.xml.validation.SchemaFactory;
 import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.NameFileFilter;
@@ -222,8 +224,8 @@ public class Context {
   }
   
   private void initWebApps() throws Exception {
-    File webAppsDir = new File(homeDir, "webapps");
-    File[] dirs = webAppsDir.listFiles();
+    File webAppsDir = new File(homeDir, "webapps");    
+    File[] dirs = webAppsDir.listFiles((FileFilter) DirectoryFileFilter.DIRECTORY);
     for (File dir : dirs) {
       File[] webAppFiles = dir.listFiles((FilenameFilter) new NameFileFilter("webapp.xml"));
       if (webAppFiles.length == 0) {
