@@ -156,6 +156,7 @@ public class XSLWebServlet extends HttpServlet {
       Controller controllerTransformer = (Controller) requestDispatcherTemplates.newTransformer();
       setPropertyParameters(controllerTransformer, webApp);
       setObjectParameters(controllerTransformer, webApp, req, resp);
+      setParameters(controllerTransformer, webApp.getParameters());
       controllerTransformer.setErrorListener(errorListener);        
       controllerTransformer.setMessageEmitter(messageWarner);            
                                
