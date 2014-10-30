@@ -22,6 +22,14 @@
       <roles>
         <role>Java Developer</role>
       </roles>
+    </developer>
+    <developer>
+      <name>Arjan Loeffen</name>
+      <id>maartenkroon</id>
+      <organization>Armatiek BV</organization>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
     </developer>    
   </developers>
 
