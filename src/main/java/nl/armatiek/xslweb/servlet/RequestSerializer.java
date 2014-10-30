@@ -2,6 +2,7 @@ package nl.armatiek.xslweb.servlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Calendar;
@@ -33,6 +34,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -78,6 +80,7 @@ public class RequestSerializer {
     serializeProperties();
     serializeHeaders();
     serializeParameters(fileItems);
+    serializeBody();
     serializeAttributes();
     serializeFileUploads(fileItems);
     serializeSession();    
@@ -228,6 +231,17 @@ public class RequestSerializer {
         xsw.writeEndElement();
       }
     }
+  }
+  
+  private void serializeBody() throws Exception {
+    xsw.writeStartElement(URI, "body");
+    String contentType = req.getContentType();
+    if ((contentType != null) && (contentType.startsWith("text/xml") || contentType.startsWith("application/xml"))) {
+      getFilteredXMLReader().parse(new InputSource(req.getReader()));
+    } else {
+      xsw.writeCharacters(IOUtils.toString(req.getReader()));
+    }
+    xsw.writeEndElement();
   }
 
   @SuppressWarnings("rawtypes")
