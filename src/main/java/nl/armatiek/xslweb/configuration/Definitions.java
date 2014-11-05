@@ -39,9 +39,10 @@ public class Definitions {
   public final static String NAMESPACEURI_STX                  = "http://stx.sourceforge.net/2002/ns";
  
   public final static String NAMESPACEURI_SAXON_CONFIGURATION  = "urn:net.sf.saxon.Configuration";
-  public final static String NAMESPACEURI_XSLWEB_WEBAPP        = "http://www.armatiek.com/xslweb/webapp";
-  public final static String NAMESPACEURI_XSLWEB_CONFIGURATION = "http://www.armatiek.com/xslweb/configuration";
-  public final static String NAMESPACEURI_XSLWEB_FUNCTIONS     = "http://www.armatiek.com/xslweb/functions";
+  public final static String NAMESPACEURI_XSLWEB               = "http://www.armatiek.com/xslweb";
+  public final static String NAMESPACEURI_XSLWEB_WEBAPP        = NAMESPACEURI_XSLWEB + "/webapp";
+  public final static String NAMESPACEURI_XSLWEB_CONFIGURATION = NAMESPACEURI_XSLWEB + "/configuration";
+  public final static String NAMESPACEURI_XSLWEB_FUNCTIONS     = NAMESPACEURI_XSLWEB + "/functions";
   public final static String NAMESPACEURI_XSLWEB_FX_BASE64     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/base64";
   public final static String NAMESPACEURI_XSLWEB_FX_CONTEXT    = NAMESPACEURI_XSLWEB_FUNCTIONS + "/context";
   public final static String NAMESPACEURI_XSLWEB_FX_LOG        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/log";
@@ -50,9 +51,9 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_SERIALIZE  = NAMESPACEURI_XSLWEB_FUNCTIONS + "/serialize";
   public final static String NAMESPACEURI_XSLWEB_FX_UUID       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/uuid";
   public final static String NAMESPACEURI_XSLWEB_FX_WEBAPP     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/webapp";
-  public final static String NAMESPACEURI_XSLWEB_REQUEST       = "http://www.armatiek.com/xslweb/request";
-  public final static String NAMESPACEURI_XSLWEB_RESPONSE      = "http://www.armatiek.com/xslweb/response";
-  public final static String NAMESPACEURI_XSLWEB_PIPELINE      = "http://www.armatiek.com/xslweb/pipeline";  
+  public final static String NAMESPACEURI_XSLWEB_REQUEST       = NAMESPACEURI_XSLWEB + "/request";
+  public final static String NAMESPACEURI_XSLWEB_RESPONSE      = NAMESPACEURI_XSLWEB + "/response";
+  public final static String NAMESPACEURI_XSLWEB_PIPELINE      = NAMESPACEURI_XSLWEB + "/pipeline";  
   public final static String NAMESPACEURI_EXPATH_FILE          = "http://expath.org/ns/file";
     
   public final static String MIMETYPE_XML                      = "text/xml";
