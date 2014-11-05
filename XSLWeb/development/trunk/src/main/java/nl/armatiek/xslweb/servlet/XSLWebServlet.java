@@ -213,7 +213,10 @@ public class XSLWebServlet extends HttpServlet {
             nextContentHandler = new DebugContentHandler(nextHandler, logWriter, webApp.getConfiguration(), nextHandler.getTransformer().getOutputProperties()); // TODO             
           } else {
             nextContentHandler = nextHandler;
-          }           
+          }
+          if (i==steps.size()-1) {
+            nextContentHandler = new CleanupContentHandler(nextHandler);
+          }          
           prevHandler.setResult(new SAXResult(nextContentHandler));
         }
         handlers.add(nextHandler);

@@ -94,7 +94,7 @@ public class Context {
   }
   
   /**
-   * Returns a file object denoting the Infofuze home directory
+   * Returns a file object denoting the XSLWeb home directory
    * 
    * @throws FileNotFoundException
    */
@@ -104,7 +104,7 @@ public class Context {
     try {
       javax.naming.Context c = new InitialContext();
       home = (String) c.lookup("java:comp/env/" + Definitions.PROJECT_NAME + "/home");
-      logger.info("Using JNDI infofuze.home: " + home);
+      logger.info("Using JNDI xslweb.home: " + home);
     } catch (NoInitialContextException e) {
       logger.info("JNDI not configured for " + Definitions.PROJECT_NAME + " (NoInitialContextEx)");
     } catch (NamingException e) {
@@ -123,13 +123,13 @@ public class Context {
     }
      
     if (home == null) {
-      String error = "FATAL: Could not find system property or JNDI for \"" + Definitions.PROJECT_NAME + ".infofuze.home\"";
+      String error = "FATAL: Could not find system property or JNDI for \"" + Definitions.PROJECT_NAME + ".home\"";
       logger.error(error);
       throw new XSLWebException(error);
     }
     homeDir = new File(home);
     if (!homeDir.isDirectory()) {
-      String error = "FATAL: Directory \"" + Definitions.PROJECT_NAME + ".infofuze.home\" not found";
+      String error = "FATAL: Directory \"" + Definitions.PROJECT_NAME + ".home\" not found";
       logger.error(error);
       throw new XSLWebException(error);
     }    

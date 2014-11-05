@@ -2,7 +2,7 @@ package nl.armatiek.xslweb.servlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
+import java.io.PushbackReader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Calendar;
@@ -234,12 +234,21 @@ public class RequestSerializer {
   }
   
   private void serializeBody() throws Exception {
+    if (!req.getMethod().equals("POST")) {
+      return;
+    }    
+    PushbackReader pushbackReader = new PushbackReader(req.getReader());    
+    int b = pushbackReader.read();
+    if (b == -1) {
+      return;
+    }
+    pushbackReader.unread(b);                
     xsw.writeStartElement(URI, "body");
     String contentType = req.getContentType();
     if ((contentType != null) && (contentType.startsWith("text/xml") || contentType.startsWith("application/xml"))) {
-      getFilteredXMLReader().parse(new InputSource(req.getReader()));
+      getFilteredXMLReader().parse(new InputSource(pushbackReader));
     } else {
-      xsw.writeCharacters(IOUtils.toString(req.getReader()));
+      xsw.writeCharacters(IOUtils.toString(pushbackReader));
     }
     xsw.writeEndElement();
   }
