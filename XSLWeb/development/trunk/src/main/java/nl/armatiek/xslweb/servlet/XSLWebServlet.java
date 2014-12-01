@@ -5,8 +5,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.StringReader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -72,6 +74,7 @@ public class XSLWebServlet extends HttpServlet {
   
   @Override
   protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    OutputStream respOs = resp.getOutputStream();
     try {
       String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();      
       WebApp webApp = Context.getInstance().getWebApp(path);
@@ -80,7 +83,7 @@ public class XSLWebServlet extends HttpServlet {
       } else {
         Resource resource = webApp.matchesResource(webApp.getRelativePath(path));
         if (resource == null) {                                
-          executeRequest(webApp, req, resp);               
+          executeRequest(webApp, req, resp, respOs);               
         } else {
           resp.setContentType(resource.getMediaType());
           File file = webApp.getStaticFile(path);
@@ -88,20 +91,21 @@ public class XSLWebServlet extends HttpServlet {
           long now = currentDate.getTime();
           long duration = resource.getDuration().getTimeInMillis(currentDate);
           resp.addHeader("Cache-Control", "max-age=" + duration / 1000);
-          // resp.setDateHeader("Last-Modified", file.lastModified());
           resp.setDateHeader("Expires", now + duration);
-          FileUtils.copyFile(file, resp.getOutputStream());
+          FileUtils.copyFile(file, respOs);
         }
       }
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
       if (isDevelopmentMode) {              
         resp.setContentType("text/plain; charset=UTF-8");        
-        e.printStackTrace(new PrintStream(resp.getOutputStream()));        
+        e.printStackTrace(new PrintStream(respOs));        
       } else if (!resp.isCommitted()) {
+        resp.resetBuffer();
         resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        resp.setContentType("text/plain; charset=UTF-8");
-        resp.getWriter().write("Internal Server Error");
+        resp.setContentType("text/html; charset=UTF-8");
+        Writer w = new OutputStreamWriter(respOs, "UTF-8");
+        w.write("<html><body><h1>Internal Server Error</h1></body></html>");
       }
     }  
   }
@@ -141,7 +145,8 @@ public class XSLWebServlet extends HttpServlet {
     controller.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_WEBAPP + "}webapp", webApp);               
   }
   
-  private void executeRequest(WebApp webApp, HttpServletRequest req, HttpServletResponse resp) throws Exception {        
+  private void executeRequest(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
+      OutputStream respOs) throws Exception {        
     RequestSerializer requestSerializer = new RequestSerializer(req, webApp, isDevelopmentMode);    
     try {    
       String requestXML = requestSerializer.serializeToXML();      
@@ -225,7 +230,7 @@ public class XSLWebServlet extends HttpServlet {
       
       // setObjectParameters(transformer, webApp, req, resp);
               
-      OutputStream os = (Context.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : resp.getOutputStream();             
+      OutputStream os = (Context.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : respOs;             
       nextHandler.setResult(new StreamResult(os));
       
       Transformer t = stf.newTransformer();        
@@ -254,7 +259,7 @@ public class XSLWebServlet extends HttpServlet {
         byte[] body = ((ByteArrayOutputStream) os).toByteArray();
         String encoding = t.getOutputProperty(OutputKeys.ENCODING);
         logger.debug("CLIENT RESPONSE:" + lineSeparator + new String(body, (encoding != null) ? encoding : "UTF-8"));                  
-        IOUtils.copy(new ByteArrayInputStream(body), resp.getOutputStream());
+        IOUtils.copy(new ByteArrayInputStream(body), respOs);
       }
     } finally {
       requestSerializer.close();
