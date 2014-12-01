@@ -10,48 +10,48 @@ import nl.armatiek.xslweb.configuration.Attribute;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
-import nl.armatiek.xslweb.saxon.functions.common.SetAttributeCall;
+import nl.armatiek.xslweb.saxon.functions.common.GetCacheValueCall;
 
 /**
  * 
  * 
  * @author Maarten Kroon
  */
-public class SetAttribute extends ExtensionFunctionDefinition {
+public class GetCacheValue extends ExtensionFunctionDefinition {
 
   private static final long serialVersionUID = 1L;
   
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_WEBAPP, "set-attribute");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_WEBAPP, "get-cache-value");
 
   public StructuredQName getFunctionQName() {
     return qName;
   }
 
   public int getMinimumNumberOfArguments() {
-    return 1;
+    return 2;
   }
 
   public int getMaximumNumberOfArguments() {
     return 2;
   }
 
-  public SequenceType[] getArgumentTypes() {
-    return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.ANY_SEQUENCE };
+  public SequenceType[] getArgumentTypes() {    
+    return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.SINGLE_STRING };
   }
 
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
-    return SequenceType.SINGLE_BOOLEAN;
+    return SequenceType.ANY_SEQUENCE;
   }
 
   @SuppressWarnings("serial")
   public ExtensionFunctionCall makeCallExpression() {
-    return new SetAttributeCall() {
+    return new GetCacheValueCall() {            
       @Override
-      protected void setAttributes(String name, Collection<Attribute> attrs, XPathContext context) {
-        WebApp webApp = (WebApp) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_WEBAPP + "}webapp");                        
-        webApp.setAttribute(name, attrs);
+      protected Collection<Attribute> getAttributes(String cacheName, String cacheKey, XPathContext context) {
+        WebApp webApp = (WebApp) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_WEBAPP + "}webapp");        
+        return webApp.getCacheValue(cacheName, cacheKey);
       }
-    };
+    };    
   }
   
 }

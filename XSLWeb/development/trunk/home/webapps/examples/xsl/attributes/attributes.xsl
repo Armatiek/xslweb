@@ -36,7 +36,8 @@
         <xsl:call-template name="session-attrs"/><hr/>
         <xsl:call-template name="webapp-attrs"/><hr/>
         <xsl:call-template name="context-attrs"/><hr/>
-               
+        <xsl:call-template name="webapp-cache"/>
+        
       </body>
     </html>
   </xsl:template>
@@ -132,6 +133,16 @@
       </tt>                          
       <br/>
     </xsl:for-each>
+  </xsl:template>
+  
+  <xsl:template name="webapp-cache">
+    <p>Atomic webapp attribute value for 'atomic-cache-key-name':</p>
+    <xsl:variable name="webapp:atomic-cache-values" as="xs:integer*" select="(1, 2, 3)"/>
+    <xsl:value-of select="if (webapp:set-cache-value('atomic-cache-name', 'atomic-cache-key-name', $webapp:atomic-cache-values, 1800)) then () 
+      else (error(xs:QName('err:XSLWEB0001'), 'Could not set webapp cache value'))"/>                
+    <xsl:for-each select="webapp:get-cache-value('atomic-cache-name', 'atomic-cache-key-name')">
+      <xsl:value-of select="."/><br/>
+    </xsl:for-each>        
   </xsl:template>
   
 </xsl:stylesheet>
