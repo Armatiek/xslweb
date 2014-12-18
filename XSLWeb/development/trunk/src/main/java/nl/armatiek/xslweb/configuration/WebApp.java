@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -23,12 +24,12 @@ import javax.xml.transform.Templates;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 
 import net.sf.saxon.Configuration;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
+import net.sf.saxon.xpath.XPathFactoryImpl;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
 import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
@@ -61,6 +62,9 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 public class WebApp implements ErrorHandler {
   
   private static final Logger logger = LoggerFactory.getLogger(WebApp.class);
@@ -70,6 +74,9 @@ public class WebApp implements ErrorHandler {
   
   private Map<String, Collection<Attribute>> attributes = 
       Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
+  
+  private Map<String, Cache<String, Collection<Attribute>>> caches = 
+      Collections.synchronizedMap(new HashMap<String, Cache<String, Collection<Attribute>>>());
   
   private File definition;
   private File homeDir;  
@@ -99,7 +106,7 @@ public class WebApp implements ErrorHandler {
     db.setErrorHandler(this);    
     Document webAppDoc = db.parse(webAppDefinition);
         
-    XPath xpath = XPathFactory.newInstance().newXPath();
+    XPath xpath = new XPathFactoryImpl().newXPath();
     xpath.setNamespaceContext(XMLUtils.getNamespaceContext("webapp", Definitions.NAMESPACEURI_XSLWEB_WEBAPP));    
     Node docElem = webAppDoc.getDocumentElement();
     this.title = (String) xpath.evaluate("webapp:title", docElem, XPathConstants.STRING);
@@ -333,7 +340,7 @@ public class WebApp implements ErrorHandler {
     return templates;
   }
   
-  public  Map<String, Collection<Attribute>> getAttributes() {
+  public Map<String, Collection<Attribute>> getAttributes() {
     return this.attributes;
   }
   
@@ -351,6 +358,25 @@ public class WebApp implements ErrorHandler {
   
   public void setAttribute(String name, Collection<Attribute> attrs) {
     attributes.put(name, attrs);
+  }
+  
+  public Collection<Attribute> getCacheValue(String cacheName, String keyName) {    
+    Cache<String, Collection<Attribute>> cache = 
+        (Cache<String, Collection<Attribute>>) caches.get(cacheName);
+    if (cache == null) {
+      return null;
+    }    
+    return cache.getIfPresent(keyName);                
+  }
+  
+  public void setCacheValue(String cacheName, String keyName, Collection<Attribute> attrs, long duration) {
+    Cache<String, Collection<Attribute>> cache = 
+        (Cache<String, Collection<Attribute>>) caches.get(cacheName);
+    if (cache == null) {      
+      cache = CacheBuilder.newBuilder().expireAfterWrite(duration, TimeUnit.SECONDS).build();
+      caches.put(cacheName, cache);
+    }            
+    cache.put(keyName, attrs);
   }
   
   @Override
