@@ -3,6 +3,7 @@ package nl.armatiek.xslweb.saxon.functions.expath.file;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.regex.Pattern;
 
 import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
@@ -20,12 +21,13 @@ import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0003Exception;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
+import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.StringUtils;
 
 public class List extends ExtensionFunctionDefinition {
@@ -78,18 +80,23 @@ public class List extends ExtensionFunctionDefinition {
         boolean recursive = false;
         if (arguments.length > 1) {
           recursive = ((BooleanValue) arguments[1].next()).getBooleanValue();
-        }
-        String pattern = null;
+        }        
+        Pattern regex = null;
         if (arguments.length > 2) {
-          pattern = ((StringValue) arguments[2].next()).getStringValue();
+          String pattern = ((StringValue) arguments[2].next()).getStringValue();
+          regex = Pattern.compile(XSLWebUtils.convertGlobToRegex(pattern));
         }
+        
         String dirPath = FilenameUtils.normalizeNoEndSeparator(dir.getAbsolutePath(), true) + "/";            
         ArrayList<StringValue> fileList = new ArrayList<StringValue>();
-        IOFileFilter fileFilter = (pattern != null) ? new WildcardFileFilter(pattern) : TrueFileFilter.INSTANCE;
+        IOFileFilter fileFilter = (regex != null) ? new RegexFileFilter(regex) : TrueFileFilter.INSTANCE;
         IOFileFilter dirFilter = (recursive) ? TrueFileFilter.INSTANCE : null;                       
         Iterator<File> files = FileUtils.listFilesAndDirs(dir, fileFilter, dirFilter).iterator();
         while (files.hasNext()) {
-          File file = files.next();    
+          File file = files.next();          
+          if (file.isDirectory() && regex != null && !regex.matcher(file.getName()).matches()) {
+            continue;
+          }          
           String filePath = FilenameUtils.normalizeNoEndSeparator(file.getAbsolutePath(), true);
           String relPath = StringUtils.substringAfter(filePath, dirPath);          
           fileList.add(new StringValue(relPath));                    
