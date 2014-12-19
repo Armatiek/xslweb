@@ -1,7 +1,5 @@
 package nl.armatiek.xslweb.saxon.functions.base64;
 
-import org.apache.commons.codec.binary.Base64;
-
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
@@ -12,6 +10,8 @@ import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
+
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * 
@@ -61,5 +61,17 @@ public class Base64Encode extends ExtensionFunctionDefinition {
         throw new XPathException("Could not base64 encode string", e);
       }
     }
+
+    /*
+    @Override
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {
+      try {
+        String str = ((StringValue) arguments[0]).getStringValue();            
+        return StringValue.makeStringValue(Base64.encodeBase64String(str.getBytes("UTF-8")));
+      } catch (Exception e) {
+        throw new XPathException("Could not base64 encode string", e);
+      } 
+    }
+    */
   }
 }

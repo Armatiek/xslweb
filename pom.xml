@@ -36,7 +36,12 @@
   <properties>
     <compiler.source.version>1.7</compiler.source.version>
     <compiler.target.version>1.7</compiler.target.version>
-    <project.build.sourceEncoding>${file.encoding}</project.build.sourceEncoding>     
+    <project.build.sourceEncoding>${file.encoding}</project.build.sourceEncoding>
+    <saxon.version>9.4.0-9</saxon.version>
+    <!--    
+    <saxon.version>9.6.0-3</saxon.version>
+    -->    
+    <slf4j.version>1.7.5</slf4j.version>
   </properties>
   
   <repositories>
@@ -60,14 +65,21 @@
   <dependencies>
     <dependency>
       <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.0.1</version>
+    </dependency>    
+    <!--
+    <dependency>
+      <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <scope>provided</scope>
       <version>2.5</version>
-    </dependency>    
+    </dependency>
+    -->    
     <dependency>
       <groupId>net.sf.saxon</groupId>
-      <artifactId>Saxon-HE</artifactId>
-      <version>9.4.0-9</version>
+      <artifactId>Saxon-HE</artifactId>            
+      <version>${saxon.version}</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.woodstox</groupId>
@@ -107,7 +119,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.1</version>
+      <version>3.3.2</version>
     </dependency>                                        
     <dependency>
       <groupId>commons-io</groupId>
@@ -142,12 +154,12 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.5</version>
+      <version>${slf4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.5</version>
+      <version>${slf4j.version}</version>
     </dependency>    
     <dependency>
       <groupId>log4j</groupId>
@@ -158,7 +170,12 @@
       <groupId>org.clapper</groupId>
       <artifactId>javautil</artifactId>
       <version>3.1.1</version>
-    </dependency>        
+    </dependency>
+    <dependency>
+      <groupId>com.samaxes.filter</groupId>
+      <artifactId>cachefilter</artifactId>
+      <version>2.3.1</version>
+    </dependency>
   </dependencies>
   
   <build>
