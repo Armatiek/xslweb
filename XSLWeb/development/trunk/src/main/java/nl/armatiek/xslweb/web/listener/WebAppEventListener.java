@@ -22,6 +22,21 @@ public class WebAppEventListener implements ServletContextListener {
       Context context = Context.getInstance();
       context.setServletContext(sce.getServletContext());      
       context.open();
+      
+      // ServletContext sc = sce.getServletContext();
+      
+      /*
+      ServletRegistration sr = sc.addServlet("ClassViewer","org.apache.geronimo.samples.javaee6.cviewer.CViewerServlet");
+      sr.addMapping("/ClassViewer");
+      */
+      
+      /*
+      FilterRegistration fr = sc.addFilter("CacheFilter", new CacheFilter());
+      fr.setInitParameter("expiration", "");
+      fr.setInitParameter("expiration", "");            
+      fr.addMappingForServletNames(EnumSet.of(DispatcherType.REQUEST), true, "XSLWebServlet");
+      */
+      
     } catch (Exception e) {
       logger.error("Could not open XSLWeb Context", e);
     }           
