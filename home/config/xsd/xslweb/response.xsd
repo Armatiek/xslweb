@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.armatiek.com/xslweb/response" xmlns:resp="http://www.armatiek.com/xslweb/response">
+  <xs:annotation>
+    <xs:documentation>Schema for required output of XSLWeb pipeline</xs:documentation>
+  </xs:annotation>
+  <xs:element name="response">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="headers" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="header" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:string">
+                      <xs:attribute name="name" type="xs:string" use="required"/>
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="session" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="max-inactive-interval" type="xs:integer"/>
+              <xs:element minOccurs="0" name="attributes">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element maxOccurs="unbounded" name="attribute">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element maxOccurs="unbounded" minOccurs="0" name="item">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:any namespace="##any" processContents="skip" minOccurs="0">
+                                  <xs:annotation>
+                                    <xs:documentation>Literal value (i.e. item/@type = "string") or serialized XML (item/@type = "node()")</xs:documentation>
+                                  </xs:annotation>
+                                </xs:any>
+                              </xs:sequence>
+                              <xs:attribute name="type" type="xs:string" use="required"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="name" type="xs:string" use="required"/>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="invalidate" type="xs:boolean" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="cookies" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="cookie" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="comment" type="xs:string" minOccurs="0"/>
+                    <xs:element name="domain" type="xs:string" minOccurs="0"/>
+                    <xs:element name="max-age" type="xs:integer"/>
+                    <xs:element name="name" type="xs:string"/>
+                    <xs:element name="path" type="xs:string" minOccurs="0"/>
+                    <xs:element name="is-secure" type="xs:boolean"/>
+                    <xs:element name="value" type="xs:string" minOccurs="0"/>
+                    <xs:element name="version" type="xs:string" minOccurs="0"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="body">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:any namespace="##any" processContents="skip" minOccurs="0"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="status" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

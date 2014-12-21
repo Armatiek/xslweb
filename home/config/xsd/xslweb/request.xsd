@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.armatiek.com/xslweb/request" xmlns:req="http://www.armatiek.com/xslweb/request">
+  <xs:annotation>
+    <xs:documentation>Schema for XML serialization of HTTP Request used by XSLWeb as input for request dispatcher and transformation pipeline</xs:documentation>
+  </xs:annotation>
+  <xs:element name="request">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="auth-type" type="xs:string" minOccurs="0"/>
+        <xs:element name="character-encoding" type="xs:string" minOccurs="0"/>
+        <xs:element name="content-length" type="xs:integer" minOccurs="0"/>
+        <xs:element name="context-path" type="xs:string" minOccurs="0"/>
+        <xs:element name="content-type" type="xs:integer" minOccurs="0"/>
+        <xs:element name="local-addr" type="xs:string"/>
+        <xs:element name="local-name" type="xs:string"/>
+        <xs:element name="local-port" type="xs:integer"/>
+        <xs:element name="method" type="xs:string"/>
+        <xs:element name="path" type="xs:string"/>
+        <xs:element name="path-info" type="xs:string" minOccurs="0"/>
+        <xs:element name="path-translated" type="xs:string" minOccurs="0"/>
+        <xs:element name="protocol" type="xs:string"/>
+        <xs:element name="query-string" type="xs:string" minOccurs="0"/>
+        <xs:element name="remote-addr" type="xs:string"/>
+        <xs:element name="remote-host" type="xs:string"/>
+        <xs:element name="remote-port" type="xs:integer"/>
+        <xs:element name="remote-user" type="xs:integer" minOccurs="0"/>
+        <xs:element name="requested-session-id" type="xs:string" minOccurs="0"/>
+        <xs:element name="request-URI" type="xs:string"/>
+        <xs:element name="request-url" type="xs:string"/>
+        <xs:element name="scheme" type="xs:string"/>
+        <xs:element name="server-name" type="xs:string"/>
+        <xs:element name="server-port" type="xs:integer"/>
+        <xs:element name="servlet-path" type="xs:string"/>
+        <xs:element name="webapp-path" type="xs:string"/>
+        <xs:element name="is-secure" type="xs:boolean"/>
+        <xs:element name="is-requested-session-id-from-cookie" type="xs:boolean"/>
+        <xs:element name="is-requested-session-id-from-url" type="xs:boolean"/>
+        <xs:element name="is-requested-session-id-valid" type="xs:boolean"/>
+        <xs:element name="headers" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="header" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:string">
+                      <xs:attribute name="name" type="xs:string" use="required"/>
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="parameters" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="parameter" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="value"/>
+                  </xs:sequence>
+                  <xs:attribute name="name" type="xs:string" use="required"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="body" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:any namespace="##any" processContents="skip" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>Literal value or serialized XML</xs:documentation>
+                </xs:annotation>
+              </xs:any>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="attributes" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="attribute" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:string">
+                      <xs:attribute name="name" type="xs:string" use="required"/>
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="file-uploads" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="file-upload" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="file-path" type="xs:string"/>
+                    <xs:element name="field-name" type="xs:string"/>
+                    <xs:element name="file-name" type="xs:string"/>
+                    <xs:element name="content-type" type="xs:string"/>
+                    <xs:element name="size" type="xs:integer"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="session" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="creation-time" type="xs:dateTime"/>
+              <xs:element name="id" type="xs:string"/>
+              <xs:element name="last-accessed-time" type="xs:dateTime"/>
+              <xs:element name="max-inactive-interval" type="xs:integer"/>
+              <xs:element name="is-new" type="xs:boolean"/>
+              <xs:element minOccurs="0" name="attributes">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element maxOccurs="unbounded" name="attribute">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element maxOccurs="unbounded" minOccurs="0" name="item">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:any namespace="##any" processContents="skip" minOccurs="0">
+                                  <xs:annotation>
+                                    <xs:documentation>Literal value (i.e. item/@type = "string") or serialized XML (item/@type = "node()")</xs:documentation>
+                                  </xs:annotation>
+                                </xs:any>
+                              </xs:sequence>
+                              <xs:attribute name="type" type="xs:string" use="required"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="name" type="xs:string" use="required"/>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="cookies" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="cookie" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="comment" type="xs:string" minOccurs="0"/>
+                    <xs:element name="domain" type="xs:string" minOccurs="0"/>
+                    <xs:element name="max-age" type="xs:integer"/>
+                    <xs:element name="name" type="xs:string"/>
+                    <xs:element name="path" type="xs:string" minOccurs="0"/>
+                    <xs:element name="is-secure" type="xs:boolean"/>
+                    <xs:element name="value" type="xs:string" minOccurs="0"/>
+                    <xs:element name="version" type="xs:string" minOccurs="0"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
