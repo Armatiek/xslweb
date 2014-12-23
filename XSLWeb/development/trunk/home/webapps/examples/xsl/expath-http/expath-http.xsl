@@ -14,7 +14,7 @@
   
   <xsl:import href="../common/xmlverbatim.xsl"/>
   
-  <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes" xml:space="preserve"/>
+  <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   
   <xsl:param name="config:basex-rest-base-uri" as="xs:string"/>
   
@@ -41,7 +41,7 @@
             method="post">
             <http:body media-type="application/xml">
               <basex:query>
-                <basex:text><![CDATA[ collection('bwb')/toestand[@bwb-id='BWBR0001822'] ]]></basex:text>
+                <basex:text><![CDATA[ (collection('documenten')/*:uitvoerings-informatie)[1] ]]></basex:text>
                 <!--
                 <basex:parameter name="method" value="xml"/>
                 -->                

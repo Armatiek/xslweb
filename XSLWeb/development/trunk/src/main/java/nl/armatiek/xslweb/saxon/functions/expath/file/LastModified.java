@@ -8,10 +8,9 @@ import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.value.DateTimeValue;
 import net.sf.saxon.value.SequenceType;
@@ -23,8 +22,6 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
 
 public class LastModified extends ExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "last-modified");
 
   @Override
@@ -59,18 +56,16 @@ public class LastModified extends ExtensionFunctionDefinition {
   
   private static class LastModifiedCall extends FileExtensionFunctionCall {
         
-    private static final long serialVersionUID = 1L;
-    
-    @SuppressWarnings("rawtypes")
-    public SequenceIterator<DateTimeValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
+    @Override
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {                        
-        File file = getFile(((StringValue) arguments[0].next()).getStringValue());
+        File file = getFile(((StringValue) arguments[0].head()).getStringValue());
         if (!file.exists()) {
           throw new FILE0001Exception(file);
         }        
         Calendar cal = Calendar.getInstance();        
         cal.setTime(new Date(file.lastModified()));                 
-        return SingletonIterator.makeIterator(new DateTimeValue(cal, false));
+        return new DateTimeValue(cal, false);
       } catch (ExpectedFileException e) {
         throw e;
       } catch (Exception e) {

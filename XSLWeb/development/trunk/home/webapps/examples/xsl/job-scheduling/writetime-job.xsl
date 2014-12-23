@@ -6,6 +6,7 @@
   xmlns:resp="http://www.armatiek.com/xslweb/response"
   xmlns:file="http://expath.org/ns/file"
   xmlns:log="http://www.armatiek.com/xslweb/functions/log"  
+  xmlns:err="http://expath.org/ns/error"
   exclude-result-prefixes="#all"
   version="2.0">
   

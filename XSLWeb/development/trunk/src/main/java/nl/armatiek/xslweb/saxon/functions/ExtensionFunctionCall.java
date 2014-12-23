@@ -9,21 +9,21 @@ import java.util.GregorianCalendar;
 import java.util.Properties;
 
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.w3c.dom.Node;
-
 import net.sf.saxon.Configuration;
+import net.sf.saxon.dom.DocumentWrapper;
 import net.sf.saxon.event.Receiver;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.om.SequenceTool;
+import net.sf.saxon.om.ZeroOrMore;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.EmptyIterator;
-import net.sf.saxon.tree.iter.ListIterator;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.type.ItemType;
 import net.sf.saxon.type.Type;
 import net.sf.saxon.value.AtomicValue;
@@ -33,9 +33,9 @@ import net.sf.saxon.value.DoubleValue;
 import net.sf.saxon.value.FloatValue;
 import net.sf.saxon.value.Int64Value;
 import net.sf.saxon.value.StringValue;
-import net.sf.saxon.value.Value;
-import net.sf.saxon.xpath.XPathEvaluator;
 import nl.armatiek.xslweb.configuration.Attribute;
+
+import org.w3c.dom.Node;
 
 /**
  * @author Maarten Kroon
@@ -43,15 +43,6 @@ import nl.armatiek.xslweb.configuration.Attribute;
  */
 public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFunctionCall {
 
-  private static final long serialVersionUID = 1L;
-
-  protected SequenceIterator<?> convertJavaObjectSequenceIterator(Object value) throws XPathException {
-    if (value == null) {
-      return EmptyIterator.getInstance();
-    }
-    return SingletonIterator.makeIterator(convertJavaObjectToAtomicValue(value));        
-  }
-  
   protected AtomicValue convertJavaObjectToAtomicValue(Object value) throws XPathException {
     AtomicValue atomicValue;
     if (value == null) {
@@ -94,11 +85,11 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     props.setProperty(OutputKeys.INDENT, "no");
     return serialize(nodeInfo, props);
   }
-  
-  @SuppressWarnings("rawtypes")
-  protected Collection<Attribute> sequenceToAttributeCollection(SequenceIterator iter) throws XPathException {
+    
+  protected Collection<Attribute> sequenceToAttributeCollection(Sequence seq) throws XPathException {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
     Item item;
+    SequenceIterator iter = seq.iterate();
     while ((item = iter.next()) != null) {                
       Object value;
       String type;
@@ -108,7 +99,7 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
         type = "node()";
         isSerialized = true;
       } else {                             
-        value = Value.convertToJava(item);
+        value = SequenceTool.convertToJava(item);
         ItemType itemType = Type.getItemType(item, null);
         type = itemType.toString();
         isSerialized = false;
@@ -118,22 +109,26 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     return attrs;
   }
   
-  @SuppressWarnings("rawtypes")
-  protected SequenceIterator<Item> attributeCollectionToSequence(Collection<Attribute> attrs, XPathContext context) throws Exception {    
-    if (attrs == null) {
-      return EmptyIterator.emptyIterator();
-    }       
+  protected ZeroOrMore<Item> attributeCollectionToSequence(Collection<Attribute> attrs, XPathContext context) throws Exception {                    
     ArrayList<Item> results = new ArrayList<Item>();
-    XPathEvaluator evaluator = new XPathEvaluator(context.getConfiguration());
-    for (Attribute attr : attrs) {
-      Object value = attr.getValue();      
-      if (value instanceof Node) {                              
-        results.add(evaluator.setSource(new DOMSource((Node) value)));                                        
-      } else {          
-        results.add(convertJavaObjectToAtomicValue(value));          
-      }        
+    if (attrs != null) {
+      for (Attribute attr : attrs) {
+        Object value = attr.getValue();      
+        if (value instanceof Node) {             
+          results.add(source2NodeInfo(new DOMSource((Node) value), context.getConfiguration()));                                        
+        } else {          
+          results.add(convertJavaObjectToAtomicValue(value));          
+        }        
+      }
     }
-    return new ListIterator<Item>(results);
+    return new ZeroOrMore<Item>(results);
+  }
+  
+  protected NodeInfo source2NodeInfo(Source source, Configuration configuration) {        
+    Node node = ((DOMSource)source).getNode();
+    String baseURI = source.getSystemId();
+    DocumentWrapper documentWrapper = new DocumentWrapper(node.getOwnerDocument(), baseURI, configuration);
+    return documentWrapper.wrap(node);            
   }
   
 }

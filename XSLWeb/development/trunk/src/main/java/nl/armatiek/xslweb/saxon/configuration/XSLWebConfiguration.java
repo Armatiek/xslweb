@@ -31,8 +31,6 @@ public class XSLWebConfiguration extends Configuration {
   
   private static final Logger logger = LoggerFactory.getLogger(XSLWebConfiguration.class);
 
-  private static final long serialVersionUID = 1L;
-  
   private XSLWebInitializer initializer;
   
   public XSLWebConfiguration(WebApp webApp) throws Exception {

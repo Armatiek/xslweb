@@ -19,8 +19,6 @@ import nl.armatiek.xslweb.saxon.functions.common.SetAttributeCall;
  */
 public class SetAttribute extends ExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_CONTEXT, "set-attribute");
 
   public StructuredQName getFunctionQName() {
@@ -42,8 +40,7 @@ public class SetAttribute extends ExtensionFunctionDefinition {
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
     return SequenceType.SINGLE_BOOLEAN;
   }
-
-  @SuppressWarnings("serial")
+  
   public ExtensionFunctionCall makeCallExpression() {
     return new SetAttributeCall() {
       @Override

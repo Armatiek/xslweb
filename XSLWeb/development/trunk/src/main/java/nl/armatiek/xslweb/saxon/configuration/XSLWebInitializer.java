@@ -49,13 +49,6 @@ import nl.armatiek.xslweb.saxon.functions.serialize.Serialize;
 
 import org.expath.httpclient.saxon.SendRequestFunction;
 import org.expath.pkg.saxon.EXPathFunctionDefinition;
-import org.expath.zip.saxon.BinaryEntryFunction;
-import org.expath.zip.saxon.EntriesFunction;
-import org.expath.zip.saxon.HtmlEntryFunction;
-import org.expath.zip.saxon.TextEntryFunction;
-import org.expath.zip.saxon.UpdateEntriesFunction;
-import org.expath.zip.saxon.XmlEntryFunction;
-import org.expath.zip.saxon.ZipFileFunction;
 
 public class XSLWebInitializer implements Initializer {
   
@@ -66,6 +59,7 @@ public class XSLWebInitializer implements Initializer {
     configuration.setXIncludeAware(true);
     
     configuration.setConfigurationProperty(FeatureKeys.RECOVERY_POLICY_NAME, "recoverWithWarnings");
+    configuration.setConfigurationProperty(FeatureKeys.SUPPRESS_XSLT_NAMESPACE_CHECK, Boolean.TRUE);
     
     /* Log */
     registerEXPathFunction(new Log(), configuration);
@@ -132,13 +126,13 @@ public class XSLWebInitializer implements Initializer {
     registerEXPathFunction(new WriteTextLines(), configuration);
 
     /* EXPath Zip: */
-    registerEXPathFunction(new EntriesFunction(), configuration);
-    registerEXPathFunction(new UpdateEntriesFunction(), configuration);
-    registerEXPathFunction(new ZipFileFunction(), configuration);
-    registerEXPathFunction(new BinaryEntryFunction(), configuration);
-    registerEXPathFunction(new HtmlEntryFunction(), configuration);
-    registerEXPathFunction(new TextEntryFunction(), configuration);
-    registerEXPathFunction(new XmlEntryFunction(), configuration);
+    // registerEXPathFunction(new EntriesFunction(), configuration);
+    // registerEXPathFunction(new UpdateEntriesFunction(), configuration);
+    // registerEXPathFunction(new ZipFileFunction(), configuration);
+    // registerEXPathFunction(new BinaryEntryFunction(), configuration);
+    // registerEXPathFunction(new HtmlEntryFunction(), configuration);
+    // registerEXPathFunction(new TextEntryFunction(), configuration);
+    // registerEXPathFunction(new XmlEntryFunction(), configuration);
     
     /* EXPath HttpClient: */           
     registerEXPathFunction(new SendRequestFunction(), configuration);    

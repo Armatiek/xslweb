@@ -11,8 +11,9 @@ package org.expath.httpclient.saxon;
 
 import java.util.Arrays;
 import java.util.Iterator;
+
 import net.sf.saxon.expr.XPathContext;
-import net.sf.saxon.om.Axis;
+import net.sf.saxon.om.AxisInfo;
 import net.sf.saxon.om.NamePool;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.SequenceIterator;
@@ -22,6 +23,7 @@ import net.sf.saxon.pattern.NodeKindTest;
 import net.sf.saxon.pattern.NodeTest;
 import net.sf.saxon.tree.iter.AxisIterator;
 import net.sf.saxon.type.Type;
+
 import org.expath.httpclient.HttpClientException;
 import org.expath.httpclient.HttpConstants;
 import org.expath.httpclient.model.Attribute;
@@ -77,7 +79,7 @@ public class SaxonElement
         // get the attribute
         NamePool pool = myNode.getNamePool();
         NodeTest pred = new NameTest(Type.ATTRIBUTE, "", local_name, pool);
-        AxisIterator attrs = myNode.iterateAxis(Axis.ATTRIBUTE, pred);
+        AxisIterator attrs = myNode.iterateAxis(AxisInfo.ATTRIBUTE, pred);
         NodeInfo a = (NodeInfo) attrs.next();
         // return its string value, or null if there is no such attribute
         if ( a == null ) {
@@ -91,7 +93,7 @@ public class SaxonElement
     @Override
     public Iterable<Attribute> attributes()
     {
-        AxisIterator it = myNode.iterateAxis(Axis.ATTRIBUTE);
+        AxisIterator it = myNode.iterateAxis(AxisInfo.ATTRIBUTE);
         return new AttributeIterable(it);
     }
 
@@ -101,7 +103,7 @@ public class SaxonElement
     {
         NamePool pool = myNode.getNamePool();
         NodeTest no_ns_pred = new NamespaceTest(pool, Type.ELEMENT, "");
-        return myNode.iterateAxis(Axis.CHILD, no_ns_pred).moveNext();
+        return myNode.iterateAxis(AxisInfo.CHILD, no_ns_pred).next() != null;
     }
 
     @Override
@@ -117,7 +119,7 @@ public class SaxonElement
         }
         Arrays.sort(sorted);
         String elem_name = myNode.getDisplayName();
-        AxisIterator it = myNode.iterateAxis(Axis.ATTRIBUTE);
+        AxisIterator it = myNode.iterateAxis(AxisInfo.ATTRIBUTE);
         NodeInfo attr;
         while ( (attr = (NodeInfo) it.next()) != null ) {
             String attr_name = attr.getDisplayName();
@@ -137,7 +139,7 @@ public class SaxonElement
     public Sequence getContent()
             throws HttpClientException
     {
-        SequenceIterator it = myNode.iterateAxis(Axis.CHILD);
+        SequenceIterator it = myNode.iterateAxis(AxisInfo.CHILD);
         return new SaxonSequence(it, myCtxt);
     }
 
@@ -145,7 +147,7 @@ public class SaxonElement
     public Iterable<Element> children()
             throws HttpClientException
     {
-        AxisIterator it = myNode.iterateAxis(Axis.CHILD, NodeKindTest.ELEMENT);
+        AxisIterator it = myNode.iterateAxis(AxisInfo.CHILD, NodeKindTest.ELEMENT);
         return new ElemIterable(it);
     }
 
@@ -156,7 +158,7 @@ public class SaxonElement
         String http_ns = HttpConstants.HTTP_CLIENT_NS_URI;
         NamePool pool = myNode.getNamePool();
         NodeTest pred = new NamespaceTest(pool, Type.ELEMENT, http_ns);
-        AxisIterator it = myNode.iterateAxis(Axis.CHILD, pred);
+        AxisIterator it = myNode.iterateAxis(AxisInfo.CHILD, pred);
         return new ElemIterable(it);
     }
 

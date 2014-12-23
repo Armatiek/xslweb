@@ -23,7 +23,6 @@ import javax.xml.transform.stream.StreamResult;
 import nl.armatiek.xslweb.error.XSLWebException;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -173,7 +172,7 @@ public class XMLUtils {
     if (value == null) {
       return "";
     }
-    return StringEscapeUtils.escapeXml(value);
+    return StringEscapeUtils.escapeXml10(value);
   }
   
   protected static void getTextFromNode(Node node, StringBuffer buffer, boolean addSpace) {
@@ -307,43 +306,6 @@ public class XMLUtils {
          return prefixes.iterator();
       }      
     };    
-  }
-  
-  public static Object getObject(String type, String value) {   
-    String t = StringUtils.substringAfter(type, ":");    
-    if (t.equals("string")) {
-      return value;
-    } else if (t.equals("boolean")) {
-      return new Boolean(DatatypeConverter.parseBoolean(value));
-    } else if (t.equals("byte")) {
-      return new Byte(DatatypeConverter.parseByte(value));
-    } else if (t.equals("date")) {
-      return DatatypeConverter.parseDate(value);
-    } else if (t.equals("dateTime")) {
-      return DatatypeConverter.parseDateTime(value);
-    } else if (t.equals("decimal")) {
-      return DatatypeConverter.parseDecimal(value);
-    } else if (t.equals("float")) {
-      return DatatypeConverter.parseFloat(value);
-    } else if (t.equals("double")) {
-      return DatatypeConverter.parseDouble(value);
-    } else if (t.equals("int")) {
-      return new Integer(DatatypeConverter.parseInt(value));
-    } else if (t.equals("integer")) {
-      return DatatypeConverter.parseInteger(value);
-    } else if (t.equals("long")) {
-      return new Long(DatatypeConverter.parseLong(value));
-    } else if (t.equals("short")) {
-      return new Short(DatatypeConverter.parseShort(value));
-    } else if (t.equals("time")) {
-      return DatatypeConverter.parseTime(value);
-    } else if (t.equals("unsignedInt")) {
-      return new Long(DatatypeConverter.parseUnsignedInt(value));
-    } else if (t.equals("unsignedShort")) {
-      return new Integer(DatatypeConverter.parseUnsignedShort(value));      
-    } else {
-      throw new XSLWebException(String.format("Datatype \"%s\" not supported", type));
-    }        
   }
   
   public static boolean hasTextContext(Element elem) {    

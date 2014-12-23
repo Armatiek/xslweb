@@ -9,6 +9,7 @@
   xmlns:session="http://www.armatiek.com/xslweb/functions/session"
   xmlns:context="http://www.armatiek.com/xslweb/functions/context"
   xmlns:webapp="http://www.armatiek.com/xslweb/functions/webapp"  
+  xmlns:err="http://expath.org/ns/error"
   exclude-result-prefixes="#all"
   version="2.0">
   
@@ -33,7 +34,7 @@
       <body>
         <h3>Session/Webapp/Context attributes example</h3>
         
-        <xsl:call-template name="session-attrs"/><hr/>
+        <xsl:call-template name="session-attrs"/><hr/>  
         <xsl:call-template name="webapp-attrs"/><hr/>
         <xsl:call-template name="context-attrs"/><hr/>
         <xsl:call-template name="webapp-cache"/>
@@ -42,7 +43,7 @@
     </html>
   </xsl:template>
   
-  <xsl:template name="session-attrs">
+  <xsl:template name="session-attrs">    
     <p>Atomic session attribute value for 'atomic-attr-name':</p>
     <xsl:variable name="session:atomic-attr-values" as="xs:integer*" select="(1, 2, 3)"/>
     <xsl:value-of select="if (session:set-attribute('atomic-attr-name', $session:atomic-attr-values)) then () 

@@ -9,8 +9,6 @@ import nl.armatiek.xslweb.configuration.Definitions;
 
 public class WriteTextLines extends FileExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "write-text-lines");
 
   @Override

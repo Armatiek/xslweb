@@ -9,6 +9,7 @@ import java.util.Properties;
 import javax.xml.transform.OutputKeys;
 
 import net.sf.saxon.Configuration;
+import net.sf.saxon.s9api.Processor;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.Parameter;
 import nl.armatiek.xslweb.utils.SerializingContentHandler;
@@ -26,10 +27,12 @@ public class PipelineHandler implements ContentHandler {
   private SerializingContentHandler serializingHandler;
   private OutputStream os;
   private StringBuilder chars = new StringBuilder();
+  private Processor processor;
   private Configuration conf;
   private Parameter parameter;
   
-  public PipelineHandler(Configuration conf) {
+  public PipelineHandler(Processor processor, Configuration conf) {
+    this.processor = processor;
     this.conf = conf;
   }
     
@@ -138,6 +141,7 @@ public class PipelineHandler implements ContentHandler {
             throw new SAXException("Element \"parameter\" must have an attribute \"name\"");
           }                 
           this.parameter = new Parameter(
+              processor,
               getAttribute(atts, "uri", null),
               name,
               getAttribute(atts, "type", "xs:string"));                

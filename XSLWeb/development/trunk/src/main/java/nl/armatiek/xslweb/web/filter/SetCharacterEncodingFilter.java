@@ -1,4 +1,4 @@
-package nl.armatiek.xslweb.filter;
+package nl.armatiek.xslweb.web.filter;
 
 import java.io.IOException;
 import javax.servlet.Filter;

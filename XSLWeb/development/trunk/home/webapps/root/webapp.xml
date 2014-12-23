@@ -7,6 +7,7 @@
   
   <title>Root web application</title>
   <description>Root web application</description>
+  <development-mode>true</development-mode>
   
   <!-- Resources to serve straight away: -->
   <resources>

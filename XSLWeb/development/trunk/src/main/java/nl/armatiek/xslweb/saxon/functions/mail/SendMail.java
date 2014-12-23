@@ -16,17 +16,16 @@ import javax.xml.xpath.XPathConstants;
 
 import net.sf.saxon.Configuration;
 import net.sf.saxon.expr.XPathContext;
-import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.NodeInfo;
-import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.xpath.XPathEvaluator;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.DefaultAuthenticator;
@@ -35,8 +34,6 @@ import org.apache.commons.mail.HtmlEmail;
 
 public class SendMail extends ExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_EMAIL, "send-mail");
 
   @Override
@@ -71,8 +68,6 @@ public class SendMail extends ExtensionFunctionDefinition {
   
   private static class sendMailCall extends ExtensionFunctionCall {
         
-    private static final long serialVersionUID = 1L;
-    
     private String stripXHTML(NodeInfo node, Configuration configuration) throws Exception {
       StringWriter sw = new StringWriter();
       StreamResult result = new StreamResult(sw);   
@@ -104,12 +99,13 @@ public class SendMail extends ExtensionFunctionDefinition {
       return sw.toString();
     }
     
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {                            
+    @SuppressWarnings("unchecked")
+    @Override
+    public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {                            
       try {                        
-        NodeInfo mailElem = (NodeInfo) arguments[0].next();
-        XPathEvaluator xpath = new XPathEvaluator(context.getConfiguration());
-        xpath.setSource(mailElem);        
+        NodeInfo mailElem = (NodeInfo) arguments[0].head();
+                        
+        XPathEvaluator xpath = new XPathEvaluator(context.getConfiguration());               
         xpath.setNamespaceContext(new NamespaceContext() {
           @Override
           public String getNamespaceURI(String prefix) {          
@@ -121,6 +117,7 @@ public class SendMail extends ExtensionFunctionDefinition {
             return "email";
           }
   
+          @SuppressWarnings("rawtypes")
           @Override
           public Iterator getPrefixes(String namespace) {        
             return null;
@@ -221,7 +218,7 @@ public class SendMail extends ExtensionFunctionDefinition {
         
         email.send();
         
-        return SingletonIterator.makeIterator(BooleanValue.get(true));
+        return BooleanValue.TRUE;
       } catch (Exception e) {
         throw new XPathException(e);
       }

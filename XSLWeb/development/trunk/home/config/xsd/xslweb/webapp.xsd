@@ -6,6 +6,7 @@
       <xs:all>
         <xs:element name="title" type="xs:string"/>
         <xs:element name="description" type="xs:string"/>
+        <xs:element name="development-mode" type="xs:boolean"/>
         <xs:element minOccurs="0" name="resources">
           <xs:complexType>
             <xs:sequence>

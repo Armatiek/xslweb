@@ -12,9 +12,9 @@ import net.sf.saxon.dom.NodeOverNodeInfo;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
@@ -29,8 +29,6 @@ import org.w3c.dom.Node;
 
 public class WriteCall extends FileExtensionFunctionCall {
 
-  private static final long serialVersionUID = 1L;
-  
   private boolean append;
   
   public WriteCall(boolean append) {
@@ -46,10 +44,10 @@ public class WriteCall extends FileExtensionFunctionCall {
     transformer.transform(nodeInfo, new StreamResult(os));
   }
 
-  @SuppressWarnings("rawtypes")
-  public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {
+  @Override
+  public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {
     try {
-      File file = getFile(((StringValue) arguments[0].next()).getStringValue());
+      File file = getFile(((StringValue) arguments[0].head()).getStringValue());
       File parentFile = file.getParentFile();
       if (!parentFile.exists()) {
         throw new FILE0003Exception(parentFile);
@@ -60,7 +58,7 @@ public class WriteCall extends FileExtensionFunctionCall {
       Properties outputProperties = new Properties();
       Element serParamElem;
       if (arguments.length > 2) {
-        NodeInfo nodeInfo = (NodeInfo) arguments[2].next();
+        NodeInfo nodeInfo = (NodeInfo) arguments[2].head();
         NodeOverNodeInfo nodeOverNodeInfo = NodeOverNodeInfo.wrap(nodeInfo);
         serParamElem = nodeOverNodeInfo.getOwnerDocument().getDocumentElement();
         Node child = serParamElem.getFirstChild();
@@ -81,9 +79,10 @@ public class WriteCall extends FileExtensionFunctionCall {
 
       OutputStream os = FileUtils.openOutputStream(file, append);
       try {
-        SequenceIterator itemsArg = arguments[1];
+        Sequence seq = arguments[1];
         Item item;
-        while ((item = itemsArg.next()) != null) {
+        SequenceIterator iter = seq.iterate(); 
+        while ((item = iter.next()) != null) {
           if (item instanceof NodeInfo) {
             serialize((NodeInfo) item, os, outputProperties);
           } else {
@@ -93,7 +92,7 @@ public class WriteCall extends FileExtensionFunctionCall {
       } finally {
         os.close();
       }
-      return SingletonIterator.makeIterator(BooleanValue.TRUE);
+      return BooleanValue.TRUE;
     } catch (ExpectedFileException e) {
       throw e;
     } catch (Exception e) {

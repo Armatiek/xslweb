@@ -6,6 +6,7 @@
   xmlns:pipeline="http://www.armatiek.com/xslweb/pipeline"
   xmlns:config="http://www.armatiek.com/xslweb/configuration"
   xmlns:auth="http://www.armatiek.com/xslweb/auth"
+  xmlns:err="http://expath.org/ns/error"
   exclude-result-prefixes="#all"
   version="2.0">
   

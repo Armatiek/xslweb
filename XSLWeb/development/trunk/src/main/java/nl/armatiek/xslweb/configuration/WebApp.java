@@ -20,7 +20,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.Source;
-import javax.xml.transform.Templates;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -69,8 +68,8 @@ public class WebApp implements ErrorHandler {
   
   private static final Logger logger = LoggerFactory.getLogger(WebApp.class);
   
-  private Map<String, Templates> templatesCache = 
-      Collections.synchronizedMap(new HashMap<String, Templates>());
+  private Map<String, XsltExecutable> templatesCache = 
+      Collections.synchronizedMap(new HashMap<String, XsltExecutable>());
   
   private Map<String, Collection<Attribute>> attributes = 
       Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
@@ -83,11 +82,12 @@ public class WebApp implements ErrorHandler {
   private String name;
   private String title;
   private String description;
+  private boolean developmentMode;
   private Scheduler scheduler;
   private List<Resource> resources = new ArrayList<Resource>();
-  private List<Parameter> parameters = new ArrayList<Parameter>();
-  private XSLWebConfiguration configuration;
-  private Processor processor;
+  private List<Parameter> parameters = new ArrayList<Parameter>();  
+  private XSLWebConfiguration configuration;  
+  private Processor processor;  
   private FileAlterationMonitor monitor;
   
   public WebApp(File webAppDefinition) throws Exception {   
@@ -97,6 +97,9 @@ public class WebApp implements ErrorHandler {
     this.definition = webAppDefinition;
     this.homeDir = webAppDefinition.getParentFile();
     this.name = this.homeDir.getName();
+    
+    this.configuration = new XSLWebConfiguration(this);
+    this.processor = new Processor(this.configuration);
     
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);    
@@ -110,14 +113,15 @@ public class WebApp implements ErrorHandler {
     xpath.setNamespaceContext(XMLUtils.getNamespaceContext("webapp", Definitions.NAMESPACEURI_XSLWEB_WEBAPP));    
     Node docElem = webAppDoc.getDocumentElement();
     this.title = (String) xpath.evaluate("webapp:title", docElem, XPathConstants.STRING);
-    this.description = (String) xpath.evaluate("webapp:description", docElem, XPathConstants.STRING);    
+    this.description = (String) xpath.evaluate("webapp:description", docElem, XPathConstants.STRING);
+    this.developmentMode = (Boolean) xpath.evaluate("webapp:development-mode", docElem, XPathConstants.BOOLEAN);
     NodeList resourceNodes = (NodeList) xpath.evaluate("webapp:resources/webapp:resource", docElem, XPathConstants.NODESET);
     for (int i=0; i<resourceNodes.getLength(); i++) {
       resources.add(new Resource((Element) resourceNodes.item(i)));
     }
     NodeList paramNodes = (NodeList) xpath.evaluate("webapp:parameters/webapp:parameter", docElem, XPathConstants.NODESET);
     for (int i=0; i<paramNodes.getLength(); i++) {
-      parameters.add(new Parameter((Element) paramNodes.item(i)));
+      parameters.add(new Parameter(processor, (Element) paramNodes.item(i)));
     }
     NodeList jobNodes = (NodeList) xpath.evaluate("webapp:jobs/webapp:job", docElem, XPathConstants.NODESET);
     if (jobNodes.getLength() > 0) {
@@ -155,10 +159,7 @@ public class WebApp implements ErrorHandler {
         scheduler.scheduleJob(job, trigger);
       }
     }
-    
-    this.configuration = new XSLWebConfiguration(this);
-    this.processor = new Processor(configuration);
-    
+                   
     /*
     XSLTTraceListener listener = new XSLTTraceListener();
     listener.setOutputDestination(System.out);
@@ -192,7 +193,7 @@ public class WebApp implements ErrorHandler {
     
     if (scheduler != null) {
       logger.info("Shutting down Quartz scheduler ...");
-      scheduler.shutdown(!Context.getInstance().isDevelopmentMode());
+      scheduler.shutdown(!developmentMode);
       logger.info("Shutdown of Quartz scheduler complete.");
     }
     logger.info(String.format("Webapp \"%s\" closed.", name));
@@ -209,7 +210,7 @@ public class WebApp implements ErrorHandler {
   private void initFileAlterationObservers() { 
     monitor = new FileAlterationMonitor(3000);    
     
-    if (!Context.getInstance().isDevelopmentMode()) {
+    if (!developmentMode) {
       IOFileFilter xslFiles = FileFilterUtils.and(FileFilterUtils.fileFileFilter(), new SuffixFileFilter(new String[] {".xsl", ".xslt"}, IOCase.INSENSITIVE));
       FileAlterationObserver xslObserver = new FileAlterationObserver(new File(homeDir, "xsl"), FileFilterUtils.or(FileFilterUtils.directoryFileFilter(), xslFiles));        
       xslObserver.addListener(new FileAlterationListenerAdaptor() {
@@ -270,6 +271,10 @@ public class WebApp implements ErrorHandler {
   public String getDescription() {
     return description;
   }
+  
+  public boolean getDevelopmentMode() {
+    return developmentMode;
+  }
 
   public List<Resource> getResources() {
     return resources;
@@ -282,12 +287,16 @@ public class WebApp implements ErrorHandler {
   public Configuration getConfiguration() {
     return configuration;
   }
+  
+  public Processor getProcessor() {
+    return processor;
+  }
 
-  public Templates getRequestDispatcherTemplates(ErrorListener errorListener) throws Exception {
+  public XsltExecutable getRequestDispatcherTemplates(ErrorListener errorListener) throws Exception {
     return tryTemplatesCache(new File(getHomeDir(), Definitions.PATHNAME_REQUESTDISPATCHER_XSL).getAbsolutePath(), errorListener);
   }
   
-  public Templates getTemplates(String path, ErrorListener errorListener) throws Exception {    
+  public XsltExecutable getTemplates(String path, ErrorListener errorListener) throws Exception {    
     if (new File(path).isAbsolute()) {
       return tryTemplatesCache(path, errorListener);
     }    
@@ -311,14 +320,12 @@ public class WebApp implements ErrorHandler {
     return null;
   }
   
-  public Templates tryTemplatesCache(String transformationPath,  
+  public XsltExecutable tryTemplatesCache(String transformationPath,  
       ErrorListener errorListener) throws Exception {
     String key = FilenameUtils.normalize(transformationPath);
-    Templates templates = (Templates) templatesCache.get(key);    
+    XsltExecutable templates = (XsltExecutable) templatesCache.get(key);    
     if (templates == null) {
-      logger.info("Compiling and caching stylesheet \"" + transformationPath + "\" ...");      
-      XsltCompiler compiler = processor.newXsltCompiler();      
-      compiler.setErrorListener(errorListener);      
+      logger.info("Compiling and caching stylesheet \"" + transformationPath + "\" ...");                 
       try {
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
@@ -326,14 +333,15 @@ public class WebApp implements ErrorHandler {
         spf.setValidating(false);
         SAXParser parser = spf.newSAXParser();
         XMLReader reader = parser.getXMLReader();        
-        Source source = new SAXSource(reader, new InputSource(transformationPath));
-        XsltExecutable executable = compiler.compile(source);        
-        templates = executable.getUnderlyingCompiledStylesheet();               
+        Source source = new SAXSource(reader, new InputSource(transformationPath));        
+        XsltCompiler comp = processor.newXsltCompiler();
+        comp.setErrorListener(errorListener);
+        templates = comp.compile(source);        
       } catch (Exception e) {
         logger.error("Could not compile stylesheet \"" + transformationPath + "\"", e);
         throw e;
       }      
-      if (!Context.getInstance().isDevelopmentMode()) {
+      if (!developmentMode) {
         templatesCache.put(key, templates);
       }      
     }

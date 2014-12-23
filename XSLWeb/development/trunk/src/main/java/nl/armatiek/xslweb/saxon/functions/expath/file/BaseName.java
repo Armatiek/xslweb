@@ -3,10 +3,9 @@ package nl.armatiek.xslweb.saxon.functions.expath.file;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
@@ -16,8 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 
 public class BaseName extends ExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "base-name");
 
   @Override
@@ -52,14 +49,12 @@ public class BaseName extends ExtensionFunctionDefinition {
   
   private static class BaseNameCall extends FileExtensionFunctionCall {
         
-    private static final long serialVersionUID = 1L;
-
-    @SuppressWarnings("rawtypes")
-    public SequenceIterator<StringValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {
-      String path = ((StringValue) arguments[0].next()).getStringValue();
+    @Override
+    public StringValue call(XPathContext context, Sequence[] arguments) throws XPathException {
+      String path = ((StringValue) arguments[0].head()).getStringValue();
       String suffix = null;
       if (arguments.length > 1) {
-        suffix = ((StringValue) arguments[1].next()).getStringValue();
+        suffix = ((StringValue) arguments[1].head()).getStringValue();
       }      
       String baseName;      
       if (StringUtils.containsOnly("/\\")) {
@@ -72,7 +67,7 @@ public class BaseName extends ExtensionFunctionDefinition {
       if (suffix != null && baseName.endsWith(suffix)) {
         baseName = StringUtils.substringBeforeLast(baseName, suffix);
       }            
-      return SingletonIterator.makeIterator(new StringValue(baseName));             
+      return new StringValue(baseName);             
     } 
   }
 }

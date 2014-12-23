@@ -9,10 +9,10 @@ import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
+import net.sf.saxon.om.ZeroOrMore;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.ArrayIterator;
 import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
@@ -32,8 +32,6 @@ import org.apache.commons.lang3.StringUtils;
 
 public class List extends ExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "list");
 
   @Override
@@ -68,22 +66,20 @@ public class List extends ExtensionFunctionDefinition {
   
   private static class ListCall extends FileExtensionFunctionCall {
         
-    private static final long serialVersionUID = 1L;
-    
-    @SuppressWarnings("rawtypes")
-    public SequenceIterator<StringValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
+    @Override
+    public ZeroOrMore<StringValue> call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {         
-        File dir = getFile(((StringValue) arguments[0].next()).getStringValue());                       
+        File dir = getFile(((StringValue) arguments[0].head()).getStringValue());                       
         if (!dir.isDirectory()) {
           throw new FILE0003Exception(dir);          
         }
         boolean recursive = false;
         if (arguments.length > 1) {
-          recursive = ((BooleanValue) arguments[1].next()).getBooleanValue();
+          recursive = ((BooleanValue) arguments[1].head()).getBooleanValue();
         }        
         Pattern regex = null;
         if (arguments.length > 2) {
-          String pattern = ((StringValue) arguments[2].next()).getStringValue();
+          String pattern = ((StringValue) arguments[2].head()).getStringValue();
           regex = Pattern.compile(XSLWebUtils.convertGlobToRegex(pattern));
         }
         
@@ -101,7 +97,7 @@ public class List extends ExtensionFunctionDefinition {
           String relPath = StringUtils.substringAfter(filePath, dirPath);          
           fileList.add(new StringValue(relPath));                    
         }                        
-        return new ArrayIterator<StringValue>(fileList.toArray(new StringValue[fileList.size()]));
+        return new ZeroOrMore<StringValue>(fileList.toArray(new StringValue[fileList.size()]));
       } catch (ExpectedFileException e) {
         throw e;
       } catch (Exception e) {

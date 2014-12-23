@@ -4,10 +4,9 @@ import java.io.File;
 
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
-import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
@@ -23,8 +22,6 @@ import org.apache.commons.io.FileUtils;
 
 public class Move extends FileExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "move");
 
   @Override
@@ -59,13 +56,11 @@ public class Move extends FileExtensionFunctionDefinition {
   
   private static class MoveCall extends FileExtensionFunctionCall {
         
-    private static final long serialVersionUID = 1L;
-    
-    @SuppressWarnings("rawtypes")
-    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
+    @Override
+    public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {         
-        File sourceFile = getFile(((StringValue) arguments[0].next()).getStringValue());
-        File targetFile = getFile(((StringValue) arguments[1].next()).getStringValue());
+        File sourceFile = getFile(((StringValue) arguments[0].head()).getStringValue());
+        File targetFile = getFile(((StringValue) arguments[1].head()).getStringValue());
         if (!sourceFile.exists()) {
           throw new FILE0001Exception(sourceFile);
         }
@@ -93,7 +88,7 @@ public class Move extends FileExtensionFunctionDefinition {
             FileUtils.moveDirectoryToDirectory(sourceFile, targetFile, false);
           }          
         }        
-        return SingletonIterator.makeIterator(BooleanValue.TRUE); 
+        return BooleanValue.TRUE; 
       } catch (ExpectedFileException e) {
         throw e;
       } catch (Exception e) {

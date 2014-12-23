@@ -8,6 +8,7 @@
   xmlns:base64="http://www.armatiek.com/xslweb/functions/base64"
   xmlns:session="http://www.armatiek.com/xslweb/functions/session"
   xmlns:log="http://www.armatiek.com/xslweb/functions/log"
+  xmlns:err="http://expath.org/ns/error"
   exclude-result-prefixes="#all"
   version="2.0">
   

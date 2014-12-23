@@ -1,8 +1,6 @@
-package nl.armatiek.xslweb.servlet;
+package nl.armatiek.xslweb.saxon.errrorlistener;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.util.Iterator;
@@ -16,12 +14,14 @@ import javax.xml.transform.dom.DOMLocator;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.expr.instruct.AttributeSet;
+import net.sf.saxon.expr.instruct.ComponentBody;
 import net.sf.saxon.expr.instruct.Instruction;
-import net.sf.saxon.expr.instruct.Procedure;
 import net.sf.saxon.expr.instruct.Template;
 import net.sf.saxon.expr.instruct.UserFunction;
+import net.sf.saxon.lib.Logger;
 import net.sf.saxon.lib.NamespaceConstant;
 import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StandardNames;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trace.ContextStackFrame;
@@ -32,29 +32,28 @@ import net.sf.saxon.trans.KeyDefinition;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.util.Navigator;
 import net.sf.saxon.type.ValidationException;
-import nl.armatiek.xslweb.configuration.Context;
+import nl.armatiek.xslweb.saxon.log.Slf4JLogger;
 
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 public class TransformationErrorListener implements ErrorListener, Serializable {
-  
-  private static final Logger logger = LoggerFactory.getLogger(TransformationErrorListener.class);
 
   private static final long serialVersionUID = 1L;
-  
+
   private HttpServletResponse response;
   private boolean firstError;
-  
+
   private int recoveryPolicy = Configuration.RECOVER_WITH_WARNINGS;
   private int warningCount = 0;
-  
+  private int maximumNumberOfWarnings = 25;
+  private boolean developmentMode;
+  protected transient Logger logger = new Slf4JLogger();
 
-  public TransformationErrorListener(HttpServletResponse response) {
+  public TransformationErrorListener(HttpServletResponse response, boolean developmentMode) {
     this.response = response;
     this.firstError = true;
+    this.developmentMode = developmentMode;
   }
 
   /**
@@ -72,17 +71,18 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
     try {
       sel = this.getClass().newInstance();
     } catch (InstantiationException e) {
-      sel = new TransformationErrorListener(response);
+      sel = new TransformationErrorListener(response, developmentMode);
     } catch (IllegalAccessException e) {
-      sel = new TransformationErrorListener(response);
+      sel = new TransformationErrorListener(response, developmentMode);
     }
+    sel.logger = logger;
     return sel;
   }
-  
+
   private void logError(String message) throws TransformerException {
     try {
       logger.error(message);
-      if (Context.getInstance().isDevelopmentMode()) {
+      if (developmentMode) {
         if (firstError) {
           response.setContentType("text/plain;charset=UTF-8");
           firstError = false;
@@ -122,6 +122,29 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
   }
 
   /**
+   * Set the maximum number of warnings that are reported; further warnings
+   * after this limit are silently ignored
+   * 
+   * @param max
+   *          the maximum number of warnings output
+   */
+
+  public void setMaximumNumberOfWarnings(int max) {
+    this.maximumNumberOfWarnings = max;
+  }
+
+  /**
+   * Get the maximum number of warnings that are reported; further warnings
+   * after this limit are silently ignored
+   * 
+   * @return the maximum number of warnings output
+   */
+
+  public int getMaximumNumberOfWarnings() {
+    return this.maximumNumberOfWarnings;
+  }
+
+  /**
    * Receive notification of a warning.
    * <p/>
    * <p>
@@ -158,9 +181,9 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
     if (exception instanceof ValidationException) {
       logError("Validation error " + message);
     } else {
-      logger.warn("Warning: " + message);
+      logger.warning("Warning: " + message);
       warningCount++;
-      if (warningCount > 25) {
+      if (warningCount > getMaximumNumberOfWarnings()) {
         logger.info("No more warnings will be displayed");
         recoveryPolicy = Configuration.RECOVER_SILENTLY;
         warningCount = 0;
@@ -190,7 +213,7 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
    */
 
   public void error(TransformerException exception) throws TransformerException {
-    if (recoveryPolicy == Configuration.RECOVER_SILENTLY) {
+    if (recoveryPolicy == Configuration.RECOVER_SILENTLY && !(exception instanceof ValidationException)) {
       // do nothing
       return;
     }
@@ -198,19 +221,18 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
     if (exception instanceof ValidationException) {
       String explanation = getExpandedMessage(exception);
       String constraintReference = ((ValidationException) exception).getConstraintReferenceMessage();
-      if (constraintReference != null) {
-        explanation += " (" + constraintReference + ')';
-      }
-      message = "Validation error " + getLocationMessage(exception) + "\n  " + wordWrap(explanation);
+      String validationLocation = ((ValidationException) exception).getValidationLocationText();
+      String contextLocation = ((ValidationException) exception).getContextLocationText();
+      message = "Validation error " + getLocationMessage(exception) + "\n  " + wordWrap(explanation) + wordWrap(validationLocation.length() == 0 ? "" : "\n  " + validationLocation) + wordWrap(contextLocation.length() == 0 ? "" : "\n  " + contextLocation) + wordWrap(constraintReference == null ? "" : "\n  " + constraintReference);
     } else {
-      String prefix = (recoveryPolicy == Configuration.RECOVER_WITH_WARNINGS ? "Recoverable error " : "Error ");
+      String prefix = recoveryPolicy == Configuration.RECOVER_WITH_WARNINGS ? "Recoverable error " : "Error ";
       message = prefix + getLocationMessage(exception) + "\n  " + wordWrap(getExpandedMessage(exception));
     }
 
     if (exception instanceof ValidationException) {
       logError(message);
     } else if (recoveryPolicy == Configuration.RECOVER_WITH_WARNINGS) {
-      logger.warn(message);
+      logger.warning(message);
       warningCount++;
       if (warningCount > 25) {
         logger.info("No more warnings will be displayed");
@@ -255,7 +277,6 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
       message = "Validation error " + getLocationMessage(exception) + "\n  " + wordWrap(explanation);
     } else {
       message = "Error " + getLocationMessage(exception) + "\n  " + wordWrap(getExpandedMessage(exception));
-
     }
 
     logError(message);
@@ -269,7 +290,7 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
     if (exception instanceof XPathException) {
       XPathContext context = ((XPathException) exception).getXPathContext();
       if (context != null && getRecoveryPolicy() != Configuration.RECOVER_SILENTLY) {
-        outputStackTrace(context);
+        outputStackTrace(logger, context);
       }
     }
   }
@@ -284,8 +305,8 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
    *          the context (which holds the information to be output)
    */
 
-  protected void outputStackTrace(XPathContext context) throws TransformerException {
-    printStackTrace(context);
+  protected void outputStackTrace(Logger out, XPathContext context) {
+    printStackTrace(out, context);
   }
 
   /**
@@ -316,7 +337,7 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
     String locMessage = "";
     String systemId = null;
     NodeInfo node = null;
-    String path = null;
+    String path;
     String nodeMessage = null;
     int lineNumber = -1;
     if (loc instanceof DOMLocator) {
@@ -326,16 +347,16 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
       nodeMessage = "at " + node.getDisplayName() + ' ';
     } else if (loc instanceof ValidationException && (node = ((ValidationException) loc).getNode()) != null) {
       nodeMessage = "at " + node.getDisplayName() + ' ';
-    } else if (loc instanceof ValidationException && (path = ((ValidationException) loc).getPath()) != null) {
+    } else if (loc instanceof ValidationException && loc.getLineNumber() == -1 && (path = ((ValidationException) loc).getPath()) != null) {
       nodeMessage = "at " + path + ' ';
     } else if (loc instanceof Instruction) {
-      String instructionName = getInstructionName(((Instruction) loc));
+      String instructionName = getInstructionName((Instruction) loc);
       if (!"".equals(instructionName)) {
         nodeMessage = "at " + instructionName + ' ';
       }
       systemId = loc.getSystemId();
       lineNumber = loc.getLineNumber();
-    } else if (loc instanceof Procedure) {
+    } else if (loc instanceof ComponentBody) {
       String kind = "procedure";
       if (loc instanceof UserFunction) {
         kind = "function";
@@ -393,9 +414,10 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
    *         which case the URI as supplied
    */
 
-  /* @Nullable */public static String abbreviatePath(String uri) {
+  /* @Nullable */
+  public static String abbreviatePath(String uri) {
     if (uri == null) {
-      return null;
+      return "*unknown*";
     }
     int slash = uri.lastIndexOf('/');
     if (slash >= 0 && slash < uri.length() - 1) {
@@ -416,7 +438,7 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
    *         code and location.
    */
 
-  public static String getExpandedMessage(TransformerException err) {
+  public String getExpandedMessage(TransformerException err) {
 
     StructuredQName qCode = null;
     String additionalLocationText = null;
@@ -429,7 +451,7 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
     }
     String message = "";
     if (qCode != null) {
-      if (qCode.getURI().equals(NamespaceConstant.ERR)) {
+      if (qCode.hasURI(NamespaceConstant.ERR)) {
         message = qCode.getLocalPart();
       } else {
         message = qCode.getDisplayName();
@@ -438,6 +460,16 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
 
     if (additionalLocationText != null) {
       message += " " + additionalLocationText;
+    }
+
+    if (err instanceof XPathException) {
+      Sequence errorObject = ((XPathException) err).getErrorObject();
+      if (errorObject != null) {
+        String errorObjectDesc = getErrorObjectString(errorObject);
+        if (errorObjectDesc != null) {
+          message += " " + errorObjectDesc;
+        }
+      }
     }
 
     Throwable e = err;
@@ -472,6 +504,25 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
   }
 
   /**
+   * Get a string representation of the error object associated with the
+   * exception (this represents the final argument to fn:error, in the case of
+   * error triggered by calls on the fn:error function). The standard
+   * implementation returns null, meaning that the error object is not
+   * displayed; but the method can be overridden in a subclass to create a
+   * custom display of the error object, which is then appended to the message
+   * text.
+   * 
+   * @param errorObject
+   *          the error object passed as the last argument to fn:error. Note:
+   *          this method is not called if the error object is absent/null
+   * @return a string representation of the error object to be appended to the
+   *         message, or null if no output of the error object is required
+   */
+  public String getErrorObjectString(Sequence errorObject) {
+    return null;
+  }
+
+  /**
    * Extract a name identifying the instruction at which an error occurred
    * 
    * @param inst
@@ -480,7 +531,7 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
    *         user-meaningful terms
    */
 
-  private static String getInstructionName(Instruction inst) {
+  public static String getInstructionName(Instruction inst) {
     try {
       // InstructionInfo info = inst.getInstructionInfo();
       int construct = inst.getInstructionNameCode();
@@ -489,7 +540,7 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
       }
       if (construct < 1024 && construct != StandardNames.XSL_FUNCTION && construct != StandardNames.XSL_TEMPLATE) {
         // it's a standard name
-        if (inst.getExecutable().getHostLanguage() == Configuration.XSLT) {
+        if (inst.getContainer().getPackageData().getHostLanguage() == Configuration.XSLT) {
           return StandardNames.getDisplayName(construct);
         } else {
           String s = StandardNames.getDisplayName(construct);
@@ -581,19 +632,12 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
    *          linked list of context objects, representing the execution stack)
    */
 
-  public void printStackTrace(XPathContext context) throws TransformerException {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintStream ps = new PrintStream(baos);
+  public static void printStackTrace(Logger out, XPathContext context) {
     Iterator<ContextStackFrame> iterator = new ContextStackIterator(context);
     while (iterator.hasNext()) {
       ContextStackFrame frame = iterator.next();
-      frame.print(ps);
-    }
-    try {
-      logError(IOUtils.toString(baos.toByteArray(), "UTF-8"));
-    } catch (IOException ioe) {
-      // Will not happen. Ever.
+      frame.print(out);
     }
   }
-  
+
 }

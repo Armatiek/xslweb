@@ -6,10 +6,9 @@ import java.nio.charset.UnsupportedCharsetException;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
@@ -23,8 +22,6 @@ import org.apache.commons.io.FileUtils;
 
 public class ReadText extends ExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "read-text");
 
   @Override
@@ -59,12 +56,10 @@ public class ReadText extends ExtensionFunctionDefinition {
   
   private static class ReadTextCall extends FileExtensionFunctionCall {
         
-    private static final long serialVersionUID = 1L;
-    
-    @SuppressWarnings("rawtypes")
-    public SequenceIterator<StringValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
+    @Override
+    public StringValue call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {                        
-        File file = getFile(((StringValue) arguments[0].next()).getStringValue());
+        File file = getFile(((StringValue) arguments[0].head()).getStringValue());
         if (!file.exists()) {
           throw new FILE0001Exception(file);
         }
@@ -73,7 +68,7 @@ public class ReadText extends ExtensionFunctionDefinition {
         }        
         String encoding = "UTF-8";
         if (arguments.length > 1) {
-          encoding = ((StringValue) arguments[1].next()).getStringValue();                   
+          encoding = ((StringValue) arguments[1].head()).getStringValue();                   
         }        
         String value;
         try {
@@ -81,7 +76,7 @@ public class ReadText extends ExtensionFunctionDefinition {
         } catch (UnsupportedCharsetException ece) {
           throw new FILE0005Exception(encoding);
         }                
-        return SingletonIterator.makeIterator(new StringValue(value));
+        return new StringValue(value);
       } catch (ExpectedFileException e) {
         throw e;
       } catch (Exception e) {
