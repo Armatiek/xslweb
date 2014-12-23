@@ -1,7 +1,10 @@
 package nl.armatiek.xslweb.servlet;
 
+import java.io.StringWriter;
+
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.namespace.NamespaceContext;
+import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
@@ -9,15 +12,19 @@ import nl.armatiek.xslweb.configuration.Definitions;
 
 public class ResponseDeserializer implements XMLStreamWriter {
       
-  private XMLStreamWriter out;
+  private XMLStreamWriter mainWriter;
+  private XMLStreamWriter currentWriter;
+  private StringWriter tempXml;
   private HttpServletResponse resp;
-  private String localName;  
+  private String localName;
+  private StringBuilder text = new StringBuilder();
   private String name;
   private String type;
   private int depth;
 
   protected ResponseDeserializer(XMLStreamWriter out, HttpServletResponse resp) {    
-    this.out = out;
+    this.mainWriter = out;
+    this.currentWriter = this.mainWriter;
     this.resp = resp;
   }
 
@@ -25,7 +32,7 @@ public class ResponseDeserializer implements XMLStreamWriter {
   public void writeStartElement(String localName) throws XMLStreamException {
     depth++;  
     if (depth > 0) {
-      out.writeStartElement(localName);
+      currentWriter.writeStartElement(localName);
     }
   }
 
@@ -34,10 +41,12 @@ public class ResponseDeserializer implements XMLStreamWriter {
     if (!namespaceURI.equals(Definitions.NAMESPACEURI_XSLWEB_RESPONSE)) {
       depth++;
     } else {
+      if (localName.equals("headers") || localName.equals("session") || localName.equals("cookies")) {         
+      }            
       this.localName = localName;
     }
     if (depth > 0) {
-      out.writeStartElement(namespaceURI, localName);
+      currentWriter.writeStartElement(namespaceURI, localName);
     }
   }
 
@@ -49,7 +58,7 @@ public class ResponseDeserializer implements XMLStreamWriter {
       this.localName = localName;
     }
     if (depth > 0) {
-      out.writeStartElement(prefix, localName, namespaceURI);
+      currentWriter.writeStartElement(prefix, localName, namespaceURI);
     }
   }
 
@@ -61,7 +70,7 @@ public class ResponseDeserializer implements XMLStreamWriter {
       this.localName = localName;
     }
     if (depth > 0) {
-      out.writeEmptyElement(namespaceURI, localName);    
+      currentWriter.writeEmptyElement(namespaceURI, localName);    
     }
   }
 
@@ -73,7 +82,7 @@ public class ResponseDeserializer implements XMLStreamWriter {
       this.localName = localName;
     }
     if (depth > 0) {
-      out.writeEmptyElement(prefix, localName, namespaceURI);
+      currentWriter.writeEmptyElement(prefix, localName, namespaceURI);
     }
   }
 
@@ -81,39 +90,45 @@ public class ResponseDeserializer implements XMLStreamWriter {
   public void writeEmptyElement(String localName) throws XMLStreamException {
     depth++;  
     if (depth > 0) {
-      out.writeEmptyElement(localName);
+      currentWriter.writeEmptyElement(localName);
     }    
   }
 
   @Override
-  public void writeEndElement() throws XMLStreamException {
+  public void writeEndElement() throws XMLStreamException {            
     if (depth > 0) {
       depth--;
     }
     if (depth > 0) {
-      out.writeEndElement();
-    }     
+      currentWriter.writeEndElement();
+    } else {
+      if (localName.equals("header")) {
+        this.resp.setHeader(this.name, this.text.toString());
+      } else if (localName.equals("item")) {
+      }
+      this.text.setLength(0);
+    }
   }
 
   @Override
   public void writeEndDocument() throws XMLStreamException {
-    out.writeEndDocument();    
+    currentWriter.writeEndDocument();    
   }
 
   @Override
   public void close() throws XMLStreamException {
-    out.close();    
+    currentWriter.close();    
   }
 
   @Override
   public void flush() throws XMLStreamException {
-    out.flush();    
+    currentWriter.flush();    
   }
 
   @Override
   public void writeAttribute(String localName, String value) throws XMLStreamException {
     if (depth > 0) {
-      out.writeAttribute(localName, value);
+      currentWriter.writeAttribute(localName, value);
     } else if (this.localName.equals("response") && localName.equals("status")) {
       resp.setStatus(Integer.parseInt(value)); 
     } else if (this.localName.equals("header") && localName.equals("name")) {
@@ -128,7 +143,7 @@ public class ResponseDeserializer implements XMLStreamWriter {
   @Override
   public void writeAttribute(String prefix, String namespaceURI, String localName, String value) throws XMLStreamException {
     if (depth > 0) {
-      out.writeAttribute(prefix, namespaceURI, localName, value);
+      currentWriter.writeAttribute(prefix, namespaceURI, localName, value);
     } else if (this.localName.equals("response") && localName.equals("status")) {
       resp.setStatus(Integer.parseInt(value)); 
     } else if (this.localName.equals("header") && localName.equals("name")) {
@@ -143,7 +158,7 @@ public class ResponseDeserializer implements XMLStreamWriter {
   @Override
   public void writeAttribute(String namespaceURI, String localName, String value) throws XMLStreamException {
     if (depth > 0) {
-      out.writeAttribute(namespaceURI, localName, value);
+      currentWriter.writeAttribute(namespaceURI, localName, value);
     } else if (this.localName.equals("response") && localName.equals("status")) {
       resp.setStatus(Integer.parseInt(value)); 
     } else if (this.localName.equals("header") && localName.equals("name")) {
@@ -158,114 +173,128 @@ public class ResponseDeserializer implements XMLStreamWriter {
   @Override
   public void writeNamespace(String prefix, String namespaceURI) throws XMLStreamException {
     if (!namespaceURI.startsWith(Definitions.NAMESPACEURI_XSLWEB)) {
-      out.writeNamespace(prefix, namespaceURI);
+      currentWriter.writeNamespace(prefix, namespaceURI);
     }    
   }
 
   @Override
   public void writeDefaultNamespace(String namespaceURI) throws XMLStreamException {
     //if (depth > 0) {
-      out.writeDefaultNamespace(namespaceURI);
+      currentWriter.writeDefaultNamespace(namespaceURI);
     //}    
   }
 
   @Override
   public void writeComment(String data) throws XMLStreamException {
     if (depth > 0) {
-      out.writeComment(data);
+      currentWriter.writeComment(data);
     }    
   }
 
   @Override
   public void writeProcessingInstruction(String target) throws XMLStreamException {
     if (depth > 0) {
-      out.writeProcessingInstruction(target);
+      currentWriter.writeProcessingInstruction(target);
     }    
   }
 
   @Override
   public void writeProcessingInstruction(String target, String data) throws XMLStreamException {
     if (depth > 0) {
-      out.writeProcessingInstruction(target, data);
+      currentWriter.writeProcessingInstruction(target, data);
     }    
   }
 
   @Override
   public void writeCData(String data) throws XMLStreamException {
     if (depth > 0) {
-      out.writeCData(data);
-    }    
+      currentWriter.writeCData(data);
+    } else {
+      this.text.append(data);
+    }
   }
 
   @Override
   public void writeDTD(String dtd) throws XMLStreamException {
-    out.writeDTD(dtd);    
+    currentWriter.writeDTD(dtd);    
   }
 
   @Override
   public void writeEntityRef(String name) throws XMLStreamException {
     if (depth > 0) {
-      out.writeEntityRef(name);
-    }    
+      currentWriter.writeEntityRef(name);
+    } else {
+      this.text.append('&');
+      this.text.append(name);
+      this.text.append(';');
+    }
   }
 
   @Override
   public void writeStartDocument() throws XMLStreamException {
-    out.writeStartDocument();    
+    currentWriter.writeStartDocument();    
   }
 
   @Override
   public void writeStartDocument(String version) throws XMLStreamException {
-    out.writeStartDocument(version);    
+    currentWriter.writeStartDocument(version);    
   }
 
   @Override
   public void writeStartDocument(String encoding, String version) throws XMLStreamException {
-    out.writeStartDocument(encoding, version);    
+    currentWriter.writeStartDocument(encoding, version);    
   }
 
   @Override
   public void writeCharacters(String text) throws XMLStreamException {
     if (depth > 0) {
-      out.writeCharacters(text);
+      currentWriter.writeCharacters(text);
     }    
   }
 
   @Override
   public void writeCharacters(char[] text, int start, int len) throws XMLStreamException {
     if (depth > 0) {
-      out.writeCharacters(text, start, len);
-    }    
+      currentWriter.writeCharacters(text, start, len); 
+    } else {
+      this.text.append(text, start, len);
+    }
   }
 
   @Override
   public String getPrefix(String uri) throws XMLStreamException {
-    return out.getPrefix(uri);
+    return currentWriter.getPrefix(uri);
   }
 
   @Override
   public void setPrefix(String prefix, String uri) throws XMLStreamException {
-    out.setPrefix(prefix, uri);    
+    currentWriter.setPrefix(prefix, uri);    
   }
 
   @Override
   public void setDefaultNamespace(String uri) throws XMLStreamException {
-    out.setDefaultNamespace(uri);    
+    currentWriter.setDefaultNamespace(uri);    
   }
 
   @Override
   public void setNamespaceContext(NamespaceContext context) throws XMLStreamException {
-    out.setNamespaceContext(context);    
+    currentWriter.setNamespaceContext(context);    
   }
 
   @Override
   public NamespaceContext getNamespaceContext() {
-    return out.getNamespaceContext();
+    return currentWriter.getNamespaceContext();
   }
 
   @Override
   public Object getProperty(String name) throws IllegalArgumentException {
-    return out.getProperty(name);
+    return currentWriter.getProperty(name);
+  }
+    
+  private XMLStreamWriter getTempWriter() throws XMLStreamException {    
+    tempXml = new StringWriter();    
+    XMLOutputFactory output = XMLOutputFactory.newInstance();    
+    return output.createXMLStreamWriter(tempXml);    
   }
 
 }

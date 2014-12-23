@@ -9,7 +9,7 @@
   exclude-result-prefixes="#all"
   version="2.0">
    
-  <xsl:output method="html" indent="yes" version="5.0" omit-xml-declaration="yes"/>
+  <xsl:output method="html" indent="yes" html-version="5.0" omit-xml-declaration="yes"/>
   
   <xsl:template match="/">
     <resp:response status="200">

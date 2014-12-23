@@ -114,7 +114,8 @@ public class WebApp implements ErrorHandler {
     Node docElem = webAppDoc.getDocumentElement();
     this.title = (String) xpath.evaluate("webapp:title", docElem, XPathConstants.STRING);
     this.description = (String) xpath.evaluate("webapp:description", docElem, XPathConstants.STRING);
-    this.developmentMode = (Boolean) xpath.evaluate("webapp:development-mode", docElem, XPathConstants.BOOLEAN);
+    String devModeValue = (String) xpath.evaluate("webapp:development-mode", docElem, XPathConstants.STRING);
+    this.developmentMode = XMLUtils.getBooleanValue(devModeValue, false); 
     NodeList resourceNodes = (NodeList) xpath.evaluate("webapp:resources/webapp:resource", docElem, XPathConstants.NODESET);
     for (int i=0; i<resourceNodes.getLength(); i++) {
       resources.add(new Resource((Element) resourceNodes.item(i)));

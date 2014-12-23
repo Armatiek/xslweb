@@ -65,7 +65,7 @@ public class PipelineHandler implements ContentHandler {
         if (localName.equals("response")) {
           serializingHandler.close();
           String response = IOUtils.toString(((ByteArrayOutputStream)os).toByteArray(), "UTF-8");
-          pipelineSteps.add(new ResponseStep(response, "response"));
+          pipelineSteps.add(new ResponseStep(response, "response", false));
           serializingHandler = null;                   
         }
       }
@@ -129,8 +129,9 @@ public class PipelineHandler implements ContentHandler {
           if (StringUtils.isBlank(xslPath)) {
             throw new SAXException("Transformer step must have an attribute \"xsl-path\"");
           }
-          String name = getAttribute(atts, "name", "transformer-" + Integer.toString(pipelineSteps.size()+1));        
-          pipelineSteps.add(new TransformerStep(xslPath, name));
+          String name = getAttribute(atts, "name", "transformer-" + Integer.toString(pipelineSteps.size()+1));
+          boolean log = getAttribute(atts, "log", "false").equals("true");
+          pipelineSteps.add(new TransformerStep(xslPath, name, log));
         } else if (localName.equals("parameter")) {
           if (pipelineSteps.isEmpty()) {
             throw new SAXException("Element \"parameter\" not expected at this location in pipeline definition");

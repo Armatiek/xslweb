@@ -8,10 +8,10 @@ import nl.armatiek.xslweb.configuration.Parameter;
 public class TransformerStep extends PipelineStep {
   
   private List<Parameter> params;
-  private String xslPath;
+  private String xslPath;  
   
-  public TransformerStep(String xslPath, String name) {
-    super(name);
+  public TransformerStep(String xslPath, String name, boolean log) {
+    super(name, log);
     this.xslPath = xslPath;    
   }
   
