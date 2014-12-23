@@ -27,6 +27,7 @@ import net.sf.saxon.s9api.Destination;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SAXDestination;
 import net.sf.saxon.s9api.Serializer;
+import net.sf.saxon.s9api.Serializer.Property;
 import net.sf.saxon.s9api.TeeDestination;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
@@ -160,10 +161,10 @@ public class XSLWebServlet extends HttpServlet {
     return pipelineHandler.getPipelineSteps();
   }
   
-  private Destination getDestination(WebApp webApp, Destination destination, String stepName) {
-    if (webApp.getDevelopmentMode()) {
+  private Destination getDestination(WebApp webApp, Destination destination, PipelineStep step) {
+    if (webApp.getDevelopmentMode() && step.getLog()) {
       StringWriter sw = new StringWriter();
-      sw.write("OUTPUT OF STEP: \"" + stepName + "\":\n");            
+      sw.write("OUTPUT OF STEP: \"" + step.getName() + "\":\n");            
       Serializer debugSerializer = webApp.getProcessor().newSerializer(new ProxyWriter(sw) {
         @Override
         public void flush() throws IOException {        
@@ -196,7 +197,7 @@ public class XSLWebServlet extends HttpServlet {
         return;
       }
       
-      // steps.add(new SystemTransformerStep("system/response/response.xsl", "client-response"));
+      steps.add(new SystemTransformerStep("system/response/response.xsl", "client-response", true));
                        
       ArrayList<XsltExecutable> executables = new ArrayList<XsltExecutable>();
       ArrayList<XsltTransformer> transformers = new ArrayList<XsltTransformer>();            
@@ -219,30 +220,36 @@ public class XSLWebServlet extends HttpServlet {
         setParameters(transformer, ((TransformerStep) step).getParameters()); 
         transformer.setErrorListener(errorListener);
         if (!transformers.isEmpty()) {                                        
-          Destination destination = getDestination(webApp, transformer, steps.get(i-1).getName());
+          PipelineStep prevStep = steps.get(i-1);
+          Destination destination = getDestination(webApp, transformer, prevStep);
           transformers.get(transformers.size()-1).setDestination(destination);
         }                
         transformers.add(transformer);
         executables.add(templates);
       }
       
-      XsltTransformer firstTransformer = transformers.get(0);
-      
+      XsltTransformer firstTransformer = transformers.get(0);      
       XsltTransformer lastTransformer = transformers.get(transformers.size()-1);
       
-      // TODO
+      XsltExecutable lastUserExecutable = executables.get(executables.size()-2);
+      Properties outputProperties = lastUserExecutable.getUnderlyingCompiledStylesheet().getOutputProperties();      
+            
       OutputStream os = (developmentMode) ? new ByteArrayOutputStream() : respOs;
-      Serializer serializer = webApp.getProcessor().newSerializer(os);      
-      serializer.setOutputProperty(Serializer.Property.METHOD, "html");
-      serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
+      Serializer serializer = webApp.getProcessor().newSerializer(os);         
+      for (String key : outputProperties.stringPropertyNames()) {
+        String value = outputProperties.getProperty(key);
+        Property prop = Property.get(key);
+        if (prop == null) {
+          continue;          
+        }
+        serializer.setOutputProperty(prop, value);                      
+      }
       
-      Destination destination = getDestination(webApp, serializer, "client-response");
+      XMLStreamWriter xsw = new CleanupXMLStreamWriter(serializer.getXMLStreamWriter());
       
-      XMLStreamWriter xsw = new ResponseDeserializer(serializer.getXMLStreamWriter(), resp);
-      
-      lastTransformer.setDestination(new XMLStreamWriterDestination(xsw));
-      
-      // lastTransformer.setDestination(destination);
+      Destination destination = getDestination(webApp, new XMLStreamWriterDestination(xsw), steps.get(steps.size()-1));
+                  
+      lastTransformer.setDestination(destination);
       firstTransformer.setSource(new StreamSource(new StringReader(requestXML)));                 
       firstTransformer.transform();
       

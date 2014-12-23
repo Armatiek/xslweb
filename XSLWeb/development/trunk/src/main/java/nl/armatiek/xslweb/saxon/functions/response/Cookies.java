@@ -3,7 +3,6 @@ package nl.armatiek.xslweb.saxon.functions.response;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-import net.sf.saxon.dom.NodeOverNodeInfo;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
@@ -15,9 +14,7 @@ import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.ObjectValue;
 import net.sf.saxon.value.SequenceType;
 import nl.armatiek.xslweb.configuration.Definitions;
-import nl.armatiek.xslweb.utils.XMLUtils;
-
-import org.w3c.dom.Element;
+import nl.armatiek.xslweb.saxon.utils.NodeInfoUtils;
 
 public class Cookies extends ExtensionFunctionDefinition {
 
@@ -59,18 +56,17 @@ public class Cookies extends ExtensionFunctionDefinition {
     public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {                            
       HttpServletResponse response = (HttpServletResponse) ((ObjectValue<?>)context.getController().getParameter(
           new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "response"))).getObject();
-      NodeInfo nodeInfo = (NodeInfo) arguments[0].head();      
-      Element cookiesElem = (Element) NodeOverNodeInfo.wrap(nodeInfo);        
-      Element cookieElem = XMLUtils.getFirstChildElement(cookiesElem);        
+      NodeInfo cookiesElem = (NodeInfo) arguments[0].head();                      
+      NodeInfo cookieElem = NodeInfoUtils.getFirstChildElement(cookiesElem);        
       while (cookieElem != null) {
-        String comment = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "comment");
-        String domain = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "domain");
-        String maxAge = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "max-age");
-        String name = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "name");
-        String path = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "path");
-        String isSecure = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "is-secure");
-        String value = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "value");
-        String version = XMLUtils.getValueOfChildElementByLocalName(cookieElem, "version");
+        String comment = NodeInfoUtils.getValueOfChildElementByLocalName(cookieElem, "comment", context);
+        String domain = NodeInfoUtils.getValueOfChildElementByLocalName(cookieElem, "domain", context);
+        String maxAge = NodeInfoUtils.getValueOfChildElementByLocalName(cookieElem, "max-age", context);
+        String name = NodeInfoUtils.getValueOfChildElementByLocalName(cookieElem, "name", context);
+        String path = NodeInfoUtils.getValueOfChildElementByLocalName(cookieElem, "path", context);
+        String isSecure = NodeInfoUtils.getValueOfChildElementByLocalName(cookieElem, "is-secure", context);
+        String value = NodeInfoUtils.getValueOfChildElementByLocalName(cookieElem, "value", context);
+        String version = NodeInfoUtils.getValueOfChildElementByLocalName(cookieElem, "version", context);
         Cookie cookie = new Cookie(name, value);
         if (comment != null) cookie.setComment(comment);
         if (domain != null) cookie.setDomain(domain);
@@ -79,7 +75,7 @@ public class Cookies extends ExtensionFunctionDefinition {
         if (isSecure != null) cookie.setSecure(Boolean.parseBoolean(isSecure));
         if (version != null) cookie.setVersion(Integer.parseInt(version));                
         response.addCookie(cookie);
-        cookieElem = XMLUtils.getNextSiblingElement(cookieElem);
+        cookieElem = NodeInfoUtils.getNextSiblingElement(cookieElem);
       }                                           
       return BooleanValue.TRUE;              
     }

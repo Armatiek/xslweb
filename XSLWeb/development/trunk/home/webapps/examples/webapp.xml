@@ -7,7 +7,7 @@
   
   <title>XSLWeb examples</title>
   <description>XSLWeb examples</description>
-  <development-mode>true</development-mode>
+  <development-mode>false</development-mode>
   
   <!-- Resources to serve straight away: -->
   <resources>
