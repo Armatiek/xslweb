@@ -9,7 +9,7 @@ import javanet.staxutils.helpers.StreamWriterDelegate;
 
 public class CleanupXMLStreamWriter extends StreamWriterDelegate {
 
-  protected CleanupXMLStreamWriter(XMLStreamWriter out) {
+  public CleanupXMLStreamWriter(XMLStreamWriter out) {
     super(out);    
   }
   

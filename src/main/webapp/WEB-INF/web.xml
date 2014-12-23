@@ -22,7 +22,7 @@
   
   <servlet>
     <servlet-name>XSLWebServlet</servlet-name>
-    <servlet-class>nl.armatiek.xslweb.servlet.XSLWebServlet</servlet-class>    
+    <servlet-class>nl.armatiek.xslweb.web.servlet.XSLWebServlet</servlet-class>    
   </servlet>
   <servlet-mapping>
     <servlet-name>XSLWebServlet</servlet-name>

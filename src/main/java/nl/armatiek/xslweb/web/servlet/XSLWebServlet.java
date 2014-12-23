@@ -1,4 +1,4 @@
-package nl.armatiek.xslweb.servlet;
+package nl.armatiek.xslweb.web.servlet;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -47,6 +47,8 @@ import nl.armatiek.xslweb.pipeline.ResponseStep;
 import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
 import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
+import nl.armatiek.xslweb.servlet.CleanupXMLStreamWriter;
+import nl.armatiek.xslweb.servlet.RequestSerializer;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
