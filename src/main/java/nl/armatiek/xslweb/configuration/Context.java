@@ -44,8 +44,7 @@ public class Context {
   private Map<String, Collection<Attribute>> attributes = Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
   private FileAlterationMonitor monitor;
   private Schema webAppSchema;
-  private Properties properties;
-  private boolean developmentMode = false;
+  private Properties properties;  
   private String contextPath;
   private File webInfDir;
   private String localHost; 
@@ -137,8 +136,7 @@ public class Context {
   
   private void initProperties() throws IOException {                 
     File propsFile = new File(homeDir, "config" + File.separatorChar + Definitions.FILENAME_PROPERTIES);
-    this.properties = XSLWebUtils.readProperties(propsFile);                   
-    developmentMode = Boolean.parseBoolean(properties.getProperty(Definitions.PROPERTYNAME_DEVELOPMENTMODE, "false"));
+    this.properties = XSLWebUtils.readProperties(propsFile);                       
     port = Integer.parseInt(properties.getProperty(Definitions.PROPERTYNAME_PORT, "80"));    
     properties.put(Definitions.PROPERTYNAME_LOCALHOST, InetAddress.getLocalHost().getHostName());
     localHost = InetAddress.getLocalHost().getHostName();    
@@ -246,19 +244,8 @@ public class Context {
     return this.homeDir;
   }
   
-  public Properties getProperties() {
-    if (developmentMode) {
-      try {
-        initProperties();
-      } catch (Exception e) {
-        throw new XSLWebException("Error reading properties", e);
-      }
-    }    
+  public Properties getProperties() {     
     return this.properties;    
-  }
-  
-  public boolean isDevelopmentMode() {
-    return developmentMode;
   }
   
   public String getLocalHost() {

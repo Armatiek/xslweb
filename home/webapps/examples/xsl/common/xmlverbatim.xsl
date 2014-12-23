@@ -28,7 +28,7 @@
                 exclude-result-prefixes="verb">
 
    
-   <xsl:output method="xhtml" omit-xml-declaration="yes" indent="no" xml:space="preserve"/>
+   <xsl:output method="xhtml" omit-xml-declaration="yes" indent="no"/>
    
    <xsl:param name="indent-elements" select="true()" />
   

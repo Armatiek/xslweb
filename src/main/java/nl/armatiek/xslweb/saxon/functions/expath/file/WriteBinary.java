@@ -9,8 +9,6 @@ import nl.armatiek.xslweb.configuration.Definitions;
 
 public class WriteBinary extends FileExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "write-binary");
 
   @Override

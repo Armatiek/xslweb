@@ -8,11 +8,11 @@ import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.NodeInfo;
-import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
+import net.sf.saxon.value.ObjectValue;
 import net.sf.saxon.value.SequenceType;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.utils.XMLUtils;
@@ -21,8 +21,6 @@ import org.w3c.dom.Element;
 
 public class Cookies extends ExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "cookies");
 
   @Override
@@ -57,12 +55,11 @@ public class Cookies extends ExtensionFunctionDefinition {
   
   private static class ResponseAddCookieCall extends ExtensionFunctionCall {
         
-    private static final long serialVersionUID = 1L;
-
-    @SuppressWarnings("rawtypes")
-    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {                            
-      HttpServletResponse response = (HttpServletResponse) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response");
-      NodeInfo nodeInfo = (NodeInfo) arguments[0].next();      
+    @Override
+    public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {                            
+      HttpServletResponse response = (HttpServletResponse) ((ObjectValue<?>)context.getController().getParameter(
+          new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "response"))).getObject();
+      NodeInfo nodeInfo = (NodeInfo) arguments[0].head();      
       Element cookiesElem = (Element) NodeOverNodeInfo.wrap(nodeInfo);        
       Element cookieElem = XMLUtils.getFirstChildElement(cookiesElem);        
       while (cookieElem != null) {
@@ -84,7 +81,7 @@ public class Cookies extends ExtensionFunctionDefinition {
         response.addCookie(cookie);
         cookieElem = XMLUtils.getNextSiblingElement(cookieElem);
       }                                           
-      return SingletonIterator.makeIterator(BooleanValue.get(true));              
+      return BooleanValue.TRUE;              
     }
     
   }

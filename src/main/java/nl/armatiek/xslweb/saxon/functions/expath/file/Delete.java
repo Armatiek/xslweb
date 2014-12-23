@@ -4,10 +4,9 @@ import java.io.File;
 
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
-import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
@@ -21,8 +20,6 @@ import org.apache.commons.io.FileUtils;
 
 public class Delete extends FileExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "delete");
 
   @Override
@@ -57,15 +54,13 @@ public class Delete extends FileExtensionFunctionDefinition {
   
   private static class DeleteCall extends FileExtensionFunctionCall {
         
-    private static final long serialVersionUID = 1L;
-    
-    @SuppressWarnings("rawtypes")
-    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
+    @Override
+    public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {         
-        File file = getFile(((StringValue) arguments[0].next()).getStringValue());
+        File file = getFile(((StringValue) arguments[0].head()).getStringValue());
         boolean recursive = false;
         if (arguments.length > 1) {
-          recursive = ((BooleanValue) arguments[1].next()).getBooleanValue();
+          recursive = ((BooleanValue) arguments[1].head()).getBooleanValue();
         }                
         if (!file.exists()) {
           throw new FILE0001Exception(file);          
@@ -74,7 +69,7 @@ public class Delete extends FileExtensionFunctionDefinition {
           throw new FILE0004Exception(file, String.format("The specified path points to a non-empty directory (%s)", file.getAbsolutePath()));
         }        
         FileUtils.forceDelete(file);                
-        return SingletonIterator.makeIterator(BooleanValue.TRUE);
+        return BooleanValue.TRUE;
       } catch (ExpectedFileException e) {
         throw e;
       } catch (Exception e) {

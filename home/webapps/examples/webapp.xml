@@ -7,6 +7,7 @@
   
   <title>XSLWeb examples</title>
   <description>XSLWeb examples</description>
+  <development-mode>true</development-mode>
   
   <!-- Resources to serve straight away: -->
   <resources>
@@ -23,7 +24,7 @@
   <!-- Stylesheet parameters: -->
   <parameters>
     <parameter name="basex-rest-base-uri" uri="http://www.armatiek.com/xslweb/configuration" type="xs:string">
-      <value>http://localhost:8984/rest</value>
+      <value>http://localhost:8082/rest</value>
     </parameter>
 
     <parameter name="hostname" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:string">
@@ -33,10 +34,10 @@
       <value>465</value>
     </parameter>
     <parameter name="username" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:string">
-      <value>MYUSERNAME</value>
+      <value>maarten.kroon@armatiek.nl</value>
     </parameter>
     <parameter name="password" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:string">
-      <value>MYPASSWORD</value>
+      <value>AlmeloTwe2001</value>
     </parameter>
     <parameter name="use-ssl" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:boolean">
       <value>true</value>

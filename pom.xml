@@ -37,10 +37,10 @@
     <compiler.source.version>1.7</compiler.source.version>
     <compiler.target.version>1.7</compiler.target.version>
     <project.build.sourceEncoding>${file.encoding}</project.build.sourceEncoding>
+    <!--
     <saxon.version>9.4.0-9</saxon.version>
-    <!--    
-    <saxon.version>9.6.0-3</saxon.version>
-    -->    
+    -->       
+    <saxon.version>9.6.0-3</saxon.version>       
     <slf4j.version>1.7.5</slf4j.version>
   </properties>
   
@@ -66,6 +66,7 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
+      <scope>provided</scope>
       <version>3.0.1</version>
     </dependency>    
     <!--
@@ -171,11 +172,13 @@
       <artifactId>javautil</artifactId>
       <version>3.1.1</version>
     </dependency>
+    <!--
     <dependency>
       <groupId>com.samaxes.filter</groupId>
       <artifactId>cachefilter</artifactId>
       <version>2.3.1</version>
     </dependency>
+    -->
   </dependencies>
   
   <build>

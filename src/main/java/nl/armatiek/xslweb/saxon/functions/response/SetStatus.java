@@ -5,19 +5,17 @@ import javax.servlet.http.HttpServletResponse;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.IntegerValue;
+import net.sf.saxon.value.ObjectValue;
 import net.sf.saxon.value.SequenceType;
 import nl.armatiek.xslweb.configuration.Definitions;
 
 public class SetStatus extends ExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "set-status");
 
   @Override
@@ -52,14 +50,13 @@ public class SetStatus extends ExtensionFunctionDefinition {
   
   private static class ResponseStatusCall extends ExtensionFunctionCall {
         
-    private static final long serialVersionUID = 1L;
-
-    @SuppressWarnings("rawtypes")
-    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {                      
-      long status = ((IntegerValue) arguments[0].next()).longValue();                        
-      HttpServletResponse response = (HttpServletResponse) context.getController().getParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response");        
+    @Override
+    public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {                      
+      long status = ((IntegerValue) arguments[0].head()).longValue();                        
+      HttpServletResponse response = (HttpServletResponse) ((ObjectValue<?>)context.getController().getParameter(
+          new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "response"))).getObject();        
       response.setStatus((int) status);                
-      return SingletonIterator.makeIterator(BooleanValue.get(true));              
+      return BooleanValue.TRUE;              
     }
     
   }

@@ -5,10 +5,9 @@ import java.io.File;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.Int64Value;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
@@ -20,8 +19,6 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
 
 public class Size extends ExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "size");
 
   @Override
@@ -56,19 +53,17 @@ public class Size extends ExtensionFunctionDefinition {
   
   private static class SizeCall extends FileExtensionFunctionCall {
         
-    private static final long serialVersionUID = 1L;
-    
-    @SuppressWarnings("rawtypes")
-    public SequenceIterator<Int64Value> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
+    @Override
+    public Int64Value call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {                        
-        File file = getFile(((StringValue) arguments[0].next()).getStringValue());
+        File file = getFile(((StringValue) arguments[0].head()).getStringValue());
         if (!file.exists()) {
           throw new FILE0001Exception(file);
         }            
         if (file.isDirectory()) {
           throw new FILE0004Exception(file);
         }
-        return SingletonIterator.makeIterator(Int64Value.makeIntegerValue(file.length())); 
+        return Int64Value.makeIntegerValue(file.length()); 
       } catch (ExpectedFileException e) {
         throw e;
       } catch (Exception e) {

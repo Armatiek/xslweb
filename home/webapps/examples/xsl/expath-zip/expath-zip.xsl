@@ -10,6 +10,7 @@
   xmlns:zip="http://expath.org/ns/zip"
   xmlns:file="http://expath.org/ns/file"
   xmlns:http="http://expath.org/ns/http-client"
+  xmlns:err="http://expath.org/ns/error"
   exclude-result-prefixes="#all"
   version="2.0">
   

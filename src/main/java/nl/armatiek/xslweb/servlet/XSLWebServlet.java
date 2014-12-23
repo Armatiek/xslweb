@@ -19,19 +19,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.ErrorListener;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Templates;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.sax.SAXTransformerFactory;
-import javax.xml.transform.sax.TransformerHandler;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import net.sf.saxon.Controller;
-import net.sf.saxon.om.StructuredQName;
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.SAXDestination;
+import net.sf.saxon.s9api.Serializer;
+import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XdmValue;
+import net.sf.saxon.s9api.XsltExecutable;
+import net.sf.saxon.s9api.XsltTransformer;
 import net.sf.saxon.serialize.MessageWarner;
-import net.sf.saxon.value.StringValue;
+import net.sf.saxon.value.ObjectValue;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.Parameter;
@@ -42,13 +40,13 @@ import nl.armatiek.xslweb.pipeline.PipelineStep;
 import nl.armatiek.xslweb.pipeline.ResponseStep;
 import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
+import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.ContentHandler;
 
 public class XSLWebServlet extends HttpServlet {
   
@@ -56,14 +54,12 @@ public class XSLWebServlet extends HttpServlet {
   
   private static final Logger logger = LoggerFactory.getLogger(XSLWebServlet.class);
     
-  private File homeDir;  
-  private boolean isDevelopmentMode;
+  private File homeDir;    
   private String lineSeparator;
   
   public void init() throws ServletException {
     super.init();   
-    try {    
-      isDevelopmentMode = Context.getInstance().isDevelopmentMode();            
+    try {                     
       lineSeparator = System.getProperty("line.separator");
       homeDir = Context.getInstance().getHomeDir();      
     } catch (Exception e) {
@@ -75,12 +71,14 @@ public class XSLWebServlet extends HttpServlet {
   @Override
   protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     OutputStream respOs = resp.getOutputStream();
+    boolean developmentMode = true;
     try {
       String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();      
       WebApp webApp = Context.getInstance().getWebApp(path);
       if (webApp == null) {
         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
       } else {
+        developmentMode = webApp.getDevelopmentMode();
         Resource resource = webApp.matchesResource(webApp.getRelativePath(path));
         if (resource == null) {                                
           executeRequest(webApp, req, resp, respOs);               
@@ -97,7 +95,7 @@ public class XSLWebServlet extends HttpServlet {
       }
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
-      if (isDevelopmentMode) {              
+      if (developmentMode) {              
         resp.setContentType("text/plain; charset=UTF-8");        
         e.printStackTrace(new PrintStream(respOs));        
       } else if (!resp.isCommitted()) {
@@ -110,77 +108,129 @@ public class XSLWebServlet extends HttpServlet {
     }  
   }
 
-  private void setPropertyParameters(Controller controller, WebApp webApp) throws IOException {
+  private void setPropertyParameters(XsltTransformer transformer, WebApp webApp) throws IOException {
     Properties props = Context.getInstance().getProperties();
     for (String key : props.stringPropertyNames()) {
       String value = props.getProperty(key);      
-      controller.setParameter(
-          new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, key),
-          new StringValue(value));
+      transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, key), new XdmAtomicValue(value));
     }    
-    controller.setParameter(
-        new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "home-dir"),
-        new StringValue(homeDir.getAbsolutePath()));
-    controller.setParameter(
-        new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "webapp-dir"),
-        new StringValue(webApp.getHomeDir().getAbsolutePath()));
+    transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "home-dir"), new XdmAtomicValue(homeDir.getAbsolutePath()));
+    transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "webapp-dir"), new XdmAtomicValue(webApp.getHomeDir().getAbsolutePath()));
   }
   
-  private void setParameters(Controller controller, List<Parameter> parameters) throws IOException {
+  private void setParameters(XsltTransformer transformer, List<Parameter> parameters) throws IOException {
     if (parameters == null) {
       return;
     }
     for (Parameter param : parameters) {
-      String name = param.getName();
-      if (param.getURI() != null) {
-        name = "{" + param.getURI() + "}" + name;
-      }            
-      controller.setParameter(name, param.getValue());                  
+      QName qname = (param.getURI() != null) ? new QName(param.getURI(), param.getName()) : new QName(param.getName());                 
+      transformer.setParameter(qname, new XdmValue(param.getValue()));                  
     }        
   }
   
-  private void setObjectParameters(Controller controller, WebApp webApp, HttpServletRequest req, HttpServletResponse resp) throws IOException {    
-    controller.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_REQUEST + "}request", req);
-    controller.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_RESPONSE + "}response", resp);
-    controller.setParameter("{" + Definitions.NAMESPACEURI_XSLWEB_WEBAPP + "}webapp", webApp);               
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private void setObjectParameters(XsltTransformer transformer, WebApp webApp, HttpServletRequest req, HttpServletResponse resp) throws IOException {            
+    transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_REQUEST, "request"),  XdmValue.wrap(new ObjectValue(req)));
+    transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "response"),  XdmValue.wrap(new ObjectValue(resp)));
+    transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_WEBAPP, "webapp"),  XdmValue.wrap(new ObjectValue(webApp)));               
+  }
+  
+  private List<PipelineStep> getPipelineSteps(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
+      String requestXML, ErrorListener errorListener, MessageWarner messageWarner) throws Exception {
+    XsltExecutable templates = webApp.getRequestDispatcherTemplates(errorListener);
+    XsltTransformer transformer = templates.load();
+                      
+    setPropertyParameters(transformer, webApp);
+    setObjectParameters(transformer, webApp, req, resp);
+    setParameters(transformer, webApp.getParameters());
+    transformer.setErrorListener(errorListener);            
+    transformer.getUnderlyingController().setMessageEmitter(messageWarner);            
+                             
+    PipelineHandler pipelineHandler = new PipelineHandler(webApp.getProcessor(), webApp.getConfiguration());
+    transformer.setSource(new StreamSource(new StringReader(requestXML)));
+    transformer.setDestination(new SAXDestination(pipelineHandler));
+    transformer.transform();
+    
+    return pipelineHandler.getPipelineSteps();
   }
   
   private void executeRequest(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
       OutputStream respOs) throws Exception {        
-    RequestSerializer requestSerializer = new RequestSerializer(req, webApp, isDevelopmentMode);    
+    boolean developmentMode = webApp.getDevelopmentMode();
+    RequestSerializer requestSerializer = new RequestSerializer(req, webApp, developmentMode);    
     try {    
       String requestXML = requestSerializer.serializeToXML();      
-      if (isDevelopmentMode) {
+      if (developmentMode) {
         logger.debug("REQUEST XML:" + lineSeparator + requestXML);                
       }
       
-      ErrorListener errorListener = new TransformationErrorListener(resp);      
+      ErrorListener errorListener = new TransformationErrorListener(resp, developmentMode);      
       MessageWarner messageWarner = new MessageWarner();
       
-      Templates requestDispatcherTemplates = webApp.getRequestDispatcherTemplates(errorListener);    
-      Controller controllerTransformer = (Controller) requestDispatcherTemplates.newTransformer();
-      setPropertyParameters(controllerTransformer, webApp);
-      setObjectParameters(controllerTransformer, webApp, req, resp);
-      setParameters(controllerTransformer, webApp.getParameters());
-      controllerTransformer.setErrorListener(errorListener);        
-      controllerTransformer.setMessageEmitter(messageWarner);            
-                               
-      PipelineHandler pipelineHandler = new PipelineHandler(webApp.getConfiguration());
-      controllerTransformer.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(pipelineHandler));
-      
-      SAXTransformerFactory stf = (SAXTransformerFactory) net.sf.saxon.TransformerFactoryImpl.newInstance();      
-      stf.setErrorListener(errorListener);
-      
-      List<PipelineStep> steps = pipelineHandler.getPipelineSteps();
+      List<PipelineStep> steps = getPipelineSteps(webApp, req, resp, requestXML, errorListener, messageWarner);
       if (steps == null || steps.isEmpty()) {
         resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Resource not found");
         return;
       }
+      
       steps.add(new SystemTransformerStep("system/response/response.xsl", "client-response"));
+      
+      ArrayList<XsltTransformer> transformers = new ArrayList<XsltTransformer>();            
+      for (int i=0; i<steps.size(); i++) {
+        PipelineStep step = steps.get(i);          
+        String xslPath = null;
+        if (step instanceof SystemTransformerStep) {
+          xslPath = new File(homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath();                      
+        } else if (step instanceof TransformerStep) {          
+          xslPath = ((TransformerStep) step).getXslPath();            
+        } else if (step instanceof ResponseStep) {
+          requestXML = ((ResponseStep) step).getResponse();
+          continue;
+        }
+        XsltExecutable templates = webApp.getTemplates(xslPath, errorListener);        
+        XsltTransformer newTransformer = templates.load();        
+        setPropertyParameters(newTransformer, webApp);
+        setObjectParameters(newTransformer, webApp, req, resp);
+        setParameters(newTransformer, webApp.getParameters());
+        setParameters(newTransformer, ((TransformerStep) step).getParameters()); 
+        newTransformer.setErrorListener(errorListener);
+        if (!transformers.isEmpty()) {
+          transformers.get(transformers.size()-1).setDestination(newTransformer);
+        }                
+        transformers.add(newTransformer);        
+      }
+      
+      XsltTransformer firstTransformer = transformers.get(0);
+      XsltTransformer lastTransformer = transformers.get(transformers.size()-1);
+      
+      // TODO
+      OutputStream os = (developmentMode) ? new ByteArrayOutputStream() : respOs;
+      Serializer serializer = webApp.getProcessor().newSerializer(os);      
+      serializer.setOutputProperty(Serializer.Property.METHOD, "html");
+      serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
+      
+      lastTransformer.setDestination(serializer);
+      firstTransformer.setSource(new StreamSource(new StringReader(requestXML)));                 
+      firstTransformer.transform();
+      
+      if (developmentMode) {                       
+        byte[] body = ((ByteArrayOutputStream) os).toByteArray();
+        // String encoding = t.getOutputProperty(OutputKeys.ENCODING);
+        String encoding = null;
+        logger.debug("CLIENT RESPONSE:" + lineSeparator + new String(body, (encoding != null) ? encoding : "UTF-8"));                  
+        IOUtils.copy(new ByteArrayInputStream(body), respOs);
+      }
+      
+      /*
+                             
+      SAXTransformerFactory stf = (SAXTransformerFactory) net.sf.saxon.TransformerFactoryImpl.newInstance();      
+      stf.setErrorListener(errorListener);
+            
+      
                    
       Templates templates = null;
       TransformerHandler nextHandler = null;
-      Controller transformer = null;      
+      Transformer transformer = null;      
       List<LogWriter> logWriters = null;
       if (isDevelopmentMode) {
         logWriters = new ArrayList<LogWriter>();
@@ -202,13 +252,13 @@ public class XSLWebServlet extends HttpServlet {
         templates = webApp.getTemplates(xslPath, errorListener);
         
         nextHandler = stf.newTransformerHandler(templates);
-        transformer = (Controller) nextHandler.getTransformer();          
+        transformer = nextHandler.getTransformer();
         setPropertyParameters(transformer, webApp);
         setObjectParameters(transformer, webApp, req, resp);
         setParameters(transformer, webApp.getParameters());
         setParameters(transformer, ((TransformerStep) step).getParameters());          
         transformer.setErrorListener(errorListener);          
-        transformer.setMessageEmitter(messageWarner);
+        ((TransformerImpl) transformer).getUnderlyingController().setMessageEmitter(messageWarner);
         if (!handlers.isEmpty()) {            
           TransformerHandler prevHandler = handlers.get(handlers.size()-1);
           ContentHandler nextContentHandler;
@@ -228,12 +278,10 @@ public class XSLWebServlet extends HttpServlet {
         stepName = step.getName();
       }
       
-      // setObjectParameters(transformer, webApp, req, resp);
-              
       OutputStream os = (Context.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : respOs;             
       nextHandler.setResult(new StreamResult(os));
       
-      Transformer t = stf.newTransformer();        
+      Transformer t = stf.newTransformer();      
       Properties outputProperties;
       if (handlers.size() > 1) {
         TransformerHandler lastHandler = handlers.get(handlers.size()-2);
@@ -247,6 +295,7 @@ public class XSLWebServlet extends HttpServlet {
       }
       t.setOutputProperties(outputProperties);
       t.setErrorListener(errorListener);
+      setObjectParameters(t, webApp, req, resp);
       t.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(handlers.get(0)));
       
       if (isDevelopmentMode) {
@@ -261,6 +310,9 @@ public class XSLWebServlet extends HttpServlet {
         logger.debug("CLIENT RESPONSE:" + lineSeparator + new String(body, (encoding != null) ? encoding : "UTF-8"));                  
         IOUtils.copy(new ByteArrayInputStream(body), respOs);
       }
+      
+      */
+      
     } finally {
       requestSerializer.close();
     }

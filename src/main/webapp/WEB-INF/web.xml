@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+<web-app 
+  xmlns="http://java.sun.com/xml/ns/javaee"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"    
   version="3.0"> 
@@ -8,7 +9,7 @@
   
   <filter>
     <filter-name>Set Character Encoding</filter-name>
-    <filter-class>nl.armatiek.xslweb.filter.SetCharacterEncodingFilter</filter-class>
+    <filter-class>nl.armatiek.xslweb.web.filter.SetCharacterEncodingFilter</filter-class>
     <init-param>
       <param-name>encoding</param-name>
       <param-value>UTF-8</param-value>
@@ -18,64 +19,6 @@
     <filter-name>Set Character Encoding</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-  
-  <!--
-  <filter>
-    <filter-name>imagesCache</filter-name>
-    <filter-class>com.samaxes.filter.CacheFilter</filter-class>
-    <init-param>
-      <param-name>expiration</param-name>
-      <param-value>2592000</param-value>
-    </init-param>
-  </filter>
-  <filter-mapping>
-    <filter-name>imagesCache</filter-name>
-    <url-pattern>/static/images/*</url-pattern>
-  </filter-mapping>
-  
-  <filter>
-    <filter-name>stylesCache</filter-name>
-    <filter-class>com.samaxes.filter.CacheFilter</filter-class>
-    <init-param>
-      <param-name>expiration</param-name>
-      <param-value>604800</param-value>
-    </init-param>
-    <init-param>
-      <param-name>vary</param-name>
-      <param-value>Accept-Encoding</param-value>
-    </init-param>
-  </filter>
-  <filter-mapping>
-    <filter-name>stylesCache</filter-name>
-    <url-pattern>/static/styles/*</url-pattern>
-  </filter-mapping>
-  
-  <filter>
-    <filter-name>scriptsCache</filter-name>
-    <filter-class>com.samaxes.filter.CacheFilter</filter-class>
-    <init-param>
-      <param-name>expiration</param-name>
-      <param-value>216000</param-value>
-    </init-param>
-  </filter>
-  <filter-mapping>
-    <filter-name>scriptsCache</filter-name>
-    <url-pattern>/static/scripts/*</url-pattern>
-  </filter-mapping>
-  -->
-  
-  <!--
-  <filter>
-    <filter-name>UrlRewriteFilter</filter-name>
-    <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
-  </filter>
-  <filter-mapping>
-    <filter-name>UrlRewriteFilter</filter-name>
-    <url-pattern>/*</url-pattern>
-    <dispatcher>REQUEST</dispatcher>
-    <dispatcher>FORWARD</dispatcher>
-  </filter-mapping>
-  -->
   
   <servlet>
     <servlet-name>XSLWebServlet</servlet-name>

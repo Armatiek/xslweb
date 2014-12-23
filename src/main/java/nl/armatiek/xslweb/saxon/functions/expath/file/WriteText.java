@@ -7,8 +7,6 @@ import nl.armatiek.xslweb.configuration.Definitions;
 
 public class WriteText extends FileExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "write-text");
 
   @Override

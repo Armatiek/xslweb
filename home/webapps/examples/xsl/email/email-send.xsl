@@ -7,6 +7,7 @@
   xmlns:req="http://www.armatiek.com/xslweb/request"
   xmlns:resp="http://www.armatiek.com/xslweb/response"
   xmlns:email="http://www.armatiek.com/xslweb/functions/email"  
+  xmlns:err="http://expath.org/ns/error"
   exclude-result-prefixes="#all"
   version="2.0">
   

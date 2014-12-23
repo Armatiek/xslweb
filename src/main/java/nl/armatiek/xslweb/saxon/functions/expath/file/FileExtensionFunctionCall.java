@@ -8,8 +8,6 @@ import net.sf.saxon.lib.ExtensionFunctionCall;
 
 public abstract class FileExtensionFunctionCall extends ExtensionFunctionCall {
 
-  private static final long serialVersionUID = 1L;
-
   protected File getFile(String path) throws URISyntaxException {
     return (path.startsWith("file:")) ? new File(new URI(path)) : new File(path);
   }

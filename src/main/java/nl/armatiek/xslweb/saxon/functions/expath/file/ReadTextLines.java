@@ -9,10 +9,10 @@ import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
+import net.sf.saxon.om.ZeroOrMore;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.ArrayIterator;
 import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
@@ -27,8 +27,6 @@ import org.apache.commons.io.FileUtils;
 
 public class ReadTextLines extends ExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "read-text-lines");
 
   @Override
@@ -63,12 +61,10 @@ public class ReadTextLines extends ExtensionFunctionDefinition {
   
   private static class ReadTextLinesCall extends FileExtensionFunctionCall {
         
-    private static final long serialVersionUID = 1L;
-    
-    @SuppressWarnings("rawtypes")
-    public SequenceIterator<StringValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
+    @Override
+    public ZeroOrMore<StringValue> call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {                        
-        File file = getFile(((StringValue) arguments[0].next()).getStringValue());
+        File file = getFile(((StringValue) arguments[0].head()).getStringValue());
         if (!file.exists()) {
           throw new FILE0001Exception(file);
         }
@@ -77,7 +73,7 @@ public class ReadTextLines extends ExtensionFunctionDefinition {
         }        
         String encoding = "UTF-8";
         if (arguments.length > 1) {
-          encoding = ((StringValue) arguments[1].next()).getStringValue();                   
+          encoding = ((StringValue) arguments[1].head()).getStringValue();                   
         }        
         Iterator<String> linesIter;
         try {
@@ -89,7 +85,7 @@ public class ReadTextLines extends ExtensionFunctionDefinition {
         while (linesIter.hasNext()) {                                  
           lines.add(new StringValue(linesIter.next()));                    
         }                        
-        return new ArrayIterator<StringValue>(lines.toArray(new StringValue[lines.size()]));
+        return new ZeroOrMore<StringValue>(lines.toArray(new StringValue[lines.size()]));
       } catch (ExpectedFileException e) {
         throw e;
       } catch (Exception e) {

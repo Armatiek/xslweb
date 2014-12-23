@@ -3,10 +3,11 @@ package nl.armatiek.xslweb.saxon.functions.log;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
+import net.sf.saxon.om.Item;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
@@ -22,8 +23,6 @@ import org.slf4j.LoggerFactory;
  */
 public class Log extends ExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final Logger log = LoggerFactory.getLogger(Log.class);
   
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_LOG, "log");
@@ -54,15 +53,16 @@ public class Log extends ExtensionFunctionDefinition {
   
   private static class LogCall extends ExtensionFunctionCall {
 
-    private static final long serialVersionUID = 1L;
-
-    @SuppressWarnings("rawtypes")
-    public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {
+    @Override
+    public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {
       try {
-        String level = ((StringValue) arguments[0].next()).getStringValue();
+        String level = ((StringValue) arguments[0].head()).getStringValue();
         String message = "";
-        if (arguments[1].next() != null) {
-          message = ((StringValue) arguments[1].current()).getStringValue();
+        Sequence seq = arguments[1];
+        SequenceIterator iter = seq.iterate();           
+        Item item;
+        if ((item = iter.next()) != null) {
+          message = ((StringValue) item).getStringValue();
         }        
         if (level.equals("ERROR")) {
           log.error(message);
@@ -75,7 +75,7 @@ public class Log extends ExtensionFunctionDefinition {
         } else {
           throw new XPathException(String.format("Level %s not supported", level));          
         }          
-        return SingletonIterator.makeIterator(BooleanValue.get(true));
+        return BooleanValue.TRUE;
       } catch (Exception e) {
         throw new XPathException("Could not log message", e);
       }

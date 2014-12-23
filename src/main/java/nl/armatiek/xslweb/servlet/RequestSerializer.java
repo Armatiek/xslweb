@@ -29,6 +29,7 @@ import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.error.XSLWebException;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -52,13 +53,13 @@ public class RequestSerializer {
   private WebApp webApp;
   private boolean developmentMode;
   private XMLStreamWriter xsw;
-  private XMLReader xmlReader;
+  private XMLReader xmlReader;  
   private File reposDir; 
     
   public RequestSerializer(HttpServletRequest req, WebApp webApp, boolean developmentMode) {
     this.req = req;         
     this.webApp = webApp;
-    this.developmentMode = developmentMode;
+    this.developmentMode = developmentMode;    
   }
     
   public String serializeToXML() throws Exception {
@@ -80,7 +81,7 @@ public class RequestSerializer {
     serializeProperties();
     serializeHeaders();
     serializeParameters(fileItems);
-    serializeBody();
+    serializeBody(fileItems);
     serializeAttributes();
     serializeFileUploads(fileItems);
     serializeSession();    
@@ -233,8 +234,8 @@ public class RequestSerializer {
     }
   }
   
-  private void serializeBody() throws Exception {
-    if (!req.getMethod().equals("POST")) {
+  private void serializeBody(List<FileItem> fileItems) throws Exception {
+    if (!req.getMethod().equals("POST") || fileItems != null) {
       return;
     }    
     PushbackReader pushbackReader = new PushbackReader(req.getReader());    
@@ -247,8 +248,10 @@ public class RequestSerializer {
     String contentType = req.getContentType();
     if ((contentType != null) && (contentType.startsWith("text/xml") || contentType.startsWith("application/xml"))) {
       getFilteredXMLReader().parse(new InputSource(pushbackReader));
+    } else if ((contentType != null) && contentType.startsWith("text/plain")) {      
+      xsw.writeCharacters(IOUtils.toString(pushbackReader));      
     } else {
-      xsw.writeCharacters(IOUtils.toString(pushbackReader));
+      xsw.writeCData(Base64.encodeBase64String(IOUtils.toByteArray(pushbackReader)));
     }
     xsw.writeEndElement();
   }

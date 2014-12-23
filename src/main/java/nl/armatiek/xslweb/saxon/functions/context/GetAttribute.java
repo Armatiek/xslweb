@@ -19,8 +19,6 @@ import nl.armatiek.xslweb.saxon.functions.common.GetAttributeCall;
  */
 public class GetAttribute extends ExtensionFunctionDefinition {
 
-  private static final long serialVersionUID = 1L;
-  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_CONTEXT, "get-attribute");
 
   public StructuredQName getFunctionQName() {
@@ -43,7 +41,6 @@ public class GetAttribute extends ExtensionFunctionDefinition {
     return SequenceType.ANY_SEQUENCE;
   }
 
-  @SuppressWarnings("serial")
   public ExtensionFunctionCall makeCallExpression() {
     return new GetAttributeCall() {      
       @Override

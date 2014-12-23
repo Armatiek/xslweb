@@ -6,9 +6,9 @@ import java.util.ArrayList;
 
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.om.Item;
+import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.iter.SingletonIterator;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
@@ -21,18 +21,16 @@ import org.apache.commons.io.FileUtils;
 
 public class WriteTextLinesCall extends FileExtensionFunctionCall {
   
-  private static final long serialVersionUID = 1L;
-  
   private boolean append;
   
   public WriteTextLinesCall(boolean append) {
     this.append = append;
   }
   
-  @SuppressWarnings("rawtypes")
-  public SequenceIterator<BooleanValue> call(SequenceIterator[] arguments, XPathContext context) throws XPathException {      
+  @Override
+  public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {      
     try {                      
-      File file = getFile(((StringValue) arguments[0].next()).getStringValue());
+      File file = getFile(((StringValue) arguments[0].head()).getStringValue());
       File parentFile = file.getParentFile();
       if (!parentFile.exists()) {
         throw new FILE0003Exception(parentFile);
@@ -42,19 +40,21 @@ public class WriteTextLinesCall extends FileExtensionFunctionCall {
       }                
       String encoding = "UTF-8";
       if (arguments.length > 2) {
-        encoding = ((StringValue) arguments[2].next()).getStringValue();                   
+        encoding = ((StringValue) arguments[2].head()).getStringValue();                   
       }        
       try {
         ArrayList<String> lines = new ArrayList<String>();
         Item item = null;
-        while ((item = arguments[1].next()) != null) {
+        Sequence seq = arguments[1];
+        SequenceIterator iter = seq.iterate();
+        while ((item = iter.next()) != null) {
           lines.add(item.getStringValue());            
         }                              
         FileUtils.writeLines(file, encoding, lines, System.getProperty("line.separator"), append);                    
       } catch (UnsupportedCharsetException uce) {
         throw new FILE0005Exception(encoding);
       }
-      return SingletonIterator.makeIterator(BooleanValue.TRUE);
+      return BooleanValue.TRUE;
     } catch (ExpectedFileException e) {
       throw e;
     } catch (Exception e) {

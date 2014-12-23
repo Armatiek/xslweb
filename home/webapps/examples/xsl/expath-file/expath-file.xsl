@@ -6,7 +6,8 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
   xmlns:config="http://www.armatiek.com/xslweb/configuration"
   xmlns:req="http://www.armatiek.com/xslweb/request"
-  xmlns:resp="http://www.armatiek.com/xslweb/response"  
+  xmlns:resp="http://www.armatiek.com/xslweb/response"
+  xmlns:err="http://expath.org/ns/error"  
   xmlns:file="http://expath.org/ns/file"  
   exclude-result-prefixes="#all"
   version="2.0">
@@ -81,7 +82,17 @@
         <ol>
           <xsl:for-each select="file:list($config:webapp-dir, true())">
             <li>
-              <xsl:value-of select="concat(., ' (', file:size(concat($config:webapp-dir, '/', .)), ' bytes)')"/>
+              <xsl:variable name="path" select="concat($config:webapp-dir, '/', .)" as="xs:string"/>
+              <xsl:choose>
+                <xsl:when test="file:is-file($path)">
+                  <xsl:value-of select="concat(., ' (', file:size($path), ' bytes)')"/>  
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:value-of select="concat(., ' [DIR]')"/>
+                </xsl:otherwise>
+              </xsl:choose>
+              
+                            
             </li>          
           </xsl:for-each>
         </ol>
