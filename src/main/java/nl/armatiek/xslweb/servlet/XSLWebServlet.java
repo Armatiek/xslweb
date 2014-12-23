@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,17 +19,21 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.stream.StreamSource;
 
+import net.sf.saxon.s9api.Destination;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SAXDestination;
 import net.sf.saxon.s9api.Serializer;
+import net.sf.saxon.s9api.TeeDestination;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.s9api.XsltTransformer;
 import net.sf.saxon.serialize.MessageWarner;
+import net.sf.saxon.stax.XMLStreamWriterDestination;
 import net.sf.saxon.value.ObjectValue;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
@@ -44,6 +49,7 @@ import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.ProxyWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,6 +160,23 @@ public class XSLWebServlet extends HttpServlet {
     return pipelineHandler.getPipelineSteps();
   }
   
+  private Destination getDestination(WebApp webApp, Destination destination, String stepName) {
+    if (webApp.getDevelopmentMode()) {
+      StringWriter sw = new StringWriter();
+      sw.write("OUTPUT OF STEP: \"" + stepName + "\":\n");            
+      Serializer debugSerializer = webApp.getProcessor().newSerializer(new ProxyWriter(sw) {
+        @Override
+        public void flush() throws IOException {        
+          logger.debug(out.toString());                
+        }
+      });                
+      debugSerializer.setOutputProperty(Serializer.Property.METHOD, "xml");
+      debugSerializer.setOutputProperty(Serializer.Property.INDENT, "yes");           
+      destination = new TeeDestination(destination, debugSerializer);
+    }
+    return destination;
+  }
+  
   private void executeRequest(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
       OutputStream respOs) throws Exception {        
     boolean developmentMode = webApp.getDevelopmentMode();
@@ -173,8 +196,9 @@ public class XSLWebServlet extends HttpServlet {
         return;
       }
       
-      steps.add(new SystemTransformerStep("system/response/response.xsl", "client-response"));
-      
+      // steps.add(new SystemTransformerStep("system/response/response.xsl", "client-response"));
+                       
+      ArrayList<XsltExecutable> executables = new ArrayList<XsltExecutable>();
       ArrayList<XsltTransformer> transformers = new ArrayList<XsltTransformer>();            
       for (int i=0; i<steps.size(); i++) {
         PipelineStep step = steps.get(i);          
@@ -188,19 +212,22 @@ public class XSLWebServlet extends HttpServlet {
           continue;
         }
         XsltExecutable templates = webApp.getTemplates(xslPath, errorListener);        
-        XsltTransformer newTransformer = templates.load();        
-        setPropertyParameters(newTransformer, webApp);
-        setObjectParameters(newTransformer, webApp, req, resp);
-        setParameters(newTransformer, webApp.getParameters());
-        setParameters(newTransformer, ((TransformerStep) step).getParameters()); 
-        newTransformer.setErrorListener(errorListener);
-        if (!transformers.isEmpty()) {
-          transformers.get(transformers.size()-1).setDestination(newTransformer);
+        XsltTransformer transformer = templates.load();                
+        setPropertyParameters(transformer, webApp);
+        setObjectParameters(transformer, webApp, req, resp);
+        setParameters(transformer, webApp.getParameters());
+        setParameters(transformer, ((TransformerStep) step).getParameters()); 
+        transformer.setErrorListener(errorListener);
+        if (!transformers.isEmpty()) {                                        
+          Destination destination = getDestination(webApp, transformer, steps.get(i-1).getName());
+          transformers.get(transformers.size()-1).setDestination(destination);
         }                
-        transformers.add(newTransformer);        
+        transformers.add(transformer);
+        executables.add(templates);
       }
       
       XsltTransformer firstTransformer = transformers.get(0);
+      
       XsltTransformer lastTransformer = transformers.get(transformers.size()-1);
       
       // TODO
@@ -209,15 +236,18 @@ public class XSLWebServlet extends HttpServlet {
       serializer.setOutputProperty(Serializer.Property.METHOD, "html");
       serializer.setOutputProperty(Serializer.Property.INDENT, "yes");
       
-      lastTransformer.setDestination(serializer);
+      Destination destination = getDestination(webApp, serializer, "client-response");
+      
+      XMLStreamWriter xsw = new ResponseDeserializer(serializer.getXMLStreamWriter(), resp);
+      
+      lastTransformer.setDestination(new XMLStreamWriterDestination(xsw));
+      
+      // lastTransformer.setDestination(destination);
       firstTransformer.setSource(new StreamSource(new StringReader(requestXML)));                 
       firstTransformer.transform();
       
       if (developmentMode) {                       
-        byte[] body = ((ByteArrayOutputStream) os).toByteArray();
-        // String encoding = t.getOutputProperty(OutputKeys.ENCODING);
-        String encoding = null;
-        logger.debug("CLIENT RESPONSE:" + lineSeparator + new String(body, (encoding != null) ? encoding : "UTF-8"));                  
+        byte[] body = ((ByteArrayOutputStream) os).toByteArray();                         
         IOUtils.copy(new ByteArrayInputStream(body), respOs);
       }
       
