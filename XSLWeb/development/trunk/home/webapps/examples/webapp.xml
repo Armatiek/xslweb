@@ -34,10 +34,10 @@
       <value>465</value>
     </parameter>
     <parameter name="username" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:string">
-      <value>maarten.kroon@armatiek.nl</value>
+      <value>MYUSERNAME</value>
     </parameter>
     <parameter name="password" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:string">
-      <value>AlmeloTwe2001</value>
+      <value>MYPASSWORD</value>
     </parameter>
     <parameter name="use-ssl" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:boolean">
       <value>true</value>
