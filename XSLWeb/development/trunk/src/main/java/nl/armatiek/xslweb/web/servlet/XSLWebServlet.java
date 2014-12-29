@@ -87,7 +87,7 @@ public class XSLWebServlet extends HttpServlet {
       if (webApp == null) {
         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
       } else {
-        developmentMode = webApp.getDevelopmentMode();
+        developmentMode = webApp.getDevelopmentMode();        
         Resource resource = webApp.matchesResource(webApp.getRelativePath(path));
         if (resource == null) {                                
           executeRequest(webApp, req, resp, respOs);               
@@ -258,100 +258,7 @@ public class XSLWebServlet extends HttpServlet {
       if (developmentMode) {                       
         byte[] body = ((ByteArrayOutputStream) os).toByteArray();                         
         IOUtils.copy(new ByteArrayInputStream(body), respOs);
-      }
-      
-      /*
-                             
-      SAXTransformerFactory stf = (SAXTransformerFactory) net.sf.saxon.TransformerFactoryImpl.newInstance();      
-      stf.setErrorListener(errorListener);
-            
-      
-                   
-      Templates templates = null;
-      TransformerHandler nextHandler = null;
-      Transformer transformer = null;      
-      List<LogWriter> logWriters = null;
-      if (isDevelopmentMode) {
-        logWriters = new ArrayList<LogWriter>();
-      }      
-      
-      List<TransformerHandler> handlers = new ArrayList<TransformerHandler>();
-      String stepName = null;
-      for (int i=0; i<steps.size(); i++) {
-        PipelineStep step = steps.get(i);          
-        String xslPath = null;
-        if (step instanceof SystemTransformerStep) {
-          xslPath = new File(homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath();                      
-        } else if (step instanceof TransformerStep) {          
-          xslPath = ((TransformerStep) step).getXslPath();            
-        } else if (step instanceof ResponseStep) {
-          requestXML = ((ResponseStep) step).getResponse();
-          continue;
-        }
-        templates = webApp.getTemplates(xslPath, errorListener);
-        
-        nextHandler = stf.newTransformerHandler(templates);
-        transformer = nextHandler.getTransformer();
-        setPropertyParameters(transformer, webApp);
-        setObjectParameters(transformer, webApp, req, resp);
-        setParameters(transformer, webApp.getParameters());
-        setParameters(transformer, ((TransformerStep) step).getParameters());          
-        transformer.setErrorListener(errorListener);          
-        ((TransformerImpl) transformer).getUnderlyingController().setMessageEmitter(messageWarner);
-        if (!handlers.isEmpty()) {            
-          TransformerHandler prevHandler = handlers.get(handlers.size()-1);
-          ContentHandler nextContentHandler;
-          if (isDevelopmentMode) {
-            LogWriter logWriter = new LogWriter(stepName + ".xml");            
-            logWriters.add(logWriter);
-            nextContentHandler = new DebugContentHandler(nextHandler, logWriter, webApp.getConfiguration(), nextHandler.getTransformer().getOutputProperties()); // TODO             
-          } else {
-            nextContentHandler = nextHandler;
-          }
-          if (i==steps.size()-1) {
-            nextContentHandler = new CleanupContentHandler(nextHandler);
-          }          
-          prevHandler.setResult(new SAXResult(nextContentHandler));
-        }
-        handlers.add(nextHandler);
-        stepName = step.getName();
-      }
-      
-      OutputStream os = (Context.getInstance().isDevelopmentMode()) ? new ByteArrayOutputStream() : respOs;             
-      nextHandler.setResult(new StreamResult(os));
-      
-      Transformer t = stf.newTransformer();      
-      Properties outputProperties;
-      if (handlers.size() > 1) {
-        TransformerHandler lastHandler = handlers.get(handlers.size()-2);
-        outputProperties = lastHandler.getTransformer().getOutputProperties();
-        handlers.get(handlers.size()-1).getTransformer().setOutputProperties(outputProperties);          
-      } else {
-        outputProperties = new Properties();
-        outputProperties.setProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-        outputProperties.setProperty(OutputKeys.METHOD, "html");
-        outputProperties.setProperty(OutputKeys.INDENT, "no");
-      }
-      t.setOutputProperties(outputProperties);
-      t.setErrorListener(errorListener);
-      setObjectParameters(t, webApp, req, resp);
-      t.transform(new StreamSource(new StringReader(requestXML)), new SAXResult(handlers.get(0)));
-      
-      if (isDevelopmentMode) {
-        if (logWriters != null) {
-          for (LogWriter logWriter : logWriters) {
-            logWriter.close();
-            logger.debug(logWriter.getMessage() + lineSeparator + logWriter.toString());                        
-          }
-        }                
-        byte[] body = ((ByteArrayOutputStream) os).toByteArray();
-        String encoding = t.getOutputProperty(OutputKeys.ENCODING);
-        logger.debug("CLIENT RESPONSE:" + lineSeparator + new String(body, (encoding != null) ? encoding : "UTF-8"));                  
-        IOUtils.copy(new ByteArrayInputStream(body), respOs);
-      }
-      
-      */
-      
+      }                  
     } finally {
       requestSerializer.close();
     }

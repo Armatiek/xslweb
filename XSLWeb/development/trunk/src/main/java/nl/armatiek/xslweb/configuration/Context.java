@@ -264,7 +264,7 @@ public class Context {
     String name = StringUtils.substringBefore(path.substring(1), "/");
     WebApp webApp = webApps.get(name);
     if (webApp == null) {
-      webApp = webApps.get("root");
+      webApp = webApps.get("ROOT");
     }
     return webApp;    
   }

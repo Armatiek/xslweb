@@ -5,38 +5,37 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
   
-  <title>Root web application</title>
-  <description>Root web application</description>
+  <title>My web application</title>
+  <description>My web application</description>
   <development-mode>true</development-mode>
   
   <!-- Resources to serve straight away: -->
-  <resources>
-    <resource pattern="/favicon.ico" media-type="image/x-icon"/>    
+  <resources>       
     <resource pattern="/images/.+\.png" media-type="image/png"/>
     <resource pattern="/images/.+\.gif" media-type="image/gif"/>
     <resource pattern="/images/.+\.(jpg|jpeg)" media-type="image/jpg"/>
     <resource pattern="/scripts/.+\.js" media-type="text/javascript"/>
     <resource pattern="/styles/.+\.css" media-type="text/css"/>
   </resources>
-
-  <!-- Stylesheet parameters: -->
+  
   <parameters>
-    <parameter name="foo" type="xs:integer">
-      <value>1</value>
-      <value>2</value>
-      <value>3</value>
-    </parameter>    
+    <parameter name="my-param1" uri="http://www.armatiek.com/xslweb/configuration" type="xs:string">
+      <value>my-value1</value>
+    </parameter>
+    <parameter name="my-param2" uri="http://www.armatiek.com/xslweb/configuration" type="xs:string">
+      <value>my-value2</value>
+    </parameter>
   </parameters>
   
-  <!-- Scheduled job definitions: -->
-  <!--
-  <jobs>
+  <jobs> 
+    <!--
     <job>
-      <name></name>
-      <uri></uri>
-      <cron></cron>      
-    </job>  
+      <name>MyJob</name>
+      <uri>my-job.html</uri>
+      <cron>0/60 * * * * ?</cron> 
+      <concurrent>true</concurrent>
+    </job>
+    -->      
   </jobs>
-  -->
   
 </webapp>

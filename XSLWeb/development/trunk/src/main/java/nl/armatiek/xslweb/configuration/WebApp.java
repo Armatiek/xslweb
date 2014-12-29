@@ -160,14 +160,6 @@ public class WebApp implements ErrorHandler {
         scheduler.scheduleJob(job, trigger);
       }
     }
-                   
-    /*
-    XSLTTraceListener listener = new XSLTTraceListener();
-    listener.setOutputDestination(System.out);
-    configuration.setTraceListener(listener);
-    */
-    
-    // initExtensionFunctions();
     
     initFileAlterationObservers();
   }
@@ -262,7 +254,7 @@ public class WebApp implements ErrorHandler {
   }
   
   public String getPath() {
-    return (name.equals("root")) ? "/" : "/" + name;
+    return (name.equals("ROOT")) ? "/" : "/" + name;
   }
   
   public String getTitle() {
@@ -304,12 +296,13 @@ public class WebApp implements ErrorHandler {
     return tryTemplatesCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener);
   }
   
-  public File getStaticFile(String path) {
-    return new File(this.homeDir, "static" + "/" + StringUtils.substringAfter(path, this.name + "/"));    
+  public File getStaticFile(String path) {    
+    String relPath = (name.equals("ROOT")) ? path.substring(1) : StringUtils.substringAfter(path, this.name + "/");
+    return new File(this.homeDir, "static" + "/" + relPath);    
   }
   
-  public String getRelativePath(String path) {
-    return StringUtils.substringAfter(path, "/" + name);
+  public String getRelativePath(String path) {    
+    return (name.equals("ROOT")) ? path : StringUtils.substringAfter(path, "/" + name);        
   }
 
   public Resource matchesResource(String path) {    

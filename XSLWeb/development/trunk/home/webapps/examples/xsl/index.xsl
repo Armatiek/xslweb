@@ -51,7 +51,7 @@
             <a href="{$path}/upload.html">File upload</a>
           </li>
           <li>
-            <a href="{$path}/email.html">E-Mail extension function</a>
+            <a href="{$path}/email.html">E-Mail extension function</a> (first set mail parameters in webapp.xml)
           </li>
           <li>
             <a href="{$path}/attributes.html">Session/Webapp/Context attributes example</a>

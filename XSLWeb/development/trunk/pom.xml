@@ -36,11 +36,9 @@
   <properties>
     <compiler.source.version>1.7</compiler.source.version>
     <compiler.target.version>1.7</compiler.target.version>
-    <project.build.sourceEncoding>${file.encoding}</project.build.sourceEncoding>
-    <!--
-    <saxon.version>9.4.0-9</saxon.version>
-    -->       
-    <saxon.version>9.6.0-3</saxon.version>       
+    <project.build.sourceEncoding>${file.encoding}</project.build.sourceEncoding>        
+    <saxon.version>9.6.0-3</saxon.version>
+    <log4j.version>1.2.17</log4j.version>
     <slf4j.version>1.7.5</slf4j.version>
   </properties>
   
@@ -59,7 +57,17 @@
     <repository>
       <id>ettrema-repo</id>
       <url>http://milton.io/maven</url>
-    </repository>       
+    </repository>
+    <repository>
+      <id>apache.snapshots</id>
+      <url>https://repository.apache.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
   </repositories>
       
   <dependencies>
@@ -68,15 +76,7 @@
       <artifactId>javax.servlet-api</artifactId>
       <scope>provided</scope>
       <version>3.0.1</version>
-    </dependency>    
-    <!--
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <scope>provided</scope>
-      <version>2.5</version>
-    </dependency>
-    -->    
+    </dependency>           
     <dependency>
       <groupId>net.sf.saxon</groupId>
       <artifactId>Saxon-HE</artifactId>            
@@ -161,11 +161,11 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <version>${slf4j.version}</version>
-    </dependency>    
+    </dependency>     
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
-      <version>1.2.17</version>
+      <version>${log4j.version}</version>
     </dependency> 
     <dependency>
       <groupId>org.clapper</groupId>
@@ -199,6 +199,52 @@
           <outputDirectory>docs</outputDirectory>
           <show>public</show>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.tomcat.maven</groupId>
+        <artifactId>tomcat7-maven-plugin</artifactId>
+        <version>2.3-SNAPSHOT</version>
+        <executions>
+          <execution>
+            <id>tomcat-run</id>
+            <goals>
+              <goal>exec-war-only</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <path>/</path>
+              <finalName>xslweb.jar</finalName>
+              <enableNaming>false</enableNaming>              
+              <charset>utf-8</charset>
+              <uriEncoding>utf-8</uriEncoding>                            
+              <!--
+              <extraDependencies>
+                <extraDependency>
+                  <groupId>org.slf4j</groupId>
+                  <artifactId>slf4j-api</artifactId>
+                  <version>1.7.5</version>
+                </extraDependency>
+                <extraDependency>
+                  <groupId>org.slf4j</groupId>
+                  <artifactId>jul-to-slf4j</artifactId>
+                  <version>1.7.5</version>
+                </extraDependency>
+                <extraDependency>
+                  <groupId>org.slf4j</groupId>
+                  <artifactId>slf4j-log4j12</artifactId>
+                  <version>${slf4j.version}</version>
+                </extraDependency>
+                <extraDependency>
+                  <groupId>log4j</groupId>
+                  <artifactId>log4j</artifactId>
+                  <version>${log4j.version}</version>
+                </extraDependency>
+              </extraDependencies>
+              -->
+              
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
