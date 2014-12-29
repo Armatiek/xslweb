@@ -22,11 +22,11 @@
   <xsl:template name="body">
     <html>
       <head>
-        <title>It works!</title>
+        <title>My stylesheet</title>
       </head>
       <body>        
-        <h1>It works!</h1>        
-        <p>Go to the <a href="{/*/req:context-path}/examples">examples</a> or <a href="{/*/req:context-path}/documentation">documentation</a>.</p>        
+        <h1>My stylesheet</h1>        
+        <p>This is my stylesheet.</p>        
       </body>
     </html>
   </xsl:template>

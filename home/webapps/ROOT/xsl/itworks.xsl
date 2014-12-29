@@ -26,7 +26,7 @@
       </head>
       <body>        
         <h1>It works!</h1>        
-        <p>Go to the <a href="{/*/req:context-path}/examples">examples</a> or <a href="{/*/req:context-path}/documentation">documentation</a>.</p>        
+        <p>Go to the <a href="{/*/req:context-path}/examples">examples</a></p>        
       </body>
     </html>
   </xsl:template>
