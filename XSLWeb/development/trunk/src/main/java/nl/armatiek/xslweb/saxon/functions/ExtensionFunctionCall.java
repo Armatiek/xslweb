@@ -1,6 +1,9 @@
 package nl.armatiek.xslweb.saxon.functions;
 
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -9,21 +12,27 @@ import java.util.GregorianCalendar;
 import java.util.Properties;
 
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
 import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import net.sf.saxon.Configuration;
+import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.dom.DocumentWrapper;
-import net.sf.saxon.event.Receiver;
 import net.sf.saxon.expr.XPathContext;
+import net.sf.saxon.om.AxisInfo;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.om.SequenceTool;
 import net.sf.saxon.om.ZeroOrMore;
+import net.sf.saxon.pattern.NodeKindTest;
 import net.sf.saxon.trans.XPathException;
+import net.sf.saxon.tree.iter.AxisIterator;
 import net.sf.saxon.type.ItemType;
 import net.sf.saxon.type.Type;
 import net.sf.saxon.value.AtomicValue;
@@ -68,13 +77,75 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     }    
     return atomicValue;
   }
+  
+  /*
+  protected void serialize(NodeInfo nodeInfo, Result result, Properties props) throws XPathException {
+    Configuration config = nodeInfo.getConfiguration();
+    Receiver serializer = config.getSerializerFactory().getReceiver(result, 
+        config.makePipelineConfiguration(), props != null ? props : new Properties());
+    nodeInfo.copy(serializer, NodeInfo.ALL_NAMESPACES, 0);
+  }
+  */
+  
+  protected NodeInfo unwrapNodeInfo(NodeInfo nodeInfo) {
+    if (nodeInfo != null && nodeInfo.getNodeKind() == Type.DOCUMENT) {
+      nodeInfo = nodeInfo.iterateAxis(AxisInfo.CHILD, NodeKindTest.ELEMENT).next();
+    }
+    return nodeInfo;
+  }
+  
+  protected void serialize(NodeInfo nodeInfo, Result result, Properties outputProperties) throws XPathException {
+    try {
+      TransformerFactory factory = new TransformerFactoryImpl();
+      Transformer transformer = factory.newTransformer();
+      if (outputProperties != null) {
+        transformer.setOutputProperties(outputProperties);
+      }
+      transformer.transform(nodeInfo, result);
+    } catch (Exception e) {
+      throw new XPathException(e);
+    }
+  }
+  
+  protected void serialize(Sequence seq, Writer w, Properties outputProperties) throws XPathException {
+    try {
+      SequenceIterator iter = seq.iterate(); 
+      Item item;
+      while ((item = iter.next()) != null) {
+        if (item instanceof NodeInfo) {
+          serialize((NodeInfo) item, new StreamResult(w), outputProperties);
+        } else {
+          w.append(item.getStringValue());
+        }
+      }
+    } catch (Exception e) {
+      throw new XPathException(e);
+    }
+  }
+  
+  protected void serialize(Sequence seq, OutputStream os, Properties outputProperties) throws XPathException {
+    String encoding = "UTF-8";
+    if (outputProperties != null) {
+      encoding = outputProperties.getProperty("encoding", encoding);
+    }
+    try {
+      SequenceIterator iter = seq.iterate(); 
+      Item item;
+      while ((item = iter.next()) != null) {
+        if (item instanceof NodeInfo) {
+          serialize((NodeInfo) item, new StreamResult(os), outputProperties);
+        } else {
+          new OutputStreamWriter(os, encoding).append(item.getStringValue());
+        }
+      }
+    } catch (Exception e) {
+      throw new XPathException(e);
+    }
+  }
 
   protected String serialize(NodeInfo nodeInfo, Properties props) throws XPathException {
-    Configuration config = nodeInfo.getConfiguration();
-    StringWriter sw = new StringWriter();    
-    Receiver serializer = config.getSerializerFactory().getReceiver(new StreamResult(sw), 
-        config.makePipelineConfiguration(), props);
-    nodeInfo.copy(serializer, NodeInfo.ALL_NAMESPACES, 0);
+    StringWriter sw = new StringWriter();
+    serialize(nodeInfo, new StreamResult(sw), props);
     return sw.toString();
   }
   
@@ -84,6 +155,17 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     props.setProperty(OutputKeys.METHOD, "xml");
     props.setProperty(OutputKeys.INDENT, "no");
     return serialize(nodeInfo, props);
+  }
+  
+  protected Properties getOutputProperties(NodeInfo paramsElem) {
+    Properties props = new Properties();
+    paramsElem = unwrapNodeInfo(paramsElem);
+    AxisIterator iter = paramsElem.iterateAxis(AxisInfo.CHILD, NodeKindTest.ELEMENT);
+    NodeInfo paramElem;
+    while ((paramElem = iter.next()) != null) {
+      props.put(paramElem.getLocalPart(), paramElem.getAttributeValue("", "value"));
+    }  
+    return props;
   }
     
   protected Collection<Attribute> sequenceToAttributeCollection(Sequence seq) throws XPathException {
