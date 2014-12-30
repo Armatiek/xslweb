@@ -9,13 +9,9 @@ import net.sf.saxon.om.Item;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.value.BooleanValue;
+import net.sf.saxon.value.EmptySequence;
 import net.sf.saxon.value.StringValue;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0003Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0004Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0005Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 
 import org.apache.commons.io.FileUtils;
 
@@ -28,37 +24,38 @@ public class WriteTextLinesCall extends FileExtensionFunctionCall {
   }
   
   @Override
-  public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {      
+  public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {      
     try {                      
       File file = getFile(((StringValue) arguments[0].head()).getStringValue());
       File parentFile = file.getParentFile();
       if (!parentFile.exists()) {
-        throw new FILE0003Exception(parentFile);
+        throw new FileException(String.format("Parent directory \"%s\" does not exist", 
+            parentFile.getAbsolutePath()), FileException.ERROR_PATH_NOT_DIRECTORY);
       }     
       if (file.isDirectory()) {
-        throw new FILE0004Exception(file);
-      }                
+        throw new FileException(String.format("Path \"%s\" points to a directory", 
+            file.getAbsolutePath()), FileException.ERROR_PATH_IS_DIRECTORY);
+      }               
       String encoding = "UTF-8";
       if (arguments.length > 2) {
         encoding = ((StringValue) arguments[2].head()).getStringValue();                   
       }        
       try {
         ArrayList<String> lines = new ArrayList<String>();
-        Item item = null;
         Sequence seq = arguments[1];
         SequenceIterator iter = seq.iterate();
+        Item item = null;
         while ((item = iter.next()) != null) {
           lines.add(item.getStringValue());            
         }                              
         FileUtils.writeLines(file, encoding, lines, System.getProperty("line.separator"), append);                    
       } catch (UnsupportedCharsetException uce) {
-        throw new FILE0005Exception(encoding);
+        throw new FileException(String.format("Encoding \"%s\" is invalid or not supported", 
+            encoding), FileException.ERROR_UNKNOWN_ENCODING);
       }
-      return BooleanValue.TRUE;
-    } catch (ExpectedFileException e) {
-      throw e;
+      return EmptySequence.getInstance();
     } catch (Exception e) {
-      throw new FILE9999Exception(e);
+      throw new FileException("Other file error", e, FileException.ERROR_IO);
     }
   } 
 }

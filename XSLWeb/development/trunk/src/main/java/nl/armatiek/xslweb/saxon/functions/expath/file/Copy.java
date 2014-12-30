@@ -4,23 +4,19 @@ import java.io.File;
 
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
+import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.value.BooleanValue;
+import net.sf.saxon.value.EmptySequence;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0002Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0003Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0004Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 
 import org.apache.commons.io.FileUtils;
 
-public class Copy extends FileExtensionFunctionDefinition {
+public class Copy extends ExtensionFunctionDefinition {
 
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "copy");
 
@@ -46,7 +42,12 @@ public class Copy extends FileExtensionFunctionDefinition {
 
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
-    return SequenceType.SINGLE_BOOLEAN;
+    return SequenceType.OPTIONAL_BOOLEAN;
+  }
+  
+  @Override
+  public boolean hasSideEffects() {    
+    return true;
   }
 
   @Override
@@ -57,23 +58,27 @@ public class Copy extends FileExtensionFunctionDefinition {
   private static class CopyCall extends FileExtensionFunctionCall {
         
     @Override
-    public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {      
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {         
         File sourceFile = getFile(((StringValue) arguments[0].head()).getStringValue());
         File targetFile = getFile(((StringValue) arguments[1].head()).getStringValue());
         if (!sourceFile.exists()) {
-          throw new FILE0001Exception(sourceFile);
+          throw new FileException(String.format("Source path \"%s\" does not exist", 
+              sourceFile.getAbsolutePath()), FileException.ERROR_PATH_NOT_EXIST);
         }
         if (sourceFile.isDirectory() && targetFile.isFile()) {
-          throw new FILE0002Exception(sourceFile);
+          throw new FileException(String.format("Source \"%s\" points to a directory and target \"%s\" points to an existing file", 
+              sourceFile.getAbsolutePath(), targetFile.getAbsolutePath()), FileException.ERROR_PATH_EXISTS);
         }
         File sourceParent = sourceFile.getParentFile();
         if (!sourceParent.exists()) {
-          throw new FILE0003Exception(sourceParent);
+          throw new FileException(String.format("Parent directory of source \"%s\" does not exist", 
+              sourceFile.getAbsolutePath()), FileException.ERROR_PATH_NOT_DIRECTORY);
         }
         File targetDir = new File(targetFile, sourceFile.getName());        
         if (sourceFile.isFile() && targetDir.isDirectory()) {
-          throw new FILE0004Exception(targetDir);
+          throw new FileException(String.format("Source \"%s\" points to a file and target \"%s\" points to a directory, in which a subdirectory exists with the name of the source file", 
+              sourceFile.getAbsolutePath(), targetFile.getAbsolutePath()), FileException.ERROR_PATH_IS_DIRECTORY);
         }        
         if (sourceFile.isFile()) {          
           if (!targetFile.exists() || targetFile.isFile()) {
@@ -88,11 +93,9 @@ public class Copy extends FileExtensionFunctionDefinition {
             FileUtils.copyDirectoryToDirectory(sourceFile, targetFile);
           }          
         }        
-        return BooleanValue.TRUE;
-      } catch (ExpectedFileException e) {
-        throw e;
+        return EmptySequence.getInstance();
       } catch (Exception e) {
-        throw new FILE9999Exception(e);
+        throw new FileException("Other file error", e, FileException.ERROR_IO);
       }
     } 
   }

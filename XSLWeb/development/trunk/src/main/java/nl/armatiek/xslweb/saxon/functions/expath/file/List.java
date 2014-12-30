@@ -18,9 +18,7 @@ import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0003Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 import org.apache.commons.io.FileUtils;
@@ -58,6 +56,11 @@ public class List extends ExtensionFunctionDefinition {
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
     return SequenceType.makeSequenceType(BuiltInAtomicType.STRING, StaticProperty.ALLOWS_ZERO_OR_MORE);
   }
+  
+  @Override
+  public boolean hasSideEffects() {    
+    return false;
+  }
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    
@@ -71,7 +74,8 @@ public class List extends ExtensionFunctionDefinition {
       try {         
         File dir = getFile(((StringValue) arguments[0].head()).getStringValue());                       
         if (!dir.isDirectory()) {
-          throw new FILE0003Exception(dir);          
+          throw new FileException(String.format("Path \"%s\" does not point to an existing directory", 
+              dir.getAbsolutePath()), FileException.ERROR_PATH_NOT_DIRECTORY);         
         }
         boolean recursive = false;
         if (arguments.length > 1) {
@@ -98,10 +102,8 @@ public class List extends ExtensionFunctionDefinition {
           fileList.add(new StringValue(relPath));                    
         }                        
         return new ZeroOrMore<StringValue>(fileList.toArray(new StringValue[fileList.size()]));
-      } catch (ExpectedFileException e) {
-        throw e;
       } catch (Exception e) {
-        throw new FILE9999Exception(e);
+        throw new FileException("Other file error", e, FileException.ERROR_IO);
       }
     } 
   }

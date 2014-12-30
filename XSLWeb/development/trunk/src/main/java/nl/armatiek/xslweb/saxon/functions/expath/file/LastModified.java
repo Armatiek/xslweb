@@ -16,9 +16,7 @@ import net.sf.saxon.value.DateTimeValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 
 public class LastModified extends ExtensionFunctionDefinition {
 
@@ -48,6 +46,11 @@ public class LastModified extends ExtensionFunctionDefinition {
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
     return SequenceType.makeSequenceType(BuiltInAtomicType.DATE_TIME, StaticProperty.EXACTLY_ONE);
   }
+  
+  @Override
+  public boolean hasSideEffects() {    
+    return false;
+  }
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    
@@ -57,19 +60,18 @@ public class LastModified extends ExtensionFunctionDefinition {
   private static class LastModifiedCall extends FileExtensionFunctionCall {
         
     @Override
-    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {      
+    public DateTimeValue call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {                        
         File file = getFile(((StringValue) arguments[0].head()).getStringValue());
         if (!file.exists()) {
-          throw new FILE0001Exception(file);
-        }        
+          throw new FileException(String.format("Path \"%s\" does not exist", 
+              file.getAbsolutePath()), FileException.ERROR_PATH_NOT_EXIST);         
+        }      
         Calendar cal = Calendar.getInstance();        
         cal.setTime(new Date(file.lastModified()));                 
         return new DateTimeValue(cal, false);
-      } catch (ExpectedFileException e) {
-        throw e;
       } catch (Exception e) {
-        throw new FILE9999Exception(e);
+        throw new FileException("Other file error", e, FileException.ERROR_IO);
       }
     } 
   }

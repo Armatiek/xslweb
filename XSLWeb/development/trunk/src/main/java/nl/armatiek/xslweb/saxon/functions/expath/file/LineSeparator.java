@@ -14,6 +14,8 @@ public class LineSeparator extends ExtensionFunctionDefinition {
 
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "line-separator");
 
+  private static final String NEWLINE = String.format("%n", new Object[0]);
+  
   @Override
   public StructuredQName getFunctionQName() {
     return qName;
@@ -38,6 +40,11 @@ public class LineSeparator extends ExtensionFunctionDefinition {
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
     return SequenceType.SINGLE_STRING;
   }
+  
+  @Override
+  public boolean hasSideEffects() {    
+    return false;
+  }
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    
@@ -48,7 +55,7 @@ public class LineSeparator extends ExtensionFunctionDefinition {
         
     @Override
     public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {                                                                             
-      return new StringValue(System.getProperty("line.separator"));             
+      return new StringValue(NEWLINE);             
     } 
   }
 }
