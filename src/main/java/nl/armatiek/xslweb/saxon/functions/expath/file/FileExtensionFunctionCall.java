@@ -4,7 +4,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import net.sf.saxon.lib.ExtensionFunctionCall;
+import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 
 public abstract class FileExtensionFunctionCall extends ExtensionFunctionCall {
 

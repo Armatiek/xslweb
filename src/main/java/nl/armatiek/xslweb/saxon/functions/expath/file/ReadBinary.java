@@ -14,10 +14,7 @@ import net.sf.saxon.value.Base64BinaryValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0004Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 
 import org.apache.commons.io.FileUtils;
 
@@ -49,6 +46,11 @@ public class ReadBinary extends ExtensionFunctionDefinition {
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
     return SequenceType.makeSequenceType(BuiltInAtomicType.BASE64_BINARY, StaticProperty.EXACTLY_ONE);
   }
+  
+  @Override
+  public boolean hasSideEffects() {    
+    return false;
+  }
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    
@@ -62,17 +64,17 @@ public class ReadBinary extends ExtensionFunctionDefinition {
       try {                        
         File file = getFile(((StringValue) arguments[0].head()).getStringValue());
         if (!file.exists()) {
-          throw new FILE0001Exception(file);
+          throw new FileException(String.format("File \"%s\" does not exist", 
+              file.getAbsolutePath()), FileException.ERROR_PATH_NOT_EXIST);
         }
         if (file.isDirectory()) {
-          throw new FILE0004Exception(file);
+          throw new FileException(String.format("Path \"%s\" points to a directory", 
+              file.getAbsolutePath()), FileException.ERROR_PATH_IS_DIRECTORY);
         }
         byte[] value = FileUtils.readFileToByteArray(file);        
         return new Base64BinaryValue(value);
-      } catch (ExpectedFileException e) {
-        throw e;
       } catch (Exception e) {
-        throw new FILE9999Exception(e);
+        throw new FileException("Other file error", e, FileException.ERROR_IO);
       }
     } 
   }

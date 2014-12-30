@@ -13,9 +13,9 @@ import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 
-public class PathToNative extends ExtensionFunctionDefinition {
+public class Name extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "path-to-native");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "name");
 
   @Override
   public StructuredQName getFunctionQName() {
@@ -49,19 +49,23 @@ public class PathToNative extends ExtensionFunctionDefinition {
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    
-    return new PathToNativeCall();
+    return new NameCall();
   }
   
-  private static class PathToNativeCall extends FileExtensionFunctionCall {
+  private static class NameCall extends FileExtensionFunctionCall {
         
     @Override
     public StringValue call(XPathContext context, Sequence[] arguments) throws XPathException {
       try {
-        File file = getFile(((StringValue) arguments[0].head()).getStringValue());                                                   
-        return new StringValue(file.getCanonicalPath());      
+        String path = ((StringValue) arguments[0].head()).getStringValue();
+        if ((path.equals("/")) || (path.equals(""))) {
+          return StringValue.makeStringValue("");
+        }
+        File file = getFile(path);
+        return StringValue.makeStringValue(file.getName());
       } catch (Exception e) {
         throw new FileException("Other file error", e, FileException.ERROR_IO);
       }
-    } 
+    }
   }
 }

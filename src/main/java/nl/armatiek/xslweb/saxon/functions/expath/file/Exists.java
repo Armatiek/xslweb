@@ -12,6 +12,7 @@ import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 
 public class Exists extends ExtensionFunctionDefinition {
 
@@ -41,6 +42,11 @@ public class Exists extends ExtensionFunctionDefinition {
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
     return SequenceType.SINGLE_BOOLEAN;
   }
+  
+  @Override
+  public boolean hasSideEffects() {    
+    return false;
+  }
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    
@@ -55,7 +61,7 @@ public class Exists extends ExtensionFunctionDefinition {
         File file = getFile(((StringValue) arguments[0].head()).getStringValue());                                       
         return BooleanValue.get(file.exists());        
       } catch (Exception e) {
-        throw new XPathException(e);
+        throw new FileException("Other file error", e, FileException.ERROR_IO);
       }
     } 
   }

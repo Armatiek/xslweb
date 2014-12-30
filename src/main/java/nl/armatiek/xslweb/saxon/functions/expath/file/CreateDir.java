@@ -4,20 +4,19 @@ import java.io.File;
 
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
+import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.value.BooleanValue;
+import net.sf.saxon.value.EmptySequence;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0002Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 
 import org.apache.commons.io.FileUtils;
 
-public class CreateDir extends FileExtensionFunctionDefinition {
+public class CreateDir extends ExtensionFunctionDefinition {
 
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "create-dir");
 
@@ -43,7 +42,12 @@ public class CreateDir extends FileExtensionFunctionDefinition {
 
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
-    return SequenceType.SINGLE_BOOLEAN;
+    return SequenceType.OPTIONAL_BOOLEAN;
+  }
+  
+  @Override
+  public boolean hasSideEffects() {    
+    return true;
   }
 
   @Override
@@ -58,14 +62,13 @@ public class CreateDir extends FileExtensionFunctionDefinition {
       try {                
         File dir = getFile(((StringValue) arguments[0].head()).getStringValue());
         if (dir.isFile()) {
-          throw new FILE0002Exception(dir);
+          throw new FileException(String.format("Specified path \"%s\" points to an existing file", 
+              dir.getAbsolutePath()), FileException.ERROR_PATH_EXISTS);
         }                      
         FileUtils.forceMkdir(dir);
-        return BooleanValue.TRUE;
-      } catch (ExpectedFileException e) {
-        throw e;
+        return EmptySequence.getInstance();
       } catch (Exception e) {
-        throw new FILE9999Exception(e);
+        throw new FileException("Other file error", e, FileException.ERROR_IO);
       }
     } 
   }

@@ -4,21 +4,20 @@ import java.io.File;
 
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
+import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.value.BooleanValue;
+import net.sf.saxon.value.EmptySequence;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.ExpectedFileException;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0001Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE0004Exception;
-import nl.armatiek.xslweb.saxon.functions.expath.file.error.FILE9999Exception;
+import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 
 import org.apache.commons.io.FileUtils;
 
-public class Delete extends FileExtensionFunctionDefinition {
+public class Delete extends ExtensionFunctionDefinition {
 
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "delete");
 
@@ -44,7 +43,12 @@ public class Delete extends FileExtensionFunctionDefinition {
 
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
-    return SequenceType.SINGLE_BOOLEAN;
+    return SequenceType.OPTIONAL_BOOLEAN;
+  }
+  
+  @Override
+  public boolean hasSideEffects() {    
+    return true;
   }
 
   @Override
@@ -55,7 +59,7 @@ public class Delete extends FileExtensionFunctionDefinition {
   private static class DeleteCall extends FileExtensionFunctionCall {
         
     @Override
-    public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {      
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {         
         File file = getFile(((StringValue) arguments[0].head()).getStringValue());
         boolean recursive = false;
@@ -63,17 +67,17 @@ public class Delete extends FileExtensionFunctionDefinition {
           recursive = ((BooleanValue) arguments[1].head()).getBooleanValue();
         }                
         if (!file.exists()) {
-          throw new FILE0001Exception(file);          
+          throw new FileException(String.format("Path \"%s\" does not exist", 
+              file.getAbsolutePath()), FileException.ERROR_PATH_NOT_EXIST);         
         }
         if (file.isDirectory() && !recursive && file.list().length > 0) {
-          throw new FILE0004Exception(file, String.format("The specified path points to a non-empty directory (%s)", file.getAbsolutePath()));
+          throw new FileException(String.format("Path \"%s\" points to a non-empty directory", 
+              file.getAbsolutePath()), FileException.ERROR_PATH_IS_DIRECTORY);
         }        
         FileUtils.forceDelete(file);                
-        return BooleanValue.TRUE;
-      } catch (ExpectedFileException e) {
-        throw e;
+        return EmptySequence.getInstance();
       } catch (Exception e) {
-        throw new FILE9999Exception(e);
+        throw new FileException("Other file error", e, FileException.ERROR_IO);
       }
     } 
   }
