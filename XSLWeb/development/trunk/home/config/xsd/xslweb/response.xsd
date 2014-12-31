@@ -8,8 +8,8 @@
       <xs:sequence>
         <xs:element name="headers" minOccurs="0">
           <xs:complexType>
-            <xs:sequence>
-              <xs:element name="header" maxOccurs="unbounded">
+            <xs:choice maxOccurs="unbounded">
+              <xs:element name="header">
                 <xs:complexType>
                   <xs:simpleContent>
                     <xs:extension base="xs:string">
@@ -18,7 +18,25 @@
                   </xs:simpleContent>
                 </xs:complexType>
               </xs:element>
-            </xs:sequence>
+              <xs:element name="date-header">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:dateTime">
+                      <xs:attribute name="name" type="xs:string" use="required"/>
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="int-header">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:integer">
+                      <xs:attribute name="name" type="xs:string" use="required"/>
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:choice>
           </xs:complexType>
         </xs:element>
         <xs:element name="session" minOccurs="0">

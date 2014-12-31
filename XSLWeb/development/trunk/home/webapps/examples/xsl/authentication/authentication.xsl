@@ -6,7 +6,7 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
   xmlns:req="http://www.armatiek.com/xslweb/request"
   xmlns:resp="http://www.armatiek.com/xslweb/response" 
-  xmlns:session="http://www.armatiek.com/xslweb/functions/session"
+  xmlns:session="http://www.armatiek.com/xslweb/session"
   exclude-result-prefixes="#all"
   version="2.0">
   

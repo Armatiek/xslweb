@@ -109,7 +109,7 @@
             <output:omit-xml-declaration value="yes"/>
           </output:serialization-parameters>  
         </xsl:variable>
-        <xsl:value-of select="if (file:write('c:/test.tst', ($node-1, $node-2), $output-parameters)) then () else (error(xs:QName('err:XSLWEB0001'), 'Could not write'))"/>
+        <xsl:value-of select="if (empty(file:write('c:/test.tst', ($node-1, $node-2), $output-parameters))) then () else (error(xs:QName('err:XSLWEB0001'), 'Could not write'))"/>
         -->
       </body>
     </html>

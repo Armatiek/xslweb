@@ -125,7 +125,7 @@
             </xsl:for-each>                        
           </email:email>
         </xsl:variable>        
-        <xsl:value-of select="if (email:send-mail($email)) then () else (error(xs:QName('err:XSLWEB0001'), 'Could not send email'))"/>
+        <xsl:value-of select="if (empty(email:send-mail($email))) then () else (error(xs:QName('err:XSLWEB0001'), 'Could not send email'))"/>
         <p>The mail has been sent successfully</p>   
       </body>
     </html>

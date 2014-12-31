@@ -108,7 +108,7 @@ public class SendMail extends ExtensionFunctionDefinition {
     @Override
     public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {                            
       try {                        
-        NodeInfo mailElem = (NodeInfo) arguments[0].head();
+        NodeInfo mailElem = unwrapNodeInfo((NodeInfo) arguments[0].head());
                         
         XPathEvaluator xpath = new XPathEvaluator(context.getConfiguration());               
         xpath.setNamespaceContext(new NamespaceContext() {

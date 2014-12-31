@@ -38,7 +38,7 @@ public class SetAttribute extends ExtensionFunctionDefinition {
   }
 
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
-    return SequenceType.SINGLE_BOOLEAN;
+    return SequenceType.OPTIONAL_BOOLEAN;
   }
   
   @Override

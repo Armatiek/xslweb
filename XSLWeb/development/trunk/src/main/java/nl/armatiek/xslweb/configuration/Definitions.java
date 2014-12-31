@@ -46,13 +46,13 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_BASE64     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/base64";
   public final static String NAMESPACEURI_XSLWEB_FX_CONTEXT    = NAMESPACEURI_XSLWEB_FUNCTIONS + "/context";
   public final static String NAMESPACEURI_XSLWEB_FX_LOG        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/log";
-  public final static String NAMESPACEURI_XSLWEB_FX_EMAIL      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/email";
-  public final static String NAMESPACEURI_XSLWEB_FX_SESSION    = NAMESPACEURI_XSLWEB_FUNCTIONS + "/session";
+  public final static String NAMESPACEURI_XSLWEB_FX_EMAIL      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/email";  
   public final static String NAMESPACEURI_XSLWEB_FX_SERIALIZE  = NAMESPACEURI_XSLWEB_FUNCTIONS + "/serialize";
   public final static String NAMESPACEURI_XSLWEB_FX_UUID       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/uuid";
   public final static String NAMESPACEURI_XSLWEB_FX_WEBAPP     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/webapp";
   public final static String NAMESPACEURI_XSLWEB_REQUEST       = NAMESPACEURI_XSLWEB + "/request";
   public final static String NAMESPACEURI_XSLWEB_RESPONSE      = NAMESPACEURI_XSLWEB + "/response";
+  public final static String NAMESPACEURI_XSLWEB_FX_SESSION    = NAMESPACEURI_XSLWEB + "/session";
   public final static String NAMESPACEURI_XSLWEB_PIPELINE      = NAMESPACEURI_XSLWEB + "/pipeline";  
   public final static String NAMESPACEURI_EXPATH_FILE          = "http://expath.org/ns/file";
     

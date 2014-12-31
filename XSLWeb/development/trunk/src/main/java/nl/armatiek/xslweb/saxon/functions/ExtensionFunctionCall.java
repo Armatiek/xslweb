@@ -11,6 +11,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Properties;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -29,6 +32,7 @@ import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.om.SequenceTool;
+import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.om.ZeroOrMore;
 import net.sf.saxon.pattern.NodeKindTest;
 import net.sf.saxon.trans.XPathException;
@@ -41,8 +45,11 @@ import net.sf.saxon.value.DateTimeValue;
 import net.sf.saxon.value.DoubleValue;
 import net.sf.saxon.value.FloatValue;
 import net.sf.saxon.value.Int64Value;
+import net.sf.saxon.value.ObjectValue;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Attribute;
+import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.configuration.WebApp;
 
 import org.w3c.dom.Node;
 
@@ -211,6 +218,25 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     String baseURI = source.getSystemId();
     DocumentWrapper documentWrapper = new DocumentWrapper(node.getOwnerDocument(), baseURI, configuration);
     return documentWrapper.wrap(node);            
+  }
+  
+  protected HttpServletRequest getRequest(XPathContext context) {
+    return (HttpServletRequest) ((ObjectValue<?>) context.getController().getParameter(
+        new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_REQUEST, "request"))).getObject();
+  }
+  
+  protected HttpServletResponse getResponse(XPathContext context) {
+    return (HttpServletResponse) ((ObjectValue<?>) context.getController().getParameter(
+        new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "response"))).getObject();
+  }
+  
+  protected HttpSession getSession(XPathContext context) {    
+    return getRequest(context).getSession();
+  }
+  
+  protected WebApp getWebApp(XPathContext context) {
+    return (WebApp) ((ObjectValue<?>)context.getController().getParameter(
+        new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_WEBAPP, "webapp"))).getObject();
   }
   
 }

@@ -11,7 +11,7 @@ import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.type.AnyItemType;
-import net.sf.saxon.value.BooleanValue;
+import net.sf.saxon.value.EmptySequence;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
@@ -31,18 +31,22 @@ public class Log extends ExtensionFunctionDefinition {
   
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_LOG, "log");
 
+  @Override
   public StructuredQName getFunctionQName() {
     return qName;
   }
 
+  @Override
   public int getMinimumNumberOfArguments() {
     return 2;
   }
 
+  @Override
   public int getMaximumNumberOfArguments() {
     return 3;
   }
 
+  @Override
   public SequenceType[] getArgumentTypes() {
     return new SequenceType[] { 
         SequenceType.SINGLE_STRING, 
@@ -50,14 +54,17 @@ public class Log extends ExtensionFunctionDefinition {
         SequenceType.OPTIONAL_NODE };
   }
 
+  @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
-    return SequenceType.SINGLE_BOOLEAN;
+    return SequenceType.OPTIONAL_BOOLEAN;
   }
   
+  @Override
   public boolean hasSideEffects() {
     return true;
   }
 
+  @Override
   public ExtensionFunctionCall makeCallExpression() {
     return new LogCall();
   }
@@ -65,7 +72,7 @@ public class Log extends ExtensionFunctionDefinition {
   private static class LogCall extends ExtensionFunctionCall {
 
     @Override
-    public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {
       try {
         String level = ((StringValue) arguments[0].head()).getStringValue();
         Properties props = null;
@@ -86,7 +93,7 @@ public class Log extends ExtensionFunctionDefinition {
         } else {
           throw new XPathException(String.format("Level %s not supported", level));          
         }          
-        return BooleanValue.TRUE;
+        return EmptySequence.getInstance();
       } catch (Exception e) {
         throw new XPathException("Could not log message", e);
       }

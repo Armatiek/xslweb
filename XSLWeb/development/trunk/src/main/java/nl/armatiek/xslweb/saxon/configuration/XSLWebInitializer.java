@@ -45,11 +45,18 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.WriteText;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteTextLines;
 import nl.armatiek.xslweb.saxon.functions.log.Log;
 import nl.armatiek.xslweb.saxon.functions.mail.SendMail;
-import nl.armatiek.xslweb.saxon.functions.response.Cookies;
-import nl.armatiek.xslweb.saxon.functions.response.Headers;
-import nl.armatiek.xslweb.saxon.functions.response.Session;
+import nl.armatiek.xslweb.saxon.functions.response.AddCookie;
+import nl.armatiek.xslweb.saxon.functions.response.AddDateHeader;
+import nl.armatiek.xslweb.saxon.functions.response.AddHeader;
+import nl.armatiek.xslweb.saxon.functions.response.AddIntHeader;
+import nl.armatiek.xslweb.saxon.functions.response.EncodeRedirectURL;
+import nl.armatiek.xslweb.saxon.functions.response.EncodeURL;
+import nl.armatiek.xslweb.saxon.functions.response.IsCommitted;
+import nl.armatiek.xslweb.saxon.functions.response.SetBufferSize;
 import nl.armatiek.xslweb.saxon.functions.response.SetStatus;
 import nl.armatiek.xslweb.saxon.functions.serialize.Serialize;
+import nl.armatiek.xslweb.saxon.functions.session.Invalidate;
+import nl.armatiek.xslweb.saxon.functions.session.SetMaxInactiveInterval;
 
 import org.expath.httpclient.saxon.SendRequestFunction;
 import org.expath.pkg.saxon.EXPathFunctionDefinition;
@@ -61,7 +68,7 @@ public class XSLWebInitializer implements Initializer {
   @Override
   public void initialize(Configuration configuration) throws TransformerException {    
     configuration.setXIncludeAware(true);
-    
+        
     configuration.setConfigurationProperty(FeatureKeys.RECOVERY_POLICY_NAME, "recoverWithWarnings");
     configuration.setConfigurationProperty(FeatureKeys.SUPPRESS_XSLT_NAMESPACE_CHECK, Boolean.TRUE);
     
@@ -69,10 +76,15 @@ public class XSLWebInitializer implements Initializer {
     registerEXPathFunction(new Log(), configuration);
     
     /* Response */
+    registerEXPathFunction(new AddCookie(), configuration);
+    registerEXPathFunction(new AddDateHeader(), configuration);
+    registerEXPathFunction(new AddHeader(), configuration);
+    registerEXPathFunction(new AddIntHeader(), configuration);    
+    registerEXPathFunction(new EncodeRedirectURL(), configuration);
+    registerEXPathFunction(new EncodeURL(), configuration);    
+    registerEXPathFunction(new IsCommitted(), configuration);    
+    registerEXPathFunction(new SetBufferSize(), configuration);
     registerEXPathFunction(new SetStatus(), configuration);
-    registerEXPathFunction(new Headers(), configuration);
-    registerEXPathFunction(new Session(), configuration);
-    registerEXPathFunction(new Cookies(), configuration);
     
     /* Base64 */
     registerEXPathFunction(new Base64Encode(), configuration);
@@ -85,6 +97,8 @@ public class XSLWebInitializer implements Initializer {
     /* Session */
     registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.session.GetAttribute(), configuration);
     registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.session.SetAttribute(), configuration);
+    registerEXPathFunction(new Invalidate(), configuration);
+    registerEXPathFunction(new SetMaxInactiveInterval(), configuration);
     
     /* Webapp */
     registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.GetAttribute(), configuration);
