@@ -13,13 +13,15 @@
   
   <xsl:template match="/">
     <resp:response status="200">
-      <resp:headers>               
-        <resp:header name="Expires">0</resp:header>
+      <resp:headers>                              
         <resp:header name="Pragma">no-cache</resp:header>
         <resp:header name="Cache-Control">no-store, no-cache, must-revalidate</resp:header>        
-      </resp:headers>
-      <!--
-      <resp:session>
+        <resp:int-header name="Expires">0</resp:int-header>
+        <resp:date-header name="Last-Modified">
+          <xsl:value-of select="current-dateTime()"/>
+        </resp:date-header>
+      </resp:headers>      
+      <resp:session invalidate="true" set-max-inactive-interval="3600">
         <resp:attributes>
           <resp:attribute name="foo">
             <resp:item type="xs:string">bar1</resp:item>
@@ -32,7 +34,18 @@
           </resp:attribute>
         </resp:attributes>
       </resp:session>
-      -->      
+      <resp:cookies>
+        <resp:cookie>
+          <resp:comment>Hoi</resp:comment>
+          <resp:domain>armatiek.nl</resp:domain>
+          <resp:max-age>10</resp:max-age>
+          <resp:name>Name</resp:name>
+          <resp:path>/test</resp:path>
+          <resp:is-secure>true</resp:is-secure>          
+          <resp:value>Value</resp:value>
+          <resp:version>1</resp:version>
+        </resp:cookie>
+      </resp:cookies>
       <resp:body>
         <xsl:call-template name="body"/>
       </resp:body>

@@ -6,7 +6,7 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
   xmlns:req="http://www.armatiek.com/xslweb/request"
   xmlns:resp="http://www.armatiek.com/xslweb/response"  
-  xmlns:session="http://www.armatiek.com/xslweb/functions/session"
+  xmlns:session="http://www.armatiek.com/xslweb/session"
   xmlns:context="http://www.armatiek.com/xslweb/functions/context"
   xmlns:webapp="http://www.armatiek.com/xslweb/functions/webapp"  
   xmlns:err="http://expath.org/ns/error"
@@ -46,7 +46,7 @@
   <xsl:template name="session-attrs">    
     <p>Atomic session attribute value for 'atomic-attr-name':</p>
     <xsl:variable name="session:atomic-attr-values" as="xs:integer*" select="(1, 2, 3)"/>
-    <xsl:value-of select="if (session:set-attribute('atomic-attr-name', $session:atomic-attr-values)) then () 
+    <xsl:value-of select="if (empty(session:set-attribute('atomic-attr-name', $session:atomic-attr-values))) then () 
       else (error(xs:QName('err:XSLWEB0001'), 'Could not set session attribute'))"/>                
     <xsl:for-each select="session:get-attribute('atomic-attr-name')">
       <xsl:value-of select="."/><br/>
@@ -63,7 +63,7 @@
         <d>b</d>
       </node2>            
     </xsl:variable>          
-    <xsl:value-of select="if (session:set-attribute('node-attr-name', $session:node-attr-values)) then () 
+    <xsl:value-of select="if (empty(session:set-attribute('node-attr-name', $session:node-attr-values))) then () 
       else (error(xs:QName('err:XSLWEB0001'), 'Could not set session attribute'))"/>          
     
     <xsl:for-each select="session:get-attribute('node-attr-name')">
@@ -77,7 +77,7 @@
   <xsl:template name="webapp-attrs">
     <p>Atomic webapp attribute value for 'atomic-attr-name':</p>
     <xsl:variable name="webapp:atomic-attr-values" as="xs:integer*" select="(1, 2, 3)"/>
-    <xsl:value-of select="if (webapp:set-attribute('atomic-attr-name', $webapp:atomic-attr-values)) then () 
+    <xsl:value-of select="if (empty(webapp:set-attribute('atomic-attr-name', $webapp:atomic-attr-values))) then () 
       else (error(xs:QName('err:XSLWEB0001'), 'Could not set webapp attribute'))"/>                
     <xsl:for-each select="webapp:get-attribute('atomic-attr-name')">
       <xsl:value-of select="."/><br/>
@@ -94,7 +94,7 @@
         <h>h</h>
       </node4>            
     </xsl:variable>          
-    <xsl:value-of select="if (webapp:set-attribute('node-attr-name', $webapp:node-attr-values)) then () 
+    <xsl:value-of select="if (empty(webapp:set-attribute('node-attr-name', $webapp:node-attr-values))) then () 
       else (error(xs:QName('err:XSLWEB0001'), 'Could not set webapp attribute'))"/>          
     
     <xsl:for-each select="webapp:get-attribute('node-attr-name')">
@@ -108,7 +108,7 @@
   <xsl:template name="context-attrs">
     <p>Atomic context attribute value for 'atomic-attr-name':</p>
     <xsl:variable name="context:atomic-attr-values" as="xs:integer*" select="(1, 2, 3)"/>
-    <xsl:value-of select="if (context:set-attribute('atomic-attr-name', $context:atomic-attr-values)) then () 
+    <xsl:value-of select="if (empty(context:set-attribute('atomic-attr-name', $context:atomic-attr-values))) then () 
       else (error(xs:QName('err:XSLWEB0001'), 'Could not set context attribute'))"/>                
     <xsl:for-each select="context:get-attribute('atomic-attr-name')">
       <xsl:value-of select="."/><br/>
@@ -125,7 +125,7 @@
         <l>l</l>
       </node6>            
     </xsl:variable>          
-    <xsl:value-of select="if (context:set-attribute('node-attr-name', $context:node-attr-values)) then () 
+    <xsl:value-of select="if (empty(context:set-attribute('node-attr-name', $context:node-attr-values))) then () 
       else (error(xs:QName('err:XSLWEB0001'), 'Could not set context attribute'))"/>          
     
     <xsl:for-each select="context:get-attribute('node-attr-name')">
@@ -139,7 +139,7 @@
   <xsl:template name="webapp-cache">
     <p>Atomic webapp attribute value for 'atomic-cache-key-name':</p>
     <xsl:variable name="webapp:atomic-cache-values" as="xs:integer*" select="(1, 2, 3)"/>
-    <xsl:value-of select="if (webapp:set-cache-value('atomic-cache-name', 'atomic-cache-key-name', $webapp:atomic-cache-values, 1800)) then () 
+    <xsl:value-of select="if (empty(webapp:set-cache-value('atomic-cache-name', 'atomic-cache-key-name', $webapp:atomic-cache-values, 1800))) then () 
       else (error(xs:QName('err:XSLWEB0001'), 'Could not set webapp cache value'))"/>                
     <xsl:for-each select="webapp:get-cache-value('atomic-cache-name', 'atomic-cache-key-name')">
       <xsl:value-of select="."/><br/>

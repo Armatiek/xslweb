@@ -43,7 +43,7 @@
             <output:omit-xml-declaration value="yes"/>
           </output:serialization-parameters>  
         </xsl:variable>
-        <xsl:value-of select="if (log:log('INFO', ($node-1, $node-2, $node-3), $output-parameters)) then () else (error(xs:QName('err:XSLWEB0001'), 'Could not log message'))"/>
+        <xsl:value-of select="if (empty(log:log('INFO', ($node-1, $node-2, $node-3), $output-parameters))) then () else (error(xs:QName('err:XSLWEB0001'), 'Could not log message'))"/>
       </body>
     </html>
   </xsl:template>

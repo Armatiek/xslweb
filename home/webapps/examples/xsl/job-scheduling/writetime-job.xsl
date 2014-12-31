@@ -17,8 +17,8 @@
   <xsl:template match="/">
     <resp:response status="200">      
       <resp:body>
-        <xsl:value-of select="if (file:write-text(concat($config:webapp-dir, '/xsl/job-scheduling/time.txt'), xs:string(current-dateTime()))) then () else (error(xs:QName('err:FILE9999'), 'Could not write to file'))"/>
-        <xsl:value-of select="if (log:log('INFO', 'Log: Time written to file')) then () else (error(xs:QName('err:XSLWEB0001'), 'Could not write to log'))"/>        
+        <xsl:value-of select="if (empty(file:write-text(concat($config:webapp-dir, '/xsl/job-scheduling/time.txt'), xs:string(current-dateTime())))) then () else (error(xs:QName('err:FILE9999'), 'Could not write to file'))"/>
+        <xsl:value-of select="if (empty(log:log('INFO', 'Log: Time written to file'))) then () else (error(xs:QName('err:XSLWEB0001'), 'Could not write to log'))"/>        
         <xsl:text>Body: Time written to file</xsl:text>
       </resp:body>
     </resp:response>   

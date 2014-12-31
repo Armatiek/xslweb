@@ -3,10 +3,10 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
   xmlns:req="http://www.armatiek.com/xslweb/request"
-  xmlns:resp="http://www.armatiek.com/xslweb/response"  
+  xmlns:resp="http://www.armatiek.com/xslweb/response"
+  xmlns:session="http://www.armatiek.com/xslweb/session"  
   xmlns:auth="http://www.armatiek.com/xslweb/auth"
-  xmlns:base64="http://www.armatiek.com/xslweb/functions/base64"
-  xmlns:session="http://www.armatiek.com/xslweb/functions/session"
+  xmlns:base64="http://www.armatiek.com/xslweb/functions/base64"  
   xmlns:log="http://www.armatiek.com/xslweb/functions/log"
   xmlns:err="http://expath.org/ns/error"
   exclude-result-prefixes="#all"
@@ -15,7 +15,7 @@
   <xsl:variable name="session:attr-name-userprofile" as="xs:string">xslweb-userprofile</xsl:variable>
   
   <xsl:function name="auth:logout" as="xs:string*">
-    <xsl:value-of select="if (session:set-attribute($session:attr-name-userprofile)) then () 
+    <xsl:value-of select="if (empty(session:set-attribute($session:attr-name-userprofile))) then () 
       else (error(xs:QName('err:XSLWEB0001'), 'Could not set session attribute'))"/>
   </xsl:function>
     
@@ -38,7 +38,7 @@
             <xsl:variable name="user-profile" select="auth:login($credentials[1], $credentials[2])" as="element()?"/>
             <xsl:choose>
               <xsl:when test="$user-profile">
-                <xsl:value-of select="if (session:set-attribute($session:attr-name-userprofile, $user-profile)) then () 
+                <xsl:value-of select="if (empty(session:set-attribute($session:attr-name-userprofile, $user-profile))) then () 
                   else (error(xs:QName('err:XSLWEB0001'), 'Could not set session attribute'))"/>                
                 <xsl:next-match/>    
               </xsl:when>

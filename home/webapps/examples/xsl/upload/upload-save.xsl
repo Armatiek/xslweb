@@ -36,13 +36,13 @@
         
         <!-- Create target directory to copy the uploaded files to: -->
         <xsl:variable name="target-dir" select="concat($config:webapp-dir, '/static/downloads')"/>
-        <xsl:value-of select="if (file:create-dir($target-dir)) then () else (error(xs:QName('err:FILE9999'), 'Could not create directory'))"/>
+        <xsl:value-of select="if (empty(file:create-dir($target-dir))) then () else (error(xs:QName('err:FILE9999'), 'Could not create directory'))"/>
         
         <!-- Iterate over uploaded files: -->
         <xsl:for-each select="/*/req:file-uploads/req:file-upload">                             
           
           <!-- Copy the file to the target directory: -->          
-          <xsl:value-of select="if (file:copy(req:file-path, $target-dir)) then () else (error(xs:QName('err:FILE9999'), 'Could not copy file'))"/>
+          <xsl:value-of select="if (empty(file:copy(req:file-path, $target-dir))) then () else (error(xs:QName('err:FILE9999'), 'Could not copy file'))"/>
           
           <!-- Output a hyperlink to the copied file: -->
           <a href="{concat(/*/req:context-path, /*/req:webapp-path, '/downloads/', req:file-name)}">

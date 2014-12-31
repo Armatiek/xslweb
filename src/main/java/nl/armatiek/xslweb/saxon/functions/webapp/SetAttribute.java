@@ -5,11 +5,9 @@ import java.util.Collection;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.StructuredQName;
-import net.sf.saxon.value.ObjectValue;
 import net.sf.saxon.value.SequenceType;
 import nl.armatiek.xslweb.configuration.Attribute;
 import nl.armatiek.xslweb.configuration.Definitions;
-import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 import nl.armatiek.xslweb.saxon.functions.common.SetAttributeCall;
 
@@ -44,7 +42,7 @@ public class SetAttribute extends ExtensionFunctionDefinition {
 
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
-    return SequenceType.SINGLE_BOOLEAN;
+    return SequenceType.OPTIONAL_BOOLEAN;
   }
   
   @Override
@@ -56,10 +54,8 @@ public class SetAttribute extends ExtensionFunctionDefinition {
   public ExtensionFunctionCall makeCallExpression() {
     return new SetAttributeCall() {
       @Override
-      protected void setAttributes(String name, Collection<Attribute> attrs, XPathContext context) {
-        WebApp webApp = (WebApp) ((ObjectValue<?>)context.getController().getParameter(
-            new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_WEBAPP, "webapp"))).getObject();                        
-        webApp.setAttribute(name, attrs);
+      protected void setAttributes(String name, Collection<Attribute> attrs, XPathContext context) {                               
+        getWebApp(context).setAttribute(name, attrs);
       }
     };
   }

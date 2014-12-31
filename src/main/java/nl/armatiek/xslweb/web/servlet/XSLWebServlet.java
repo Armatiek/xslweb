@@ -166,6 +166,7 @@ public class XSLWebServlet extends HttpServlet {
   private Destination getDestination(WebApp webApp, Destination destination, PipelineStep step) {
     if (webApp.getDevelopmentMode() && step.getLog()) {
       StringWriter sw = new StringWriter();
+      sw.write("----------\n");
       sw.write("OUTPUT OF STEP: \"" + step.getName() + "\":\n");            
       Serializer debugSerializer = webApp.getProcessor().newSerializer(new ProxyWriter(sw) {
         @Override
@@ -187,7 +188,7 @@ public class XSLWebServlet extends HttpServlet {
     try {    
       String requestXML = requestSerializer.serializeToXML();      
       if (developmentMode) {
-        logger.debug("REQUEST XML:" + lineSeparator + requestXML);                
+        logger.debug("----------\nREQUEST XML:" + lineSeparator + requestXML);                
       }
       
       ErrorListener errorListener = new TransformationErrorListener(resp, developmentMode);      
