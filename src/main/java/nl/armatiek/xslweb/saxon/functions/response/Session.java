@@ -54,6 +54,11 @@ public class Session extends ExtensionFunctionDefinition {
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
     return SequenceType.SINGLE_BOOLEAN;
   }
+  
+  @Override
+  public boolean hasSideEffects() {    
+    return true;
+  }
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {    

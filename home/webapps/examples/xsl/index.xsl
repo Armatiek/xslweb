@@ -62,8 +62,10 @@
           <li>
             <a href="{$path}/authentication/authentication.html">Authentication (credentials: guest/secret)</a>
           </li>
+          <li>
+            <a href="{$path}/log/log.html">Logging</a>
+          </li>
         </ul>
-        <a href="{/*/req:context-path}/documentation">XSLWeb documentation</a>
       </body>
     </html>
   </xsl:template>

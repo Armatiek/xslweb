@@ -21,26 +21,32 @@ public class Base64Encode extends ExtensionFunctionDefinition {
 
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_BASE64, "encode");
 
+  @Override
   public StructuredQName getFunctionQName() {
     return qName;
   }
 
+  @Override
   public int getMinimumNumberOfArguments() {
     return 1;
   }
 
+  @Override
   public int getMaximumNumberOfArguments() {
     return 1;
   }
 
+  @Override
   public SequenceType[] getArgumentTypes() {
     return new SequenceType[] { SequenceType.SINGLE_STRING };
   }
 
+  @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
     return SequenceType.SINGLE_STRING;
   }
 
+  @Override
   public ExtensionFunctionCall makeCallExpression() {
     return new Base64EncodeCall();
   }

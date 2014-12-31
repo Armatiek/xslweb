@@ -24,6 +24,9 @@ import org.xml.sax.SAXException;
 public class PipelineHandler implements ContentHandler {
   
   private ArrayList<PipelineStep> pipelineSteps = new ArrayList<PipelineStep>();
+  private String cacheKey;
+  private int cacheTimeout = -1;
+  private String cacheScope;
   private SerializingContentHandler serializingHandler;
   private OutputStream os;
   private StringBuilder chars = new StringBuilder();
@@ -148,6 +151,11 @@ public class PipelineHandler implements ContentHandler {
               getAttribute(atts, "type", "xs:string"));                
           step.addParameter(this.parameter);          
         } else if (localName.equals("pipeline")) {
+          cacheKey = getAttribute(atts, "cache-key", null);
+          if (cacheKey != null) {
+            cacheTimeout = Integer.parseInt(getAttribute(atts, "cache-timeout", "60"));
+            cacheScope = getAttribute(atts, "cache-scope", "context");
+          }
         } else if (localName.equals("value")) {
         } else {
           throw new SAXException(String.format("Pipeline element \"%s\" not supported", localName));
@@ -177,6 +185,18 @@ public class PipelineHandler implements ContentHandler {
   
   public List<PipelineStep> getPipelineSteps() {
     return this.pipelineSteps;
+  }
+  
+  public String getCacheKey() {
+    return cacheKey;
+  }
+  
+  public int getCacheTimeout() {
+    return cacheTimeout;
+  }
+  
+  public String getCacheScope() {
+    return cacheScope;
   }
   
   private String getAttribute(Attributes attr, String name, String defaultValue) {

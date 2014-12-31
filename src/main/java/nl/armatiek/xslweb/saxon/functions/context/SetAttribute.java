@@ -41,6 +41,11 @@ public class SetAttribute extends ExtensionFunctionDefinition {
     return SequenceType.SINGLE_BOOLEAN;
   }
   
+  @Override
+  public boolean hasSideEffects() {    
+    return true;
+  }
+  
   public ExtensionFunctionCall makeCallExpression() {
     return new SetAttributeCall() {
       @Override
