@@ -23,22 +23,27 @@ public class Serialize extends ExtensionFunctionDefinition {
 
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_SERIALIZE, "serialize");
 
+  @Override
   public StructuredQName getFunctionQName() {
     return qName;
   }
 
+  @Override
   public int getMinimumNumberOfArguments() {
     return 1;
   }
 
+  @Override
   public int getMaximumNumberOfArguments() {
     return 2;
   }
 
+  @Override
   public SequenceType[] getArgumentTypes() {
     return new SequenceType[] { SequenceType.ANY_SEQUENCE, SequenceType.OPTIONAL_NODE };
   }
 
+  @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
     return SequenceType.SINGLE_STRING;
   }

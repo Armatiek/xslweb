@@ -26,22 +26,32 @@ public class SetCacheValue extends ExtensionFunctionDefinition {
     return qName;
   }
 
+  @Override
   public int getMinimumNumberOfArguments() {
     return 4;
   }
 
+  @Override
   public int getMaximumNumberOfArguments() {
     return 4;
   }
 
+  @Override
   public SequenceType[] getArgumentTypes() {
     return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.SINGLE_STRING, SequenceType.ANY_SEQUENCE, SequenceType.SINGLE_INTEGER };
   }
 
+  @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
     return SequenceType.SINGLE_BOOLEAN;
   }
+  
+  @Override
+  public boolean hasSideEffects() {    
+    return true;
+  }
 
+  @Override
   public ExtensionFunctionCall makeCallExpression() {
     return new SetCacheValueCall() {
       @Override

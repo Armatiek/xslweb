@@ -21,7 +21,7 @@ import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.value.BooleanValue;
+import net.sf.saxon.value.EmptySequence;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.xpath.XPathEvaluator;
 import nl.armatiek.xslweb.configuration.Definitions;
@@ -58,7 +58,12 @@ public class SendMail extends ExtensionFunctionDefinition {
 
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
-    return SequenceType.SINGLE_BOOLEAN;
+    return SequenceType.OPTIONAL_BOOLEAN;
+  }
+  
+  @Override
+  public boolean hasSideEffects() {    
+    return true;
   }
 
   @Override
@@ -101,7 +106,7 @@ public class SendMail extends ExtensionFunctionDefinition {
     
     @SuppressWarnings("unchecked")
     @Override
-    public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {                            
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {                            
       try {                        
         NodeInfo mailElem = (NodeInfo) arguments[0].head();
                         
@@ -218,7 +223,7 @@ public class SendMail extends ExtensionFunctionDefinition {
         
         email.send();
         
-        return BooleanValue.TRUE;
+        return EmptySequence.getInstance();
       } catch (Exception e) {
         throw new XPathException(e);
       }

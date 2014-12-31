@@ -58,6 +58,7 @@
       <id>ettrema-repo</id>
       <url>http://milton.io/maven</url>
     </repository>
+    <!--
     <repository>
       <id>apache.snapshots</id>
       <url>https://repository.apache.org/content/repositories/snapshots</url>
@@ -68,6 +69,7 @@
         <enabled>true</enabled>
       </snapshots>
     </repository>
+    -->
   </repositories>
   
   <pluginRepositories>

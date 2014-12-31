@@ -105,4 +105,8 @@
     <pipeline:transformer name="authentication" xsl-path="authentication/authentication.xsl"/>
   </xsl:template>
   
+  <xsl:template match="/req:request[req:path = '/log/log.html']">    
+    <pipeline:transformer name="log" xsl-path="log/log.xsl"/>
+  </xsl:template>
+  
 </xsl:stylesheet>

@@ -233,18 +233,23 @@ public class XSLWebServlet extends HttpServlet {
       XsltTransformer firstTransformer = transformers.get(0);      
       XsltTransformer lastTransformer = transformers.get(transformers.size()-1);
       
-      XsltExecutable lastUserExecutable = executables.get(executables.size()-2);
-      Properties outputProperties = lastUserExecutable.getUnderlyingCompiledStylesheet().getOutputProperties();      
+      Properties outputProperties = null;
+      if (executables.size() >= 2) {
+        XsltExecutable lastUserExecutable = executables.get(executables.size()-2);
+        outputProperties = lastUserExecutable.getUnderlyingCompiledStylesheet().getOutputProperties();      
+      }
             
       OutputStream os = (developmentMode) ? new ByteArrayOutputStream() : respOs;
-      Serializer serializer = webApp.getProcessor().newSerializer(os);         
-      for (String key : outputProperties.stringPropertyNames()) {
-        String value = outputProperties.getProperty(key);
-        Property prop = Property.get(key);
-        if (prop == null) {
-          continue;          
+      Serializer serializer = webApp.getProcessor().newSerializer(os);
+      if (outputProperties != null) {
+        for (String key : outputProperties.stringPropertyNames()) {
+          String value = outputProperties.getProperty(key);
+          Property prop = Property.get(key);
+          if (prop == null) {
+            continue;          
+          }
+          serializer.setOutputProperty(prop, value);                      
         }
-        serializer.setOutputProperty(prop, value);                      
       }
       
       XMLStreamWriter xsw = new CleanupXMLStreamWriter(serializer.getXMLStreamWriter());

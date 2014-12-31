@@ -22,26 +22,32 @@ public class GetCacheValue extends ExtensionFunctionDefinition {
 
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_WEBAPP, "get-cache-value");
 
+  @Override
   public StructuredQName getFunctionQName() {
     return qName;
   }
 
+  @Override
   public int getMinimumNumberOfArguments() {
     return 2;
   }
 
+  @Override
   public int getMaximumNumberOfArguments() {
     return 2;
   }
 
+  @Override
   public SequenceType[] getArgumentTypes() {    
     return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.SINGLE_STRING };
   }
 
+  @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
     return SequenceType.ANY_SEQUENCE;
   }
 
+  @Override
   public ExtensionFunctionCall makeCallExpression() {
     return new GetCacheValueCall() {            
       @Override

@@ -40,6 +40,11 @@ public class Headers extends ExtensionFunctionDefinition {
   public SequenceType[] getArgumentTypes() {    
     return new SequenceType[] { SequenceType.SINGLE_NODE };
   }
+  
+  @Override
+  public boolean hasSideEffects() {    
+    return true;
+  }
 
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    

@@ -12,6 +12,7 @@
   <xsl:param name="resp:response"/>  
   
   <xsl:template match="/">
+    <xsl:apply-templates select="resp:response"/>
     <xsl:apply-templates select="resp:response/(resp:headers|resp:session|resp:cookies)"/>       
     <xsl:sequence select="resp:response/resp:body/node()"/>
   </xsl:template>

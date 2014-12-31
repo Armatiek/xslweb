@@ -19,26 +19,32 @@ public class UUID extends ExtensionFunctionDefinition {
 
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_UUID, "uuid");
 
+  @Override
   public StructuredQName getFunctionQName() {
     return qName;
   }
 
+  @Override
   public int getMinimumNumberOfArguments() {
     return 0;
   }
 
+  @Override
   public int getMaximumNumberOfArguments() {
     return 0;
   }
 
+  @Override
   public SequenceType[] getArgumentTypes() {
     return new SequenceType[] { };
   }
 
+  @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
     return SequenceType.SINGLE_STRING;
   }
 
+  @Override
   public ExtensionFunctionCall makeCallExpression() {
     return new UUIDCall();
   }

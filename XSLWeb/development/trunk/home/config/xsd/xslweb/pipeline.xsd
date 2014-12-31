@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xslweb="http://www.armatiek.com/xslweb/pipeline" targetNamespace="http://www.armatiek.com/xslweb/pipeline" elementFormDefault="qualified">
-  
+
   <xs:import namespace="http://www.w3.org/2010/xslt-xquery-serialization" schemaLocation="../w3c/schema-for-serialization-parameters.xsd"/>
-  
+
   <xs:element name="pipeline">
     <xs:complexType>
       <xs:sequence>
@@ -39,6 +39,16 @@
           </xs:complexType>
         </xs:element>
       </xs:sequence>
+      <xs:attribute name="cache-key" type="xs:string" use="optional"/>
+      <xs:attribute name="cache-timeout" type="xs:integer" use="optional" default="60"/>
+      <xs:attribute name="cache-scope" use="optional" default="context">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="context"/>
+            <xs:enumeration value="session"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
 </xs:schema>
