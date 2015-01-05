@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xslweb="http://www.armatiek.com/xslweb/pipeline" targetNamespace="http://www.armatiek.com/xslweb/pipeline" elementFormDefault="qualified">
-
   <xs:import namespace="http://www.w3.org/2010/xslt-xquery-serialization" schemaLocation="../w3c/schema-for-serialization-parameters.xsd"/>
-
   <xs:element name="pipeline">
     <xs:complexType>
       <xs:sequence>
@@ -38,14 +36,32 @@
             <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
           </xs:complexType>
         </xs:element>
+        <xs:element minOccurs="0" name="json-serializer">
+          <xs:complexType/>
+          <!--
+          <xs:complexType>            
+            <xs:attribute name="name" type="xs:string" use="optional"/>            
+            <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
+            <xs:attribute name="debug" type="xs:boolean" use="optional" default="false"/>
+            <xs:attribute name="use-rabbitfish" type="xs:boolean" use="optional" default="false"/>
+            <xs:attribute name="use-badgerfish" type="xs:boolean" use="optional" default="false"/>
+            <xs:attribute name="use-namespaces" type="xs:boolean" use="optional" default="false"/>
+            <xs:attribute name="use-rayfish" type="xs:boolean" use="optional" default="false"/>
+            <xs:attribute name="jsonp" type="xs:string" use="optional" default="''"/>
+            <xs:attribute name="skip-root" type="xs:boolean" use="optional" default="false"/>           
+          </xs:complexType>
+          -->
+        </xs:element>
       </xs:sequence>
-      <xs:attribute name="cache-key" type="xs:string" use="optional"/>
-      <xs:attribute name="cache-timeout" type="xs:integer" use="optional" default="60"/>
-      <xs:attribute name="cache-scope" use="optional" default="context">
+      <xs:attribute name="cache" type="xs:boolean" use="optional" default="false"/>
+      <xs:attribute name="cache-key" type="xs:string" use="optional"/>      
+      <xs:attribute name="cache-time-to-live" type="xs:integer" use="optional" default="60"/>
+      <xs:attribute name="cache-time-to-idle" type="xs:integer" use="optional" default="60"/>      
+      <xs:attribute name="cache-scope" use="optional" default="webapp">
         <xs:simpleType>
           <xs:restriction base="xs:string">
-            <xs:enumeration value="context"/>
-            <xs:enumeration value="session"/>
+            <xs:enumeration value="webapp"/>
+            <xs:enumeration value="user"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>

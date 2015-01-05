@@ -6,8 +6,7 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
   xmlns:req="http://www.armatiek.com/xslweb/request"
   xmlns:resp="http://www.armatiek.com/xslweb/response"
-  xmlns:log="http://www.armatiek.com/xslweb/functions/log"
-  xmlns:err="http://expath.org/ns/error"  
+  xmlns:log="http://www.armatiek.com/xslweb/functions/log"   
   xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization"
   exclude-result-prefixes="#all"
   version="2.0">
@@ -43,7 +42,7 @@
             <output:omit-xml-declaration value="yes"/>
           </output:serialization-parameters>  
         </xsl:variable>
-        <xsl:value-of select="if (empty(log:log('INFO', ($node-1, $node-2, $node-3), $output-parameters))) then () else (error(xs:QName('err:XSLWEB0001'), 'Could not log message'))"/>
+        <xsl:sequence select="log:log('INFO', ($node-1, $node-2, $node-3), $output-parameters)"/>
       </body>
     </html>
   </xsl:template>

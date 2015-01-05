@@ -65,6 +65,12 @@
           <li>
             <a href="{$path}/log/log.html">Logging</a>
           </li>
+          <li>
+            <a href="{$path}/json/json.html">JSON serialization</a>
+          </li>
+          <li>
+            <a href="{$path}/cache/cache.html">Caching</a>
+          </li>
         </ul>
       </body>
     </html>

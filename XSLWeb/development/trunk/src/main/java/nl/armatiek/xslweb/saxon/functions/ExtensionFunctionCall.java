@@ -85,15 +85,6 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     return atomicValue;
   }
   
-  /*
-  protected void serialize(NodeInfo nodeInfo, Result result, Properties props) throws XPathException {
-    Configuration config = nodeInfo.getConfiguration();
-    Receiver serializer = config.getSerializerFactory().getReceiver(result, 
-        config.makePipelineConfiguration(), props != null ? props : new Properties());
-    nodeInfo.copy(serializer, NodeInfo.ALL_NAMESPACES, 0);
-  }
-  */
-  
   protected NodeInfo unwrapNodeInfo(NodeInfo nodeInfo) {
     if (nodeInfo != null && nodeInfo.getNodeKind() == Type.DOCUMENT) {
       nodeInfo = nodeInfo.iterateAxis(AxisInfo.CHILD, NodeKindTest.ELEMENT).next();

@@ -7,10 +7,23 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XdmValue;
+import net.sf.saxon.s9api.XsltTransformer;
+import net.sf.saxon.value.ObjectValue;
+import nl.armatiek.xslweb.configuration.Context;
+import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.configuration.Parameter;
+import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.error.XSLWebException;
 
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
@@ -155,5 +168,33 @@ public class XSLWebUtils {
       }
     }
     return sb.toString();
+  }
+  
+  public static void setPropertyParameters(XsltTransformer transformer, WebApp webApp, File homeDir) throws IOException {
+    Properties props = Context.getInstance().getProperties();
+    for (String key : props.stringPropertyNames()) {
+      String value = props.getProperty(key);      
+      transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, key), new XdmAtomicValue(value));
+    }    
+    transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "home-dir"), new XdmAtomicValue(homeDir.getAbsolutePath()));
+    transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "webapp-dir"), new XdmAtomicValue(webApp.getHomeDir().getAbsolutePath()));
+    transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "development-mode"), new XdmAtomicValue(webApp.getDevelopmentMode()));
+  }
+  
+  public static void setParameters(XsltTransformer transformer, List<Parameter> parameters) throws IOException {
+    if (parameters == null) {
+      return;
+    }
+    for (Parameter param : parameters) {
+      QName qname = (param.getURI() != null) ? new QName(param.getURI(), param.getName()) : new QName(param.getName());                 
+      transformer.setParameter(qname, new XdmValue(param.getValue()));                  
+    }        
+  }
+  
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public static void setObjectParameters(XsltTransformer transformer, WebApp webApp, HttpServletRequest req, HttpServletResponse resp) throws IOException {            
+    transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_REQUEST, "request"),  XdmValue.wrap(new ObjectValue(req)));
+    transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "response"),  XdmValue.wrap(new ObjectValue(resp)));
+    transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_WEBAPP, "webapp"),  XdmValue.wrap(new ObjectValue(webApp)));               
   }
 }

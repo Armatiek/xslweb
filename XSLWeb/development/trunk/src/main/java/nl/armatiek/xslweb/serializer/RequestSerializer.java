@@ -1,4 +1,4 @@
-package nl.armatiek.xslweb.servlet;
+package nl.armatiek.xslweb.serializer;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +28,7 @@ import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.error.XSLWebException;
+import nl.armatiek.xslweb.servlet.BodyFilter;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.fileupload.FileItem;
@@ -56,10 +57,10 @@ public class RequestSerializer {
   private XMLReader xmlReader;  
   private File reposDir; 
     
-  public RequestSerializer(HttpServletRequest req, WebApp webApp, boolean developmentMode) {
+  public RequestSerializer(HttpServletRequest req, WebApp webApp) {
     this.req = req;         
     this.webApp = webApp;
-    this.developmentMode = developmentMode;    
+    this.developmentMode = webApp.getDevelopmentMode();    
   }
     
   public String serializeToXML() throws Exception {
