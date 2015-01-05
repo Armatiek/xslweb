@@ -40,7 +40,7 @@ public class Serialize extends ExtensionFunctionDefinition {
 
   @Override
   public SequenceType[] getArgumentTypes() {
-    return new SequenceType[] { SequenceType.ANY_SEQUENCE, SequenceType.OPTIONAL_NODE };
+    return new SequenceType[] { SequenceType.ANY_SEQUENCE, SequenceType.SINGLE_NODE };
   }
 
   @Override
@@ -62,7 +62,7 @@ public class Serialize extends ExtensionFunctionDefinition {
         props = getOutputProperties((NodeInfo) arguments[1].head());
       }
       StringWriter sw = new StringWriter();
-      serialize(arguments[1], sw, props);
+      serialize(arguments[0], sw, props);
       return StringValue.makeStringValue(sw.toString());              
     }
   }

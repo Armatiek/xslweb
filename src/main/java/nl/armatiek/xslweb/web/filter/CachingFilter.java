@@ -31,7 +31,6 @@ public class CachingFilter extends SimpleCachingHeadersPageCachingFilter  {
     } else {
       key = webApp.getName() + "-" + key;
     }                   
-    request.setAttribute(Definitions.ATTRNAME_CACHEKEY, key);
     return key;
   }
 

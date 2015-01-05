@@ -12,7 +12,7 @@ import net.sf.saxon.Configuration;
 import net.sf.saxon.s9api.Processor;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.Parameter;
-import nl.armatiek.xslweb.utils.SerializingContentHandler;
+import nl.armatiek.xslweb.xml.SerializingContentHandler;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +29,7 @@ public class PipelineHandler implements ContentHandler {
   private int cacheTimeToLive = 60;
   private int cacheTimeToIdle = 60;
   private String cacheScope;
+  private boolean cacheHeaders;
   private SerializingContentHandler serializingHandler;
   private OutputStream os;
   private StringBuilder chars = new StringBuilder();
@@ -159,6 +160,7 @@ public class PipelineHandler implements ContentHandler {
             cacheTimeToLive = Integer.parseInt(getAttribute(atts, "cache-time-to-live", "60"));
             cacheTimeToIdle = Integer.parseInt(getAttribute(atts, "cache-time-to-idle", "60"));
             cacheScope = getAttribute(atts, "cache-scope", "webapp");
+            cacheHeaders = getAttribute(atts, "cache-headers", "false").equals("true");
           }
         } else if (localName.equals("json-serializer")) {                    
           String name = getAttribute(atts, "name", "json-serializer-" + Integer.toString(pipelineSteps.size()+1));
@@ -240,6 +242,10 @@ public class PipelineHandler implements ContentHandler {
   
   public String getCacheScope() {
     return cacheScope;
+  }
+  
+  public boolean getCacheHeaders() {
+    return cacheHeaders;
   }
   
   private String getAttribute(Attributes attr, String name, String defaultValue) {

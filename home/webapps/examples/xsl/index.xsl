@@ -60,6 +60,9 @@
             <a href="{$path}/custom-extension-function.html">Custom XPath extension function</a>
           </li>
           <li>
+            <a href="{$path}/cookies.html">Cookies</a>
+          </li>
+          <li>
             <a href="{$path}/authentication/authentication.html">Authentication (credentials: guest/secret)</a>
           </li>
           <li>

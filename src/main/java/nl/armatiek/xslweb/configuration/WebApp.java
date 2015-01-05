@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -24,6 +23,12 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.config.PersistenceConfiguration;
+import net.sf.ehcache.config.PersistenceConfiguration.Strategy;
+import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.XsltCompiler;
@@ -61,9 +66,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
 public class WebApp implements ErrorHandler {
   
   private static final Logger logger = LoggerFactory.getLogger(WebApp.class);
@@ -73,9 +75,6 @@ public class WebApp implements ErrorHandler {
   
   private Map<String, Collection<Attribute>> attributes = 
       Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
-  
-  private Map<String, Cache<String, Collection<Attribute>>> caches = 
-      Collections.synchronizedMap(new HashMap<String, Cache<String, Collection<Attribute>>>());
       
   private File definition;
   private File homeDir;  
@@ -364,23 +363,30 @@ public class WebApp implements ErrorHandler {
     attributes.put(name, attrs);
   }
   
-  public Collection<Attribute> getCacheValue(String cacheName, String keyName) {    
-    Cache<String, Collection<Attribute>> cache = 
-        (Cache<String, Collection<Attribute>>) caches.get(cacheName);
+  @SuppressWarnings("unchecked")
+  public Collection<Attribute> getCacheValue(String cacheName, String keyName) {
+    Cache cache = Context.getInstance().getCacheManager().getCache(cacheName);
     if (cache == null) {
       return null;
     }    
-    return cache.getIfPresent(keyName);                
+    return (Collection<Attribute>) cache.get(keyName).getObjectValue();
   }
   
-  public void setCacheValue(String cacheName, String keyName, Collection<Attribute> attrs, long duration) {
-    Cache<String, Collection<Attribute>> cache = 
-        (Cache<String, Collection<Attribute>>) caches.get(cacheName);
+  public void setCacheValue(String cacheName, String keyName, Collection<Attribute> attrs, int duration) {
+    CacheManager manager = Context.getInstance().getCacheManager();
+    Cache cache = manager.getCache(cacheName);
     if (cache == null) {      
-      cache = CacheBuilder.newBuilder().expireAfterWrite(duration, TimeUnit.SECONDS).build();
-      caches.put(cacheName, cache);
+      cache = new Cache(
+          new CacheConfiguration(cacheName, 1000)
+            .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LRU)
+            .eternal(false)
+            .timeToLiveSeconds(60)
+            .timeToIdleSeconds(60)
+            .diskExpiryThreadIntervalSeconds(120)
+            .persistence(new PersistenceConfiguration().strategy(Strategy.LOCALTEMPSWAP)));
+      manager.addCache(cache);
     }            
-    cache.put(keyName, attrs);
+    cache.put(new net.sf.ehcache.Element(keyName, attrs, false, duration, duration));
   }
   
   @Override

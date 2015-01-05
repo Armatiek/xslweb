@@ -12,7 +12,7 @@
   
   <xsl:include href="../../../xsl/system/authentication/basic-authentication.xsl"/>
   
-  <xsl:param name="config:development-mode" as="xs:string"/>
+  <xsl:param name="config:development-mode" as="xs:boolean"/>
       
   <!-- Authentication functions: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    
@@ -44,17 +44,20 @@
       </authentication>  
     </xsl:if>
   </xsl:function>
-  
-  <xsl:template match="/">
-    <xsl:apply-templates/>
-  </xsl:template>
-  
+   
   <xsl:template match="/req:request[req:path = '/']">    
     <pipeline:pipeline>
       <pipeline:transformer name="index" xsl-path="index.xsl" log="true"/>  
     </pipeline:pipeline>
   </xsl:template>
       
+  <xsl:template match="/req:request[req:path = '/hello-world.html']">   
+    <pipeline:pipeline>
+      <pipeline:transformer name="hello-world" xsl-path="hello-world/hello-world.xsl" log="true"/>
+    </pipeline:pipeline>              
+  </xsl:template>
+      
+  <!--
   <xsl:template match="/req:request[req:path = '/hello-world.html']">
     <xsl:variable name="lang-value" select="req:parameters/req:parameter[@name='lang']/@value" as="xs:string?"/>    
     <xsl:variable name="lang" select="if ($lang-value) then $lang-value else 'en'" as="xs:string"/>    
@@ -62,6 +65,7 @@
       <pipeline:transformer name="hello-world" xsl-path="{concat('hello-world/hello-world-', $lang, '.xsl')}" log="true"/>
     </pipeline:pipeline>              
   </xsl:template>
+  -->
   
   <xsl:template match="/req:request[req:path = '/static.html']">    
     <pipeline:pipeline>
@@ -84,6 +88,12 @@
   <xsl:template match="/req:request[req:path = '/upload.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="upload-form" xsl-path="upload/upload-form.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/cookies.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="cookies" xsl-path="cookies/cookies.xsl" log="true"/>  
     </pipeline:pipeline>
   </xsl:template>
   
@@ -148,10 +158,12 @@
       cache-key="{concat(/*/req:method, /*/req:request-URI, /*/req:query-string)}" 
       cache-time-to-live="320"
       cache-time-to-idle="320"
-      cache-scope="webapp">
+      cache-scope="webapp"
+      cache-headers="false">
       <pipeline:transformer name="cache" xsl-path="cache/cache.xsl" log="true"/>
     </pipeline:pipeline>
-    
   </xsl:template>
+  
+  <xsl:template match="text()"/>
   
 </xsl:stylesheet>
