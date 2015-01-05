@@ -46,67 +46,112 @@
   </xsl:function>
   
   <xsl:template match="/">
-    <pipeline:pipeline>
-      <xsl:apply-templates/>
-    </pipeline:pipeline>
+    <xsl:apply-templates/>
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/']">    
-    <pipeline:transformer name="index" xsl-path="index.xsl" log="true"/>              
+    <pipeline:pipeline>
+      <pipeline:transformer name="index" xsl-path="index.xsl" log="true"/>  
+    </pipeline:pipeline>
   </xsl:template>
       
   <xsl:template match="/req:request[req:path = '/hello-world.html']">
     <xsl:variable name="lang-value" select="req:parameters/req:parameter[@name='lang']/@value" as="xs:string?"/>    
     <xsl:variable name="lang" select="if ($lang-value) then $lang-value else 'en'" as="xs:string"/>    
-    <pipeline:transformer name="hello-world" xsl-path="{concat('hello-world/hello-world-', $lang, '.xsl')}" log="true"/>              
+    <pipeline:pipeline>
+      <pipeline:transformer name="hello-world" xsl-path="{concat('hello-world/hello-world-', $lang, '.xsl')}" log="true"/>
+    </pipeline:pipeline>              
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/static.html']">    
-    <pipeline:transformer name="static" xsl-path="static/static.xsl" log="true"/>              
+    <pipeline:pipeline>
+      <pipeline:transformer name="static" xsl-path="static/static.xsl" log="true"/>  
+    </pipeline:pipeline>
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/expath-file.html']">    
-    <pipeline:transformer name="expath-file" xsl-path="expath-file/expath-file.xsl" log="true"/>              
+    <pipeline:pipeline>
+      <pipeline:transformer name="expath-file" xsl-path="expath-file/expath-file.xsl" log="true"/>  
+    </pipeline:pipeline>
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/expath-http.html']">    
-    <pipeline:transformer name="expath-file" xsl-path="expath-http/expath-http.xsl" log="true"/>              
+    <pipeline:pipeline>
+      <pipeline:transformer name="expath-file" xsl-path="expath-http/expath-http.xsl" log="true"/>  
+    </pipeline:pipeline>
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/upload.html']">    
-    <pipeline:transformer name="upload-form" xsl-path="upload/upload-form.xsl" log="true"/>              
+    <pipeline:pipeline>
+      <pipeline:transformer name="upload-form" xsl-path="upload/upload-form.xsl" log="true"/>  
+    </pipeline:pipeline>
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/upload/upload-save.html']">    
-    <pipeline:transformer name="upload-save" xsl-path="upload/upload-save.xsl" log="true"/>              
+    <pipeline:pipeline>
+      <pipeline:transformer name="upload-save" xsl-path="upload/upload-save.xsl" log="true"/>   
+    </pipeline:pipeline>
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/execute-writetime-job.html']">    
-    <pipeline:transformer name="execute-writetime-job" xsl-path="job-scheduling/writetime-job.xsl" log="true"/>
+    <pipeline:pipeline>
+      <pipeline:transformer name="execute-writetime-job" xsl-path="job-scheduling/writetime-job.xsl" log="true"/>  
+    </pipeline:pipeline>
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/email.html']">    
-    <pipeline:transformer name="email-form" xsl-path="email/email-form.xsl" log="true"/>
+    <pipeline:pipeline>
+      <pipeline:transformer name="email-form" xsl-path="email/email-form.xsl" log="true"/>  
+    </pipeline:pipeline>
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/email/email-send.html']">    
-    <pipeline:transformer name="email-send" xsl-path="email/email-send.xsl" log="true"/>
+    <pipeline:pipeline>
+      <pipeline:transformer name="email-send" xsl-path="email/email-send.xsl" log="true"/>  
+    </pipeline:pipeline>
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/attributes.html']">    
-    <pipeline:transformer name="email-send" xsl-path="attributes/attributes.xsl" log="true"/>
+    <pipeline:pipeline>
+      <pipeline:transformer name="email-send" xsl-path="attributes/attributes.xsl" log="true"/>  
+    </pipeline:pipeline>
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/custom-extension-function.html']">    
-    <pipeline:transformer name="custom-extension-function" xsl-path="custom-extension-function/custom-extension-function.xsl" log="true"/>
+    <pipeline:pipeline>
+      <pipeline:transformer name="custom-extension-function" xsl-path="custom-extension-function/custom-extension-function.xsl" log="true"/>  
+    </pipeline:pipeline>
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/authentication/authentication.html']">    
-    <pipeline:transformer name="authentication" xsl-path="authentication/authentication.xsl" log="true"/>
+    <pipeline:pipeline>
+      <pipeline:transformer name="authentication" xsl-path="authentication/authentication.xsl" log="true"/>  
+    </pipeline:pipeline>
   </xsl:template>
   
   <xsl:template match="/req:request[req:path = '/log/log.html']">    
-    <pipeline:transformer name="log" xsl-path="log/log.xsl" log="true"/>
+    <pipeline:pipeline>
+      <pipeline:transformer name="log" xsl-path="log/log.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/json/json.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="json" xsl-path="json/json.xsl" log="true"/>
+      <pipeline:json-serializer name="json" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/cache/cache.html']">    
+    <pipeline:pipeline 
+      cache="true" 
+      cache-key="{concat(/*/req:method, /*/req:request-URI, /*/req:query-string)}" 
+      cache-time-to-live="320"
+      cache-time-to-idle="320"
+      cache-scope="webapp">
+      <pipeline:transformer name="cache" xsl-path="cache/cache.xsl" log="true"/>
+    </pipeline:pipeline>
+    
   </xsl:template>
   
 </xsl:stylesheet>

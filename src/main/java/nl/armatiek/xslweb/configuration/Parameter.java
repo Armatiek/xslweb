@@ -23,11 +23,16 @@ public class Parameter {
   private String type;
   private List<XdmItem> value;
   
-  public Parameter(Processor processor, String uri, String name, String type) {    
+  public Parameter(Processor processor, String uri, String name, String type, String value) {    
     this.itemTypeFactory = new ItemTypeFactory(processor);
     this.uri = uri;
     this.name = name;
-    this.type = type;
+    this.type = type;    
+    addValue(value);
+  }
+  
+  public Parameter(Processor processor, String uri, String name, String type) {    
+    this(processor, uri, name, type, null);
   }
   
   public Parameter(Processor processor, Element paramElem) {
@@ -40,6 +45,9 @@ public class Parameter {
   }
   
   public void addValue(String value) {
+    if (value == null) {
+      return;
+    }
     try {
       if (this.value == null) {
         this.value = new ArrayList<XdmItem>();

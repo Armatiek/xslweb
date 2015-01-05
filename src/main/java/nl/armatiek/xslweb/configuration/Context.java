@@ -20,6 +20,7 @@ import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import net.sf.ehcache.CacheManager;
 import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
@@ -42,6 +43,7 @@ public class Context {
   
   private Map<String, WebApp> webApps = Collections.synchronizedMap(new HashMap<String, WebApp>());
   private Map<String, Collection<Attribute>> attributes = Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
+  private CacheManager cacheManager;
   private FileAlterationMonitor monitor;
   private Schema webAppSchema;
   private Properties properties;  
@@ -70,6 +72,7 @@ public class Context {
     initProperties();      
     initXMLSchemas();
     initFileAlterationObservers();
+    initCacheManager();
     initWebApps();
     
     logger.info("Starting webapps file alteration monitor ...");
@@ -88,6 +91,9 @@ public class Context {
     for (WebApp app : webApps.values()) {
       app.close();      
     }
+    
+    logger.info("Shutting down cache manager ...");
+    cacheManager.shutdown();
         
     logger.info("XSLWeb Context closed.");
   }
@@ -238,6 +244,21 @@ public class Context {
         logger.error(String.format("Error creating webapp \"%s\"", file.getAbsolutePath()), e);
       }
     }    
+  }
+  
+  private void initCacheManager() {
+    logger.info("Initializing cache manager ...");
+    File confFile = new File(getHomeDir(), "config" + File.separatorChar + Definitions.FILENAME_EHCACHE);
+    if (confFile.isFile()) {
+      cacheManager = new CacheManager(confFile.getAbsolutePath());
+    } else {
+      logger.error("Could not load cache manager configuration file \"" + confFile.getAbsolutePath() + "\"");
+      cacheManager = CacheManager.getInstance();      
+    }    
+  }
+  
+  public CacheManager getCacheManager() {
+    return cacheManager;
   }
   
   public File getHomeDir() {

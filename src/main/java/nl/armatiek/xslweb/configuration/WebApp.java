@@ -76,7 +76,7 @@ public class WebApp implements ErrorHandler {
   
   private Map<String, Cache<String, Collection<Attribute>>> caches = 
       Collections.synchronizedMap(new HashMap<String, Cache<String, Collection<Attribute>>>());
-  
+      
   private File definition;
   private File homeDir;  
   private String name;
@@ -161,7 +161,7 @@ public class WebApp implements ErrorHandler {
       }
     }
     
-    initFileAlterationObservers();
+    initFileAlterationObservers();    
   }
   
   public void open() throws Exception {
@@ -174,7 +174,8 @@ public class WebApp implements ErrorHandler {
       logger.info("Starting Quartz scheduler ...");    
       scheduler.start();    
       logger.info("Quartz scheduler started.");
-    }    
+    }
+    
     logger.info(String.format("Webapp \"%s\" opened.", name));    
   }
   
@@ -189,6 +190,7 @@ public class WebApp implements ErrorHandler {
       scheduler.shutdown(!developmentMode);
       logger.info("Shutdown of Quartz scheduler complete.");
     }
+    
     logger.info(String.format("Webapp \"%s\" closed.", name));
   }
   
@@ -327,7 +329,7 @@ public class WebApp implements ErrorHandler {
         spf.setValidating(false);
         SAXParser parser = spf.newSAXParser();
         XMLReader reader = parser.getXMLReader();        
-        Source source = new SAXSource(reader, new InputSource(transformationPath));        
+        Source source = new SAXSource(reader, new InputSource(transformationPath));         
         XsltCompiler comp = processor.newXsltCompiler();
         comp.setErrorListener(errorListener);
         templates = comp.compile(source);        

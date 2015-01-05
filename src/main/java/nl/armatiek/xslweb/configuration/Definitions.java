@@ -14,6 +14,7 @@ public class Definitions {
   public final static String PATHNAME_REQUESTDISPATCHER_XSL    = "xsl/request-dispatcher.xsl";
   public final static String FILENAME_PROPERTIES               = "xslweb.properties";
   public final static String FILENAME_QUARTZ                   = "xslweb-quartz.properties";
+  public final static String FILENAME_EHCACHE                  = "xslweb-ehcache.xml";
   
   public final static String XML_EXTENSION                     = "xml";
   public final static String XSL_EXTENSION                     = "xsl";
@@ -50,6 +51,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_SERIALIZE  = NAMESPACEURI_XSLWEB_FUNCTIONS + "/serialize";
   public final static String NAMESPACEURI_XSLWEB_FX_UUID       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/uuid";
   public final static String NAMESPACEURI_XSLWEB_FX_WEBAPP     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/webapp";
+  public final static String NAMESPACEURI_XSLWEB_FX_CACHE      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/cache";
   public final static String NAMESPACEURI_XSLWEB_REQUEST       = NAMESPACEURI_XSLWEB + "/request";
   public final static String NAMESPACEURI_XSLWEB_RESPONSE      = NAMESPACEURI_XSLWEB + "/response";
   public final static String NAMESPACEURI_XSLWEB_FX_SESSION    = NAMESPACEURI_XSLWEB + "/session";
@@ -82,5 +84,14 @@ public class Definitions {
   public final static String PROPERTYNAME_STATICPATTERN        = "xslweb.staticcontentpattern";
   public final static String PROPERTYNAME_DYNAMICPATTERN       = "xslweb.dynamiccontentpattern";
   public final static String PROPERTYNAME_UPLOAD_MAX_SIZE      = "xslweb.uploadmaxsize";
+  
+  public final static String ATTRNAME_WEBAPP                   = "xslweb.webapp";
+  public final static String ATTRNAME_REQUESTXML               = "xslweb.requestxml";
+  public final static String ATTRNAME_PIPELINEHANDLER          = "xslweb.pipelinehandler";
+  public final static String ATTRNAME_CACHEKEY                 = "xslweb.cachekey";
+  public final static String ATTRNAME_CACHETTL                 = "xslweb.cachettl";
+  public final static String ATTRNAME_CACHETTI                 = "xslweb.cachetti";
+  
+  public final static String CACHENAME_RESPONSECACHINGFILTER   = "XSLWebResponseCachingFilter";
   
 }

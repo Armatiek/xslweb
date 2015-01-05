@@ -24,8 +24,10 @@ import org.xml.sax.SAXException;
 public class PipelineHandler implements ContentHandler {
   
   private ArrayList<PipelineStep> pipelineSteps = new ArrayList<PipelineStep>();
+  private boolean cache;
   private String cacheKey;
-  private int cacheTimeout = -1;
+  private int cacheTimeToLive = 60;
+  private int cacheTimeToIdle = 60;
   private String cacheScope;
   private SerializingContentHandler serializingHandler;
   private OutputStream os;
@@ -151,12 +153,45 @@ public class PipelineHandler implements ContentHandler {
               getAttribute(atts, "type", "xs:string"));                
           step.addParameter(this.parameter);          
         } else if (localName.equals("pipeline")) {
-          cacheKey = getAttribute(atts, "cache-key", null);
-          if (cacheKey != null) {
-            cacheTimeout = Integer.parseInt(getAttribute(atts, "cache-timeout", "60"));
-            cacheScope = getAttribute(atts, "cache-scope", "context");
+          cache = getAttribute(atts, "cache", "false").equals("true");
+          if (cache) {
+            cacheKey = getAttribute(atts, "cache-key", null);          
+            cacheTimeToLive = Integer.parseInt(getAttribute(atts, "cache-time-to-live", "60"));
+            cacheTimeToIdle = Integer.parseInt(getAttribute(atts, "cache-time-to-idle", "60"));
+            cacheScope = getAttribute(atts, "cache-scope", "webapp");
           }
-        } else if (localName.equals("value")) {
+        } else if (localName.equals("json-serializer")) {                    
+          String name = getAttribute(atts, "name", "json-serializer-" + Integer.toString(pipelineSteps.size()+1));
+          boolean log = getAttribute(atts, "log", "false").equals("true");          
+          JSONSerializerStep step = new JSONSerializerStep(name, log);
+          pipelineSteps.add(step);
+          
+          /*
+          SystemTransformerStep step = new SystemTransformerStep("system/json/xml-to-json.xsl", name, log);
+          pipelineSteps.add(step);          
+          String debug = getAttribute(atts, "debug", null);
+          String useRabbitfish = getAttribute(atts, "use-rabbitfish", null);
+          String useBadgerfish = getAttribute(atts, "use-badgerfish", null);
+          String useNamespaces = getAttribute(atts, "use-namespaces", null);
+          String useRayfish = getAttribute(atts, "use-rayfish", null);
+          String jsonP = getAttribute(atts, "jsonp", null);
+          String skipRoot = getAttribute(atts, "skip-root", null);
+          if (debug != null)
+            step.addParameter(new Parameter(processor, null, "debug", "xs:boolean", debug)); 
+          if (useRabbitfish != null)
+            step.addParameter(new Parameter(processor, null, "use-rabbitfish", "xs:boolean", useRabbitfish));
+          if (useBadgerfish != null)
+            step.addParameter(new Parameter(processor, null, "use-badgerfish", "xs:boolean", debug));
+          if (useNamespaces != null)
+            step.addParameter(new Parameter(processor, null, "use-namespaces", "xs:boolean", debug));
+          if (useRayfish != null)
+            step.addParameter(new Parameter(processor, null, "use-rayfish", "xs:boolean", debug));
+          if (jsonP != null)
+            step.addParameter(new Parameter(processor, null, "jsonp", "xs:string", debug));
+          if (skipRoot != null)
+            step.addParameter(new Parameter(processor, null, "skip-root", "xs:boolean", debug));
+          */                             
+        } else if (localName.equals("value")) {          
         } else {
           throw new SAXException(String.format("Pipeline element \"%s\" not supported", localName));
         }
@@ -187,12 +222,20 @@ public class PipelineHandler implements ContentHandler {
     return this.pipelineSteps;
   }
   
+  public boolean getCache() {
+    return cache;
+  }
+  
   public String getCacheKey() {
     return cacheKey;
   }
   
-  public int getCacheTimeout() {
-    return cacheTimeout;
+  public int getCacheTimeToLive() {
+    return cacheTimeToLive;
+  }
+  
+  public int getCacheTimeToIdle() {
+    return cacheTimeToIdle;
   }
   
   public String getCacheScope() {

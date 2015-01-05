@@ -107,7 +107,10 @@ public class XSLWebInitializer implements Initializer {
     registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.SetCacheValue(), configuration);
     
     /* Email */
-    registerEXPathFunction(new SendMail(), configuration);   
+    registerEXPathFunction(new SendMail(), configuration);
+    
+    /* Cache */
+    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.cache.Remove(), configuration);
     
     /* Serialize */
     registerEXPathFunction(new Serialize(), configuration);   
