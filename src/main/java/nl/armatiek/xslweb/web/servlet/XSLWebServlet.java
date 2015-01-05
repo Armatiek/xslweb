@@ -41,8 +41,8 @@ import nl.armatiek.xslweb.pipeline.SerializerStep;
 import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
 import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
-import nl.armatiek.xslweb.servlet.CleanupXMLStreamWriter;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
+import nl.armatiek.xslweb.xml.CleanupXMLStreamWriter;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ProxyWriter;

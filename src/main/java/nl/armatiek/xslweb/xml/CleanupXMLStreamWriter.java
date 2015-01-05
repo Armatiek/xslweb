@@ -1,4 +1,4 @@
-package nl.armatiek.xslweb.servlet;
+package nl.armatiek.xslweb.xml;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;

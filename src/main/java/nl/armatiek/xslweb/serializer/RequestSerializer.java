@@ -28,7 +28,7 @@ import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.error.XSLWebException;
-import nl.armatiek.xslweb.servlet.BodyFilter;
+import nl.armatiek.xslweb.xml.BodyFilter;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.fileupload.FileItem;
