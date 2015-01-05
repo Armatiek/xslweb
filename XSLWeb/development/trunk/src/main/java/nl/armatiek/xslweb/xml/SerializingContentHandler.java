@@ -1,4 +1,4 @@
-package nl.armatiek.xslweb.utils;
+package nl.armatiek.xslweb.xml;
 
 import java.io.IOException;
 import java.io.OutputStream;

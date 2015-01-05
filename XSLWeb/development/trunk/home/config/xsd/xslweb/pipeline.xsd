@@ -65,6 +65,7 @@
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
+      <xs:attribute name="cache-headers" type="xs:boolean" use="optional" default="false"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>

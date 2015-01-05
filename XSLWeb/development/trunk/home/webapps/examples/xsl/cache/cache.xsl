@@ -4,32 +4,20 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
-  xmlns:req="http://www.armatiek.com/xslweb/request"
-  xmlns:resp="http://www.armatiek.com/xslweb/response"
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
+  <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template match="/">
-    <resp:response status="200">
-      <resp:body>
-        <xsl:call-template name="body"/>
-      </resp:body>
-    </resp:response>          
+  <xsl:template name="title" as="xs:string">Caching example</xsl:template>
+  
+  <xsl:template name="tab-contents-1">
+    <p>This output of this page will be cached by the caching framework of XSLWeb because 
+      of the caching attributes on the pipeline element of the current pipeline.</p>
   </xsl:template>
   
-  <xsl:template name="body">
-    <html>
-      <head>
-        <title>Caching example</title>
-      </head>
-      <body>
-        <h3>Caching example</h3>
-        <p>This output of this page will be cached by the caching framework of XSLWeb because 
-        of the caching attributes on the pipeline element of the current pipeline</p>
-      </body>
-    </html>
-  </xsl:template>
+  <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
+  
+  <xsl:variable name="dispatcher-match" as="xs:string">cache.html</xsl:variable>
   
 </xsl:stylesheet>

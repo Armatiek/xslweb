@@ -88,9 +88,6 @@ public class Definitions {
   public final static String ATTRNAME_WEBAPP                   = "xslweb.webapp";
   public final static String ATTRNAME_REQUESTXML               = "xslweb.requestxml";
   public final static String ATTRNAME_PIPELINEHANDLER          = "xslweb.pipelinehandler";
-  public final static String ATTRNAME_CACHEKEY                 = "xslweb.cachekey";
-  public final static String ATTRNAME_CACHETTL                 = "xslweb.cachettl";
-  public final static String ATTRNAME_CACHETTI                 = "xslweb.cachetti";
   
   public final static String CACHENAME_RESPONSECACHINGFILTER   = "XSLWebResponseCachingFilter";
   

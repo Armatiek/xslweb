@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Writer;
-import java.util.Date;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -19,7 +18,6 @@ import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.serializer.RequestSerializer;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,12 +42,7 @@ public class RequestSerializerFilter implements Filter {
       webApp = (WebApp) request.getAttribute(Definitions.ATTRNAME_WEBAPP);    
       RequestSerializer requestSerializer = new RequestSerializer(req, webApp);
       try {
-        StopWatch sw = new StopWatch();
-        sw.start();
         String requestXML = requestSerializer.serializeToXML();
-        sw.stop();
-        logger.info(sw.toString());
-        logger.info(new Date().toString());
         request.setAttribute(Definitions.ATTRNAME_REQUESTXML, requestXML);      
         if (webApp.getDevelopmentMode()) {
           logger.debug("----------\nREQUEST XML:" + lineSeparator + requestXML);                

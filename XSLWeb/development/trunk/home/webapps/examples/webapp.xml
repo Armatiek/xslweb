@@ -12,9 +12,9 @@
   <!-- Resources to serve straight away: -->
   <resources>
     <resource pattern="/favicon.ico" media-type="image/x-icon"/>    
-    <resource pattern="/images/.+\.png" media-type="image/png"/>
-    <resource pattern="/images/.+\.gif" media-type="image/gif"/>
-    <resource pattern="/images/.+\.(jpg|jpeg)" media-type="image/jpg"/>
+    <resource pattern="/(styles|images)/.+\.png" media-type="image/png"/>
+    <resource pattern="/(styles|images)/.+\.gif" media-type="image/gif"/>
+    <resource pattern="/(styles|images)/.+\.(jpg|jpeg)" media-type="image/jpg"/>
     <resource pattern="/scripts/.+\.js" media-type="text/javascript"/>
     <resource pattern="/styles/.+\.css" media-type="text/css"/>
     
