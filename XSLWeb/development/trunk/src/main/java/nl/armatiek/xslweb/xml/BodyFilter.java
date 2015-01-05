@@ -1,4 +1,4 @@
-package nl.armatiek.xslweb.servlet;
+package nl.armatiek.xslweb.xml;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
