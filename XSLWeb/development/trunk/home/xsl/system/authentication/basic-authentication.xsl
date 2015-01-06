@@ -15,8 +15,7 @@
   <xsl:variable name="session:attr-name-userprofile" as="xs:string">xslweb-userprofile</xsl:variable>
   
   <xsl:function name="auth:logout" as="xs:string*">
-    <xsl:value-of select="if (empty(session:set-attribute($session:attr-name-userprofile))) then () 
-      else (error(xs:QName('err:XSLWEB0001'), 'Could not set session attribute'))"/>
+    <xsl:sequence select="session:set-attribute($session:attr-name-userprofile)"/>
   </xsl:function>
     
   <xsl:function name="auth:credentials" as="xs:string*">    
@@ -38,8 +37,7 @@
             <xsl:variable name="user-profile" select="auth:login($credentials[1], $credentials[2])" as="element()?"/>
             <xsl:choose>
               <xsl:when test="$user-profile">
-                <xsl:value-of select="if (empty(session:set-attribute($session:attr-name-userprofile, $user-profile))) then () 
-                  else (error(xs:QName('err:XSLWEB0001'), 'Could not set session attribute'))"/>                
+                <xsl:value-of select="session:set-attribute($session:attr-name-userprofile, $user-profile)"/>                
                 <xsl:next-match/>    
               </xsl:when>
               <xsl:otherwise>
