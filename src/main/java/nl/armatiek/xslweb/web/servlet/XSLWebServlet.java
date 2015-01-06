@@ -124,7 +124,7 @@ public class XSLWebServlet extends HttpServlet {
       return;
     }
     
-    steps.add(new SystemTransformerStep("system/response/response.xsl", "client-response", true));
+    steps.add(new SystemTransformerStep("system/response/response.xsl", "client-response", false));
                      
     ArrayList<XsltExecutable> executables = new ArrayList<XsltExecutable>();
     ArrayList<XsltTransformer> transformers = new ArrayList<XsltTransformer>();
