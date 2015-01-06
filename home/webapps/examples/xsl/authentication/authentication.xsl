@@ -7,41 +7,42 @@
   xmlns:req="http://www.armatiek.com/xslweb/request"
   xmlns:resp="http://www.armatiek.com/xslweb/response" 
   xmlns:session="http://www.armatiek.com/xslweb/session"
+  xmlns:ser="http://www.armatiek.com/xslweb/functions/serialize"
+  xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization" 
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:import href="../common/xmlverbatim.xsl"/>
+  <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
+  <xsl:template name="title" as="xs:string">Authentication Example</xsl:template>
   
   <xsl:variable name="session:attr-name-userprofile" as="xs:string">xslweb-userprofile</xsl:variable>
   
-  <xsl:template match="/">
-    <resp:response status="200">
-      <resp:headers>               
-        <resp:header name="Expires">0</resp:header>
-        <resp:header name="Pragma">no-cache</resp:header>
-        <resp:header name="Cache-Control">no-store, no-cache, must-revalidate</resp:header>        
-      </resp:headers>      
-      <resp:body>
-        <xsl:call-template name="body"/>
-      </resp:body>
-    </resp:response>          
+  <xsl:template name="headers">
+    <resp:headers>               
+      <resp:header name="Expires">0</resp:header>
+      <resp:header name="Pragma">no-cache</resp:header>
+      <resp:header name="Cache-Control">no-store, no-cache, must-revalidate</resp:header>        
+    </resp:headers> 
   </xsl:template>
   
-  <xsl:template name="body">
-    <html>
-      <head>
-        <title>Authentication Example</title>
-        <link rel="stylesheet" type="text/css" href="{/*/req:context-path}{/*/req:webapp-path}/styles/xmlverbatim.css"/>
-      </head>
-      <body>        
-        <h3>Authentication Example</h3>
-        <p>You are authenticated!</p>
-        <p>This is your user profile stored in the session object:</p>
-        <xsl:apply-templates select="session:get-attribute($session:attr-name-userprofile)" mode="xmlverb"/>
-      </body>
-    </html>
+  <xsl:template name="tab-contents-1">
+    <p>You are authenticated!</p>
+    <p>This is your user profile stored in the session object:</p>
+    <pre class="prettyprint lang-xml linenums">
+      <xsl:sequence select="ser:serialize(session:get-attribute($session:attr-name-userprofile), $output-parameters)"/>
+    </pre>
   </xsl:template>
+  
+  <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
+  
+  <xsl:variable name="dispatcher-match" as="xs:string">authentication.html</xsl:variable>
+  
+  <xsl:variable name="output-parameters" as="node()">
+    <output:serialization-parameters>
+      <output:method value="xml"/>
+      <output:indent value="yes"/>
+    </output:serialization-parameters>  
+  </xsl:variable>
   
 </xsl:stylesheet>

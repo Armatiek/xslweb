@@ -11,18 +11,21 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Cookies example</xsl:template>
+  <xsl:template name="title" as="xs:string">Cookies example using Response XML</xsl:template>
   
   <xsl:template name="tab-contents-1">
-    <p>This example adds two cookies ("cookie-1" and "cookie-2") to the response using the extension function <i>resp:add-cookie($cookie as element(resp:cookie))</i>. 
+    <p>This example adds two cookies ("cookie-1" and "cookie-2") to the response using the Response XML. 
       The cookies are then stored in the browser of the client. If this page is requested again, the cookies will show up in the request XML.</p>
     <p>Important: Cookies don't work very well on the "localhost" domain. If you run XSLWeb on localhost, first add an entry:<br/><br/>
     127.0.0.1 localhost.com<br/><br/>
-      to your local hosts file and access this page using that domain or click on <a href="{concat('http://localhost.com:', /*/req:local-port, /*/req:context-path, '/examples/cookies.html')}">this</a> link.
+      to your local hosts file and access this page using that domain or click on <a href="{concat('http://localhost.com:', /*/req:local-port, /*/req:context-path, '/examples/cookies-response.html')}">this</a> link.
     </p>
-    
-    <!-- First cookie: -->
-    <xsl:variable name="cookie-1" as="node()">
+  </xsl:template>
+  
+  <xsl:template name="cookies">
+    <resp:cookies>
+      
+      <!-- First cookie: -->
       <resp:cookie>
         <resp:comment>Comment 1</resp:comment>
         <resp:domain>
@@ -37,10 +40,8 @@
         <resp:value>cookie-1-value</resp:value>
         <resp:version>0</resp:version>
       </resp:cookie>
-    </xsl:variable>
-    
-    <!-- Second cookie: -->
-    <xsl:variable name="cookie-2" as="node()">
+      
+      <!-- Second cookie: -->
       <resp:cookie>
         <resp:comment>Comment 2</resp:comment>
         <resp:domain>
@@ -55,15 +56,12 @@
         <resp:value>cookie-2-value</resp:value>
         <resp:version>0</resp:version>
       </resp:cookie>
-    </xsl:variable>
-    
-    <!-- Add cookies to response: -->
-    <xsl:sequence select="(resp:add-cookie($cookie-1), resp:add-cookie($cookie-2))"/>
-
+      
+    </resp:cookies>
   </xsl:template>
   
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">cookies.html</xsl:variable>
+  <xsl:variable name="dispatcher-match" as="xs:string">cookies-response.html</xsl:variable>
   
 </xsl:stylesheet>

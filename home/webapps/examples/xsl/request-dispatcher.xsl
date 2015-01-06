@@ -32,11 +32,8 @@
         <ID>
           <xsl:value-of select="$username"/>
         </ID>
-        <!--
-        <role>rolename</role>
-        -->
         <data>    
-          <email>email@email.com</email>
+          <email>my.email@email.com</email>
           <tel>1234567</tel>
           <mydata1/>
           <mydata2/>
@@ -81,7 +78,7 @@
   
   <xsl:template match="/req:request[req:path = '/expath-http.html']">    
     <pipeline:pipeline>
-      <pipeline:transformer name="expath-file" xsl-path="expath-http/expath-http.xsl" log="true"/>  
+      <pipeline:transformer name="expath-http" xsl-path="expath-http/expath-http.xsl" log="true"/>  
     </pipeline:pipeline>
   </xsl:template>
   
@@ -91,9 +88,27 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <xsl:template match="/req:request[req:path = '/cookies.html']">    
+  <xsl:template match="/req:request[req:path = '/headers-extension-function.html']">    
     <pipeline:pipeline>
-      <pipeline:transformer name="cookies" xsl-path="cookies/cookies.xsl" log="true"/>  
+      <pipeline:transformer name="headers-extension-function" xsl-path="headers/headers-extension-function.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/headers-response.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="headers-response" xsl-path="headers/headers-response.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/cookies-extension-function.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="cookies-extension-function" xsl-path="cookies/cookies-extension-function.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/cookies-response.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="cookies-response" xsl-path="cookies/cookies-response.xsl" log="true"/>  
     </pipeline:pipeline>
   </xsl:template>
   

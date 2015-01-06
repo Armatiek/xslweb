@@ -9,57 +9,75 @@
   xmlns:req="http://www.armatiek.com/xslweb/request"
   xmlns:resp="http://www.armatiek.com/xslweb/response"  
   xmlns:http="http://expath.org/ns/http-client"
+  xmlns:ser="http://www.armatiek.com/xslweb/functions/serialize"
+  xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization"
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:import href="../common/xmlverbatim.xsl"/>
+  <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
+  <xsl:template name="title" as="xs:string">EXPath HTTP Client</xsl:template>
   
-  <xsl:param name="config:basex-rest-base-uri" as="xs:string"/>
-  
-  <xsl:template match="/">
-    <resp:response status="200">
-      <resp:body>
-        <xsl:call-template name="body"/>
-      </resp:body>
-    </resp:response>          
+  <xsl:template name="tab-contents-1">
+    <p>This example shows the use of the EXPath HTTP Client extension function calling two REST Web services. 
+      The first request adds a product to a database using a POST request, the second deletes the same product using a DELETE request.</p>
+    
+    <xsl:variable name="output-parameters" as="element()">
+      <output:serialization-parameters>
+        <output:method value="xml"/>
+        <output:indent value="yes"/>
+      </output:serialization-parameters>
+    </xsl:variable>
+    
+    <xsl:variable name="request-post" as="element()">
+      <http:request
+        href="http://www.thomas-bayer.com/sqlrest/PRODUCT"
+        method="POST">
+        <http:body media-type="application/xml">
+          <resource xmlns="">
+            <ID>99</ID>
+            <NAME>XSLWeb</NAME>
+            <PRICE>999</PRICE>
+          </resource>
+        </http:body>            
+      </http:request>
+    </xsl:variable>
+    
+    <xsl:variable name="request-delete" as="element()">
+      <http:request
+        href="http://www.thomas-bayer.com/sqlrest/PRODUCT/99"
+        method="DELETE"/>
+    </xsl:variable>
+    
+    <h3>POST Request (add product to database):</h3>
+    <pre class="prettyprint lang-xml linenums">
+      <xsl:sequence select="ser:serialize($request-post, $output-parameters)"/>
+    </pre>
+    
+    <!-- Execute POST request: -->
+    <xsl:variable name="response-post" select="http:send-request($request-post)" as="item()+"/>
+    
+    <h3>POST Response:</h3>
+    <pre class="prettyprint lang-xml linenums">
+      <xsl:sequence select="ser:serialize($response-post, $output-parameters)"/>
+    </pre>
+    
+    <h3>DELETE Request (delete product from database):</h3>
+    <pre class="prettyprint lang-xml linenums">
+      <xsl:sequence select="ser:serialize($request-delete, $output-parameters)"/>
+    </pre>
+    
+    <!-- Execute DELETE request: -->
+    <xsl:variable name="response-delete" select="http:send-request($request-delete)" as="item()+"/>
+    
+    <h3>DELETE Response:</h3>
+    <pre class="prettyprint lang-xml linenums">
+      <xsl:sequence select="ser:serialize($response-delete, $output-parameters)"/>
+    </pre>
   </xsl:template>
   
-  <xsl:template name="body">
-    <html xmlns="http://www.w3.org/1999/xhtml">
-      <head>
-        <title>EXPath HTTP Client</title>
-        <link rel="stylesheet" type="text/css" href="{/*/req:context-path}{/*/req:webapp-path}/styles/xmlverbatim.css"/>        
-      </head>
-      <body>
-        <h2>EXPath HTTP Client</h2>        
-        <h3>BaseX XQuery result:</h3>        
-        <xsl:variable name="request" as="element()">
-          <http:request
-            href="{$config:basex-rest-base-uri}"
-            method="post">
-            <http:body media-type="application/xml">
-              <basex:query>
-                <basex:text><![CDATA[ (collection('documenten')/*:uitvoerings-informatie)[1] ]]></basex:text>
-                <!--
-                <basex:parameter name="method" value="xml"/>
-                -->                
-              </basex:query>
-            </http:body>            
-          </http:request>
-        </xsl:variable>
-        <xsl:variable name="response" select="http:send-request($request)" as="item()+"/>
-        <h4>Response header:</h4>
-        <tt>
-          <xsl:apply-templates select="$response[1]" mode="xmlverb"/>
-        </tt>
-        <h4>Response body:</h4>
-        <tt>                                      
-          <xsl:apply-templates select="$response[2]" mode="xmlverb"/>                   
-        </tt>                         
-      </body>
-    </html>
-  </xsl:template>
+  <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
+  
+  <xsl:variable name="dispatcher-match" as="xs:string">expath-http.html</xsl:variable>
   
 </xsl:stylesheet>

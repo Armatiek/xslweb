@@ -16,18 +16,18 @@
   <xsl:template name="tab-contents-1">
     <p>This example logs a sequence of two nodes and one string to the log file using specified serialization parameters. See log file after requesting ths page.</p>
     
-    <xsl:variable name="node-1" as="node()">
+    <xsl:variable name="node-1" as="element()">
       <node1>This is node 1</node1>
     </xsl:variable>
     
-    <xsl:variable name="node-2" as="node()">
+    <xsl:variable name="node-2" as="element()">
       <node2>This is node 2</node2>
     </xsl:variable>
     
     <xsl:variable name="node-3" as="xs:string">This is a string</xsl:variable>
     
     <!-- Construct serialization parameters node: -->
-    <xsl:variable name="output-parameters" as="node()">
+    <xsl:variable name="output-parameters" as="element()">
       <output:serialization-parameters>
         <output:method value="xml"/>
         <output:omit-xml-declaration value="yes"/>

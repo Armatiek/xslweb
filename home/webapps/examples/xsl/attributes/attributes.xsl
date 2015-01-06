@@ -8,142 +8,141 @@
   xmlns:resp="http://www.armatiek.com/xslweb/response"  
   xmlns:session="http://www.armatiek.com/xslweb/session"
   xmlns:context="http://www.armatiek.com/xslweb/functions/context"
-  xmlns:webapp="http://www.armatiek.com/xslweb/functions/webapp"  
-  xmlns:err="http://expath.org/ns/error"
+  xmlns:webapp="http://www.armatiek.com/xslweb/functions/webapp"
+  xmlns:ser="http://www.armatiek.com/xslweb/functions/serialize"
+  xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization"  
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:import href="../common/xmlverbatim.xsl"/>
+  <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
+  <xsl:template name="title" as="xs:string">Session/Webapp/Context attributes example</xsl:template>
   
-  <xsl:template match="/">
-    <resp:response status="200">
-      <resp:body>
-        <xsl:call-template name="body"/>
-      </resp:body>
-    </resp:response>          
+  <xsl:variable name="output-parameters" as="node()">
+    <output:serialization-parameters>
+      <output:method value="xml"/>
+      <output:indent value="yes"/>
+      <output:omit-xml-declaration value="yes"/>
+    </output:serialization-parameters>  
+  </xsl:variable>
+  
+  <xsl:template name="tab-contents-1">
+    <p>TODO</p>
+    <xsl:call-template name="session-attrs"/><hr/>  
+    <xsl:call-template name="webapp-attrs"/><hr/>
+    <xsl:call-template name="context-attrs"/><hr/>
+    <xsl:call-template name="webapp-cache"/>
   </xsl:template>
   
-  <xsl:template name="body">
-    <html xmlns="http://www.w3.org/1999/xhtml">
-      <head>
-        <title>Session/Webapp/Context attributes example</title>
-        <link rel="stylesheet" type="text/css" href="{/*/req:context-path}{/*/req:webapp-path}/styles/xmlverbatim.css"/>
-      </head>
-      <body>
-        <h3>Session/Webapp/Context attributes example</h3>
-        
-        <xsl:call-template name="session-attrs"/><hr/>  
-        <xsl:call-template name="webapp-attrs"/><hr/>
-        <xsl:call-template name="context-attrs"/><hr/>
-        <xsl:call-template name="webapp-cache"/>
-        
-      </body>
-    </html>
-  </xsl:template>
-  
-  <xsl:template name="session-attrs">    
-    <p>Atomic session attribute value for 'atomic-attr-name':</p>
+  <xsl:template name="session-attrs"> 
+    <h2>Session attributes</h2>
+    <p>Set and get session attribute 'atomic-attr-name' containing sequence of integers:</p>
     <xsl:variable name="session:atomic-attr-values" as="xs:integer*" select="(1, 2, 3)"/>
-    <xsl:value-of select="if (empty(session:set-attribute('atomic-attr-name', $session:atomic-attr-values))) then () 
-      else (error(xs:QName('err:XSLWEB0001'), 'Could not set session attribute'))"/>                
+    <xsl:value-of select="session:set-attribute('atomic-attr-name', $session:atomic-attr-values)"/>                
     <xsl:for-each select="session:get-attribute('atomic-attr-name')">
       <xsl:value-of select="."/><br/>
     </xsl:for-each>
     
-    <p>Node session attribute value for 'node-attr-name':</p>        
+    <p>Set and get session attribute 'node-attr-name' containing sequence of nodes:</p>        
     <xsl:variable name="session:node-attr-values" as="node()*">
-      <node1>
+      <node1 xmlns="">
         <a>a</a>
         <b>b</b>
       </node1>
-      <node2>
+      <node2 xmlns="">
         <c>c</c>
         <d>b</d>
       </node2>            
     </xsl:variable>          
-    <xsl:value-of select="if (empty(session:set-attribute('node-attr-name', $session:node-attr-values))) then () 
-      else (error(xs:QName('err:XSLWEB0001'), 'Could not set session attribute'))"/>          
     
-    <xsl:for-each select="session:get-attribute('node-attr-name')">
-      <tt>
-        <xsl:apply-templates select="." mode="xmlverb"/>
-      </tt>                          
-      <br/>
-    </xsl:for-each>
+    <xsl:sequence select="session:set-attribute('node-attr-name', $session:node-attr-values)"/>          
+    
+    <pre class="prettyprint lang-xml linenums">
+      <xsl:for-each select="session:get-attribute('node-attr-name')">
+        <xsl:sequence select="ser:serialize(., $output-parameters)"/>                          
+      </xsl:for-each>
+    </pre>
   </xsl:template>
   
   <xsl:template name="webapp-attrs">
-    <p>Atomic webapp attribute value for 'atomic-attr-name':</p>
+    <h2>Webapp attributes</h2>
+    <p>Set and get webapp attribute 'atomic-attr-name' containing sequence of integers:</p>
+    
     <xsl:variable name="webapp:atomic-attr-values" as="xs:integer*" select="(1, 2, 3)"/>
-    <xsl:value-of select="if (empty(webapp:set-attribute('atomic-attr-name', $webapp:atomic-attr-values))) then () 
-      else (error(xs:QName('err:XSLWEB0001'), 'Could not set webapp attribute'))"/>                
+    
+    <xsl:value-of select="webapp:set-attribute('atomic-attr-name', $webapp:atomic-attr-values)"/>                
+    
     <xsl:for-each select="webapp:get-attribute('atomic-attr-name')">
       <xsl:value-of select="."/><br/>
     </xsl:for-each>
     
-    <p>Node webapp attribute value for 'node-attr-name':</p>        
+    <p>Set and get webapp attribute 'node-attr-name' containing sequence of nodes:</p>       
     <xsl:variable name="webapp:node-attr-values" as="node()*">
-      <node3>
+      <node3 xmlns="">
         <e>e</e>
         <f>f</f>
       </node3>
-      <node4>
+      <node4 xmlns="">
         <g>g</g>
         <h>h</h>
       </node4>            
-    </xsl:variable>          
-    <xsl:value-of select="if (empty(webapp:set-attribute('node-attr-name', $webapp:node-attr-values))) then () 
-      else (error(xs:QName('err:XSLWEB0001'), 'Could not set webapp attribute'))"/>          
+    </xsl:variable>  
     
-    <xsl:for-each select="webapp:get-attribute('node-attr-name')">
-      <tt>
-        <xsl:apply-templates select="." mode="xmlverb"/>
-      </tt>                          
-      <br/>
-    </xsl:for-each>
+    <xsl:value-of select="webapp:set-attribute('node-attr-name', $webapp:node-attr-values)"/>          
+    
+    <pre class="prettyprint lang-xml linenums">
+      <xsl:for-each select="webapp:get-attribute('node-attr-name')">
+        <xsl:sequence select="ser:serialize(., $output-parameters)"/>                          
+      </xsl:for-each>
+    </pre>
   </xsl:template>
   
   <xsl:template name="context-attrs">
-    <p>Atomic context attribute value for 'atomic-attr-name':</p>
+    <h2>Context attributes</h2>
+    <p>Set and get context attribute 'atomic-attr-name' containing sequence of integers:</p>
+    
     <xsl:variable name="context:atomic-attr-values" as="xs:integer*" select="(1, 2, 3)"/>
-    <xsl:value-of select="if (empty(context:set-attribute('atomic-attr-name', $context:atomic-attr-values))) then () 
-      else (error(xs:QName('err:XSLWEB0001'), 'Could not set context attribute'))"/>                
+    
+    <xsl:value-of select="context:set-attribute('atomic-attr-name', $context:atomic-attr-values)"/>                
+    
     <xsl:for-each select="context:get-attribute('atomic-attr-name')">
       <xsl:value-of select="."/><br/>
     </xsl:for-each>
     
-    <p>Node context attribute value for 'node-attr-name':</p>        
+    <p>Set and get context attribute 'node-attr-name' containing sequence of nodes:</p>       
     <xsl:variable name="context:node-attr-values" as="node()*">
-      <node5>
-        <i>i</i>
-        <j>j</j>
-      </node5>
-      <node6>
-        <k>k</k>
-        <l>l</l>
-      </node6>            
-    </xsl:variable>          
-    <xsl:value-of select="if (empty(context:set-attribute('node-attr-name', $context:node-attr-values))) then () 
-      else (error(xs:QName('err:XSLWEB0001'), 'Could not set context attribute'))"/>          
+      <node3 xmlns="">
+        <e>e</e>
+        <f>f</f>
+      </node3>
+      <node4 xmlns="">
+        <g>g</g>
+        <h>h</h>
+      </node4>            
+    </xsl:variable>  
     
-    <xsl:for-each select="context:get-attribute('node-attr-name')">
-      <tt>
-        <xsl:apply-templates select="." mode="xmlverb"/>
-      </tt>                          
-      <br/>
-    </xsl:for-each>
+    <xsl:value-of select="context:set-attribute('node-attr-name', $context:node-attr-values)"/>          
+    
+    <pre class="prettyprint lang-xml linenums">
+      <xsl:for-each select="context:get-attribute('node-attr-name')">
+        <xsl:sequence select="ser:serialize(., $output-parameters)"/>                          
+      </xsl:for-each>
+    </pre>
   </xsl:template>
   
+  
   <xsl:template name="webapp-cache">
-    <p>Atomic webapp attribute value for 'atomic-cache-key-name':</p>
+    <h2>Webapp cache attributes (timeout 1800 seconds)</h2>
+    <p>Set and get webapp attribute 'atomic-cache-key-name' containing sequence of integers:</p>
     <xsl:variable name="webapp:atomic-cache-values" as="xs:integer*" select="(1, 2, 3)"/>
-    <xsl:value-of select="if (empty(webapp:set-cache-value('atomic-cache-name', 'atomic-cache-key-name', $webapp:atomic-cache-values, 1800))) then () 
-      else (error(xs:QName('err:XSLWEB0001'), 'Could not set webapp cache value'))"/>                
+    <xsl:value-of select="webapp:set-cache-value('atomic-cache-name', 'atomic-cache-key-name', $webapp:atomic-cache-values, 1800)"/>                
     <xsl:for-each select="webapp:get-cache-value('atomic-cache-name', 'atomic-cache-key-name')">
       <xsl:value-of select="."/><br/>
     </xsl:for-each>        
   </xsl:template>
+  
+  <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
+  
+  <xsl:variable name="dispatcher-match" as="xs:string">attributes.html</xsl:variable>
   
 </xsl:stylesheet>
