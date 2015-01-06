@@ -75,7 +75,7 @@ public class SaxonAttribute
     {
         String str = myNode.getStringValue();
         NumericValue val = NumericValue.parseNumber(str);
-        if ( NumericValue.isInteger(val) ) {
+        if ( !NumericValue.isInteger(val) ) {
             throw new HttpClientException("@" + getLocalName() + " is not an integer");
         }
         IntegerValue i = (IntegerValue) val;
