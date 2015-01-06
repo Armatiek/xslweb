@@ -46,8 +46,9 @@ public class CachingFilter extends SimpleCachingHeadersPageCachingFilter  {
   
   @Override
   protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws AlreadyGzippedException, AlreadyCommittedException, FilterNonReentrantException, LockTimeoutException, Exception {
+    WebApp webApp = (WebApp) request.getAttribute(Definitions.ATTRNAME_WEBAPP);
     PipelineHandler pipelineHandler = (PipelineHandler) request.getAttribute(Definitions.ATTRNAME_PIPELINEHANDLER);
-    if (pipelineHandler.getCache()) {
+    if (!webApp.getDevelopmentMode() && pipelineHandler.getCache()) {
       super.doFilter(request, response, chain);                  
     } else {
       chain.doFilter(request, response);

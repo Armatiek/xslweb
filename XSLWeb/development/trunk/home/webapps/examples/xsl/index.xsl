@@ -36,6 +36,21 @@
             <a href="{$path}/static.html">Static files (i.e. images and css files)</a>
           </li>          
           <li>
+            HTTP Reponse Headers <a href="{$path}/headers-extension-function.html">using extension functions</a> or <a href="{$path}/headers-response.html">using Response XML</a>
+          </li>
+          <li>
+            Cookies <a href="{$path}/cookies-extension-function.html">using extension function</a> or <a href="{$path}/cookies-response.html">using Response XML</a>
+          </li>
+          <li>
+            Session (TODO)
+          </li>
+          <li>
+            <a href="{$path}/upload.html">File upload</a>
+          </li>
+          <li>
+            <a href="{$path}/authentication/authentication.html">Basic authentication (credentials: guest/secret)</a>
+          </li>
+          <li>
             <a href="{$path}/expath-file.html">EXPath File Handling</a>
           </li>
           <li>
@@ -48,9 +63,6 @@
             EXPath ZIP Facility (nog geen voorbeeld beschikbaar) 
           </li>
           <li>
-            <a href="{$path}/upload.html">File upload</a>
-          </li>
-          <li>
             <a href="{$path}/email.html">E-Mail extension function</a> (first set mail parameters in webapp.xml)
           </li>
           <li>
@@ -58,12 +70,6 @@
           </li>
           <li>
             <a href="{$path}/custom-extension-function.html">Custom XPath extension function</a>
-          </li>
-          <li>
-            <a href="{$path}/cookies.html">Cookies</a>
-          </li>
-          <li>
-            <a href="{$path}/authentication/authentication.html">Authentication (credentials: guest/secret)</a>
           </li>
           <li>
             <a href="{$path}/log/log.html">Logging</a>

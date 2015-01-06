@@ -14,8 +14,34 @@
   
   <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   
+  <xsl:variable name="output-parameters" as="node()">
+    <output:serialization-parameters>
+      <output:method value="xml"/>
+      <output:indent value="yes"/>
+    </output:serialization-parameters>  
+  </xsl:variable>
+  
   <xsl:template match="/">
     <resp:response status="200">
+      <xsl:call-template name="headers"/>
+      <xsl:call-template name="session"/>
+      <xsl:call-template name="cookies"/>
+      <!--     
+      <resp:session invalidate="true" set-max-inactive-interval="3600">
+        <resp:attributes>
+          <resp:attribute name="foo">
+            <resp:item type="xs:string">bar1</resp:item>
+            <resp:item type="node()">
+              <node1>
+                <x>x</x>
+                <y>y</y>
+              </node1>
+            </resp:item>
+          </resp:attribute>
+        </resp:attributes>
+      </resp:session>
+      -->
+      
       <resp:body>
         <html>
           <head>
@@ -34,6 +60,7 @@
                 $("#tabs").tabs();
               });
             </script>
+            <xsl:call-template name="head"/>
           </head>
           <body onload="prettyPrint()">
             <xsl:call-template name="body"/>
@@ -42,6 +69,14 @@
       </resp:body>
     </resp:response>          
   </xsl:template>
+  
+  <xsl:template name="headers" as="element()?"/>
+  
+  <xsl:template name="session" as="element()?"/>
+  
+  <xsl:template name="cookies" as="element()?"/>
+  
+  <xsl:template name="head" as="element()*"/>
   
   <xsl:template name="title" as="xs:string">No title</xsl:template>
   
@@ -59,48 +94,24 @@
   
   <xsl:template name="tab-contents-2">
     <pre class="prettyprint lang-xml linenums">
-      <xsl:variable name="output-parameters" as="node()">
-        <output:serialization-parameters>
-          <output:method value="xml"/>
-          <output:indent value="yes"/>
-        </output:serialization-parameters>  
-      </xsl:variable>
       <xsl:sequence select="ser:serialize(/, $output-parameters)"/>
     </pre>
   </xsl:template>
   
   <xsl:template name="tab-contents-3">
     <pre class="prettyprint lang-xml linenums">
-      <xsl:variable name="output-parameters" as="node()">
-        <output:serialization-parameters>
-          <output:method value="xml"/>
-          <output:indent value="yes"/>
-        </output:serialization-parameters>  
-      </xsl:variable>
       <xsl:sequence select="ser:serialize(document('../request-dispatcher.xsl')//xsl:template[contains(@match, $dispatcher-match)], $output-parameters)"/>
     </pre>
   </xsl:template>
   
   <xsl:template name="tab-contents-4">
     <pre class="prettyprint lang-xml linenums">
-      <xsl:variable name="output-parameters" as="node()">
-        <output:serialization-parameters>
-          <output:method value="xml"/>
-          <output:indent value="yes"/>
-        </output:serialization-parameters>  
-      </xsl:variable>
       <xsl:sequence select="ser:serialize(document(base-uri($pipeline-xsl)), $output-parameters)"/>
     </pre>
   </xsl:template>
   
   <xsl:template name="tab-contents-5">
     <pre class="prettyprint lang-xml linenums">
-      <xsl:variable name="output-parameters" as="node()">
-        <output:serialization-parameters>
-          <output:method value="xml"/>
-          <output:indent value="yes"/>
-        </output:serialization-parameters>  
-      </xsl:variable>
       <xsl:sequence select="ser:serialize(document('../../webapp.xml'), $output-parameters)"/>
     </pre>
   </xsl:template>

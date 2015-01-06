@@ -6,52 +6,42 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
   xmlns:config="http://www.armatiek.com/xslweb/configuration"
   xmlns:req="http://www.armatiek.com/xslweb/request"
-  xmlns:resp="http://www.armatiek.com/xslweb/response"
   xmlns:file="http://expath.org/ns/file"  
-  xmlns:err="http://expath.org/ns/error"
   exclude-result-prefixes="#all"
   version="2.0">
+  
+  <xsl:import href="../common/example-page.xsl"/>
   
   <xsl:param name="config:home-dir" as="xs:string"/>
   <xsl:param name="config:webapp-dir" as="xs:string"/>
   
-  <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
+  <xsl:template name="title" as="xs:string">File upload example</xsl:template>
   
-  <xsl:template match="/">
-    <resp:response status="200">
-      <resp:body>
-        <xsl:call-template name="body"/>
-      </resp:body>
-    </resp:response>          
+  <xsl:template name="tab-contents-1">
+    <h3>Thanks for the upload!</h3>
+    
+    <!-- Create target directory to copy the uploaded files to: -->
+    <xsl:variable name="target-dir" select="concat($config:webapp-dir, '/static/downloads')" as="xs:string"/>
+    <xsl:sequence select="file:create-dir($target-dir)"/>
+    
+    <p>You can download your files again from:</p>
+    
+    <!-- Iterate over uploaded files: -->
+    <xsl:for-each select="/*/req:file-uploads/req:file-upload">                             
+      
+      <!-- Copy the file to the target directory: -->          
+      <xsl:sequence select="file:copy(req:file-path, $target-dir)"/>
+      
+      <!-- Output a hyperlink to the copied file: -->
+      <a href="{concat(/*/req:context-path, /*/req:webapp-path, '/downloads/', req:file-name)}">
+        <xsl:sequence select="concat(req:file-name, ' (', req:size, ' bytes)')"/>
+      </a>
+      <br/>
+    </xsl:for-each>                       
   </xsl:template>
   
-  <xsl:template name="body">
-    <html>
-      <head>
-        <title>File upload example</title>
-      </head>
-      <body>
-        <h3>Thanks for the upload!</h3>
-        <p>You can download your files again from:</p>
-        
-        <!-- Create target directory to copy the uploaded files to: -->
-        <xsl:variable name="target-dir" select="concat($config:webapp-dir, '/static/downloads')"/>
-        <xsl:value-of select="if (empty(file:create-dir($target-dir))) then () else (error(xs:QName('err:FILE9999'), 'Could not create directory'))"/>
-        
-        <!-- Iterate over uploaded files: -->
-        <xsl:for-each select="/*/req:file-uploads/req:file-upload">                             
-          
-          <!-- Copy the file to the target directory: -->          
-          <xsl:value-of select="if (empty(file:copy(req:file-path, $target-dir))) then () else (error(xs:QName('err:FILE9999'), 'Could not copy file'))"/>
-          
-          <!-- Output a hyperlink to the copied file: -->
-          <a href="{concat(/*/req:context-path, /*/req:webapp-path, '/downloads/', req:file-name)}">
-            <xsl:value-of select="concat(req:file-name, ' (', req:size, ' bytes)')"/>
-          </a>
-          <br/>
-        </xsl:for-each>                       
-      </body>
-    </html>
-  </xsl:template>
+  <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
+  
+  <xsl:variable name="dispatcher-match" as="xs:string">upload-save.html</xsl:variable>
   
 </xsl:stylesheet>
