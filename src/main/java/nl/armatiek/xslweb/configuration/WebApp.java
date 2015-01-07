@@ -4,11 +4,14 @@ import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
+import java.io.Closeable;
 import java.io.File;
+import java.net.ProxySelector;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -30,6 +33,7 @@ import net.sf.ehcache.config.PersistenceConfiguration;
 import net.sf.ehcache.config.PersistenceConfiguration.Strategy;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 import net.sf.saxon.Configuration;
+import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
@@ -49,6 +53,14 @@ import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerFactory;
@@ -88,6 +100,7 @@ public class WebApp implements ErrorHandler {
   private XSLWebConfiguration configuration;  
   private Processor processor;  
   private FileAlterationMonitor monitor;
+  private CloseableHttpClient httpClient;
   
   public WebApp(File webAppDefinition) throws Exception {   
     logger.info(String.format("Loading webapp definition \"%s\" ...", webAppDefinition.getAbsolutePath()));
@@ -166,13 +179,13 @@ public class WebApp implements ErrorHandler {
   public void open() throws Exception {
     logger.info(String.format("Opening webapp \"%s\" ...", name));
     
-    logger.info("Starting file alteration monitor ...");
+    logger.debug("Starting file alteration monitor ...");
     monitor.start();
     
     if (scheduler != null) {
-      logger.info("Starting Quartz scheduler ...");    
+      logger.debug("Starting Quartz scheduler ...");    
       scheduler.start();    
-      logger.info("Quartz scheduler started.");
+      logger.debug("Quartz scheduler started.");
     }
     
     logger.info(String.format("Webapp \"%s\" opened.", name));    
@@ -181,13 +194,28 @@ public class WebApp implements ErrorHandler {
   public void close() throws Exception {    
     logger.info(String.format("Closing webapp \"%s\" ...", name));
     
-    logger.info("Stopping file alteration monitor ...");
+    logger.debug("Stopping file alteration monitor ...");
     monitor.stop();
     
     if (scheduler != null) {
-      logger.info("Shutting down Quartz scheduler ...");
+      logger.debug("Shutting down Quartz scheduler ...");
       scheduler.shutdown(!developmentMode);
-      logger.info("Shutdown of Quartz scheduler complete.");
+      logger.debug("Shutdown of Quartz scheduler complete.");
+    }
+    
+    logger.debug("Closing XPath extension functions ...");
+    Iterator<ExtensionFunctionDefinition> functions = configuration.getRegisteredExtensionFunctions();
+    while (functions.hasNext()) {
+      ExtensionFunctionDefinition function = functions.next();
+      if (function instanceof Closeable) {
+        ((Closeable) function).close();
+      }
+    }
+    
+    if (httpClient != null) {
+      logger.debug("Closing HTTP client ...");
+      httpClient.close();
+      httpClient = null;
     }
     
     logger.info(String.format("Webapp \"%s\" closed.", name));
@@ -284,6 +312,21 @@ public class WebApp implements ErrorHandler {
   
   public Processor getProcessor() {
     return processor;
+  }
+  
+  public CloseableHttpClient getHttpClient() {    
+    if (httpClient == null) {
+      PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+      cm.setMaxTotal(200);
+      cm.setDefaultMaxPerRoute(20);
+      HttpHost localhost = new HttpHost("localhost", 80);
+      cm.setMaxPerRoute(new HttpRoute(localhost), 50);
+      HttpClientBuilder builder = HttpClients.custom().setConnectionManager(cm);
+      builder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
+      builder.setDefaultCookieStore(new BasicCookieStore());
+      httpClient = builder.build();
+    }
+    return httpClient;
   }
 
   public XsltExecutable getRequestDispatcherTemplates(ErrorListener errorListener) throws Exception {

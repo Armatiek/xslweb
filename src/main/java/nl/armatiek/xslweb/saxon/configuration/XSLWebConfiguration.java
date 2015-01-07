@@ -3,6 +3,7 @@ package nl.armatiek.xslweb.saxon.configuration;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import net.sf.saxon.Configuration;
@@ -32,8 +33,9 @@ public class XSLWebConfiguration extends Configuration {
   private static final Logger logger = LoggerFactory.getLogger(XSLWebConfiguration.class);
 
   private XSLWebInitializer initializer;
+  private List<ExtensionFunctionDefinition> extensionFunctions = new ArrayList<ExtensionFunctionDefinition>();
   
-  public XSLWebConfiguration(WebApp webApp) throws Exception {
+  public XSLWebConfiguration(WebApp webApp) throws Exception {    
     initializer = new XSLWebInitializer();
     initializer.initialize(this);
     addCustomExtensionFunctions(webApp);
@@ -84,6 +86,18 @@ public class XSLWebConfiguration extends Configuration {
       logger.info(String.format("Adding custom extension function class \"%s\" ...", className));     
       registerExtensionFunction((ExtensionFunctionDefinition) clazz.newInstance());      
     }
+  }
+
+  @Override
+  public void registerExtensionFunction(ExtensionFunctionDefinition function) {    
+    super.registerExtensionFunction(function);
+    if (extensionFunctions != null) {
+      extensionFunctions.add(function);
+    }
+  }
+  
+  public Iterator<ExtensionFunctionDefinition> getRegisteredExtensionFunctions() {
+    return extensionFunctions.iterator();
   }
 
 }
