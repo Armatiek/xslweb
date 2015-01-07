@@ -11,11 +11,14 @@ package org.expath.httpclient.saxon;
 
 import net.sf.saxon.event.Builder;
 import net.sf.saxon.expr.XPathContext;
-import net.sf.saxon.om.*;
+import net.sf.saxon.om.FingerprintedQName;
+import net.sf.saxon.om.NoNamespaceName;
+import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.om.NodeName;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.type.AnyType;
 import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.type.Untyped;
+
 import org.apache.http.Header;
 import org.expath.httpclient.HeaderSet;
 import org.expath.httpclient.HttpClientException;

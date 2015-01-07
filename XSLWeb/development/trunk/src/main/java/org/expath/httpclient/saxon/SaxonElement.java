@@ -173,12 +173,14 @@ public class SaxonElement
             myIter = new AttributeIteratorWrapper(it);
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public Iterator<Attribute> iterator()
         {
             return myIter;
         }
 
+        @SuppressWarnings("rawtypes")
         private Iterator myIter;
     }
 
@@ -227,12 +229,14 @@ public class SaxonElement
             myIter = new ElemIteratorWrapper(it);
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public Iterator<Element> iterator()
         {
             return myIter;
         }
 
+        @SuppressWarnings("rawtypes")
         private Iterator myIter;
     }
 
