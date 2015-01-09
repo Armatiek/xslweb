@@ -14,7 +14,7 @@
   
   <xsl:param name="config:development-mode" as="xs:boolean"/>
       
-  <!-- Authentication functions: -->
+  <!-- Authentication functions called from basic-authentication.xsl: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    
     <xsl:param name="request" as="document-node()"/>       
     <xsl:value-of select="starts-with($request/*/req:path, '/authentication')"/>

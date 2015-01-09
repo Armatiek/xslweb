@@ -57,9 +57,9 @@ public class XSLWebServlet extends HttpServlet {
     
   private File homeDir;    
   
-  public void init() throws ServletException {
+  public void init() throws ServletException {    
     super.init();   
-    try {                           
+    try {                        
       homeDir = Context.getInstance().getHomeDir();      
     } catch (Exception e) {
       logger.error(e.getMessage());
@@ -86,7 +86,7 @@ public class XSLWebServlet extends HttpServlet {
         Writer w = new OutputStreamWriter(respOs, "UTF-8");
         w.write("<html><body><h1>Internal Server Error</h1></body></html>");
       }
-    }  
+    }      
   }
 
   private Destination getDestination(WebApp webApp, Destination destination, PipelineStep step) {

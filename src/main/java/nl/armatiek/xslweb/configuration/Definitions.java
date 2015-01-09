@@ -91,4 +91,6 @@ public class Definitions {
   
   public final static String CACHENAME_RESPONSECACHINGFILTER   = "XSLWebResponseCachingFilter";
   
+  public final static String SCHEME_XSLWEB                     = "xslweb";
+  
 }

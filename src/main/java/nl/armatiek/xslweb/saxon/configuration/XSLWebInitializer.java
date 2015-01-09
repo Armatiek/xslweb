@@ -57,6 +57,7 @@ import nl.armatiek.xslweb.saxon.functions.response.SetStatus;
 import nl.armatiek.xslweb.saxon.functions.serialize.Serialize;
 import nl.armatiek.xslweb.saxon.functions.session.Invalidate;
 import nl.armatiek.xslweb.saxon.functions.session.SetMaxInactiveInterval;
+import nl.armatiek.xslweb.saxon.uriresolver.XSLWebURIResolver;
 
 import org.expath.httpclient.saxon.SendRequestFunction;
 import org.expath.pkg.saxon.EXPathFunctionDefinition;
@@ -71,6 +72,8 @@ public class XSLWebInitializer implements Initializer {
         
     configuration.setConfigurationProperty(FeatureKeys.RECOVERY_POLICY_NAME, "recoverWithWarnings");
     configuration.setConfigurationProperty(FeatureKeys.SUPPRESS_XSLT_NAMESPACE_CHECK, Boolean.TRUE);
+    
+    // configuration.setURIResolver(new XSLWebURIResolver());
     
     /* Log */
     registerEXPathFunction(new Log(), configuration);

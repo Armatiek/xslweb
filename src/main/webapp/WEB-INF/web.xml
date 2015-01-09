@@ -21,8 +21,6 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
   
-  
-  
   <filter>
     <filter-name>WebAppFilter</filter-name>
     <filter-class>nl.armatiek.xslweb.web.filter.WebAppFilter</filter-class>    
@@ -62,8 +60,6 @@
     <servlet-name>XSLWebServlet</servlet-name>
     <url-pattern>/*</url-pattern>    
   </filter-mapping>
-  
-  
   
   <servlet>
     <servlet-name>XSLWebServlet</servlet-name>
