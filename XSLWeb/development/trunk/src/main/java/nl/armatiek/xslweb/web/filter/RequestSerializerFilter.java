@@ -29,7 +29,7 @@ public class RequestSerializerFilter implements Filter {
   
   @Override
   public void init(FilterConfig filterConfig) throws ServletException { 
-    lineSeparator = System.getProperty("line.separator");
+    lineSeparator = System.lineSeparator();
   }
 
   @Override

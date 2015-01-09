@@ -1,15 +1,9 @@
 package nl.armatiek.xslweb.quartz;
 
-import java.net.URI;
+import java.io.ByteArrayOutputStream;
 
-import nl.armatiek.xslweb.configuration.Context;
+import nl.armatiek.xslweb.web.servlet.InternalRequest;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -31,27 +25,14 @@ public class XSLWebJob implements Job {
   @Override
   public void execute(JobExecutionContext context) throws JobExecutionException {
     logger.info(String.format("Executing job \"%s\"", context.getJobDetail().getKey().getName()));
-    try {
-      Context ctx = Context.getInstance();
+    try {      
       JobDataMap dataMap = context.getMergedJobDataMap();
       String webAppPath = dataMap.getString("webapp-path");
       String path = dataMap.getString("uri");      
-      CloseableHttpClient httpClient = HttpClients.createDefault();
-      try {                       
-        URI uri = new URI("http", null, ctx.getLocalHost(), ctx.getPort(), ctx.getContextPath() + webAppPath + "/" + StringUtils.stripStart(path, "/"), null, null);
-        HttpGet httpget = new HttpGet(uri);
-        CloseableHttpResponse response = httpClient.execute(httpget);
-        try {
-          String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
-          if (StringUtils.isNotBlank(responseBody)) {
-            logger.info(responseBody);
-          }
-        } finally {
-          response.close();        
-        }
-      } finally {
-        httpClient.close();
-      }
+      InternalRequest request = new InternalRequest();
+      ByteArrayOutputStream boas = new ByteArrayOutputStream();
+      request.execute(webAppPath + "/" + path, boas);
+      logger.info(new String(boas.toByteArray()));            
     } catch (Exception e) {
       logger.error(String.format("Error executing job \"%s\"", context.getJobDetail().getKey().getName()), e);
       throw new JobExecutionException(e);

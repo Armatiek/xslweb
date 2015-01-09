@@ -302,6 +302,9 @@ public class RequestSerializer {
   @SuppressWarnings("rawtypes")
   private void serializeSession() throws Exception {
     HttpSession session = req.getSession();
+    if (session == null) {
+      return;
+    }
     xsw.writeStartElement(URI, "session");
     dataElement(xsw, URI, "creation-time", getXsDateTimeString(new Date(session.getCreationTime())));
     dataElement(xsw, URI, "id", session.getId());

@@ -46,14 +46,13 @@
   
   <!-- Scheduled job definitions: -->
   <jobs> 
-    <?x
     <job>
       <name>WriteTimeJob</name>
       <uri>execute-writetime-job.html</uri>
-      <cron>0/60 * * * * ?</cron> <!-- Execute every 60 seconds --> 
+      <!-- Execute every 60 seconds: --> 
+      <cron>0/60 * * * * ?</cron>
       <concurrent>true</concurrent>
-    </job>
-    ?>      
+    </job>   
   </jobs>
   
 </webapp>

@@ -14,7 +14,7 @@
   
   <xsl:variable name="session:attr-name-userprofile" as="xs:string">xslweb-userprofile</xsl:variable>
   
-  <xsl:function name="auth:logout" as="xs:string*">
+  <xsl:function name="auth:logout" as="xs:boolean?">
     <xsl:sequence select="session:set-attribute($session:attr-name-userprofile)"/>
   </xsl:function>
     

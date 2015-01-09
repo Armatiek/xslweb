@@ -44,6 +44,7 @@ public class Context {
   private Map<String, WebApp> webApps = Collections.synchronizedMap(new HashMap<String, WebApp>());
   private Map<String, Collection<Attribute>> attributes = Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
   private CacheManager cacheManager;
+  private ServletContext servletContext;
   private FileAlterationMonitor monitor;
   private Schema webAppSchema;
   private Properties properties;  
@@ -144,8 +145,8 @@ public class Context {
     File propsFile = new File(homeDir, "config" + File.separatorChar + Definitions.FILENAME_PROPERTIES);
     this.properties = XSLWebUtils.readProperties(propsFile);                       
     port = Integer.parseInt(properties.getProperty(Definitions.PROPERTYNAME_PORT, "80"));    
-    properties.put(Definitions.PROPERTYNAME_LOCALHOST, InetAddress.getLocalHost().getHostName());
-    localHost = InetAddress.getLocalHost().getHostName();    
+    localHost = InetAddress.getLocalHost().getHostAddress();   
+    properties.put(Definitions.PROPERTYNAME_LOCALHOST, localHost);
   }
   
   private void initXMLSchemas() throws Exception {   
@@ -261,6 +262,10 @@ public class Context {
     return cacheManager;
   }
   
+  public ServletContext getServletContext() {
+    return this.servletContext;
+  }
+  
   public File getHomeDir() {
     return this.homeDir;
   }
@@ -290,9 +295,10 @@ public class Context {
     return webApp;    
   }
   
-  public void setServletContext(ServletContext sc) {
-    this.contextPath = sc.getContextPath();
-    this.webInfDir = new File(sc.getRealPath("/WEB-INF"));
+  public void setServletContext(ServletContext servletContext) {
+    this.servletContext = servletContext;
+    this.contextPath = servletContext.getContextPath();
+    this.webInfDir = new File(servletContext.getRealPath("/WEB-INF"));
   }
   
   public String getContextPath() {
@@ -312,7 +318,11 @@ public class Context {
   }
   
   public void setAttribute(String name, Collection<Attribute> attrs) {
-    attributes.put(name, attrs);
+    if (attrs != null) {
+      attributes.put(name, attrs);
+    } else {
+      attributes.remove(name);
+    }
   }
   
 }

@@ -403,7 +403,11 @@ public class WebApp implements ErrorHandler {
   }
   
   public void setAttribute(String name, Collection<Attribute> attrs) {
-    attributes.put(name, attrs);
+    if (attrs != null) {
+      attributes.put(name, attrs);
+    } else {
+      attributes.remove(name);
+    }
   }
   
   @SuppressWarnings("unchecked")
