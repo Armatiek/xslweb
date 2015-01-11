@@ -28,6 +28,8 @@
   
   <xsl:template name="tab-contents-1">
     <p>You are authenticated!</p>
+    <p>TODO</p>
+    
     <p>This is your user profile stored in the session object:</p>
     <pre class="prettyprint lang-xml linenums">
       <xsl:sequence select="ser:serialize(session:get-attribute($session:attr-name-userprofile), $output-parameters)"/>

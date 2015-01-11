@@ -49,6 +49,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_LOG        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/log";
   public final static String NAMESPACEURI_XSLWEB_FX_EMAIL      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/email";  
   public final static String NAMESPACEURI_XSLWEB_FX_SERIALIZE  = NAMESPACEURI_XSLWEB_FUNCTIONS + "/serialize";
+  public final static String NAMESPACEURI_XSLWEB_FX_JSON       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/json";
   public final static String NAMESPACEURI_XSLWEB_FX_UUID       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/uuid";
   public final static String NAMESPACEURI_XSLWEB_FX_WEBAPP     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/webapp";
   public final static String NAMESPACEURI_XSLWEB_FX_CACHE      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/cache";
