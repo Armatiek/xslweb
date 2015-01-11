@@ -178,6 +178,7 @@ public class XSLWebUtils {
     }    
     transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "home-dir"), new XdmAtomicValue(homeDir.getAbsolutePath()));
     transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "webapp-dir"), new XdmAtomicValue(webApp.getHomeDir().getAbsolutePath()));
+    transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "webapp-path"), new XdmAtomicValue(webApp.getPath()));
     transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "development-mode"), new XdmAtomicValue(webApp.getDevelopmentMode()));
   }
   

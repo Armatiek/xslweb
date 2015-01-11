@@ -73,7 +73,7 @@ public class XSLWebInitializer implements Initializer {
     configuration.setConfigurationProperty(FeatureKeys.RECOVERY_POLICY_NAME, "recoverWithWarnings");
     configuration.setConfigurationProperty(FeatureKeys.SUPPRESS_XSLT_NAMESPACE_CHECK, Boolean.TRUE);
     
-    // configuration.setURIResolver(new XSLWebURIResolver());
+    configuration.setURIResolver(new XSLWebURIResolver());
     
     /* Log */
     registerEXPathFunction(new Log(), configuration);

@@ -36,8 +36,9 @@
         </script>
       </head>
       <body>
-        <h1>XSLWeb Examples</h1>
+        <h1>XSLWeb Examples</h1>        
         <div id="tabs">
+          <xsl:variable name="path" select="concat(/*/req:context-path, /*/req:webapp-path)" as="xs:string"/>
           <ul>
             <li><a href="#tabs-1">Basic</a></li>
             <li><a href="#tabs-2">Advanced</a></li>
@@ -48,10 +49,12 @@
             -->
           </ul>
           <div id="tabs-1">
-            <ol>
-              <xsl:variable name="path" select="concat(/*/req:context-path, /*/req:webapp-path)" as="xs:string"/>
+            <ol>              
               <li>
                 <a href="{$path}/hello-world.html">Hello world</a>
+              </li>
+              <li>
+                Hello world (with dynamic generated pipeline) <a href="{$path}/hello-world-dynamic.html?lang=de">German</a> or <a href="{$path}/hello-world-dynamic.html?lang=fr">French</a> 
               </li>
               <li>
                 <a href="{$path}/static.html">Static files (i.e. images and css files)</a>
@@ -82,29 +85,28 @@
               </li>
               <li>
                 <a href="{$path}/attributes.html">Session/Webapp/Context attributes example</a>
-              </li>
-              <li>
-                <a href="{$path}/custom-extension-function.html">Custom XPath extension function</a>
-              </li>
+              </li>              
               <li>
                 <a href="{$path}/log/log.html">Logging</a>
-              </li>
-              <li>
-                <a href="{$path}/json/json.html">JSON serialization</a>
-              </li>
+              </li>              
               <li>
                 <a href="{$path}/cache/cache.html">Caching</a>
-              </li>
-              <li>
-                <a href="">Internal request</a>
-              </li>
-              <li>
-                <a href="">SOAP client/SOAP server</a>
-              </li>
+              </li>                            
             </ol>
           </div>
           <div id="tabs-2">
-            
+            <li>
+              <a href="{$path}/nestedpipeline/pipeline.html">Nested pipepline</a>
+            </li>
+            <li>
+              <a href="{$path}/json/json.html">JSON serialization</a>
+            </li>
+            <li>
+              <a href="{$path}/custom-extension-function.html">Custom XPath extension function</a>
+            </li>
+            <li>
+              <a href="">SOAP client/SOAP server (not yet implemented)</a>
+            </li>
           </div>
           <!--
           <div id="tabs-3">

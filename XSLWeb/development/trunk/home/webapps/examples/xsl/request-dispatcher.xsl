@@ -13,36 +13,9 @@
   <xsl:include href="../../../xsl/system/authentication/basic-authentication.xsl"/>
   
   <xsl:param name="config:development-mode" as="xs:boolean"/>
-      
-  <!-- Authentication functions called from basic-authentication.xsl: -->
-  <xsl:function name="auth:must-authenticate" as="xs:boolean">    
-    <xsl:param name="request" as="document-node()"/>       
-    <xsl:value-of select="starts-with($request/*/req:path, '/authentication')"/>
-  </xsl:function>
-  
-  <xsl:function name="auth:get-realm" as="xs:string">
-    <xsl:text>XSLWeb examples realm</xsl:text>
-  </xsl:function>
-  
-  <xsl:function name="auth:login" as="element()?">
-    <xsl:param name="username" as="xs:string"/>
-    <xsl:param name="password" as="xs:string"/>
-    <xsl:if test="$username = 'guest' and $password = 'secret'">
-      <authentication>
-        <ID>
-          <xsl:value-of select="$username"/>
-        </ID>
-        <data>    
-          <email>my.email@email.com</email>
-          <tel>1234567</tel>
-          <mydata1/>
-          <mydata2/>
-        </data>
-      </authentication>  
-    </xsl:if>
-  </xsl:function>
-   
-  <xsl:template match="/req:request[req:path = '/']">    
+
+  <!-- Examples index page: -->
+  <xsl:template name="index" match="/req:request[req:path = '/']">    
     <pipeline:pipeline>
       <pipeline:transformer name="index" xsl-path="index.xsl" log="true"/>  
     </pipeline:pipeline>
@@ -54,15 +27,19 @@
     </pipeline:pipeline>              
   </xsl:template>
       
-  <!--
-  <xsl:template match="/req:request[req:path = '/hello-world.html']">
-    <xsl:variable name="lang-value" select="req:parameters/req:parameter[@name='lang']/@value" as="xs:string?"/>    
-    <xsl:variable name="lang" select="if ($lang-value) then $lang-value else 'en'" as="xs:string"/>    
+  <xsl:template match="/req:request[req:path = '/hello-world-dynamic.html']">
+    <xsl:variable name="lang" select="req:parameters/req:parameter[@name='lang']/req:value[1]" as="xs:string?"/>           
     <pipeline:pipeline>
-      <pipeline:transformer name="hello-world" xsl-path="{concat('hello-world/hello-world-', $lang, '.xsl')}" log="true"/>
+      <xsl:choose>
+        <xsl:when test="$lang = 'fr'">
+          <pipeline:transformer name="hello-world-fr" xsl-path="hello-world/hello-world-fr.xsl" log="true"/>    
+        </xsl:when>
+        <xsl:when test="$lang = 'de'">
+          <pipeline:transformer name="hello-world-de" xsl-path="hello-world/hello-world-de.xsl" log="true"/>          
+        </xsl:when>        
+      </xsl:choose>            
     </pipeline:pipeline>              
   </xsl:template>
-  -->
   
   <xsl:template match="/req:request[req:path = '/static.html']">    
     <pipeline:pipeline>
@@ -178,6 +155,46 @@
       <pipeline:transformer name="cache" xsl-path="cache/cache.xsl" log="true"/>
     </pipeline:pipeline>
   </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/nestedpipeline/pipeline.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="pipeline" xsl-path="nestedpipeline/pipeline.xsl" log="true"/>       
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/nestedpipeline/nestedpipeline.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="nested-pipeline" xsl-path="nestedpipeline/nestedpipeline.xsl" log="true"/>       
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <!-- Authentication functions called from basic-authentication.xsl: -->
+  <xsl:function name="auth:must-authenticate" as="xs:boolean">    
+    <xsl:param name="request" as="document-node()"/>       
+    <xsl:value-of select="starts-with($request/*/req:path, '/authentication')"/>
+  </xsl:function>
+  
+  <xsl:function name="auth:get-realm" as="xs:string">
+    <xsl:text>XSLWeb examples realm</xsl:text>
+  </xsl:function>
+  
+  <xsl:function name="auth:login" as="element()?">
+    <xsl:param name="username" as="xs:string"/>
+    <xsl:param name="password" as="xs:string"/>
+    <xsl:if test="$username = 'guest' and $password = 'secret'">
+      <authentication>
+        <ID>
+          <xsl:value-of select="$username"/>
+        </ID>
+        <data>    
+          <email>my.email@email.com</email>
+          <tel>1234567</tel>
+          <mydata1/>
+          <mydata2/>
+        </data>
+      </authentication>  
+    </xsl:if>
+  </xsl:function>
   
   <xsl:template match="text()"/>
   
