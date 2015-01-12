@@ -79,13 +79,6 @@ public class Definitions {
   public final static String MIMETYPE_PNG                      = "image/png";
   public final static String MIMETYPE_TEXTPLAIN                = "text/plain";
   
-  public final static String PROPERTYNAME_DEVELOPMENTMODE      = "xslweb.developmentmode";
-  public final static String PROPERTYNAME_PORT                 = "xslweb.port";
-  public final static String PROPERTYNAME_LOCALHOST            = "xslweb.localhost";
-  public final static String PROPERTYNAME_STATICPATTERN        = "xslweb.staticcontentpattern";
-  public final static String PROPERTYNAME_DYNAMICPATTERN       = "xslweb.dynamiccontentpattern";
-  public final static String PROPERTYNAME_UPLOAD_MAX_SIZE      = "xslweb.uploadmaxsize";
-  
   public final static String ATTRNAME_WEBAPP                   = "xslweb.webapp";
   public final static String ATTRNAME_REQUESTXML               = "xslweb.requestxml";
   public final static String ATTRNAME_PIPELINEHANDLER          = "xslweb.pipelinehandler";

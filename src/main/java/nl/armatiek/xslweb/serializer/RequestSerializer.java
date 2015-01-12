@@ -24,7 +24,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import nl.armatiek.xslweb.configuration.Attribute;
-import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.error.XSLWebException;
@@ -112,8 +111,7 @@ public class RequestSerializer {
       }
       factory.setRepository(reposDir);
       ServletFileUpload upload = new ServletFileUpload(factory);
-      String maxSize = Context.getInstance().getProperties().getProperty(Definitions.PROPERTYNAME_UPLOAD_MAX_SIZE, "50");
-      upload.setSizeMax(1024 * 1024 * Long.parseLong(maxSize));
+      upload.setSizeMax(1024 * 1024 * webApp.getMaxUploadSize());
       items = upload.parseRequest(req);      
     }
     return items;

@@ -18,32 +18,5 @@
     <!-- if there are any jobs/trigger in scheduler of same name (as in this file), and over-write is false, ignore them rather then generating an error -->
     <ignore-duplicates>false</ignore-duplicates>
   </processing-directives>
-
-  <schedule>
-    <job>
-      <name>example-job</name>
-      <group>XSLWeb</group>
-      <description>Example Job</description>
-      <job-class>nl.armatiek.xslweb.quartz.XSLWebJob</job-class>
-      <durability>true</durability>
-      <recover>false</recover>
-      <job-data-map>
-        <entry>
-          <key>uri</key>
-          <value>http://${xslweb.localhost}:${xslweb.port}/xslweb/examples/hello-world.html</value>
-        </entry>        
-      </job-data-map>
-    </job>
-    <trigger>
-      <cron>
-        <name>example-trigger</name>
-        <group>XSLWeb</group>
-        <job-name>example-job</job-name>
-        <job-group>XSLWeb</job-group>
-        <cron-expression>0 11 11 11 11 ?</cron-expression>
-      </cron>
-    </trigger>
-    
-  </schedule>
   
 </job-scheduling-data>

@@ -6,10 +6,11 @@
       <xs:all>
         <xs:element name="title" type="xs:string"/>
         <xs:element name="description" type="xs:string"/>
-        <xs:element name="development-mode" type="xs:boolean"/>
+        <xs:element name="development-mode" type="xs:boolean" default="false"/>
+        <xs:element name="max-upload-size" type="xs:integer" minOccurs="0" default="10"/>
         <xs:element minOccurs="0" name="resources">
           <xs:complexType>
-            <xs:sequence>
+            <xs:sequence> 
               <xs:element maxOccurs="unbounded" minOccurs="0" name="resource">
                 <xs:complexType>
                   <xs:attribute name="pattern" type="xs:string" use="required"/>
