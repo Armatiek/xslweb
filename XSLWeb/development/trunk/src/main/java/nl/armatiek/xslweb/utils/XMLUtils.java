@@ -23,6 +23,7 @@ import javax.xml.transform.stream.StreamResult;
 import nl.armatiek.xslweb.error.XSLWebException;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -270,10 +271,17 @@ public class XMLUtils {
   }
   
   public static boolean getBooleanValue(String value, boolean defaultValue) {
-    if (value == null) {
+    if (StringUtils.isBlank(value)) {
       return defaultValue;
     }
     return (value.equals("true") || value.equals("1"));
+  }
+  
+  public static int getIntegerValue(String value, int defaultValue) {
+    if (StringUtils.isBlank(value)) {
+      return defaultValue;
+    }
+    return Integer.parseInt(value);
   }
   
   public static boolean isPunctuation(char c) {

@@ -8,6 +8,7 @@
   <title>My web application</title>
   <description>My web application</description>
   <development-mode>true</development-mode>
+  <max-upload-size>10</max-upload-size>
   
   <!-- Resources to serve straight away: -->
   <resources>       

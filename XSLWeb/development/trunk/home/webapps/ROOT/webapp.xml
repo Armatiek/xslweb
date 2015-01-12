@@ -8,6 +8,7 @@
   <title>Root web application</title>
   <description>Root web application</description>
   <development-mode>false</development-mode>
+  <max-upload-size>10</max-upload-size>
   
   <!-- Resources to serve straight away: -->
   <resources>

@@ -5,7 +5,6 @@ import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,9 +48,7 @@ public class Context {
   private Schema webAppSchema;
   private Properties properties;  
   private String contextPath;
-  private File webInfDir;
-  private String localHost; 
-  private int port = 80;  
+  private File webInfDir; 
   private File homeDir;
   
   private Context() { }
@@ -143,10 +140,7 @@ public class Context {
   
   private void initProperties() throws IOException {                 
     File propsFile = new File(homeDir, "config" + File.separatorChar + Definitions.FILENAME_PROPERTIES);
-    this.properties = XSLWebUtils.readProperties(propsFile);                       
-    port = Integer.parseInt(properties.getProperty(Definitions.PROPERTYNAME_PORT, "80"));    
-    localHost = InetAddress.getLocalHost().getHostAddress();   
-    properties.put(Definitions.PROPERTYNAME_LOCALHOST, localHost);
+    this.properties = XSLWebUtils.readProperties(propsFile);
   }
   
   private void initXMLSchemas() throws Exception {   
@@ -272,14 +266,6 @@ public class Context {
   
   public Properties getProperties() {     
     return this.properties;    
-  }
-  
-  public String getLocalHost() {
-    return localHost;
-  }
-  
-  public int getPort() {
-    return port;
   }
   
   public Schema getWebAppSchema() {

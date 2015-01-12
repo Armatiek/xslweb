@@ -41,6 +41,15 @@
     </pipeline:pipeline>              
   </xsl:template>
   
+  <xsl:template match="/req:request[req:path = '/pipeline.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="pipeline-step1" xsl-path="pipeline/pipeline-step1.xsl" log="true"/>  
+      <pipeline:transformer name="pipeline-step2" xsl-path="pipeline/pipeline-step2.xsl" log="true"/>  
+      <pipeline:transformer name="pipeline-step3" xsl-path="pipeline/pipeline-step3.xsl" log="true"/>  
+      <pipeline:transformer name="pipeline-step4" xsl-path="pipeline/pipeline-step4.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
   <xsl:template match="/req:request[req:path = '/static.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="static" xsl-path="static/static.xsl" log="true"/>  

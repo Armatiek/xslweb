@@ -8,6 +8,7 @@
   <title>XSLWeb examples</title>
   <description>XSLWeb examples</description>
   <development-mode>true</development-mode>
+  <max-upload-size>10</max-upload-size>
   
   <!-- Resources to serve straight away: -->
   <resources>

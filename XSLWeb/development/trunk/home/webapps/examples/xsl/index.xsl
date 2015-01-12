@@ -57,6 +57,9 @@
                 Hello world (with dynamic generated pipeline) <a href="{$path}/hello-world-dynamic.html?lang=de">German</a> or <a href="{$path}/hello-world-dynamic.html?lang=fr">French</a> 
               </li>
               <li>
+                <a href="{$path}/pipeline.html">Pipeline of transformations</a> 
+              </li>
+              <li>
                 <a href="{$path}/static.html">Static files (i.e. images and css files)</a>
               </li>          
               <li>
