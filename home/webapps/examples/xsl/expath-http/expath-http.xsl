@@ -5,7 +5,6 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
   xmlns:config="http://www.armatiek.com/xslweb/configuration"
-  xmlns:basex="http://basex.org/rest"  
   xmlns:req="http://www.armatiek.com/xslweb/request"
   xmlns:resp="http://www.armatiek.com/xslweb/response"  
   xmlns:http="http://expath.org/ns/http-client"
