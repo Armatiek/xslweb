@@ -108,7 +108,7 @@
               <a href="{$path}/custom-extension-function.html">Custom XPath extension function</a>
             </li>
             <li>
-              <a href="">SOAP client/SOAP server (not yet implemented)</a>
+              <a href="{$path}/soap/soap-client.html">SOAP client/SOAP server</a>
             </li>
           </div>
           <!--

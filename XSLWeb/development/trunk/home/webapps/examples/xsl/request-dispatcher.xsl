@@ -177,6 +177,25 @@
     </pipeline:pipeline>
   </xsl:template>
   
+  <xsl:template match="/req:request[req:path = '/soap/soap-client.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="soap-client" xsl-path="soap/soap-client.xsl" log="true"/>       
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template match="/req:request[req:path = '/Calculator']">    
+    <pipeline:pipeline>
+      <xsl:choose>
+        <xsl:when test="/req:request/req:parameters/req:parameter[@name='wsdl']">
+          <pipeline:transformer name="soap-wsdl" xsl-path="soap/soap-wsdl.xsl" log="true"/>      
+        </xsl:when>
+        <xsl:otherwise>
+          <pipeline:transformer name="soap-server" xsl-path="soap/soap-server.xsl" log="true"/>  
+        </xsl:otherwise>
+      </xsl:choose>
+    </pipeline:pipeline>
+  </xsl:template>
+  
   <!-- Authentication functions called from basic-authentication.xsl: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    
     <xsl:param name="request" as="document-node()"/>       
