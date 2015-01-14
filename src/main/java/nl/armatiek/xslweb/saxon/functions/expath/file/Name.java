@@ -63,6 +63,8 @@ public class Name extends ExtensionFunctionDefinition {
         }
         File file = getFile(path);
         return StringValue.makeStringValue(file.getName());
+      } catch (FileException fe) {
+        throw fe;
       } catch (Exception e) {
         throw new FileException("Other file error", e, FileException.ERROR_IO);
       }

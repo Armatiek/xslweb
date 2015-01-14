@@ -70,6 +70,8 @@ public class LastModified extends ExtensionFunctionDefinition {
         Calendar cal = Calendar.getInstance();        
         cal.setTime(new Date(file.lastModified()));                 
         return new DateTimeValue(cal, false);
+      } catch (FileException fe) {
+        throw fe;
       } catch (Exception e) {
         throw new FileException("Other file error", e, FileException.ERROR_IO);
       }

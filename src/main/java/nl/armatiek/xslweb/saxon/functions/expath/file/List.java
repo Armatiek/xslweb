@@ -1,9 +1,15 @@
 package nl.armatiek.xslweb.saxon.functions.expath.file;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.regex.Pattern;
 
 import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
@@ -19,19 +25,16 @@ import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
-import nl.armatiek.xslweb.utils.XSLWebUtils;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class List extends ExtensionFunctionDefinition {
 
+  private static final Logger logger = LoggerFactory.getLogger(List.class);
+  
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "list");
-
+    
   @Override
   public StructuredQName getFunctionQName() {
     return qName;
@@ -67,41 +70,88 @@ public class List extends ExtensionFunctionDefinition {
     return new ListCall();
   }
   
+  private static class Finder extends SimpleFileVisitor<Path> {
+
+    private ArrayList<Path> paths = new ArrayList<Path>();
+    private final PathMatcher matcher;
+    private final boolean recursive;
+    private final Path root;
+   
+    public Finder(Path root, boolean recursive, String pattern) {
+      this.root = root;
+      this.recursive = recursive;
+      if (pattern == null) {
+        this.matcher = null;
+      } else {
+        this.matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
+      }
+    }
+
+    private void match(Path file) {
+      Path name = file.getFileName();
+      if (name != null && (matcher == null || matcher.matches(name))) {
+        paths.add(file);
+      }
+    }
+        
+    @Override
+    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+      match(file);      
+      return FileVisitResult.CONTINUE;
+    }
+    
+    @Override
+    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+      if (dir.equals(root)) {
+        return FileVisitResult.CONTINUE;
+      }      
+      match(dir);
+      if (recursive) {
+        return FileVisitResult.CONTINUE;
+      } 
+      return FileVisitResult.SKIP_SUBTREE;            
+    }
+
+    @Override
+    public FileVisitResult visitFileFailed(Path file, IOException exc) { 
+      logger.error(String.format("Could not visit \"%s\"", file.toString()), exc);
+      return FileVisitResult.CONTINUE;
+    }
+    
+    public ArrayList<Path> getPaths() {
+      return this.paths;
+    }
+  }
+  
   private static class ListCall extends FileExtensionFunctionCall {
         
     @Override
     public ZeroOrMore<StringValue> call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {         
-        File dir = getFile(((StringValue) arguments[0].head()).getStringValue());                       
+        File dir = getFile(((StringValue) arguments[0].head()).getStringValue());
         if (!dir.isDirectory()) {
           throw new FileException(String.format("Path \"%s\" does not point to an existing directory", 
               dir.getAbsolutePath()), FileException.ERROR_PATH_NOT_DIRECTORY);         
         }
+        Path rootPath = dir.toPath();
         boolean recursive = false;
         if (arguments.length > 1) {
           recursive = ((BooleanValue) arguments[1].head()).getBooleanValue();
-        }        
-        Pattern regex = null;
-        if (arguments.length > 2) {
-          String pattern = ((StringValue) arguments[2].head()).getStringValue();
-          regex = Pattern.compile(XSLWebUtils.convertGlobToRegex(pattern));
         }
-        
-        String dirPath = FilenameUtils.normalizeNoEndSeparator(dir.getAbsolutePath(), true) + "/";            
-        ArrayList<StringValue> fileList = new ArrayList<StringValue>();
-        IOFileFilter fileFilter = (regex != null) ? new RegexFileFilter(regex) : TrueFileFilter.INSTANCE;
-        IOFileFilter dirFilter = (recursive) ? TrueFileFilter.INSTANCE : null;                       
-        Iterator<File> files = FileUtils.listFilesAndDirs(dir, fileFilter, dirFilter).iterator();
-        while (files.hasNext()) {
-          File file = files.next();          
-          if (file.isDirectory() && regex != null && !regex.matcher(file.getName()).matches()) {
-            continue;
-          }          
-          String filePath = FilenameUtils.normalizeNoEndSeparator(file.getAbsolutePath(), true);
-          String relPath = StringUtils.substringAfter(filePath, dirPath);          
-          fileList.add(new StringValue(relPath));                    
-        }                        
-        return new ZeroOrMore<StringValue>(fileList.toArray(new StringValue[fileList.size()]));
+        String pattern = null;
+        if (arguments.length > 2) {
+          pattern = ((StringValue) arguments[2].head()).getStringValue();          
+        }               
+        Finder finder = new Finder(rootPath, recursive, pattern);
+        Files.walkFileTree(dir.toPath(), finder);
+       
+        ArrayList<StringValue> result = new ArrayList<StringValue>();
+        for (Path path : finder.getPaths()) {                                                           
+          result.add(new StringValue(rootPath.relativize(path).toString()));
+        }
+        return new ZeroOrMore<StringValue>(result.toArray(new StringValue[result.size()]));
+      } catch (FileException fe) {
+        throw fe;
       } catch (Exception e) {
         throw new FileException("Other file error", e, FileException.ERROR_IO);
       }

@@ -78,6 +78,8 @@ public class CreateTempFile extends ExtensionFunctionDefinition {
         }
         temp.deleteOnExit();
         return StringValue.makeStringValue(temp.getCanonicalPath());
+      } catch (FileException fe) {
+        throw fe;
       } catch (Exception e) {
         throw new FileException("Other file error", e, FileException.ERROR_IO);
       }

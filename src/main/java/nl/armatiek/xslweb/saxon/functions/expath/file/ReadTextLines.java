@@ -90,6 +90,8 @@ public class ReadTextLines extends ExtensionFunctionDefinition {
           lines.add(new StringValue(linesIter.next()));                    
         }                        
         return new ZeroOrMore<StringValue>(lines.toArray(new StringValue[lines.size()]));
+      } catch (FileException fe) {
+        throw fe;
       } catch (Exception e) {
         throw new FileException("Other file error", e, FileException.ERROR_IO);
       }

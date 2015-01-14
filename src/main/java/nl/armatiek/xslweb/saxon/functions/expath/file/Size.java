@@ -67,7 +67,9 @@ public class Size extends ExtensionFunctionDefinition {
           throw new FileException(String.format("Path \"%s\" points to a directory", 
               file.getAbsolutePath()), FileException.ERROR_PATH_IS_DIRECTORY);
         } 
-        return Int64Value.makeIntegerValue(file.length()); 
+        return Int64Value.makeIntegerValue(file.length());
+      } catch (FileException fe) {
+        throw fe;
       } catch (Exception e) {
         throw new FileException("Other file error", e, FileException.ERROR_IO);
       }

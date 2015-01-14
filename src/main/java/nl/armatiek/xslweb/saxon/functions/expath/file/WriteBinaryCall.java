@@ -35,6 +35,8 @@ public class WriteBinaryCall extends FileExtensionFunctionCall {
       }
       FileUtils.writeByteArrayToFile(file, ((Base64BinaryValue) arguments[1].head()).getBinaryValue(), append);                
       return EmptySequence.getInstance();
+    } catch (FileException fe) {
+      throw fe;
     } catch (Exception e) {
       throw new FileException("Other file error", e, FileException.ERROR_IO);
     }
