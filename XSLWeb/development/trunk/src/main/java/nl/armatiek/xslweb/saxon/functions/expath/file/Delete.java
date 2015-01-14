@@ -76,6 +76,8 @@ public class Delete extends ExtensionFunctionDefinition {
         }        
         FileUtils.forceDelete(file);                
         return EmptySequence.getInstance();
+      } catch (FileException fe) {
+        throw fe;
       } catch (Exception e) {
         throw new FileException("Other file error", e, FileException.ERROR_IO);
       }

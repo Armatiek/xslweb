@@ -21,7 +21,7 @@
   <xsl:template name="title" as="xs:string">SOAP Client/Server Example</xsl:template>
   
   <xsl:template name="tab-contents-1">
-    <p></p>
+    <p>TODO link to wsdl</p>
     
     <xsl:variable name="output-parameters" as="element()">
       <output:serialization-parameters>

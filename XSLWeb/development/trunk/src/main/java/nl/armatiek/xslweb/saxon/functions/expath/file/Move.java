@@ -93,7 +93,9 @@ public class Move extends ExtensionFunctionDefinition {
             FileUtils.moveDirectoryToDirectory(sourceFile, targetFile, false);
           }          
         }        
-        return EmptySequence.getInstance(); 
+        return EmptySequence.getInstance();
+      } catch (FileException fe) {
+        throw fe;
       } catch (Exception e) {
         throw new FileException("Other file error", e, FileException.ERROR_IO);
       }

@@ -54,6 +54,8 @@ public class WriteTextLinesCall extends FileExtensionFunctionCall {
             encoding), FileException.ERROR_UNKNOWN_ENCODING);
       }
       return EmptySequence.getInstance();
+    } catch (FileException fe) {
+      throw fe;
     } catch (Exception e) {
       throw new FileException("Other file error", e, FileException.ERROR_IO);
     }

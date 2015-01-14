@@ -81,6 +81,8 @@ public class ReadText extends ExtensionFunctionDefinition {
               encoding), FileException.ERROR_UNKNOWN_ENCODING);
         }                
         return new StringValue(value);
+      } catch (FileException fe) {
+        throw fe;
       } catch (Exception e) {
         throw new FileException("Other file error", e, FileException.ERROR_IO);
       }

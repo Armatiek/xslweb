@@ -73,6 +73,8 @@ public class ReadBinary extends ExtensionFunctionDefinition {
         }
         byte[] value = FileUtils.readFileToByteArray(file);        
         return new Base64BinaryValue(value);
+      } catch (FileException fe) {
+        throw fe;
       } catch (Exception e) {
         throw new FileException("Other file error", e, FileException.ERROR_IO);
       }
