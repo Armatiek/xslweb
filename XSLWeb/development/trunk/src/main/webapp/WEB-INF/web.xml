@@ -61,6 +61,17 @@
     <url-pattern>/*</url-pattern>    
   </filter-mapping>
   
+  <!--
+  <servlet>
+    <servlet-name>LogServlet</servlet-name>
+    <servlet-class>nl.armatiek.xslweb.web.servlet.LogServlet</servlet-class>    
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LogServlet</servlet-name>
+    <url-pattern>/logviewer</url-pattern>
+  </servlet-mapping>
+  -->
+  
   <servlet>
     <servlet-name>XSLWebServlet</servlet-name>
     <servlet-class>nl.armatiek.xslweb.web.servlet.XSLWebServlet</servlet-class>    
