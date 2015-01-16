@@ -12,7 +12,7 @@
   
   <xsl:param name="config:development-mode" as="xs:boolean"/>
   
-  <xsl:template name="title" as="xs:string">Caching example</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 15: Caching</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <p>The output of this page will be cached by the caching framework of XSLWeb because 
@@ -23,8 +23,9 @@
       application.</p>
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">cache.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">cache</xsl:variable>
   
 </xsl:stylesheet>

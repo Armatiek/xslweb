@@ -18,7 +18,7 @@
   
   <xsl:include href="../../../../xsl/lib/functx/functx-1.0.xsl"/>
   
-  <xsl:template name="title" as="xs:string">SOAP Client/Server Example</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 20: SOAP Client/Server</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <p>TODO link to wsdl</p>
@@ -68,8 +68,9 @@
     
   </xsl:template>
    
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">soap-client.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">soap-client</xsl:variable>
   
 </xsl:stylesheet>

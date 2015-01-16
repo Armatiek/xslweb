@@ -16,7 +16,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Session/Webapp/Context attributes example</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 13: Session/Webapp/Context attributes</xsl:template>
   
   <xsl:variable name="output-parameters" as="node()">
     <output:serialization-parameters>

@@ -15,7 +15,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">EXPath HTTP Client</xsl:template>
+  <xsl:template name="title" as="xs:string">Exmple 11: HTTP Client using EXPath extension functions</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <p>This example shows the use of the EXPath HTTP Client extension function calling two REST Web services. 
@@ -75,8 +75,9 @@
     </pre>
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">expath-http.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">expath-http</xsl:variable>
   
 </xsl:stylesheet>

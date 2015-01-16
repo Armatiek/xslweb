@@ -16,7 +16,7 @@
   <xsl:param name="config:home-dir" as="xs:string"/>
   <xsl:param name="config:webapp-dir" as="xs:string"/>
   
-  <xsl:template name="title" as="xs:string">EXPath file example</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 10: File handling with EXPath extension functions</xsl:template>
   
   <xsl:template name="tab-contents-1">                
     <xsl:variable name="dir-path" select="concat($config:webapp-dir, '/static/downloads/expath-file')" as="xs:string"/>
@@ -82,8 +82,9 @@
     </ol>                
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">expath-file.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">expath-file</xsl:variable>
   
 </xsl:stylesheet>

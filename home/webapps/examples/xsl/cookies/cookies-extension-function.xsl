@@ -11,7 +11,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Cookies example using extension function</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 6: Cookies using Response XML</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <p>This example adds two cookies ("cookie-1" and "cookie-2") to the response using the extension function <i>resp:add-cookie($cookie as element(resp:cookie))</i>. 
@@ -62,8 +62,9 @@
 
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">cookies.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">cookies-extension-function</xsl:variable>
   
 </xsl:stylesheet>

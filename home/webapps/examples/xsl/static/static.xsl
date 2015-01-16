@@ -11,7 +11,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Static files example</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 4: Serving static files</xsl:template>
   
   <xsl:template name="head" as="element()*">
     <link rel="stylesheet" type="text/css" href="{/*/req:context-path}{/*/req:webapp-path}/styles/static.css"/>
@@ -25,8 +25,9 @@
     <p>This word <span class="red">red</span> is <span class="red">red</span> because that is defined in the css file <i>&lt;&lt;webapp-home&gt;&gt;</i>/static/styles/static.css</p>
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">static.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">static</xsl:variable>
   
 </xsl:stylesheet>

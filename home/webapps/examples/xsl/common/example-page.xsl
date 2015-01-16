@@ -100,7 +100,7 @@
   
   <xsl:template name="tab-contents-3">
     <pre class="prettyprint lang-xml linenums">
-      <xsl:sequence select="ser:serialize(document('../request-dispatcher.xsl')//xsl:template[contains(@match, $dispatcher-match)], $output-parameters)"/>
+      <xsl:sequence select="ser:serialize(document('../request-dispatcher.xsl')//xsl:template[@name = $template-name], $output-parameters)"/>
     </pre>
   </xsl:template>
   
@@ -120,6 +120,7 @@
     <h1>
       <xsl:call-template name="title"/>
     </h1>
+    <h3>Back to <a href="{/*/req:context-path}{/*/req:webapp-path}">index</a></h3>
     <div id="tabs">
       <ul>
         <li><a href="#tabs-1"><xsl:call-template name="tab-header-1"/></a></li>
