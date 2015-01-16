@@ -53,6 +53,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_UUID       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/uuid";
   public final static String NAMESPACEURI_XSLWEB_FX_WEBAPP     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/webapp";
   public final static String NAMESPACEURI_XSLWEB_FX_CACHE      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/cache";
+  public final static String NAMESPACEURI_XSLWEB_FX_SCRIPT        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/script";
   public final static String NAMESPACEURI_XSLWEB_REQUEST       = NAMESPACEURI_XSLWEB + "/request";
   public final static String NAMESPACEURI_XSLWEB_RESPONSE      = NAMESPACEURI_XSLWEB + "/response";
   public final static String NAMESPACEURI_XSLWEB_FX_SESSION    = NAMESPACEURI_XSLWEB + "/session";

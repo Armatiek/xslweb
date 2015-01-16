@@ -14,7 +14,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Authentication Example</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 9: User authentication (BASIC)</xsl:template>
   
   <xsl:variable name="session:attr-name-userprofile" as="xs:string">xslweb-userprofile</xsl:variable>
   
@@ -47,9 +47,10 @@
     </pre>
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">authentication.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">authentication</xsl:variable>
   
   <xsl:variable name="output-parameters" as="node()">
     <output:serialization-parameters>

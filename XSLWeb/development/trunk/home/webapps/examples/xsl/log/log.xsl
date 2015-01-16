@@ -11,7 +11,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Logging example</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 14: Logging</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <p>This example logs a sequence of two nodes and one string to the log file 
@@ -40,8 +40,9 @@
     <xsl:sequence select="log:log('INFO', ($node-1, $node-2, $node-3), $output-parameters)"/>
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">log.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">log</xsl:variable>
   
 </xsl:stylesheet>

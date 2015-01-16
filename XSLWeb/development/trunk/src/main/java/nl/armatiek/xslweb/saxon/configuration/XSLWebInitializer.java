@@ -54,6 +54,7 @@ import nl.armatiek.xslweb.saxon.functions.response.EncodeURL;
 import nl.armatiek.xslweb.saxon.functions.response.IsCommitted;
 import nl.armatiek.xslweb.saxon.functions.response.SetBufferSize;
 import nl.armatiek.xslweb.saxon.functions.response.SetStatus;
+import nl.armatiek.xslweb.saxon.functions.script.Invoke;
 import nl.armatiek.xslweb.saxon.functions.serialize.Serialize;
 import nl.armatiek.xslweb.saxon.functions.session.Invalidate;
 import nl.armatiek.xslweb.saxon.functions.session.SetMaxInactiveInterval;
@@ -163,7 +164,10 @@ public class XSLWebInitializer implements Initializer {
     // registerEXPathFunction(new XmlEntryFunction(), configuration);
     
     /* EXPath HttpClient: */           
-    registerEXPathFunction(new SendRequestFunction(), configuration);    
+    registerEXPathFunction(new SendRequestFunction(), configuration);  
+    
+    /* Script */
+    registerEXPathFunction(new Invoke(), configuration); 
   }
   
   private void registerEXPathFunction(ExtensionFunctionDefinition function, Configuration configuration) {

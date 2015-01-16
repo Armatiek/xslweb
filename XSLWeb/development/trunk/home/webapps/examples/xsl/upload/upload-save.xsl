@@ -40,8 +40,9 @@
     </xsl:for-each>                       
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">upload-save.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">upload-save</xsl:variable>
   
 </xsl:stylesheet>

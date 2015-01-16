@@ -11,7 +11,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Custom extension function example</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 19: Custom extension function</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <p>This example calls the custom XPath extension function <i>ext:hello-world(xs:string)</i> (you could have
@@ -25,11 +25,15 @@
     <p>
       See also: <a target="_blank" href="http://www.saxonica.com/documentation/#!extensibility/integratedfunctions/ext-full-J">http://www.saxonica.com/documentation/#!extensibility/integratedfunctions/ext-full-J</a>
     </p>
-    
+    <p>The Java source code of this extension function:</p>
+    <pre class="prettyprint lang-java linenums">
+      <xsl:value-of select="unparsed-text('HelloWorld.java')"/>
+    </pre>
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">custom-extension-function.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">custom-extension-function</xsl:variable>
   
 </xsl:stylesheet>

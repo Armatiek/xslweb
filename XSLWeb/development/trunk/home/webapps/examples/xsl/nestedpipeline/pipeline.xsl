@@ -13,7 +13,7 @@
   <!-- config:webapp-path: "/" for root webapp or "/examples" -->
   <xsl:param name="config:webapp-path" as="xs:string"/>
   
-  <xsl:template name="title" as="xs:string">Nested pipeline example</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 17: Nested pipeline</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <p>This example shows how to execute an "internal" request to another pipeline and include the output
@@ -24,8 +24,9 @@
     <xsl:sequence select="document('xslweb:///examples/nestedpipeline/nestedpipeline.html')"/>
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">/pipeline.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">nested-pipeline</xsl:variable>
   
 </xsl:stylesheet>

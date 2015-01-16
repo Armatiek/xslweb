@@ -11,7 +11,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Pipeline example</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 3: Pipeline of multiple transformations</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <p>
@@ -22,8 +22,9 @@
     </p>
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">pipeline.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">pipeline</xsl:variable>
   
 </xsl:stylesheet>

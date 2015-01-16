@@ -10,11 +10,12 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">HTTP headers example</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 5: HTTP headers using XPath extension functions</xsl:template>
   
   <xsl:template name="tab-contents-1">
-    <p>This example adds three HTTP headers to the response using extension functions, the string header <i>Pragma</i>, 
-    the integer header <i>Expires</i> and the date header <i>Last Modified</i>.</p>
+    <p>This example adds three HTTP headers to the response using XPath extension functions, 
+      the string header <i>Pragma</i>, the integer header <i>Expires</i> and the date header 
+      <i>Last Modified</i>. See the tab "Pipeline stylesheet".</p>
     
     <!-- Add string header to response: -->
     <xsl:sequence select="resp:add-header('Pragma', 'no-cache')"/>
@@ -27,8 +28,9 @@
 
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">headers-extension-function.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">headers-extension-function</xsl:variable>
   
 </xsl:stylesheet>

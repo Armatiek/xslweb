@@ -8,11 +8,10 @@
   <title>XSLWeb examples</title>
   <description>XSLWeb examples</description>
   <development-mode>true</development-mode>
-  <max-upload-size>10</max-upload-size>
+  <max-upload-size>10</max-upload-size> <!-- 10MB -->
   
   <!-- Resources to serve straight away: -->
-  <resources>
-    <resource pattern="/favicon.ico" media-type="image/x-icon"/>    
+  <resources> 
     <resource pattern="/(styles|images)/.+\.png" media-type="image/png"/>
     <resource pattern="/(styles|images)/.+\.gif" media-type="image/gif"/>
     <resource pattern="/(styles|images)/.+\.(jpg|jpeg)" media-type="image/jpg"/>
@@ -24,10 +23,6 @@
 
   <!-- Stylesheet parameters: -->
   <parameters>
-    <parameter name="basex-rest-base-uri" uri="http://www.armatiek.com/xslweb/configuration" type="xs:string">
-      <value>http://localhost:8082/rest</value>
-    </parameter>
-
     <parameter name="hostname" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:string">
       <value>smtp.googlemail.com</value>
     </parameter>
@@ -46,14 +41,15 @@
   </parameters>
   
   <!-- Scheduled job definitions: -->
+  <!--
   <jobs> 
     <job>
       <name>WriteTimeJob</name>
       <uri>execute-writetime-job.html</uri>
-      <!-- Execute every 60 seconds: --> 
       <cron>0/60 * * * * ?</cron>
       <concurrent>true</concurrent>
     </job>   
   </jobs>
+  -->
   
 </webapp>

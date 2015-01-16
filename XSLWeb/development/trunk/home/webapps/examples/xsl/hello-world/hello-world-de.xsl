@@ -9,14 +9,15 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Hello world example (dynamic pipeline)</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 2: Hello world (dynamic pipeline)</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <p>Hallo Welt!</p>
   </xsl:template>
   
+  <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">hello-world-dynamic.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">hello-world-dynamic</xsl:variable>
   
 </xsl:stylesheet>

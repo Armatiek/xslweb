@@ -4,19 +4,26 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xmlns:req="http://www.armatiek.com/xslweb/request"
+  xmlns:resp="http://www.armatiek.com/xslweb/response"   
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:import href="../common/example-page.xsl"/>
+  <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   
-  <xsl:template name="title" as="xs:string">Hello world example</xsl:template>
-  
-  <xsl:template name="tab-contents-1">
-    <p>Hello World!</p>
+  <xsl:template match="/">
+    <resp:response status="200">
+      <resp:body>
+        <html>
+          <head>
+            <title>Hello World!</title>
+          </head>
+          <body>        
+            <h1>Hello World!</h1>        
+          </body>
+        </html>
+      </resp:body>
+    </resp:response>          
   </xsl:template>
-  
-  <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
-  
-  <xsl:variable name="dispatcher-match" as="xs:string">hello-world.html</xsl:variable>
   
 </xsl:stylesheet>
