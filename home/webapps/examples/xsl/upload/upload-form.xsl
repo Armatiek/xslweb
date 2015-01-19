@@ -10,7 +10,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">File upload example</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 8: File upload</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <form 

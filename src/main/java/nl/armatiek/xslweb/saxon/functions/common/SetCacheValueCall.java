@@ -13,15 +13,17 @@ import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 
 public abstract class SetCacheValueCall extends ExtensionFunctionCall {
 
-  protected abstract void setAttributes(String cacheName, String keyName, Collection<Attribute> attrs, int duration, XPathContext context);
+  protected abstract void setAttributes(String cacheName, String keyName, Collection<Attribute> attrs, 
+      int tti, int ttl, XPathContext context);
 
   @Override
   public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
     String cacheName = ((StringValue) arguments[0].head()).getStringValue();
     String keyName = ((StringValue) arguments[1].head()).getStringValue();        
-    int duration = (int) ((IntegerValue) arguments[3].head()).longValue();
+    int tti = (int) ((IntegerValue) arguments[3].head()).longValue();
+    int ttl = (int) ((IntegerValue) arguments[4].head()).longValue();
     Collection<Attribute> attrs = sequenceToAttributeCollection(arguments[2]);       
-    setAttributes(cacheName, keyName, attrs, duration, context);
+    setAttributes(cacheName, keyName, attrs, tti, ttl, context);
     return EmptySequence.getInstance();
   }
 }
