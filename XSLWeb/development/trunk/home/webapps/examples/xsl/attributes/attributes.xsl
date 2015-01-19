@@ -16,7 +16,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Example 13: Session/Webapp/Context attributes</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 7: Session/Webapp/Context attributes using extension function</xsl:template>
   
   <xsl:variable name="output-parameters" as="node()">
     <output:serialization-parameters>
@@ -27,16 +27,18 @@
   </xsl:variable>
   
   <xsl:template name="tab-contents-1">
-    <p>TODO</p>
+    <p>In this example attributes are written and then read from 1/ the Session scope (user specific), 
+      2/ the Webapp scope (web application specific) and 3/ the Context scope (XSLWeb installation). The attributes will
+    all be available in subsequent requests by 1/ the same user, 2/ all users of the same webapp or 3/ all users of
+    the same XSLWeb instance.</p>
     <xsl:call-template name="session-attrs"/><hr/>  
     <xsl:call-template name="webapp-attrs"/><hr/>
-    <xsl:call-template name="context-attrs"/><hr/>
-    <xsl:call-template name="webapp-cache"/>
+    <xsl:call-template name="context-attrs"/>
   </xsl:template>
   
   <xsl:template name="session-attrs"> 
     <h2>Session attributes</h2>
-    <p>Set and get session attribute 'atomic-attr-name' containing sequence of integers:</p>
+    <p>Set and get session attribute 'atomic-attr-name' containing sequence of integers (atomic values):</p>
     <xsl:variable name="session:atomic-attr-values" as="xs:integer*" select="(1, 2, 3)"/>
     <xsl:value-of select="session:set-attribute('atomic-attr-name', $session:atomic-attr-values)"/>                
     <xsl:for-each select="session:get-attribute('atomic-attr-name')">
@@ -66,7 +68,7 @@
   
   <xsl:template name="webapp-attrs">
     <h2>Webapp attributes</h2>
-    <p>Set and get webapp attribute 'atomic-attr-name' containing sequence of integers:</p>
+    <p>Set and get webapp attribute 'atomic-attr-name' containing sequence of integers (atomic values):</p>
     
     <xsl:variable name="webapp:atomic-attr-values" as="xs:integer*" select="(1, 2, 3)"/>
     
@@ -99,7 +101,7 @@
   
   <xsl:template name="context-attrs">
     <h2>Context attributes</h2>
-    <p>Set and get context attribute 'atomic-attr-name' containing sequence of integers:</p>
+    <p>Set and get context attribute 'atomic-attr-name' containing sequence of integers (atomic values):</p>
     
     <xsl:variable name="context:atomic-attr-values" as="xs:integer*" select="(1, 2, 3)"/>
     
@@ -130,19 +132,8 @@
     </pre>
   </xsl:template>
   
-  
-  <xsl:template name="webapp-cache">
-    <h2>Webapp cache attributes (timeout 1800 seconds)</h2>
-    <p>Set and get webapp attribute 'atomic-cache-key-name' containing sequence of integers:</p>
-    <xsl:variable name="webapp:atomic-cache-values" as="xs:integer*" select="(1, 2, 3)"/>
-    <xsl:value-of select="webapp:set-cache-value('atomic-cache-name', 'atomic-cache-key-name', $webapp:atomic-cache-values, 1800)"/>                
-    <xsl:for-each select="webapp:get-cache-value('atomic-cache-name', 'atomic-cache-key-name')">
-      <xsl:value-of select="."/><br/>
-    </xsl:for-each>        
-  </xsl:template>
-  
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="dispatcher-match" as="xs:string">attributes.html</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">attributes</xsl:variable>
   
 </xsl:stylesheet>

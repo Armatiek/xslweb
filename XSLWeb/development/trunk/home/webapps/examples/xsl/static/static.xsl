@@ -22,7 +22,11 @@
     
     <img src="{/*/req:context-path}{/*/req:webapp-path}/images/hello-world.jpg"/>
     
-    <p>This word <span class="red">red</span> is <span class="red">red</span> because that is defined in the css file <i>&lt;&lt;webapp-home&gt;&gt;</i>/static/styles/static.css</p>
+    <p>This word <span class="red">red</span> is <span class="red">red</span> because that is defined in the css file 
+      <i>&lt;&lt;webapp-home&gt;&gt;</i>/static/styles/static.css</p>
+    
+    <p>The requests for the image and stylesheet are served straight (do not go to the request dispatcher) because of
+    the <i>resource</i> definitions in <i>webapp.xml</i>.</p>
   </xsl:template>
   
   <!-- These variables can be ignored: -->
