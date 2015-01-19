@@ -12,7 +12,7 @@
   
   <xsl:param name="config:development-mode" as="xs:boolean"/>
   
-  <xsl:template name="title" as="xs:string">Example 15: Caching</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 13: Response caching</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <p>The output of this page will be cached by the caching framework of XSLWeb because 
