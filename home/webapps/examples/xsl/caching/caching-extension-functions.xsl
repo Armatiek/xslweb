@@ -21,15 +21,16 @@
   <xsl:template name="tab-contents-1">
     <p>In this example a sequence of three integers is written and then read from the named 
       webapp cache <i>atomic-cache-name</i> using extension functions. The name of the cache 
-      key is <i>atomic-cache-key-name</i>, the time-to-idle and time-to-live of the cache value
-      are 10 seconds.</p>
+      key is <i>atomic-cache-key-name</i>, the <i>time-to-idle</i> and <i>time-to-live</i> of 
+      the cache value are set to 10 seconds. The sequence will all be available in subsequent 
+      requests by users of this webapp (until <i>time-to-idle</i> or <i>time-to-live</i> 
+      are reached).</p>
     
     <xsl:variable name="atomic-cache-values" as="xs:integer*" select="(1, 2, 3)"/>
     <xsl:variable name="time-to-idle" as="xs:integer" select="10"/>
     <xsl:variable name="time-to-live" as="xs:integer" select="10"/>
     
-    <xsl:value-of select="webapp:set-cache-value('atomic-cache-name', 'atomic-cache-key-name', 
-      $atomic-cache-values, $time-to-idle, $time-to-live)"/>                
+    <xsl:value-of select="webapp:set-cache-value('atomic-cache-name', 'atomic-cache-key-name', $atomic-cache-values, $time-to-idle, $time-to-live)"/>                
     <xsl:for-each select="webapp:get-cache-value('atomic-cache-name', 'atomic-cache-key-name')">
       <xsl:value-of select="."/><br/>
     </xsl:for-each>          
@@ -37,6 +38,6 @@
   
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="template-name" as="xs:string">cache-extension-functions</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">caching-extension-functions</xsl:variable>
   
 </xsl:stylesheet>

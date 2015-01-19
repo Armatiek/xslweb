@@ -95,7 +95,7 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <xsl:template name="upload-save" match="/req:request[req:path = '/upload/upload-save.html']">    
+  <xsl:template name="upload-save" match="/req:request[req:path = '/upload-save.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="upload-save" xsl-path="upload/upload-save.xsl" log="true"/>   
     </pipeline:pipeline>
@@ -129,7 +129,7 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <xsl:template name="email-send" match="/req:request[req:path = '/email/email-send.html']">    
+  <xsl:template name="email-send" match="/req:request[req:path = '/email-send.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="email-send" xsl-path="email/email-send.xsl" log="true"/>  
     </pipeline:pipeline>
@@ -142,15 +142,8 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 14: Logging -->
-  <xsl:template name="log" match="/req:request[req:path = '/log/log.html']">    
-    <pipeline:pipeline>
-      <pipeline:transformer name="log" xsl-path="log/log.xsl" log="true"/>  
-    </pipeline:pipeline>
-  </xsl:template>
-  
-  <!-- Example 15: Caching -->
-  <xsl:template name="cache" match="/req:request[req:path = '/cache/cache.html']">    
+  <!-- Example 13: Response caching -->
+  <xsl:template name="responsecaching" match="/req:request[req:path = '/responsecaching.html']">    
     <pipeline:pipeline 
       cache="true" 
       cache-key="{concat(/*/req:method, /*/req:request-URI, /*/req:query-string)}" 
@@ -158,12 +151,26 @@
       cache-time-to-idle="320"
       cache-scope="webapp"
       cache-headers="false">
-      <pipeline:transformer name="cache" xsl-path="cache/cache.xsl" log="true"/>
+      <pipeline:transformer name="responsecaching" xsl-path="caching/responsecaching.xsl" log="true"/>
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <!-- Example 14: Caching extension functions -->
+  <xsl:template name="caching-extension-functions" match="/req:request[req:path = '/caching-extension-functions.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="caching-extension-functions" xsl-path="caching/caching-extension-functions.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <!-- Example 14: Logging -->
+  <xsl:template name="log" match="/req:request[req:path = '/log.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="log" xsl-path="log/log.xsl" log="true"/>  
     </pipeline:pipeline>
   </xsl:template>
   
   <!-- Example 16: Job Scheduling -->
-  <xsl:template name="job-scheduling" match="/req:request[req:path = '/job-scheduling/job-scheduling.html']">    
+  <xsl:template name="job-scheduling" match="/req:request[req:path = '/job-scheduling.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="job-scheduling" xsl-path="job-scheduling/job-scheduling.xsl" log="true"/>       
     </pipeline:pipeline>
@@ -176,20 +183,20 @@
   </xsl:template>
   
   <!-- Example 17: Nested pipeline -->
-  <xsl:template name="nested-pipeline" match="/req:request[req:path = '/nestedpipeline/pipeline.html']">    
+  <xsl:template name="nested-pipeline" match="/req:request[req:path = '/nestingpipeline.html']">    
     <pipeline:pipeline>
-      <pipeline:transformer name="nested-pipeline" xsl-path="nestedpipeline/pipeline.xsl" log="true"/>       
+      <pipeline:transformer name="nested-pipeline" xsl-path="nestedpipeline/nestingpipeline.xsl" log="true"/>       
     </pipeline:pipeline>
   </xsl:template>
   
-  <xsl:template match="/req:request[req:path = '/nestedpipeline/nestedpipeline.html']">    
+  <xsl:template match="/req:request[req:path = '/nestedpipeline.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="nested-pipeline" xsl-path="nestedpipeline/nestedpipeline.xsl" log="true"/>       
     </pipeline:pipeline>
   </xsl:template>
   
   <!-- Example 18: JSON -->
-  <xsl:template match="/req:request[req:path = '/json/json.html']">    
+  <xsl:template match="/req:request[req:path = '/json.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="json" xsl-path="json/json.xsl" log="true"/>
       <pipeline:json-serializer name="json" log="true"/>  
@@ -204,14 +211,14 @@
   </xsl:template>
   
   <!-- Example 20: SOAP client/SOAP server -->
-  <xsl:template name="soap-client" match="/req:request[req:path = '/soap/soap-client.html']">    
+  <xsl:template name="soap-client" match="/req:request[req:path = '/soap-client.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="soap-client" xsl-path="soap/soap-client.xsl" log="true"/>       
     </pipeline:pipeline>
   </xsl:template>
   
   <!-- Example 21: Script extension function -->
-  <xsl:template name="script" match="/req:request[req:path = '/script/script.html']">    
+  <xsl:template name="script" match="/req:request[req:path = '/script.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="script" xsl-path="script/script.xsl" log="true"/>       
     </pipeline:pipeline>

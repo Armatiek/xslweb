@@ -21,7 +21,7 @@
     standard XSLT function <i>document()</i> with an URL that starts with the custom scheme "xslweb". The path
     part of the URI starts with the name of the webapp.</p>
         
-    <xsl:sequence select="document('xslweb:///examples/nestedpipeline/nestedpipeline.html')"/>
+    <xsl:sequence select="document('xslweb:///examples/nestedpipeline.html')"/>
   </xsl:template>
   
   <!-- These variables can be ignored: -->

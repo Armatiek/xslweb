@@ -11,7 +11,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Example 14: Logging</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 15: Logging</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <p>This example logs a sequence of two nodes and one string to the log file 

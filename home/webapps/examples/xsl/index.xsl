@@ -64,7 +64,7 @@
                 Cookies <a href="{$path}/cookies-extension-function.html">using extension function</a> or <a href="{$path}/cookies-response.html">using Response XML</a>
               </li>
               <li>
-                Session (TODO)
+                <a href="{$path}/attributes.html">Session/Webapp/Context attributes using extension functions</a>
               </li>
               <li>
                 <a href="{$path}/upload.html">File upload</a>
@@ -79,38 +79,38 @@
                 <a href="{$path}/expath-http.html">HTTP Client using EXPath extension functions</a>
               </li>
               <li>
-                <a href="{$path}/email.html">E-Mail extension function and webapp parameters</a> (first set mail parameters in webapp.xml)
-              </li>
+                <a href="{$path}/email.html">E-Mail extension function and webapp parameters</a> (first set correct parameters in webapp.xml)
+              </li>         
               <li>
-                <a href="{$path}/attributes.html">Session/Webapp/Context attributes</a>
-              </li>              
-              <li>
-                <a href="{$path}/log/log.html">Logging</a>
-              </li>              
-              <li>
-                <a href="{$path}/cache/cache.html">Caching</a>
+                <a href="{$path}/responsecaching.html">Response caching</a>
               </li> 
               <li>
-                <a href="{$path}/job-scheduling/job-scheduling.html">Job scheduling</a>
+                <a href="{$path}/caching-extension-functions.html">Caching extension functions</a>
+              </li>
+              <li>
+                <a href="{$path}/log.html">Logging</a>
+              </li>              
+              <li>
+                <a href="{$path}/job-scheduling.html">Job scheduling</a>
               </li> 
             </ol>
           </div>
           <div id="tabs-2">
             <ol start="17">
               <li>
-                <a href="{$path}/nestedpipeline/pipeline.html">Nested pipepline</a>
+                <a href="{$path}/nestingpipeline.html">Nested pipepline</a>
               </li>
               <li>
-                <a href="{$path}/json/json.html">JSON serialization</a>
+                <a href="{$path}/json.html">JSON serialization</a>
               </li>
               <li>
                 <a href="{$path}/custom-extension-function.html">Custom XPath extension function</a>
               </li>
               <li>
-                <a href="{$path}/soap/soap-client.html">SOAP client/SOAP server</a>
-              </li> 
+                <a href="{$path}/script.html">Script extension function</a>
+              </li>
               <li>
-                <a href="{$path}/script/script.html">Script extension function</a>
+                <a href="{$path}/soap-client.html">SOAP client/SOAP server</a>
               </li> 
             </ol>
           </div>

@@ -26,6 +26,6 @@
   <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="template-name" as="xs:string">cache</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">responsecaching</xsl:variable>
   
 </xsl:stylesheet>
