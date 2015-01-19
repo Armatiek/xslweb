@@ -21,7 +21,8 @@
   <xsl:template name="title" as="xs:string">Example 21: SOAP Client/Server</xsl:template>
   
   <xsl:template name="tab-contents-1">
-    <p>TODO link to wsdl</p>
+    <p>In this example the HTTP Client EXPath extension function is used to call a SOAP webservice that is
+    developed in XSLWeb.</p>
     
     <xsl:variable name="output-parameters" as="element()">
       <output:serialization-parameters>

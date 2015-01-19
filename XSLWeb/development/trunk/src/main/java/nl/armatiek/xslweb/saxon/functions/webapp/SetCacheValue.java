@@ -26,17 +26,22 @@ public class SetCacheValue extends ExtensionFunctionDefinition {
 
   @Override
   public int getMinimumNumberOfArguments() {
-    return 4;
+    return 5;
   }
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 4;
+    return 5;
   }
 
   @Override
   public SequenceType[] getArgumentTypes() {
-    return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.SINGLE_STRING, SequenceType.ANY_SEQUENCE, SequenceType.SINGLE_INTEGER };
+    return new SequenceType[] { 
+        SequenceType.SINGLE_STRING, 
+        SequenceType.SINGLE_STRING, 
+        SequenceType.ANY_SEQUENCE, 
+        SequenceType.SINGLE_INTEGER,
+        SequenceType.SINGLE_INTEGER };
   }
 
   @Override
@@ -53,8 +58,9 @@ public class SetCacheValue extends ExtensionFunctionDefinition {
   public ExtensionFunctionCall makeCallExpression() {
     return new SetCacheValueCall() {
       @Override
-      protected void setAttributes(String cacheName, String keyName, Collection<Attribute> attrs, int duration, XPathContext context) {               
-        getWebApp(context).setCacheValue(cacheName, keyName, attrs, duration);        
+      protected void setAttributes(String cacheName, String keyName, Collection<Attribute> attrs, 
+          int tti, int ttl, XPathContext context) {               
+        getWebApp(context).setCacheValue(cacheName, keyName, attrs, tti, ttl);        
       }
     };
   }

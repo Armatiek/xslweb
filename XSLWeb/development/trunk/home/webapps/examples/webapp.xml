@@ -15,7 +15,8 @@
     <resource pattern="/(styles|images)/.+\.png" media-type="image/png"/>
     <resource pattern="/(styles|images)/.+\.gif" media-type="image/gif"/>
     <resource pattern="/(styles|images)/.+\.(jpg|jpeg)" media-type="image/jpg"/>
-    <resource pattern="/scripts/.+\.js" media-type="text/javascript"/>
+    <!-- Set the duration of client cache to 7 hours (default 4 hours): -->
+    <resource pattern="/scripts/.+\.js" media-type="text/javascript" duration="P0DT7H0M0S"/>
     <resource pattern="/styles/.+\.css" media-type="text/css"/>
     
     <resource pattern="/downloads/.+\.docx?" media-type="application/msword"/>    

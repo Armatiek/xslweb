@@ -427,7 +427,7 @@ public class WebApp implements ErrorHandler {
     return (Collection<Attribute>) cache.get(keyName).getObjectValue();
   }
   
-  public void setCacheValue(String cacheName, String keyName, Collection<Attribute> attrs, int duration) {
+  public void setCacheValue(String cacheName, String keyName, Collection<Attribute> attrs, int tti, int ttl) {
     CacheManager manager = Context.getInstance().getCacheManager();
     Cache cache = manager.getCache(cacheName);
     if (cache == null) {      
@@ -441,7 +441,7 @@ public class WebApp implements ErrorHandler {
             .persistence(new PersistenceConfiguration().strategy(Strategy.LOCALTEMPSWAP)));
       manager.addCache(cache);
     }            
-    cache.put(new net.sf.ehcache.Element(keyName, attrs, false, duration, duration));
+    cache.put(new net.sf.ehcache.Element(keyName, attrs, false, tti, ttl));
   }
   
   @Override

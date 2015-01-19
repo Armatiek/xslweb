@@ -26,21 +26,6 @@
       <xsl:call-template name="headers"/>
       <xsl:call-template name="session"/>
       <xsl:call-template name="cookies"/>
-      <!--     
-      <resp:session invalidate="true" set-max-inactive-interval="3600">
-        <resp:attributes>
-          <resp:attribute name="foo">
-            <resp:item type="xs:string">bar1</resp:item>
-            <resp:item type="node()">
-              <node1>
-                <x>x</x>
-                <y>y</y>
-              </node1>
-            </resp:item>
-          </resp:attribute>
-        </resp:attributes>
-      </resp:session>
-      -->
       
       <resp:body>
         <html>
@@ -120,7 +105,7 @@
     <h1>
       <xsl:call-template name="title"/>
     </h1>
-    <h3>Back to <a href="{/*/req:context-path}{/*/req:webapp-path}">index</a></h3>
+    <h3><a href="{/*/req:context-path}{/*/req:webapp-path}">Back to index</a></h3>
     <div id="tabs">
       <ul>
         <li><a href="#tabs-1"><xsl:call-template name="tab-header-1"/></a></li>

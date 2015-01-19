@@ -13,7 +13,7 @@
   <!-- Resources to serve straight away: -->
   <resources>
     <resource pattern="/favicon.ico" media-type="image/x-icon" duration="P7DT0H0M0S"/>
-    <resource pattern="/robots.txt" media-type="text/plain" duration="P7DT0H0M0S"/>    
+    <resource pattern="/robots.txt" media-type="text/plain" duration="P1DT0H0M0S"/>    
     <resource pattern="/images/.+\.png" media-type="image/png"/>
     <resource pattern="/images/.+\.gif" media-type="image/gif"/>
     <resource pattern="/images/.+\.(jpg|jpeg)" media-type="image/jpg"/>

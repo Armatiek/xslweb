@@ -13,10 +13,10 @@
   <xsl:template name="title" as="xs:string">Example 20: Script extension function</xsl:template>
   
   <xsl:template name="tab-contents-1">
+    <p>In this example the three functions in the following Javascript are executed
+      using the <i>script:invoke</i> extension function:</p>
     <xsl:variable name="script" as="xs:string">
-      <![CDATA[
-    
-      function atomicValuesFunction(atomicString) { 
+      <![CDATA[function atomicValuesFunction(atomicString) { 
         return atomicString.length;
       }
       
@@ -34,17 +34,20 @@
           var decimalFormat = new DecimalFormat("###,###.###");
           return decimalFormat.format(123456.789);
         }
-      }
-      ]]>
+      }]]>
     </xsl:variable>
+    <pre class="prettyprint lang-js linenums">
+      <xsl:sequence select="$script"/>
+    </pre>
+    <p>Output of function call <i>atomicValuesFunction</i>:</p>
     <p>
       <xsl:sequence select="script:invoke($script, 'atomicValuesFunction', 'France')"/>  
     </p>
-    
+    <p>Output of function call <i>arrayValuesFunction</i>:</p>
     <p>
       <xsl:sequence select="script:invoke($script, 'arrayValuesFunction', ('France', 'Germany', 'Holland'))"/>  
     </p>
-    
+    <p>Output of function call <i>format</i>:</p>
     <p>
       <xsl:sequence select="script:invoke($script, 'format')"/>  
     </p>
