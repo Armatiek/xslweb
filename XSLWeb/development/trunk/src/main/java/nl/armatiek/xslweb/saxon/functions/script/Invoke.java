@@ -19,6 +19,7 @@ import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.value.AtomicValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
+import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 
@@ -100,21 +101,20 @@ public class Invoke extends ExtensionFunctionDefinition {
         String script = ((StringValue) arguments[0].head()).getStringValue();        
         String functionName = ((StringValue) arguments[1].head()).getStringValue();
     
-        ArrayList<Object> args = new ArrayList<Object>();
+        ArrayList<Object> args = new ArrayList<Object>();                
+        args.add(Context.getInstance());
+        args.add(getWebApp(context));
+        args.add(getRequest(context));
+        args.add(getResponse(context));
+        
         for (int i=2; i<arguments.length; i++) {
-          Sequence seq = arguments[i];
-          int length = SequenceTool.getLength(seq);
-          if (length == 1) {
-            args.add(SequenceTool.convertToJava(seq.head()));
-          } else {
-            args.add(sequenceToObjectArray(seq));
-          }
+          Sequence seq = arguments[i];                    
+          args.add(sequenceToObjectArray(seq));          
         }
         
         ScriptEngine engine = getScriptEngine();
         engine.eval(script);
-        Invocable inv = (Invocable) engine;
-        
+        Invocable inv = (Invocable) engine;                                              
         Object result = inv.invokeFunction(functionName, args.toArray(new Object[args.size()]));
         
         if (result instanceof Collection) {

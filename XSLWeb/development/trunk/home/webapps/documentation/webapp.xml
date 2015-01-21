@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<webapp 
+  xmlns="http://www.armatiek.com/xslweb/webapp"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
+  
+  <title>XSLWeb documentation</title>
+  <description>XSLWeb documentation</description>
+  <development-mode>false</development-mode>
+  
+  <resources>       
+    <resource pattern="/.+\.html" media-type="text/html"/>
+    <resource pattern="/XSLWeb-img/.+\.png" media-type="image/png"/>
+  </resources>
+  
+</webapp>
