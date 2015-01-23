@@ -1,5 +1,22 @@
 package nl.armatiek.xslweb.saxon.functions.expath.file;
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import java.io.File;
 
 import net.sf.saxon.expr.XPathContext;
@@ -14,9 +31,17 @@ import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 
+/**
+ * XPath extension function that returns the byte size of a file, 
+ * or the value 0 for directories.
+ * 
+ * @author Maarten Kroon
+ * @see <a href="http://expath.org/spec/file">EXPath File Module</a>
+ */
 public class Size extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "size");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "size");
 
   @Override
   public StructuredQName getFunctionQName() {
@@ -63,11 +88,13 @@ public class Size extends ExtensionFunctionDefinition {
           throw new FileException(String.format("File \"%s\" does not exist", 
               file.getAbsolutePath()), FileException.ERROR_PATH_NOT_EXIST);
         }
+        long size;
         if (file.isDirectory()) {
-          throw new FileException(String.format("Path \"%s\" points to a directory", 
-              file.getAbsolutePath()), FileException.ERROR_PATH_IS_DIRECTORY);
-        } 
-        return Int64Value.makeIntegerValue(file.length());
+          size = 0;
+        } else {
+          size = file.length();
+        }
+        return Int64Value.makeIntegerValue(size);
       } catch (FileException fe) {
         throw fe;
       } catch (Exception e) {

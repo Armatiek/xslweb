@@ -15,7 +15,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Exmple 11: HTTP Client using EXPath extension functions</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 11: HTTP Client using EXPath extension functions</xsl:template>
   
   <xsl:template name="tab-contents-1">
     <p>This example shows the use of the EXPath HTTP Client extension function calling two REST Web services. 

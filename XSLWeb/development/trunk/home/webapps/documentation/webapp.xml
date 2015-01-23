@@ -11,6 +11,7 @@
   
   <resources>       
     <resource pattern="/.+\.html" media-type="text/html"/>
+    <resource pattern="/.+\.pdf" media-type="application/pdf"/>
     <resource pattern="/XSLWeb-img/.+\.png" media-type="image/png"/>
   </resources>
   
