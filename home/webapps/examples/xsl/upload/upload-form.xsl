@@ -17,12 +17,12 @@
       method="post"           
       name="uploadform"          
       enctype="multipart/form-data"
-      action="{/*/req:context-path}{/*/req:webapp-path}/upload/upload-save.html">
+      action="{/*/req:context-path}{/*/req:webapp-path}/upload-save.html">
       <fieldset>            
-        <label for="file">MS Word file 1: </label>
+        <label for="file">File 1: </label>
         <input type="file" name="file1"/>
         <br/><br/>
-        <label for="file">MS Word file 2: </label>
+        <label for="file">File 2: </label>
         <input type="file" name="file2"/>
         <br/><br/>
         <label for="description">Description: </label>
