@@ -6,36 +6,38 @@
 /*      Copyright (c) 2009 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.httpclient;
 
 /**
  * TODO<doc>: ...
- *
+ * 
  * @author Florent Georges
- * @date   2009-02-22
+ * @date 2009-02-22
  */
-public class HttpCredentials
-{
-    public HttpCredentials(String user, String pwd, String method) {
-        myUser = user;
-        myPwd = pwd;
-        myMethod = method;
-    }
-    public String getUser() {
-        return myUser;
-    }
-    public String getPwd() {
-        return myPwd;
-    }
-    public String getMethod() {
-        return myMethod;
-    }
-    private String myUser;
-    private String myPwd;
-    private String myMethod;
-}
+public class HttpCredentials {
+  
+  public HttpCredentials(String user, String pwd, String method) {
+    myUser = user;
+    myPwd = pwd;
+    myMethod = method;
+  }
 
+  public String getUser() {
+    return myUser;
+  }
+
+  public String getPwd() {
+    return myPwd;
+  }
+
+  public String getMethod() {
+    return myMethod;
+  }
+
+  private String myUser;
+  private String myPwd;
+  private String myMethod;
+}
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */

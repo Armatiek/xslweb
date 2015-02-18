@@ -39,19 +39,15 @@ import javax.xml.transform.stream.StreamResult;
 
 import nl.armatiek.xslweb.error.XSLWebException;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 /**
- * <p>
- * Helper class containing several XML/DOM/JAXP related helper methods.  
- * </p>
+ * Helper class containing several XML/DOM/JAXP related methods.  
  * 
  * @author Maarten Kroon
  */
@@ -167,13 +163,6 @@ public class XMLUtils {
     return doc;
   }
   
-  public static void emptyNode(Node node) {
-    Node childNode;
-    while ((childNode = node.getFirstChild()) != null) {
-      childNode.getParentNode().removeChild(childNode);
-    }
-  }
-  
   public static String getDateTimeString(Date dateTime) { 
     Calendar cal = Calendar.getInstance();
     if (dateTime != null) {
@@ -184,13 +173,6 @@ public class XMLUtils {
   
   public static String getDateTimeString() {
     return getDateTimeString(new Date());           
-  }
-  
-  public static String xmlEncode(String value) {
-    if (value == null) {
-      return "";
-    }
-    return StringEscapeUtils.escapeXml10(value);
   }
   
   protected static void getTextFromNode(Node node, StringBuffer buffer, boolean addSpace) {
@@ -287,6 +269,17 @@ public class XMLUtils {
     return null;
   }
   
+  public static Element getFirstChildElementByLocalName(Element parentElem, String localName) {
+    Node child = parentElem.getFirstChild();
+    while (child != null) {
+      if ((child.getNodeType() == Node.ELEMENT_NODE) && getLocalName(child).equals(localName)) {
+        return (Element) child;
+      }
+      child = child.getNextSibling();
+    }
+    return null;
+  }
+  
   public static boolean getBooleanValue(String value, boolean defaultValue) {
     if (StringUtils.isBlank(value)) {
       return defaultValue;
@@ -299,17 +292,6 @@ public class XMLUtils {
       return defaultValue;
     }
     return Integer.parseInt(value);
-  }
-  
-  public static boolean isPunctuation(char c) {
-    return '-' == c
-            || '.' == c
-            || ':' == c
-            || '\u00B7' == c
-            || '\u0387' == c
-            || '-' == c
-            || '\u06DD' == c
-            || '\u06DE' == c;
   }
   
   public static NamespaceContext getNamespaceContext(final String prefix, final String uri) {
@@ -331,11 +313,6 @@ public class XMLUtils {
          return prefixes.iterator();
       }      
     };    
-  }
-  
-  public static boolean hasTextContext(Element elem) {    
-    NodeList elems = elem.getElementsByTagName("*");
-    return (elems == null) || (elems.getLength() == 0);
   }
   
 }

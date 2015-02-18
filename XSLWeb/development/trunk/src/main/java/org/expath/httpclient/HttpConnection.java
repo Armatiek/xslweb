@@ -22,9 +22,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
  * @date 2009-02-02
  */
 public interface HttpConnection {
-  
-  public void connect(HttpRequestBody body, HttpCredentials cred, 
-      CloseableHttpClient httpClient) throws HttpClientException;
+
+  public void connect(HttpRequestBody body, HttpCredentials cred, CloseableHttpClient httpClient) throws HttpClientException;
 
   public void disconnect() throws HttpClientException;
 
@@ -50,21 +49,21 @@ public interface HttpConnection {
 }
 
 /* ------------------------------------------------------------------------ */
-/* DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT. */
+/*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */
 /*                                                                          */
-/* The contents of this file are subject to the Mozilla Public License */
-/* Version 1.0 (the "License"); you may not use this file except in */
-/* compliance with the License. You may obtain a copy of the License at */
-/* http://www.mozilla.org/MPL/. */
+/*  The contents of this file are subject to the Mozilla Public License     */
+/*  Version 1.0 (the "License"); you may not use this file except in        */
+/*  compliance with the License. You may obtain a copy of the License at    */
+/*  http://www.mozilla.org/MPL/.                                            */
 /*                                                                          */
-/* Software distributed under the License is distributed on an "AS IS" */
-/* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See */
-/* the License for the specific language governing rights and limitations */
-/* under the License. */
+/*  Software distributed under the License is distributed on an "AS IS"     */
+/*  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See    */
+/*  the License for the specific language governing rights and limitations  */
+/*  under the License.                                                      */
 /*                                                                          */
-/* The Original Code is: all this file. */
+/*  The Original Code is: all this file.                                    */
 /*                                                                          */
-/* The Initial Developer of the Original Code is Florent Georges. */
+/*  The Initial Developer of the Original Code is Florent Georges.          */
 /*                                                                          */
-/* Contributor(s): none. */
+/*  Contributor(s): none.                                                   */
 /* ------------------------------------------------------------------------ */

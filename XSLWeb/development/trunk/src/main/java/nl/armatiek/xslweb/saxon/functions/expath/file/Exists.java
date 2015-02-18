@@ -39,7 +39,8 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
  */
 public class Exists extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "exists");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "exists");
 
   @Override
   public StructuredQName getFunctionQName() {

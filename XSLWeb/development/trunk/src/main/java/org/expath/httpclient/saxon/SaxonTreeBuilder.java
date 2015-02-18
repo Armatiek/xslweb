@@ -6,7 +6,6 @@
 /*      Copyright (c) 2009 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.httpclient.saxon;
 
 import net.sf.saxon.event.Builder;
@@ -25,109 +24,86 @@ import org.expath.httpclient.HttpClientException;
 import org.expath.httpclient.HttpConstants;
 import org.expath.httpclient.model.TreeBuilder;
 
-
 /**
  * Implementation of {@link TreeBuilder} for Saxon.
- *
+ * 
  * @author Florent Georges
- * @date   2009-02-02
+ * @date 2009-02-02
  */
-public class SaxonTreeBuilder
-        implements TreeBuilder
-{
-    public SaxonTreeBuilder(XPathContext ctxt)
-            throws HttpClientException
-    {
-        myBuilder = ctxt.getController().makeBuilder();
-        myBuilder.open();
-    }
+public class SaxonTreeBuilder implements TreeBuilder {
+  public SaxonTreeBuilder(XPathContext ctxt) throws HttpClientException {
+    myBuilder = ctxt.getController().makeBuilder();
+    myBuilder.open();
+  }
 
-    /**
-     * Provide the result in Saxon's object model.
-     */
-    public NodeInfo getCurrentRoot()
-            throws HttpClientException
-    {
-        try {
-            myBuilder.close();
-        }
-        catch ( XPathException ex ) {
-            throw new HttpClientException("Error closing the Saxon tree builder", ex);
-        }
-        return myBuilder.getCurrentRoot();
+  /**
+   * Provide the result in Saxon's object model.
+   */
+  public NodeInfo getCurrentRoot() throws HttpClientException {
+    try {
+      myBuilder.close();
+    } catch (XPathException ex) {
+      throw new HttpClientException("Error closing the Saxon tree builder", ex);
     }
+    return myBuilder.getCurrentRoot();
+  }
 
-    @Override
-    public void outputHeaders(HeaderSet headers)
-            throws HttpClientException
-    {
-        for ( Header h : headers ) {
-            assert h.getName() != null : "Header name cannot be null";
-            startElem("header");
-            attribute("name", h.getName().toLowerCase());
-            attribute("value", h.getValue());
-            startContent();
-            endElem();
-        }
+  @Override
+  public void outputHeaders(HeaderSet headers) throws HttpClientException {
+    for (Header h : headers) {
+      assert h.getName() != null : "Header name cannot be null";
+      startElem("header");
+      attribute("name", h.getName().toLowerCase());
+      attribute("value", h.getValue());
+      startContent();
+      endElem();
     }
+  }
 
-    @Override
-    public void startElem(String localname)
-            throws HttpClientException
-    {
-        final String prefix = HttpConstants.HTTP_CLIENT_NS_PREFIX;
-        final String uri    = HttpConstants.HTTP_CLIENT_NS_URI;
-        NodeName name = new FingerprintedQName(prefix, uri, localname);
-        try {
-            myBuilder.startElement(name, Untyped.getInstance(), 0, 0);
-        }
-        catch ( XPathException ex ) {
-            throw new HttpClientException("Error starting element on the Saxon tree builder", ex);
-        }
+  @Override
+  public void startElem(String localname) throws HttpClientException {
+    final String prefix = HttpConstants.HTTP_CLIENT_NS_PREFIX;
+    final String uri = HttpConstants.HTTP_CLIENT_NS_URI;
+    NodeName name = new FingerprintedQName(prefix, uri, localname);
+    try {
+      myBuilder.startElement(name, Untyped.getInstance(), 0, 0);
+    } catch (XPathException ex) {
+      throw new HttpClientException("Error starting element on the Saxon tree builder", ex);
     }
+  }
 
-    @Override
-    public void attribute(String localname, CharSequence value)
-            throws HttpClientException
-    {
-        if ( value != null ) {
-            NodeName name = new NoNamespaceName(localname);
-            try {
-                myBuilder.attribute(name, BuiltInAtomicType.UNTYPED_ATOMIC, value, 0, 0);
-            }
-            catch ( XPathException ex ) {
-                throw new HttpClientException("Error creating attribute on the Saxon tree builder", ex);
-            }
-        }
+  @Override
+  public void attribute(String localname, CharSequence value) throws HttpClientException {
+    if (value != null) {
+      NodeName name = new NoNamespaceName(localname);
+      try {
+        myBuilder.attribute(name, BuiltInAtomicType.UNTYPED_ATOMIC, value, 0, 0);
+      } catch (XPathException ex) {
+        throw new HttpClientException("Error creating attribute on the Saxon tree builder", ex);
+      }
     }
+  }
 
-    @Override
-    public void startContent()
-            throws HttpClientException
-    {
-        try {
-            myBuilder.startContent();
-        }
-        catch ( XPathException ex ) {
-            throw new HttpClientException("Error starting content on the Saxon tree builder", ex);
-        }
+  @Override
+  public void startContent() throws HttpClientException {
+    try {
+      myBuilder.startContent();
+    } catch (XPathException ex) {
+      throw new HttpClientException("Error starting content on the Saxon tree builder", ex);
     }
+  }
 
-    @Override
-    public void endElem()
-            throws HttpClientException
-    {
-        try {
-            myBuilder.endElement();
-        }
-        catch ( XPathException ex ) {
-            throw new HttpClientException("Error ending element on the Saxon tree builder", ex);
-        }
+  @Override
+  public void endElem() throws HttpClientException {
+    try {
+      myBuilder.endElement();
+    } catch (XPathException ex) {
+      throw new HttpClientException("Error ending element on the Saxon tree builder", ex);
     }
+  }
 
-    private Builder myBuilder;
+  private Builder myBuilder;
 }
-
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */

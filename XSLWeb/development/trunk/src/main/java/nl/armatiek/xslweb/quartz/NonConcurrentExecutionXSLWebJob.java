@@ -19,6 +19,11 @@ package nl.armatiek.xslweb.quartz;
 
 import org.quartz.DisallowConcurrentExecution;
 
+/**
+ * Non concurrent Quartz Job class that executes a internal XSLWeb pipeline request.
+ * 
+ * @author Maarten
+ */
 @DisallowConcurrentExecution
 public class NonConcurrentExecutionXSLWebJob extends XSLWebJob {
 	

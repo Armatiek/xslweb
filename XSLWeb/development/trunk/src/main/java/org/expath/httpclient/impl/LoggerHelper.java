@@ -6,7 +6,6 @@
 /*      Copyright (c) 2009 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.httpclient.impl;
 
 import org.apache.commons.logging.Log;
@@ -17,58 +16,54 @@ import org.apache.http.cookie.Cookie;
 
 /**
  * TODO<doc>: ...
- *
+ * 
  * @author Florent Georges
- * @date   2009-08-04
+ * @date 2009-08-04
  */
-public class LoggerHelper
-{
-    public static void logCookies(Log log, String prompt, Iterable<Cookie> cookies)
-    {
-        if ( log.isDebugEnabled() ) {
-            if ( cookies == null ) {
-                log.debug(prompt + ": null");
-                return;
-            }
-            for ( Cookie c : cookies ) {
-                log.debug(prompt + ": " + c.getName() + ": " + c.getValue());
-            }
-        }
+public class LoggerHelper {
+  
+  public static void logCookies(Log log, String prompt, Iterable<Cookie> cookies) {
+    if (log.isDebugEnabled()) {
+      if (cookies == null) {
+        log.debug(prompt + ": null");
+        return;
+      }
+      for (Cookie c : cookies) {
+        log.debug(prompt + ": " + c.getName() + ": " + c.getValue());
+      }
     }
+  }
 
-    public static void logHeaders(Log log, String prompt, Header[] headers)
-    {
-        if ( log.isDebugEnabled() ) {
-            if ( headers == null ) {
-                log.debug(prompt + ": null");
-                return;
-            }
-            for ( Header h : headers ) {
-                log.debug(prompt + ": " + h.getName() + ": " + h.getValue());
-            }
-        }
+  public static void logHeaders(Log log, String prompt, Header[] headers) {
+    if (log.isDebugEnabled()) {
+      if (headers == null) {
+        log.debug(prompt + ": null");
+        return;
+      }
+      for (Header h : headers) {
+        log.debug(prompt + ": " + h.getName() + ": " + h.getValue());
+      }
     }
+  }
 
-    public static void logHeaderDetails(Log log, String prompt, Iterable<Header> headers)
-    {
-        if ( log.isDebugEnabled() ) {
-            if ( headers == null ) {
-                log.debug(prompt + ": null");
-                return;
-            }
-            for ( Header h : headers ) {
-                log.debug(prompt + " - HEADER: " + h.getName() + ": " + h.getValue());
-                for ( HeaderElement e : h.getElements() ) {
-                    log.debug(prompt + " -   ELEM: " + e.getName() + ": " + e.getValue());
-                    for ( NameValuePair p : e.getParameters() ) {
-                        log.debug(prompt + " -     P: " + p.getName() + ": " + p.getValue());
-                    }
-                }
-            }
+  public static void logHeaderDetails(Log log, String prompt, Iterable<Header> headers) {
+    if (log.isDebugEnabled()) {
+      if (headers == null) {
+        log.debug(prompt + ": null");
+        return;
+      }
+      for (Header h : headers) {
+        log.debug(prompt + " - HEADER: " + h.getName() + ": " + h.getValue());
+        for (HeaderElement e : h.getElements()) {
+          log.debug(prompt + " -   ELEM: " + e.getName() + ": " + e.getValue());
+          for (NameValuePair p : e.getParameters()) {
+            log.debug(prompt + " -     P: " + p.getName() + ": " + p.getValue());
+          }
         }
+      }
     }
+  }
 }
-
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */

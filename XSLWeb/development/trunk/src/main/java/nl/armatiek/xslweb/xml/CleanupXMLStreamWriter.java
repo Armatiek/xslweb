@@ -24,6 +24,11 @@ import nl.armatiek.xslweb.configuration.Definitions;
 
 import javanet.staxutils.helpers.StreamWriterDelegate;
 
+/**
+ * StreamWriterDelegate that skips writing out XSLWeb related namespaces.
+ * 
+ * @author Maarten
+ */
 public class CleanupXMLStreamWriter extends StreamWriterDelegate {
 
   public CleanupXMLStreamWriter(XMLStreamWriter out) {

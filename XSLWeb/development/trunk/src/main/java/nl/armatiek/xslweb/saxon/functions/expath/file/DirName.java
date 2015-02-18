@@ -38,7 +38,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class DirName extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "dir-name");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "dir-name");
 
   @Override
   public StructuredQName getFunctionQName() {

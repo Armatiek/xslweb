@@ -41,7 +41,8 @@ import org.apache.commons.io.FileUtils;
  */
 public class CreateDir extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "create-dir");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "create-dir");
 
   @Override
   public StructuredQName getFunctionQName() {

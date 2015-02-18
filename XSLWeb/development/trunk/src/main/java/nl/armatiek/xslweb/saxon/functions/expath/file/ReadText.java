@@ -34,14 +34,15 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 import org.apache.commons.io.FileUtils;
 
 /**
- * XPath extension function 
+ * XPath extension function that returns the content of a file in its string representation.
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>
  */
 public class ReadText extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "read-text");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "read-text");
 
   @Override
   public StructuredQName getFunctionQName() {

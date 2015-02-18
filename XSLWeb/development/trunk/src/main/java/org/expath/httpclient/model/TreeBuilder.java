@@ -6,7 +6,6 @@
 /*      Copyright (c) 2011 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.httpclient.model;
 
 import org.expath.httpclient.HeaderSet;
@@ -14,28 +13,22 @@ import org.expath.httpclient.HttpClientException;
 
 /**
  * A generic interface to build a tree, independent on any processor.
- *
+ * 
  * @author Florent Georges
- * @date   2011-03-10
+ * @date 2011-03-10
  */
-public interface TreeBuilder
-{
-    public void outputHeaders(HeaderSet headers)
-            throws HttpClientException;
+public interface TreeBuilder {
+  
+  public void outputHeaders(HeaderSet headers) throws HttpClientException;
 
-    public void startElem(String localname)
-            throws HttpClientException;
+  public void startElem(String localname) throws HttpClientException;
 
-    public void attribute(String localname, CharSequence value)
-            throws HttpClientException;
+  public void attribute(String localname, CharSequence value) throws HttpClientException;
 
-    public void startContent()
-            throws HttpClientException;
+  public void startContent() throws HttpClientException;
 
-    public void endElem()
-            throws HttpClientException;
+  public void endElem() throws HttpClientException;
 }
-
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */

@@ -33,14 +33,16 @@ import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 
 /**
- * XPath extension function 
+ * XPath extension function that transforms the given path into an absolute path, 
+ * as specified by file:resolve-path, and returns the parent directory.
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>
  */
 public class Parent extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "parent");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "parent");
 
   @Override
   public StructuredQName getFunctionQName() {

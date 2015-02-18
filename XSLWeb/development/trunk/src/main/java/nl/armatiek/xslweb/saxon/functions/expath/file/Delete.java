@@ -42,7 +42,8 @@ import org.apache.commons.io.FileUtils;
  */
 public class Delete extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "delete");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "delete");
 
   @Override
   public StructuredQName getFunctionQName() {

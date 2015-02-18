@@ -6,66 +6,57 @@
 /*      Copyright (c) 2009 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.httpclient;
 
 import org.expath.httpclient.model.TreeBuilder;
 
 /**
  * TODO<doc>: ...
- *
+ * 
  * TODO: Make an abstract class, and factorize code...
- *
+ * 
  * @author Florent Georges
- * @date   2009-02-02
+ * @date 2009-02-02
  */
-public class HttpResponse
-{
-    public HttpResponse(int status, String msg, HeaderSet headers, HttpResponseBody body)
-    {
-        myStatus = status;
-        myMessage = msg;
-        myHeaders = headers;
-        myBody = body;
-    }
+public class HttpResponse {
+  public HttpResponse(int status, String msg, HeaderSet headers, HttpResponseBody body) {
+    myStatus = status;
+    myMessage = msg;
+    myHeaders = headers;
+    myBody = body;
+  }
 
-    public int getStatus()
-    {
-        return myStatus;
-    }
+  public int getStatus() {
+    return myStatus;
+  }
 
-    public HeaderSet getHeaders()
-    {
-        return myHeaders;
-    }
+  public HeaderSet getHeaders() {
+    return myHeaders;
+  }
 
-    public HttpResponseBody getBody()
-    {
-        return myBody;
-    }
+  public HttpResponseBody getBody() {
+    return myBody;
+  }
 
-    public void outputResponseElement(TreeBuilder b)
-            throws HttpClientException
-    {
-        b.startElem("response");
-        b.attribute("status", Integer.toString(myStatus));
-        b.attribute("message", myMessage);
-        b.startContent();
-        b.outputHeaders(myHeaders);
-        if ( myBody != null ) {
-            // "recurse" on bodies...
-            myBody.outputBody(b);
-        }
-        // end the response element
-        b.endElem();
+  public void outputResponseElement(TreeBuilder b) throws HttpClientException {
+    b.startElem("response");
+    b.attribute("status", Integer.toString(myStatus));
+    b.attribute("message", myMessage);
+    b.startContent();
+    b.outputHeaders(myHeaders);
+    if (myBody != null) {
+      // "recurse" on bodies...
+      myBody.outputBody(b);
     }
+    // end the response element
+    b.endElem();
+  }
 
-    private int myStatus;
-    private String myMessage;
-    private HeaderSet myHeaders;
-    private HttpResponseBody myBody;
+  private int myStatus;
+  private String myMessage;
+  private HeaderSet myHeaders;
+  private HttpResponseBody myBody;
 }
-
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */

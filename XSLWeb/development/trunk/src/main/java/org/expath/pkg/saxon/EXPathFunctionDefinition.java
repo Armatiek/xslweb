@@ -6,7 +6,6 @@
 /*      Copyright (c) 2009 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.pkg.saxon;
 
 import net.sf.saxon.Configuration;
@@ -19,12 +18,11 @@ import net.sf.saxon.lib.ExtensionFunctionDefinition;
  * @author Florent Georges
  * @date   2009-08-09
  */
-public abstract class EXPathFunctionDefinition
-        extends ExtensionFunctionDefinition
-{
-    public abstract void setConfiguration(Configuration pool);
-}
+public abstract class EXPathFunctionDefinition extends ExtensionFunctionDefinition {
+    
+  public abstract void setConfiguration(Configuration pool);
 
+}
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */

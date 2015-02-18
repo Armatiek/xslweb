@@ -6,7 +6,6 @@
 /*      Copyright (c) 2009 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.httpclient.impl;
 
 import java.io.InputStream;
@@ -28,78 +27,66 @@ import org.xml.sax.SAXException;
 
 /**
  * TODO<doc>: ...
- *
+ * 
  * @author Florent Georges
- * @date   2009-02-06
+ * @date 2009-02-06
  */
-public class XmlResponseBody
-        implements HttpResponseBody
-{
-    public XmlResponseBody(Result result, InputStream in, ContentType type, HeaderSet headers, boolean html)
-            throws HttpClientException
-    {
-        // TODO: ...
-        String charset = "utf-8";
-        try {
-            Reader reader = new InputStreamReader(in, charset);
-            init(result, reader, type, headers, html);
-        }
-        catch ( UnsupportedEncodingException ex ) {
-            String msg = "not supported charset reading HTTP response: " + charset;
-            throw new HttpClientException(msg, ex);
-        }
+public class XmlResponseBody implements HttpResponseBody {
+  
+  public XmlResponseBody(Result result, InputStream in, ContentType type, 
+      HeaderSet headers, boolean html) throws HttpClientException {
+    // TODO: ...
+    String charset = "utf-8";
+    try {
+      Reader reader = new InputStreamReader(in, charset);
+      init(result, reader, type, headers, html);
+    } catch (UnsupportedEncodingException ex) {
+      String msg = "not supported charset reading HTTP response: " + charset;
+      throw new HttpClientException(msg, ex);
     }
+  }
 
-    public XmlResponseBody(Result result, Reader in, ContentType type, HeaderSet headers, boolean html)
-            throws HttpClientException
-    {
-        init(result, in, type, headers, html);
+  public XmlResponseBody(Result result, Reader in, ContentType type, HeaderSet headers, boolean html) throws HttpClientException {
+    init(result, in, type, headers, html);
+  }
+
+  private void init(Result result, Reader in, ContentType type, HeaderSet headers, boolean html) throws HttpClientException {
+    myContentType = type;
+    myHeaders = headers;
+    String sys_id = "TODO-find-a-useful-systemId";
+    try {
+      Source src;
+      if (html) {
+        Parser parser = new Parser();
+        parser.setFeature(Parser.namespacesFeature, true);
+        parser.setFeature(Parser.namespacePrefixesFeature, true);
+        InputSource input = new InputSource(in);
+        src = new SAXSource(parser, input);
+        src.setSystemId(sys_id);
+      } else {
+        src = new StreamSource(in, sys_id);
+      }
+      result.add(src);
+    } catch (SAXException ex) {
+      throw new HttpClientException("error parsing result HTML", ex);
     }
+  }
 
-    private void init(Result result, Reader in, ContentType type, HeaderSet headers, boolean html)
-            throws HttpClientException
-    {
-        myContentType = type;
-        myHeaders = headers;
-        String sys_id = "TODO-find-a-useful-systemId";
-        try {
-            Source src;
-            if ( html ) {
-                Parser parser = new Parser();
-                parser.setFeature(Parser.namespacesFeature, true);
-                parser.setFeature(Parser.namespacePrefixesFeature, true);
-                InputSource input = new InputSource(in);
-                src = new SAXSource(parser, input);
-                src.setSystemId(sys_id);
-            }
-            else {
-                src = new StreamSource(in, sys_id);
-            }
-            result.add(src);
-        }
-        catch ( SAXException ex ) {
-            throw new HttpClientException("error parsing result HTML", ex);
-        }
+  @Override
+  public void outputBody(TreeBuilder b) throws HttpClientException {
+    if (myHeaders != null) {
+      b.outputHeaders(myHeaders);
     }
+    b.startElem("body");
+    b.attribute("media-type", myContentType.getValue());
+    // TODO: Support other attributes as well?
+    b.startContent();
+    b.endElem();
+  }
 
-    @Override
-    public void outputBody(TreeBuilder b)
-            throws HttpClientException
-    {
-        if ( myHeaders != null ) {
-            b.outputHeaders(myHeaders);
-        }
-        b.startElem("body");
-        b.attribute("media-type", myContentType.getValue());
-        // TODO: Support other attributes as well?
-        b.startContent();
-        b.endElem();
-    }
-
-    private ContentType myContentType;
-    private HeaderSet myHeaders;
+  private ContentType myContentType;
+  private HeaderSet myHeaders;
 }
-
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */

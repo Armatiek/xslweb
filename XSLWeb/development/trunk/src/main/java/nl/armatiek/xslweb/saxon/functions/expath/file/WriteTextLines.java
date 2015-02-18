@@ -26,7 +26,8 @@ import net.sf.saxon.value.SequenceType;
 import nl.armatiek.xslweb.configuration.Definitions;
 
 /**
- * XPath extension function 
+ * XPath extension function that writes a sequence of strings to a file, 
+ * each followed by the system-dependent newline character. 
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>

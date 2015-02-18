@@ -6,7 +6,6 @@
 /*      Copyright (c) 2009 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.httpclient;
 
 import java.io.OutputStream;
@@ -14,51 +13,44 @@ import org.expath.httpclient.model.Element;
 
 /**
  * The body of an HTTP request.
- *
+ * 
  * The body of a multipart request is a composite of several bodies.
- *
+ * 
  * A request body encapsulates the NodeInfo of http:body (or http:multipart.)
- * This element won't change during the extension execution anyway.  The
- * idea is to be able to serialize it only when we need to, directly to the
- * connection output stream (so avoiding to parse it to an intermediary format.)
+ * This element won't change during the extension execution anyway. The idea is
+ * to be able to serialize it only when we need to, directly to the connection
+ * output stream (so avoiding to parse it to an intermediary format.)
  * 
  * @author Florent Georges
- * @date   2009-02-02
+ * @date 2009-02-02
  */
-public abstract class HttpRequestBody
-{
-    public abstract void serialize(OutputStream out)
-            throws HttpClientException;
+public abstract class HttpRequestBody {
+  
+  public abstract void serialize(OutputStream out) throws HttpClientException;
 
-    public abstract void setHeaders(HeaderSet headers)
-            throws HttpClientException;
+  public abstract void setHeaders(HeaderSet headers) throws HttpClientException;
 
-    public abstract boolean isMultipart();
+  public abstract boolean isMultipart();
 
-    public HttpRequestBody(Element elem)
-            throws HttpClientException
-    {
-        myElem = elem;
-        myContentType = myElem.getAttribute("media-type");
-        if ( myContentType == null ) {
-            throw new HttpClientException("@media-type is not on the body or multipart element");
-        }
+  public HttpRequestBody(Element elem) throws HttpClientException {
+    myElem = elem;
+    myContentType = myElem.getAttribute("media-type");
+    if (myContentType == null) {
+      throw new HttpClientException("@media-type is not on the body or multipart element");
     }
+  }
 
-    public String getContentType()
-    {
-        return myContentType;
-    }
+  public String getContentType() {
+    return myContentType;
+  }
 
-    protected Element getBodyElement()
-    {
-        return myElem;
-    }
+  protected Element getBodyElement() {
+    return myElem;
+  }
 
-    private Element myElem;
-    private String myContentType;
+  private Element myElem;
+  private String myContentType;
 }
-
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */

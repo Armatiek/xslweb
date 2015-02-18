@@ -6,23 +6,19 @@
 /*      Copyright (c) 2009 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.httpclient;
 
 import org.expath.httpclient.model.TreeBuilder;
 
 /**
  * TODO<doc>: ...
- *
+ * 
  * @author Florent Georges
- * @date   2009-02-02
+ * @date 2009-02-02
  */
-public interface HttpResponseBody
-{
-    public void outputBody(TreeBuilder builder)
-            throws HttpClientException;
+public interface HttpResponseBody {
+  public void outputBody(TreeBuilder builder) throws HttpClientException;
 }
-
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */

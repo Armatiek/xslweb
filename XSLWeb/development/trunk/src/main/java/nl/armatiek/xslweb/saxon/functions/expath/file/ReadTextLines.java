@@ -39,14 +39,16 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 import org.apache.commons.io.FileUtils;
 
 /**
- * XPath extension function 
+ * XPath extension function that returns the contents of a file as a sequence of 
+ * strings, separated at newline boundaries.
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>
  */
 public class ReadTextLines extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "read-text-lines");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "read-text-lines");
 
   @Override
   public StructuredQName getFunctionQName() {

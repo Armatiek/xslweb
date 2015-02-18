@@ -37,7 +37,8 @@ import nl.armatiek.xslweb.configuration.Definitions;
  */
 public class LineSeparator extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "line-separator");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "line-separator");
 
   private static final String NEWLINE = String.format("%n", new Object[0]);
   

@@ -29,6 +29,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
@@ -58,6 +59,7 @@ import nl.armatiek.xslweb.pipeline.SerializerStep;
 import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
 import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
+import nl.armatiek.xslweb.utils.Closeable;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 import nl.armatiek.xslweb.xml.CleanupXMLStreamWriter;
 
@@ -84,13 +86,22 @@ public class XSLWebServlet extends HttpServlet {
     }
   }
   
+  @SuppressWarnings("unchecked")
   @Override
   protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     OutputStream respOs = resp.getOutputStream();
     boolean developmentMode = true;
     try {            
       WebApp webApp = (WebApp) req.getAttribute(Definitions.ATTRNAME_WEBAPP);
-      executeRequest(webApp, req, resp, respOs);                 
+      if (webApp.isClosed()) {
+        resp.resetBuffer();
+        resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+        resp.setContentType("text/html; charset=UTF-8");
+        Writer w = new OutputStreamWriter(respOs, "UTF-8");
+        w.write("<html><body><h1>Service temporarily unavailable</h1></body></html>");
+        return;
+      }      
+      executeRequest(webApp, req, resp, respOs);         
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
       if (developmentMode) {              
@@ -103,7 +114,20 @@ public class XSLWebServlet extends HttpServlet {
         Writer w = new OutputStreamWriter(respOs, "UTF-8");
         w.write("<html><body><h1>Internal Server Error</h1></body></html>");
       }
-    }      
+    } finally {
+      // Close any closeables:
+      try {
+        List<Closeable> closeables = (List<Closeable>) req.getAttribute("xslweb-closeables");                        
+        if (closeables != null) {
+          ListIterator<Closeable> li = closeables.listIterator(closeables.size());
+          while(li.hasPrevious()) {
+            li.previous().close();
+          }                    
+        }
+      } catch (Exception se) {
+        logger.error("Could not close Closeable", se);
+      }
+    }    
   }
 
   private Destination getDestination(WebApp webApp, Destination destination, PipelineStep step) {

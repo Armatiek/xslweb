@@ -26,7 +26,7 @@ import net.sf.saxon.value.SequenceType;
 import nl.armatiek.xslweb.configuration.Definitions;
 
 /**
- * XPath extension function 
+ * XPath extension function that writes a Base64 item as binary to a file. 
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>

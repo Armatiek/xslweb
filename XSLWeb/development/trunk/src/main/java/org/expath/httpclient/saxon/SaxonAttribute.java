@@ -6,7 +6,6 @@
 /*      Copyright (c) 2011 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.httpclient.saxon;
 
 import net.sf.saxon.om.NodeInfo;
@@ -20,71 +19,60 @@ import org.expath.httpclient.model.Attribute;
 
 /**
  * Implementation of {@link Attribute} for Saxon.
- *
+ * 
  * @author Florent Georges
- * @date   2011-03-10
+ * @date 2011-03-10
  */
-public class SaxonAttribute
-        implements Attribute
-{
-    public SaxonAttribute(NodeInfo node)
-    {
-        myNode = node;
-    }
+public class SaxonAttribute implements Attribute {
+  
+  public SaxonAttribute(NodeInfo node) {
+    myNode = node;
+  }
 
-    @Override
-    public String getLocalName()
-    {
-        return myNode.getLocalPart();
-    }
+  @Override
+  public String getLocalName() {
+    return myNode.getLocalPart();
+  }
 
-    @Override
-    public String getNamespaceUri()
-    {
-        return myNode.getURI();
-    }
+  @Override
+  public String getNamespaceUri() {
+    return myNode.getURI();
+  }
 
-    @Override
-    public String getValue()
-    {
-        return myNode.getStringValue();
-    }
+  @Override
+  public String getValue() {
+    return myNode.getStringValue();
+  }
 
-    @Override
-    public boolean getBoolean()
-            throws HttpClientException
-    {
-        String str = myNode.getStringValue();
-        AtomicValue val;
-        try {
-            val = BooleanValue.fromString(str).asAtomic();
-        }
-        catch ( XPathException ex ) {
-            throw new HttpClientException("Error parse the attribute value as boolean", ex);
-        }
-        if ( ! ( val instanceof BooleanValue ) ) {
-            throw new HttpClientException("@" + getLocalName() + " is not a boolean");
-        }
-        BooleanValue b = (BooleanValue) val;
-        return b.getBooleanValue();
+  @Override
+  public boolean getBoolean() throws HttpClientException {
+    String str = myNode.getStringValue();
+    AtomicValue val;
+    try {
+      val = BooleanValue.fromString(str).asAtomic();
+    } catch (XPathException ex) {
+      throw new HttpClientException("Error parse the attribute value as boolean", ex);
     }
-
-    @Override
-    public int getInteger()
-            throws HttpClientException
-    {
-        String str = myNode.getStringValue();
-        NumericValue val = NumericValue.parseNumber(str);
-        if ( !NumericValue.isInteger(val) ) {
-            throw new HttpClientException("@" + getLocalName() + " is not an integer");
-        }
-        IntegerValue i = (IntegerValue) val;
-        return i.asBigInteger().intValue();
+    if (!(val instanceof BooleanValue)) {
+      throw new HttpClientException("@" + getLocalName() + " is not a boolean");
     }
+    BooleanValue b = (BooleanValue) val;
+    return b.getBooleanValue();
+  }
 
-    private NodeInfo myNode;
+  @Override
+  public int getInteger() throws HttpClientException {
+    String str = myNode.getStringValue();
+    NumericValue val = NumericValue.parseNumber(str);
+    if (!NumericValue.isInteger(val)) {
+      throw new HttpClientException("@" + getLocalName() + " is not an integer");
+    }
+    IntegerValue i = (IntegerValue) val;
+    return i.asBigInteger().intValue();
+  }
+
+  private NodeInfo myNode;
 }
-
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */

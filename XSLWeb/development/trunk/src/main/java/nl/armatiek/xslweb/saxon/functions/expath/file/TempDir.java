@@ -28,7 +28,8 @@ import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 
 /**
- * XPath extension function 
+ * XPath extension function that returns the path to the default 
+ * temporary-file directory of an operating system. 
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>

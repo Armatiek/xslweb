@@ -67,13 +67,12 @@ public class ApacheHttpConnection implements HttpConnection {
     myVersion = DEFAULT_HTTP_VERSION;
   }
 
-  public void connect(HttpRequestBody body, HttpCredentials cred, 
-      CloseableHttpClient httpClient) throws HttpClientException {
-    try {      
+  public void connect(HttpRequestBody body, HttpCredentials cred, CloseableHttpClient httpClient) throws HttpClientException {
+    try {
       HttpContext context = getHttpContext(cred);
       // set the request entity body (if any)
       setRequestEntity(body);
-                        
+
       // log the request headers?
       if (LOG.isDebugEnabled()) {
         LOG.debug("METHOD: " + myRequest.getMethod());
@@ -106,15 +105,15 @@ public class ApacheHttpConnection implements HttpConnection {
   @Override
   public void disconnect() {
     try {
-      if ( myResponse != null ) { 
-        ((CloseableHttpResponse) myResponse).close(); 
+      if (myResponse != null) {
+        ((CloseableHttpResponse) myResponse).close();
       }
     } catch (IOException e) {
       LOG.error("Error closing response", e);
     }
   }
 
-  public void setHttpVersion(String ver) throws HttpClientException {    
+  public void setHttpVersion(String ver) throws HttpClientException {
     if (HttpConstants.HTTP_1_0.equals(ver)) {
       myVersion = HttpVersion.HTTP_1_0;
     } else if (HttpConstants.HTTP_1_1.equals(ver)) {
@@ -159,20 +158,13 @@ public class ApacheHttpConnection implements HttpConnection {
       myRequest = new AnyEmptyMethod(m, uri);
     }
     RequestConfig requestConfig;
-    if (myTimeout != null) {    
-      requestConfig = RequestConfig.custom()
-          .setConnectionRequestTimeout(myTimeout * 1000)
-          .setConnectTimeout(myTimeout * 1000)
-          .setSocketTimeout(myTimeout * 1000)
-          .setRedirectsEnabled(myFollowRedirect)      
-          .build();
+    if (myTimeout != null) {
+      requestConfig = RequestConfig.custom().setConnectionRequestTimeout(myTimeout * 1000).setConnectTimeout(myTimeout * 1000).setSocketTimeout(myTimeout * 1000).setRedirectsEnabled(myFollowRedirect).build();
     } else {
-      requestConfig = RequestConfig.custom()          
-          .setRedirectsEnabled(myFollowRedirect)      
-          .build();
+      requestConfig = RequestConfig.custom().setRedirectsEnabled(myFollowRedirect).build();
     }
     myRequest.setConfig(requestConfig);
-    myRequest.setProtocolVersion(myVersion);    
+    myRequest.setProtocolVersion(myVersion);
   }
 
   public void setFollowRedirect(boolean follow) {
@@ -283,30 +275,27 @@ public class ApacheHttpConnection implements HttpConnection {
     }
     String host = uri.getHost();
     String user = cred.getUser();
-    String pwd = cred.getPwd();    
+    String pwd = cred.getPwd();
     if (LOG.isDebugEnabled()) {
       LOG.debug("Set credentials for " + host + ":" + port + " - " + user + " - ***");
     }
-    HttpHost targetHost = new HttpHost(host, port, uri.getScheme());    
+    HttpHost targetHost = new HttpHost(host, port, uri.getScheme());
     Credentials c = new UsernamePasswordCredentials(user, pwd);
     AuthScope scope = new AuthScope(targetHost);
-    
+
     CredentialsProvider credsProvider = new BasicCredentialsProvider();
-    credsProvider.setCredentials(scope, c);        
+    credsProvider.setCredentials(scope, c);
     /*
-    AuthCache authCache = new BasicAuthCache();
-    String method = cred.getMethod().toLowerCase();
-    if (method.equals("basic")) {
-      BasicScheme basicAuth = new BasicScheme();
-      authCache.put(targetHost, basicAuth);
-    } else if (method.equals("digest")) {
-      DigestScheme digestAuth = new DigestScheme();
-      authCache.put(targetHost, digestAuth);
-    } else 
-      throw new HttpClientException(String.format("Authentication method %s not supported", cred.getMethod()));
-    context.setAuthCache(authCache);
-    */            
-    context.setCredentialsProvider(credsProvider);            
+     * AuthCache authCache = new BasicAuthCache(); String method =
+     * cred.getMethod().toLowerCase(); if (method.equals("basic")) { BasicScheme
+     * basicAuth = new BasicScheme(); authCache.put(targetHost, basicAuth); }
+     * else if (method.equals("digest")) { DigestScheme digestAuth = new
+     * DigestScheme(); authCache.put(targetHost, digestAuth); } else throw new
+     * HttpClientException
+     * (String.format("Authentication method %s not supported",
+     * cred.getMethod())); context.setAuthCache(authCache);
+     */
+    context.setCredentialsProvider(credsProvider);
     return context;
   }
 
@@ -354,7 +343,7 @@ public class ApacheHttpConnection implements HttpConnection {
   /** The Apache response. */
   private HttpResponse myResponse;
   /** The HTTP protocol version. */
-  private HttpVersion myVersion;  
+  private HttpVersion myVersion;
   /** Follow HTTP redirect? */
   private boolean myFollowRedirect = true;
   /** The timeout to use, in seconds, or null for default. */
@@ -410,25 +399,25 @@ public class ApacheHttpConnection implements HttpConnection {
 
     private HttpRequestBody myBody;
   }
-  
+
 }
 
 /* ------------------------------------------------------------------------ */
-/* DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT. */
+/*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */
 /*                                                                          */
-/* The contents of this file are subject to the Mozilla Public License */
-/* Version 1.0 (the "License"); you may not use this file except in */
-/* compliance with the License. You may obtain a copy of the License at */
-/* http://www.mozilla.org/MPL/. */
+/*  The contents of this file are subject to the Mozilla Public License     */
+/*  Version 1.0 (the "License"); you may not use this file except in        */
+/*  compliance with the License. You may obtain a copy of the License at    */
+/*  http://www.mozilla.org/MPL/.                                            */
 /*                                                                          */
-/* Software distributed under the License is distributed on an "AS IS" */
-/* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See */
-/* the License for the specific language governing rights and limitations */
-/* under the License. */
+/*  Software distributed under the License is distributed on an "AS IS"     */
+/*  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See    */
+/*  the License for the specific language governing rights and limitations  */
+/*  under the License.                                                      */
 /*                                                                          */
-/* The Original Code is: all this file. */
+/*  The Original Code is: all this file.                                    */
 /*                                                                          */
-/* The Initial Developer of the Original Code is Florent Georges. */
+/*  The Initial Developer of the Original Code is Florent Georges.          */
 /*                                                                          */
-/* Contributor(s): none. */
+/*  Contributor(s): none.                                                   */
 /* ------------------------------------------------------------------------ */

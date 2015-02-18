@@ -6,7 +6,6 @@
 /*      Copyright (c) 2010 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.httpclient;
 
 /**
@@ -30,36 +29,41 @@ package org.expath.httpclient;
  * @author Florent Georges
  * @date   2010-01-10
  */
-public class SerializationParams
-{
-    // encoding
-    public String getEncoding() {
-        return myEncoding;
-    }
-    public void setEncoding(String s) {
-        myEncoding = s;
-    }
-    private String myEncoding;
+public class SerializationParams {
+  
+  // encoding
+  public String getEncoding() {
+    return myEncoding;
+  }
 
-    // indent
-    public Boolean getIndent() {
-        return myIndent;
-    }
-    public void setIndent(Boolean b) {
-        myIndent = b;
-    }
-    private Boolean myIndent;
+  public void setEncoding(String s) {
+    myEncoding = s;
+  }
 
-    // omit-xml-declaration
-    public Boolean getOmitXmlDecl() {
-        return myOmitXmlDecl;
-    }
-    public void setOmitXmlDecl(Boolean b) {
-        myOmitXmlDecl = b;
-    }
-    private Boolean myOmitXmlDecl;
+  private String myEncoding;
+
+  // indent
+  public Boolean getIndent() {
+    return myIndent;
+  }
+
+  public void setIndent(Boolean b) {
+    myIndent = b;
+  }
+
+  private Boolean myIndent;
+
+  // omit-xml-declaration
+  public Boolean getOmitXmlDecl() {
+    return myOmitXmlDecl;
+  }
+
+  public void setOmitXmlDecl(Boolean b) {
+    myOmitXmlDecl = b;
+  }
+
+  private Boolean myOmitXmlDecl;
 }
-
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */
