@@ -68,8 +68,7 @@ public class HttpClient {
    *                   $bodies as item()*) as item()+
    * </pre>
    */
-  public static SequenceIterator sendRequest(XPathContext ctxt, NodeInfo request, String href, 
-      SequenceIterator bodies, CloseableHttpClient httpClient) throws XPathException {
+  public static SequenceIterator sendRequest(XPathContext ctxt, NodeInfo request, String href, SequenceIterator bodies, CloseableHttpClient httpClient) throws XPathException {
     HttpClient client = new HttpClient();
     try {
       return client.doSendRequest(ctxt, request, href, bodies, httpClient);
@@ -86,8 +85,7 @@ public class HttpClient {
   // response content if the user does: http:send-request(...)[1],
   // that is, if he/she does not actually access the content). See
   // if we can use that...
-  private SequenceIterator doSendRequest(XPathContext ctxt, NodeInfo request, String href, 
-      SequenceIterator bodies, CloseableHttpClient httpClient) throws HttpClientException, XPathException {
+  private SequenceIterator doSendRequest(XPathContext ctxt, NodeInfo request, String href, SequenceIterator bodies, CloseableHttpClient httpClient) throws HttpClientException, XPathException {
     Sequence b = new SaxonSequence(bodies, ctxt);
     Element r = new SaxonElement(request, ctxt);
     RequestParser parser = new RequestParser();
@@ -111,8 +109,7 @@ public class HttpClient {
    * Authentication may require to reply to an authentication challenge, by
    * sending again the request, with credentials.
    */
-  private SaxonResult sendOnce(URI uri, HttpRequest request, RequestParser parser, 
-      XPathContext ctxt, CloseableHttpClient httpClient) throws HttpClientException {
+  private SaxonResult sendOnce(URI uri, HttpRequest request, RequestParser parser, XPathContext ctxt, CloseableHttpClient httpClient) throws HttpClientException {
     SaxonResult result = new SaxonResult(ctxt);
     HttpConnection conn = new ApacheHttpConnection(uri);
     try {
@@ -136,21 +133,21 @@ public class HttpClient {
 }
 
 /* ------------------------------------------------------------------------ */
-/* DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT. */
+/*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */
 /*                                                                          */
-/* The contents of this file are subject to the Mozilla Public License */
-/* Version 1.0 (the "License"); you may not use this file except in */
-/* compliance with the License. You may obtain a copy of the License at */
-/* http://www.mozilla.org/MPL/. */
+/*  The contents of this file are subject to the Mozilla Public License     */
+/*  Version 1.0 (the "License"); you may not use this file except in        */
+/*  compliance with the License. You may obtain a copy of the License at    */
+/*  http://www.mozilla.org/MPL/.                                            */
 /*                                                                          */
-/* Software distributed under the License is distributed on an "AS IS" */
-/* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See */
-/* the License for the specific language governing rights and limitations */
-/* under the License. */
+/*  Software distributed under the License is distributed on an "AS IS"     */
+/*  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See    */
+/*  the License for the specific language governing rights and limitations  */
+/*  under the License.                                                      */
 /*                                                                          */
-/* The Original Code is: all this file. */
+/*  The Original Code is: all this file.                                    */
 /*                                                                          */
-/* The Initial Developer of the Original Code is Florent Georges. */
+/*  The Initial Developer of the Original Code is Florent Georges.          */
 /*                                                                          */
-/* Contributor(s): none. */
+/*  Contributor(s): none.                                                   */
 /* ------------------------------------------------------------------------ */

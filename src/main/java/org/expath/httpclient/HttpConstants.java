@@ -6,23 +6,25 @@
 /*      Copyright (c) 2009 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.httpclient;
 
 /**
  * Centralize some constants.
- *
+ * 
  * @author Florent Georges
- * @date   2009-02-02
+ * @date 2009-02-02
  */
-public class HttpConstants
-{
-    public final static String HTTP_CLIENT_NS_PREFIX = "http";
-    public final static String HTTP_CLIENT_NS_URI = "http://expath.org/ns/http-client";
-    public final static String HTTP_1_0 = "1.0";
-    public final static String HTTP_1_1 = "1.1";
+public class HttpConstants {
+  
+  public final static String HTTP_CLIENT_NS_PREFIX = "http";
+  
+  public final static String HTTP_CLIENT_NS_URI = "http://expath.org/ns/http-client";
+  
+  public final static String HTTP_1_0 = "1.0";
+  
+  public final static String HTTP_1_1 = "1.1";
+  
 }
-
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */

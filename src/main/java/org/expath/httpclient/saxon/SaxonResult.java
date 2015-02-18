@@ -6,7 +6,6 @@
 /*      Copyright (c) 2011 Florent Georges (see end of file.)               */
 /* ------------------------------------------------------------------------ */
 
-
 package org.expath.httpclient.saxon;
 
 import java.util.ArrayList;
@@ -25,69 +24,54 @@ import org.expath.httpclient.model.Result;
 
 /**
  * Implementation of {@link Item} for Saxon.
- *
+ * 
  * @author Florent Georges
- * @date   2011-03-10
+ * @date 2011-03-10
  */
-public class SaxonResult
-        implements Result
-{
-    public SaxonResult(XPathContext ctxt)
-    {
-        myItems = new ArrayList<Item>();
-        myCtxt = ctxt;
-    }
+public class SaxonResult implements Result {
+  public SaxonResult(XPathContext ctxt) {
+    myItems = new ArrayList<Item>();
+    myCtxt = ctxt;
+  }
 
-    @Override
-    public void add(String string)
-            throws HttpClientException
-    {
-        Item item = new StringValue(string);
-        myItems.add(item);
-    }
+  @Override
+  public void add(String string) throws HttpClientException {
+    Item item = new StringValue(string);
+    myItems.add(item);
+  }
 
-    @Override
-    public void add(byte[] bytes)
-            throws HttpClientException
-    {
-        Item item = new Base64BinaryValue(bytes);
-        myItems.add(item);
-    }
+  @Override
+  public void add(byte[] bytes) throws HttpClientException {
+    Item item = new Base64BinaryValue(bytes);
+    myItems.add(item);
+  }
 
-    @Override
-    public void add(Source src)
-            throws HttpClientException
-    {
-        try {
-            Item doc = myCtxt.getConfiguration().buildDocument(src);
-            myItems.add(doc);
-        }
-        catch ( XPathException ex ) {
-            throw new HttpClientException("Error building the XML or HTML document", ex);
-        }
+  @Override
+  public void add(Source src) throws HttpClientException {
+    try {
+      Item doc = myCtxt.getConfiguration().buildDocument(src);
+      myItems.add(doc);
+    } catch (XPathException ex) {
+      throw new HttpClientException("Error building the XML or HTML document", ex);
     }
+  }
 
-    @Override
-    public void add(HttpResponse response)
-            throws HttpClientException
-    {
-        SaxonTreeBuilder builder = new SaxonTreeBuilder(myCtxt);
-        response.outputResponseElement(builder);
-        Item elem = builder.getCurrentRoot();
-        myItems.add(0, elem);
-    }
+  @Override
+  public void add(HttpResponse response) throws HttpClientException {
+    SaxonTreeBuilder builder = new SaxonTreeBuilder(myCtxt);
+    response.outputResponseElement(builder);
+    Item elem = builder.getCurrentRoot();
+    myItems.add(0, elem);
+  }
 
-    public SequenceIterator newIterator()
-            throws HttpClientException
-    {
-        Item[] array = myItems.toArray(new Item[0]);
-        return new ArrayIterator(array);
-    }
+  public SequenceIterator newIterator() throws HttpClientException {
+    Item[] array = myItems.toArray(new Item[0]);
+    return new ArrayIterator(array);
+  }
 
-    private List<Item> myItems;
-    private XPathContext myCtxt;
+  private List<Item> myItems;
+  private XPathContext myCtxt;
 }
-
 
 /* ------------------------------------------------------------------------ */
 /*  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS COMMENT.               */

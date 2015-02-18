@@ -21,11 +21,14 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -57,8 +60,11 @@ import net.sf.saxon.tree.iter.AxisIterator;
 import net.sf.saxon.type.ItemType;
 import net.sf.saxon.type.Type;
 import net.sf.saxon.value.AtomicValue;
+import net.sf.saxon.value.Base64BinaryValue;
+import net.sf.saxon.value.BigIntegerValue;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.DateTimeValue;
+import net.sf.saxon.value.DecimalValue;
 import net.sf.saxon.value.DoubleValue;
 import net.sf.saxon.value.FloatValue;
 import net.sf.saxon.value.Int64Value;
@@ -67,7 +73,9 @@ import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Attribute;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
+import nl.armatiek.xslweb.utils.Closeable;
 
+import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Node;
 
 /**
@@ -76,30 +84,51 @@ import org.w3c.dom.Node;
  */
 public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFunctionCall {
 
+  // http://en.wikipedia.org/wiki/XQuery_API_for_Java
   protected AtomicValue convertJavaObjectToAtomicValue(Object value) throws XPathException {
-    AtomicValue atomicValue;
-    if (value == null) {
-      return null;
-    } else if (value instanceof String) {
-      atomicValue = new StringValue((String) value);
-    } else if (value instanceof Boolean) {
-      atomicValue = BooleanValue.get(((Boolean) value).booleanValue());
-    } else if (value instanceof Integer) {
-      atomicValue = new Int64Value(((Integer) value).intValue());
-    } else if (value instanceof Long) {
-      atomicValue = new Int64Value(((Long) value).longValue());
-    } else if (value instanceof Double) {
-      atomicValue = new DoubleValue(((Double) value).doubleValue());
-    } else if (value instanceof Float) {
-      atomicValue = new FloatValue(((Float) value).floatValue());
-    } else if (value instanceof Date) {
-      Calendar calendar = new GregorianCalendar();
-      calendar.setTime((Date) value);
-      atomicValue = new DateTimeValue(calendar, true);
-    } else {
-      throw new XPathException("Class of attribute not supported (" + value.getClass().toString() + ")");
+    try {
+      AtomicValue atomicValue;
+      if (value == null) {
+        return null;
+      } else if (value instanceof String) {
+        atomicValue = new StringValue((String) value);
+      } else if (value instanceof Boolean) {
+        atomicValue = BooleanValue.get(((Boolean) value).booleanValue());
+      } else if (value instanceof Integer) {
+        atomicValue = new Int64Value(((Integer) value).intValue());
+      } else if (value instanceof Long) {
+        atomicValue = new Int64Value(((Long) value).longValue());
+      } else if (value instanceof Double) {
+        atomicValue = new DoubleValue(((Double) value).doubleValue());
+      } else if (value instanceof Float) {
+        atomicValue = new FloatValue(((Float) value).floatValue());
+      } else if (value instanceof Date) { // includes java.sql.Date, java.sql.Time and java.sql.Timestamp
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime((Date) value);
+        atomicValue = new DateTimeValue(calendar, true);
+      } else if (value instanceof Byte) {
+        atomicValue = new Int64Value(((Byte) value).byteValue());
+      } else if (value instanceof Short) {
+        atomicValue = new Int64Value(((Short) value).shortValue());
+      } else if (value instanceof BigDecimal) {
+        atomicValue = new DecimalValue((BigDecimal) value);
+      } else if (value instanceof BigInteger) {
+        atomicValue = new BigIntegerValue((BigInteger) value);      
+      } else if (value instanceof byte[]) {      
+        atomicValue = new Base64BinaryValue((byte[]) value);               
+      } else if (value instanceof java.sql.Clob) {
+        atomicValue = new StringValue(IOUtils.toString(((java.sql.Clob) value).getCharacterStream()));            
+      } else if (value instanceof java.sql.Blob) {
+        atomicValue = new Base64BinaryValue(IOUtils.toByteArray(((java.sql.Blob) value).getBinaryStream()));         
+      } else {
+        throw new XPathException("Java class not supported converting Java object to AtomicValue (" + value.getClass().toString() + ")");
+      }    
+      return atomicValue;
+    } catch (XPathException xpe) {
+      throw xpe;
+    } catch (Exception e) {
+      throw new XPathException("Error converting Java object to AtomicValue", e);
     }    
-    return atomicValue;
   }
   
   protected NodeInfo unwrapNodeInfo(NodeInfo nodeInfo) {
@@ -245,6 +274,17 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
   protected WebApp getWebApp(XPathContext context) {
     return (WebApp) ((ObjectValue<?>)context.getController().getParameter(
         new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_WEBAPP, "webapp"))).getObject();
+  }
+  
+  @SuppressWarnings("unchecked")
+  protected void addCloseable(Closeable closeable, XPathContext context) {
+    HttpServletRequest request = getRequest(context);    
+    List<Closeable> closeables = (List<Closeable>) request.getAttribute("xslweb-closeables");
+    if (closeables == null) {
+      closeables = new ArrayList<Closeable>();
+      request.setAttribute("xslweb-closeables", closeables);
+    }
+    closeables.add(closeable);    
   }
   
 }

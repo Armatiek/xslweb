@@ -39,7 +39,8 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
  */
 public class IsDir extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "is-dir");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "is-dir");
 
   @Override
   public StructuredQName getFunctionQName() {

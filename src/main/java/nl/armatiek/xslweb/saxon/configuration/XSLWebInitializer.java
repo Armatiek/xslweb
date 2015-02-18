@@ -75,6 +75,13 @@ import nl.armatiek.xslweb.saxon.functions.script.Invoke;
 import nl.armatiek.xslweb.saxon.functions.serialize.Serialize;
 import nl.armatiek.xslweb.saxon.functions.session.Invalidate;
 import nl.armatiek.xslweb.saxon.functions.session.SetMaxInactiveInterval;
+import nl.armatiek.xslweb.saxon.functions.sql.Close;
+import nl.armatiek.xslweb.saxon.functions.sql.Commit;
+import nl.armatiek.xslweb.saxon.functions.sql.ExecuteQuery;
+import nl.armatiek.xslweb.saxon.functions.sql.GetConnection;
+import nl.armatiek.xslweb.saxon.functions.sql.GetNextRow;
+import nl.armatiek.xslweb.saxon.functions.sql.ResultSetToNode;
+import nl.armatiek.xslweb.saxon.functions.sql.Rollback;
 import nl.armatiek.xslweb.saxon.uriresolver.XSLWebURIResolver;
 
 import org.expath.httpclient.saxon.SendRequestFunction;
@@ -184,7 +191,16 @@ public class XSLWebInitializer implements Initializer {
     registerEXPathFunction(new SendRequestFunction(), configuration);  
     
     /* Script */
-    registerEXPathFunction(new Invoke(), configuration); 
+    registerEXPathFunction(new Invoke(), configuration);
+    
+    /* Sql */
+    registerEXPathFunction(new Close(), configuration);
+    registerEXPathFunction(new Commit(), configuration);
+    registerEXPathFunction(new ExecuteQuery(), configuration);
+    registerEXPathFunction(new GetConnection(), configuration);
+    registerEXPathFunction(new GetNextRow(), configuration);
+    registerEXPathFunction(new Rollback(), configuration);
+    registerEXPathFunction(new ResultSetToNode(), configuration);
   }
   
   private void registerEXPathFunction(ExtensionFunctionDefinition function, Configuration configuration) {

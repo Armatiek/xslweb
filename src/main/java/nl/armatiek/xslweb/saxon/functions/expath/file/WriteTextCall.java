@@ -30,7 +30,6 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 import org.apache.commons.io.FileUtils;
 
 /**
- * XPath extension function 
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>

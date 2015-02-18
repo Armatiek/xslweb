@@ -237,6 +237,13 @@
     </pipeline:pipeline>
   </xsl:template>
   
+  <!-- Example 22: Relational database access -->
+  <xsl:template name="relational-database" match="/req:request[req:path = '/relational-database.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="relational-database" xsl-path="relational-database/relational-database.xsl" log="true"/>       
+    </pipeline:pipeline>
+  </xsl:template>
+ 
   <!-- Authentication functions called from basic-authentication.xsl: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    
     <xsl:param name="request" as="document-node()"/>       

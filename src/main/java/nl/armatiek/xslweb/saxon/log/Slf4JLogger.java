@@ -27,6 +27,11 @@ import net.sf.saxon.lib.Logger;
 
 import org.apache.commons.io.output.ProxyWriter;
 
+/**
+ * Saxon Logger that logs to Slf4J logging framework.
+ * 
+ * @author Maarten Kroon
+ */
 public class Slf4JLogger extends Logger {
   
   private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Slf4JLogger.class);

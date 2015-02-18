@@ -34,14 +34,15 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 import org.apache.commons.io.FileUtils;
 
 /**
- * XPath extension function 
+ * XPath extension function that moves a file or a directory given a source and a target path/URI.
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>
  */
 public class Move extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "move");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "move");
 
   @Override
   public StructuredQName getFunctionQName() {

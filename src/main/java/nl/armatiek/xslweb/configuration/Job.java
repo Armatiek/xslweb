@@ -21,6 +21,11 @@ import nl.armatiek.xslweb.utils.XMLUtils;
 
 import org.w3c.dom.Element;
 
+/**
+ * Scheduled Job definition
+ * 
+ * @author Maarten
+ */
 public class Job {
   
   private String name; 

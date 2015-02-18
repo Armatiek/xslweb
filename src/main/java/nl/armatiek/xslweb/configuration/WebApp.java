@@ -23,6 +23,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.StringReader;
 import java.net.ProxySelector;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,6 +56,7 @@ import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.xpath.XPathFactoryImpl;
+import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
 import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
@@ -63,9 +65,11 @@ import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOCase;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.io.input.XmlStreamReader;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
@@ -95,6 +99,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+
 public class WebApp implements ErrorHandler {
   
   private static final Logger logger = LoggerFactory.getLogger(WebApp.class);
@@ -104,7 +110,11 @@ public class WebApp implements ErrorHandler {
   
   private Map<String, Collection<Attribute>> attributes = 
       Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
+  
+  private Map<String, ComboPooledDataSource> dataSourceCache = 
+      Collections.synchronizedMap(new HashMap<String, ComboPooledDataSource>());
       
+  private volatile boolean isClosed = true;
   private File definition;
   private File homeDir;  
   private String name;
@@ -114,11 +124,14 @@ public class WebApp implements ErrorHandler {
   private int maxUploadSize;
   private Scheduler scheduler;
   private List<Resource> resources = new ArrayList<Resource>();
-  private List<Parameter> parameters = new ArrayList<Parameter>();  
+  private List<Parameter> parameters = new ArrayList<Parameter>();
+  private Map<String, DataSource> dataSources = new HashMap<String, DataSource>();
   private XSLWebConfiguration configuration;  
   private Processor processor;  
   private FileAlterationMonitor monitor;
   private CloseableHttpClient httpClient;
+  // private List<File> classPath;
+  // private ClassLoader classLoader;
   
   public WebApp(File webAppDefinition) throws Exception {   
     logger.info(String.format("Loading webapp definition \"%s\" ...", webAppDefinition.getAbsolutePath()));
@@ -136,9 +149,17 @@ public class WebApp implements ErrorHandler {
     dbf.setSchema(context.getWebAppSchema());    
     dbf.setXIncludeAware(true);
     DocumentBuilder db = dbf.newDocumentBuilder();
-    db.setErrorHandler(this);    
-    Document webAppDoc = db.parse(webAppDefinition);
-        
+    db.setErrorHandler(this); 
+    
+    String defXml = IOUtils.toString(new XmlStreamReader(webAppDefinition));
+    Properties vars = new Properties(System.getProperties());
+    vars.setProperty("webapp-dir", webAppDefinition.getParentFile().getAbsolutePath().replace('\\', '/'));
+    String resolvedDefXml = XSLWebUtils.resolveProperties(defXml, vars);
+    // Document webAppDoc = db.parse(webAppDefinition);
+    InputSource src = new InputSource(new StringReader(resolvedDefXml));
+    src.setSystemId(webAppDefinition.getAbsolutePath());
+    Document webAppDoc = db.parse(src);
+    
     XPath xpath = new XPathFactoryImpl().newXPath();
     xpath.setNamespaceContext(XMLUtils.getNamespaceContext("webapp", Definitions.NAMESPACEURI_XSLWEB_WEBAPP));    
     Node docElem = webAppDoc.getDocumentElement();
@@ -192,8 +213,15 @@ public class WebApp implements ErrorHandler {
         logger.info(String.format("Scheduling job \"%s\" of webapp \"%s\" ...", jobName, name));
         scheduler.scheduleJob(job, trigger);
       }
+    }    
+    NodeList dataSourceNodes = (NodeList) xpath.evaluate("webapp:datasources/webapp:datasource", docElem, XPathConstants.NODESET);
+    for (int i=0; i<dataSourceNodes.getLength(); i++) {
+      DataSource dataSource = new DataSource((Element) dataSourceNodes.item(i));
+      dataSources.put(dataSource.getName(), dataSource);
     }
     
+    // initClassLoader();
+            
     initFileAlterationObservers();    
   }
   
@@ -209,11 +237,15 @@ public class WebApp implements ErrorHandler {
       logger.debug("Quartz scheduler started.");
     }
     
+    isClosed = false;
+    
     logger.info(String.format("Webapp \"%s\" opened.", name));    
   }
   
-  public void close() throws Exception {    
+  public void close() throws Exception {        
     logger.info(String.format("Closing webapp \"%s\" ...", name));
+    
+    isClosed = true;
     
     logger.debug("Stopping file alteration monitor ...");
     monitor.stop();
@@ -237,6 +269,13 @@ public class WebApp implements ErrorHandler {
       logger.debug("Closing HTTP client ...");
       httpClient.close();
       httpClient = null;
+    }
+    
+    if (!dataSourceCache.isEmpty()) {
+      logger.debug("Closing Datasources ...");
+      for (ComboPooledDataSource cpds : dataSourceCache.values()) {
+        cpds.close();
+      }
     }
     
     logger.info(String.format("Webapp \"%s\" closed.", name));
@@ -295,12 +334,41 @@ public class WebApp implements ErrorHandler {
     monitor.addObserver(classObserver);
   }
   
+  /*
+  private void initClassLoader() {
+    logger.debug("Initializing webapp specific classloader ...");
+    
+    File libDir = new File(getHomeDir(), "lib");
+    if (!libDir.isDirectory()) {
+      return;
+    }
+    this.classPath = new ArrayList<File>();                
+    classPath.addAll(FileUtils.listFiles(libDir, new WildcardFileFilter("*.jar"), DirectoryFileFilter.DIRECTORY));
+    if (classPath.isEmpty() && !XSLWebUtils.hasSubDirectories(libDir)) {
+      return;
+    }
+    classPath.add(libDir);
+    Collection<File> saxonJars = FileUtils.listFiles(new File(Context.getInstance().getWebInfDir(), "lib"), 
+        new WildcardFileFilter("*saxon*.jar", IOCase.INSENSITIVE), FalseFileFilter.INSTANCE);    
+    classPath.addAll(saxonJars);
+    
+    ClassLoaderBuilder builder = new ClassLoaderBuilder();    
+    builder.add(classPath);
+    
+    this.classLoader = builder.createClassLoader();
+  }
+  */
+  
   public File getHomeDir() {
     return homeDir;
   }
   
   public String getName() {
     return name;
+  }
+  
+  public boolean isClosed() {
+    return isClosed;
   }
   
   public String getPath() {
@@ -329,6 +397,10 @@ public class WebApp implements ErrorHandler {
 
   public List<Parameter> getParameters() {
     return parameters;
+  }
+  
+  public Map<String, DataSource> getDataSources() {
+    return dataSources;
   }
   
   public Configuration getConfiguration() {
@@ -477,5 +549,41 @@ public class WebApp implements ErrorHandler {
   public void warning(SAXParseException e) throws SAXException {
     logger.warn(String.format("Error parsing \"%s\"", definition.getAbsolutePath()), e);     
   }
+  
+  public ComboPooledDataSource getDataSource(String name) throws Exception {
+    ComboPooledDataSource cpds = dataSourceCache.get(name);    
+    if (cpds == null) {      
+      DataSource dataSource = dataSources.get(name);
+      if (dataSource == null) {
+        throw new XSLWebException("Datasource definition \"" + name + "\" not found in webapp.xml");        
+      }
+      
+      Class.forName(dataSource.getDriverClass());
+      
+      cpds = new ComboPooledDataSource();
+      cpds.setDriverClass(dataSource.getDriverClass());
+      cpds.setJdbcUrl(dataSource.getJdbcUrl());
+      if (dataSource.getUsername() != null) {
+        cpds.setUser(dataSource.getUsername());
+      }
+      if (dataSource.getPassword() != null) {
+        cpds.setUser(dataSource.getPassword());
+      }
+      if (dataSource.getProperties() != null) {
+        cpds.setProperties(dataSource.getProperties());
+      }
+      dataSourceCache.put(name, cpds);
+    }
+    return cpds;
+  }
+  
+  /*
+  public void closeDataSource(String id) {
+    ComboPooledDataSource cpds = dataSourceCache.remove(id);    
+    if (cpds != null) {
+      cpds.close();
+    }
+  }
+  */
   
 }

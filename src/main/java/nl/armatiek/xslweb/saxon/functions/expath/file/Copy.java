@@ -41,7 +41,8 @@ import org.apache.commons.io.FileUtils;
  */
 public class Copy extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "copy");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "copy");
 
   @Override
   public StructuredQName getFunctionQName() {

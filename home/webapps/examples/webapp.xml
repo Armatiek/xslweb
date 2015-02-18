@@ -53,4 +53,13 @@
   </jobs>
   -->
   
+  <datasources>
+    <datasource>
+      <name>datasource-worldcup</name>
+      <driver-class>org.h2.Driver</driver-class>
+      <jdbc-url>jdbc:h2:file://${webapp-dir}/xsl/relational-database/worldcup.mv</jdbc-url>
+      <property name="user">sa</property>
+    </datasource>
+  </datasources>
+  
 </webapp>

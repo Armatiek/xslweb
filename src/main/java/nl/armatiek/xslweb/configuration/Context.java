@@ -51,6 +51,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * 
+ * @author Maarten
+ */
 public class Context {
   
   private static final Logger logger = LoggerFactory.getLogger(Context.class);

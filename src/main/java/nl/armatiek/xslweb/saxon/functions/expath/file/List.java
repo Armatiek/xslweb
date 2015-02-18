@@ -47,7 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * XPath extension function 
+ * XPath extension function that lists all files and directories in a given directory. 
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>
@@ -56,7 +56,8 @@ public class List extends ExtensionFunctionDefinition {
 
   private static final Logger logger = LoggerFactory.getLogger(List.class);
   
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "list");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "list");
     
   @Override
   public StructuredQName getFunctionQName() {

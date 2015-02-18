@@ -30,14 +30,16 @@ import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 
 /**
- * XPath extension function 
+ * XPath extension function that transforms a relative path into an absolute 
+ * operating system path by resolving it against the current working directory. 
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>
  */
 public class ResolvePath extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "resolve-path");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "resolve-path");
 
   @Override
   public StructuredQName getFunctionQName() {

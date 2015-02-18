@@ -38,7 +38,8 @@ import nl.armatiek.xslweb.configuration.Definitions;
  */
 public class DirSeparator extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "dir-separator");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "dir-separator");
 
   @Override
   public StructuredQName getFunctionQName() {

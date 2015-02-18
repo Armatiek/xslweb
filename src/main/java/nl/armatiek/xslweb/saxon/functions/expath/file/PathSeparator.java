@@ -30,14 +30,16 @@ import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 
 /**
- * XPath extension function 
+ * XPath extension function that returns the value of the operating system-specific 
+ * path separator, which usually is : on UNIX-based systems and ; on Windows systems.
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>
  */
 public class PathSeparator extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "path-separator");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "path-separator");
 
   @Override
   public StructuredQName getFunctionQName() {

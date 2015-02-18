@@ -31,14 +31,16 @@ import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 
 /**
- * XPath extension function 
+ * XPath extension function that transforms a URI, an absolute path, or relative path 
+ * to a canonical, system-dependent path representation.
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>
  */
 public class PathToNative extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "path-to-native");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "path-to-native");
 
   @Override
   public StructuredQName getFunctionQName() {

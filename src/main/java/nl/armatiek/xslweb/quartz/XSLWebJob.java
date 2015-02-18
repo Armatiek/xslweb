@@ -28,6 +28,11 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Quartz Job class that executes a internal XSLWeb pipeline request.
+ * 
+ * @author Maarten
+ */
 public class XSLWebJob implements Job {
   
   private static final Logger logger = LoggerFactory.getLogger(XSLWebJob.class);

@@ -33,14 +33,16 @@ import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
 
 /**
- * XPath extension function 
+ * XPath extension function that transforms a file system path into a URI 
+ * with the file:// scheme.
  * 
  * @author Maarten Kroon
  * @see <a href="http://expath.org/spec/file">EXPath File Module</a>
  */
 public class PathToURI extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "path-to-uri");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "path-to-uri");
 
   @Override
   public StructuredQName getFunctionQName() {

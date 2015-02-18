@@ -43,7 +43,8 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.error.FileException;
  */
 public class LastModified extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "last-modified");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_EXPATH_FILE, "last-modified");
 
   @Override
   public StructuredQName getFunctionQName() {

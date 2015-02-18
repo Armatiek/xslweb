@@ -38,7 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 
+ * XPath extension function that logs to Slf4J logging framework.
  * 
  * @author Maarten Kroon
  */
@@ -46,7 +46,8 @@ public class Log extends ExtensionFunctionDefinition {
 
   private static final Logger log = LoggerFactory.getLogger(Log.class);
   
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_LOG, "log");
+  private static final StructuredQName qName = 
+      new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_LOG, "log");
 
   @Override
   public StructuredQName getFunctionQName() {

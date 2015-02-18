@@ -111,7 +111,10 @@
               </li>
               <li>
                 <a href="{$path}/soap-client.html">SOAP client/SOAP server</a>
-              </li> 
+              </li>
+              <li>
+                <a href="{$path}/relational-database.html">Relation database access</a>
+              </li>
             </ol>
           </div>
         </div>
