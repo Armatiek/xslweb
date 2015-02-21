@@ -89,7 +89,7 @@ public class GetNextRow extends ExtensionFunctionDefinition {
           return EmptySequence.getInstance();
         }        
         ArrayList<AtomicValue> values = new ArrayList<AtomicValue>();
-        ResultSetMetaData metaData = rset.getMetaData();                        
+        ResultSetMetaData metaData = rset.getMetaData();           
         int columnCount = metaData.getColumnCount();
         for (int i = 1; i <= columnCount; i++) {                    
           AtomicValue value = convertJavaObjectToAtomicValue(rset.getObject(i));

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  
+  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%-5p [%t] - %m%n</pattern>
+    </encoder>
+  </appender>
+  
+  <appender name="global" class="ch.qos.logback.core.rolling.RollingFileAppender">    
+    <Append>true</Append>
+    <File>${xslweb.home}/logs/xslweb.log</File>
+    <encoder>
+      <pattern>%-5p [%t] %c - [%m] %d{ISO8601}%n</pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <maxIndex>8</maxIndex>
+      <FileNamePattern>${xslweb.home}/logs/xslweb.log.%i</FileNamePattern>
+    </rollingPolicy>
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <MaxFileSize>10MB</MaxFileSize>
+    </triggeringPolicy>
+  </appender>
+  
+  <appender name="pipeline" class="ch.qos.logback.core.rolling.RollingFileAppender">    
+    <Append>true</Append>
+    <File>${xslweb.home}/logs/pipeline.log</File>
+    <encoder>
+      <pattern>%level - %m%n</pattern>
+    </encoder>    
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <maxIndex>8</maxIndex>
+      <FileNamePattern>${xslweb.home}/logs/pipeline.log.%i</FileNamePattern>
+    </rollingPolicy>
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <MaxFileSize>10MB</MaxFileSize>
+    </triggeringPolicy>
+  </appender>
+  
+  <logger name="nl.armatiek.xslweb.web.servlet" level="DEBUG" additivity="false">
+    <appender-ref ref="pipeline"/>
+  </logger>
+  
+  <root level="INFO">
+    <appender-ref ref="console"/>
+    <appender-ref ref="global"/>
+  </root>
+  
+</configuration>
