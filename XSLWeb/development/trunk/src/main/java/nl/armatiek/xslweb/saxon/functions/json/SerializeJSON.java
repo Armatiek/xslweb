@@ -104,7 +104,7 @@ public class SerializeJSON extends ExtensionFunctionDefinition {
           }
         }
       } catch (Exception e) {
-        throw new XPathException(e);
+        throw new XPathException("Error serializing sequence to JSON", e);
       }
       return StringValue.makeStringValue(sw.toString());              
     }

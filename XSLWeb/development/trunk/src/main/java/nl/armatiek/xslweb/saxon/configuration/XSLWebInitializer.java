@@ -60,6 +60,8 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.Write;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteBinary;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteText;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteTextLines;
+import nl.armatiek.xslweb.saxon.functions.json.ParseJSON;
+import nl.armatiek.xslweb.saxon.functions.json.SerializeJSON;
 import nl.armatiek.xslweb.saxon.functions.log.Log;
 import nl.armatiek.xslweb.saxon.functions.mail.SendMail;
 import nl.armatiek.xslweb.saxon.functions.response.AddCookie;
@@ -192,6 +194,10 @@ public class XSLWebInitializer implements Initializer {
     
     /* Script */
     registerEXPathFunction(new Invoke(), configuration);
+    
+    /* JSON */
+    registerEXPathFunction(new ParseJSON(), configuration);
+    registerEXPathFunction(new SerializeJSON(), configuration);
     
     /* Sql */
     registerEXPathFunction(new Close(), configuration);
