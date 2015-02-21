@@ -183,33 +183,7 @@ public class PipelineHandler implements ContentHandler {
           String name = getAttribute(atts, "name", "json-serializer-" + Integer.toString(pipelineSteps.size()+1));
           boolean log = getAttribute(atts, "log", "false").equals("true");          
           JSONSerializerStep step = new JSONSerializerStep(name, log);
-          pipelineSteps.add(step);
-          
-          /*
-          SystemTransformerStep step = new SystemTransformerStep("system/json/xml-to-json.xsl", name, log);
-          pipelineSteps.add(step);          
-          String debug = getAttribute(atts, "debug", null);
-          String useRabbitfish = getAttribute(atts, "use-rabbitfish", null);
-          String useBadgerfish = getAttribute(atts, "use-badgerfish", null);
-          String useNamespaces = getAttribute(atts, "use-namespaces", null);
-          String useRayfish = getAttribute(atts, "use-rayfish", null);
-          String jsonP = getAttribute(atts, "jsonp", null);
-          String skipRoot = getAttribute(atts, "skip-root", null);
-          if (debug != null)
-            step.addParameter(new Parameter(processor, null, "debug", "xs:boolean", debug)); 
-          if (useRabbitfish != null)
-            step.addParameter(new Parameter(processor, null, "use-rabbitfish", "xs:boolean", useRabbitfish));
-          if (useBadgerfish != null)
-            step.addParameter(new Parameter(processor, null, "use-badgerfish", "xs:boolean", debug));
-          if (useNamespaces != null)
-            step.addParameter(new Parameter(processor, null, "use-namespaces", "xs:boolean", debug));
-          if (useRayfish != null)
-            step.addParameter(new Parameter(processor, null, "use-rayfish", "xs:boolean", debug));
-          if (jsonP != null)
-            step.addParameter(new Parameter(processor, null, "jsonp", "xs:string", debug));
-          if (skipRoot != null)
-            step.addParameter(new Parameter(processor, null, "skip-root", "xs:boolean", debug));
-          */                             
+          pipelineSteps.add(step);                                            
         } else if (localName.equals("value")) {          
         } else {
           throw new SAXException(String.format("Pipeline element \"%s\" not supported", localName));

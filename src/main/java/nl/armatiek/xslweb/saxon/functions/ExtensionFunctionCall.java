@@ -17,8 +17,10 @@ package nl.armatiek.xslweb.saxon.functions;
  * limitations under the License.
  */
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
@@ -119,7 +121,13 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
       } else if (value instanceof java.sql.Clob) {
         atomicValue = new StringValue(IOUtils.toString(((java.sql.Clob) value).getCharacterStream()));            
       } else if (value instanceof java.sql.Blob) {
-        atomicValue = new Base64BinaryValue(IOUtils.toByteArray(((java.sql.Blob) value).getBinaryStream()));         
+        atomicValue = new Base64BinaryValue(IOUtils.toByteArray(((java.sql.Blob) value).getBinaryStream()));
+      } else if (value instanceof java.sql.SQLXML) {
+        atomicValue = new StringValue(IOUtils.toString(((java.sql.SQLXML) value).getCharacterStream())); // TODO: node() instead of atomic?
+      } else if (value instanceof InputStream) {
+        atomicValue = new StringValue(IOUtils.toString((InputStream) value, "UTF-8")); // TODO: get encoding from somewhere
+      } else if (value instanceof Reader) {
+        atomicValue = new StringValue(IOUtils.toString((Reader) value));      
       } else {
         throw new XPathException("Java class not supported converting Java object to AtomicValue (" + value.getClass().toString() + ")");
       }    

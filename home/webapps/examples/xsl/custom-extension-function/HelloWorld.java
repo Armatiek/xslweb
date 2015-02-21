@@ -1,5 +1,6 @@
 package nl.armatiek.xslweb.saxon.functions;
 
+import net.iharder.Base64;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
@@ -8,8 +9,6 @@ import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
-
-import com.google.common.io.BaseEncoding;
 
 public class HelloWorld extends ExtensionFunctionDefinition {
 
@@ -45,7 +44,7 @@ public class HelloWorld extends ExtensionFunctionDefinition {
     public StringValue call(XPathContext context, Sequence[] arguments) throws XPathException {            
       try {
         String str = ((StringValue) arguments[0].head()).getStringValue();
-        return new StringValue("Hello World: " + BaseEncoding.base64().encode(str.getBytes("UTF-8")));        
+        return new StringValue("Hello World: " + Base64.encodeBytes(str.getBytes("UTF-8")));        
       } catch (Exception e) {
         throw new XPathException("Could not base64 encode string", e);
       }            
