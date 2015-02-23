@@ -10,7 +10,7 @@
   exclude-result-prefixes="#all"
   version="2.0">
   
-  <xsl:include href="../../../xsl/system/authentication/basic-authentication.xsl"/>
+  <xsl:include href="../../../common/xsl/system/authentication/basic-authentication.xsl"/>
   
   <xsl:param name="config:development-mode" as="xs:boolean"/>
 
@@ -196,10 +196,16 @@
   </xsl:template>
   
   <!-- Example 18: JSON -->
-  <xsl:template match="/req:request[req:path = '/json.html']">    
+  <xsl:template match="/req:request[req:path = '/json-serialization.html']">    
     <pipeline:pipeline>
-      <pipeline:transformer name="json" xsl-path="json/json.xsl" log="true"/>
+      <pipeline:transformer name="json-serialization" xsl-path="json/json-serialization.xsl" log="true"/>
       <pipeline:json-serializer name="json" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template name="json-extension-functions" match="/req:request[req:path = '/json-extension-functions.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="json-extension-functions" xsl-path="json/json-extension-functions.xsl" log="true"/>       
     </pipeline:pipeline>
   </xsl:template>
   

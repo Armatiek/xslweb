@@ -16,7 +16,7 @@
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:include href="../../../../xsl/lib/functx/functx-1.0.xsl"/>
+  <xsl:include href="../../../../common/xsl/lib/functx/functx-1.0.xsl"/>
   
   <xsl:template name="title" as="xs:string">Example 21: SOAP Client/Server</xsl:template>
   

@@ -18,16 +18,21 @@ package nl.armatiek.xslweb.saxon.functions.json;
  */
 
 import java.io.StringReader;
+import java.util.Properties;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.stax.StAXSource;
 
-import net.sf.saxon.TransformerFactoryImpl;
+import net.sf.saxon.Configuration;
+import net.sf.saxon.event.NamespaceReducer;
 import net.sf.saxon.event.PipelineConfiguration;
+import net.sf.saxon.event.Receiver;
+import net.sf.saxon.event.Sender;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
+import net.sf.saxon.lib.ParseOptions;
+import net.sf.saxon.lib.SerializerFactory;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
@@ -73,7 +78,7 @@ public class ParseJSON extends ExtensionFunctionDefinition {
 
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
-    return SequenceType.OPTIONAL_ELEMENT_NODE;
+    return SequenceType.OPTIONAL_NODE; // TODO: must be document-node()
   }
   
   @Override
@@ -90,13 +95,19 @@ public class ParseJSON extends ExtensionFunctionDefinition {
         if (StringUtils.isBlank(json)) {
           return EmptySequence.getInstance();
         }        
-        XMLInputFactory factory = new JsonXMLInputFactory();
-        XMLStreamReader reader = factory.createXMLStreamReader(new StringReader(json));
-        StAXSource source = new StAXSource(reader);       
-        TransformerFactoryImpl tf = new net.sf.saxon.TransformerFactoryImpl(context.getConfiguration());     
-        Transformer transformer = tf.newTransformer();
-        TinyBuilder builder = new TinyBuilder(new PipelineConfiguration(context.getConfiguration()));
-        transformer.transform(source, builder);      
+        XMLInputFactory factory = new JsonXMLInputFactory();                
+        XMLStreamReader reader = factory.createXMLStreamReader(new StringReader(json));        
+        StAXSource source = new StAXSource(reader);        
+        Configuration config = context.getConfiguration();        
+        PipelineConfiguration pipe = config.makePipelineConfiguration();
+        pipe.getParseOptions().getParserFeatures().remove("http://apache.org/xml/features/xinclude");        
+        TinyBuilder builder = new TinyBuilder(pipe);        
+        SerializerFactory sf = config.getSerializerFactory();
+        Receiver receiver = sf.getReceiver(builder, pipe, new Properties());               
+        NamespaceReducer reducer = new NamespaceReducer(receiver);
+        ParseOptions options = pipe.getParseOptions();
+        options.setContinueAfterValidationErrors(true);
+        Sender.send(source, reducer, options);                             
         return builder.getCurrentRoot();                
       } catch (Exception e) {
         throw new XPathException("Error parsing JSON string", e);
