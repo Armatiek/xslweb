@@ -101,7 +101,7 @@
                 <a href="{$path}/nestingpipeline.html">Nested pipepline</a>
               </li>
               <li>
-                <a href="{$path}/json.html">JSON serialization</a>
+                JSON <a href="{$path}/json-serialization.html">serialization</a> or <a href="{$path}/json-extension-functions.html">extension functions</a>
               </li>
               <li>
                 <a href="{$path}/custom-extension-function.html">Custom XPath extension function</a>

@@ -174,7 +174,7 @@ public class XSLWebServlet extends HttpServlet {
       PipelineStep step = steps.get(i);          
       String xslPath = null;
       if (step instanceof SystemTransformerStep) {
-        xslPath = new File(homeDir, "xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath();                      
+        xslPath = new File(homeDir, "common/xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath();                      
       } else if (step instanceof TransformerStep) {          
         xslPath = ((TransformerStep) step).getXslPath();            
       } else if (step instanceof ResponseStep) {
