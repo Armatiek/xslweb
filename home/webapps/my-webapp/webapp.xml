@@ -11,7 +11,9 @@
   <max-upload-size>10</max-upload-size>
   
   <!-- Resources to serve straight away: -->
-  <resources>       
+  <resources> 
+    <resource pattern="/favicon.ico" media-type="image/x-icon" duration="P7DT0H0M0S"/>
+    <resource pattern="/robots.txt" media-type="text/plain" duration="P1DT0H0M0S"/> 
     <resource pattern="/images/.+\.png" media-type="image/png"/>
     <resource pattern="/images/.+\.gif" media-type="image/gif"/>
     <resource pattern="/images/.+\.(jpg|jpeg)" media-type="image/jpg"/>
@@ -28,15 +30,26 @@
     </parameter>
   </parameters>
   
+  <!--
   <jobs> 
-    <!--
     <job>
       <name>MyJob</name>
       <uri>my-job.html</uri>
       <cron>0/60 * * * * ?</cron> 
       <concurrent>true</concurrent>
-    </job>
-    -->      
+    </job>    
   </jobs>
+  -->
+  
+  <!--
+  <datasources>
+    <datasource>
+      <name>my-datasource</name>
+      <driver-class>org.h2.Driver</driver-class>
+      <jdbc-url>jdbc:h2:file://${webapp-dir}/database/my-database.mv</jdbc-url>
+      <property name="user">sa</property>
+    </datasource>
+  </datasources>
+  -->
   
 </webapp>
