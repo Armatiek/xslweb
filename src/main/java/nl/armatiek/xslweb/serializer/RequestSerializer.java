@@ -90,10 +90,10 @@ public class RequestSerializer {
       this.xsw = new IndentingXMLStreamWriter(this.xsw);
     }
     
-    xsw.writeStartDocument();       
-    xsw.setDefaultNamespace(URI);
+    xsw.writeStartDocument();                  
+    xsw.setPrefix("req", URI);
     xsw.writeStartElement(URI, "request");
-    xsw.writeDefaultNamespace(URI);
+    xsw.writeNamespace("req", URI);
     
     serializeProperties();
     serializeHeaders();
