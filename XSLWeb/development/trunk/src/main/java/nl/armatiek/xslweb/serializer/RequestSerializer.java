@@ -262,7 +262,12 @@ public class RequestSerializer {
     pushbackReader.unread(b);                
     xsw.writeStartElement(URI, "body");
     String contentType = req.getContentType();
-    if ((contentType != null) && (contentType.startsWith("text/xml") || contentType.startsWith("application/xml"))) {
+    if (contentType != null && contentType.contains(";")) {
+      contentType = contentType.split(";")[0].trim();
+    }
+    if ((contentType != null) && 
+        (contentType.startsWith("text/xml") || contentType.startsWith("application/xml") ||
+        contentType.endsWith("+xml"))) {
       getFilteredXMLReader().parse(new InputSource(pushbackReader));
     } else if ((contentType != null) && contentType.startsWith("text/plain")) {      
       xsw.writeCharacters(IOUtils.toString(pushbackReader));      
