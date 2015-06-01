@@ -513,7 +513,11 @@ public class WebApp implements ErrorHandler {
     if (cache == null) {
       return null;
     }    
-    return (Collection<Attribute>) cache.get(keyName).getObjectValue();
+    net.sf.ehcache.Element elem = cache.get(keyName);
+    if (elem != null) {    
+      return (Collection<Attribute>) elem.getObjectValue();
+    } 
+    return null;
   }
   
   public void setCacheValue(String cacheName, String keyName, Collection<Attribute> attrs, int tti, int ttl) {
