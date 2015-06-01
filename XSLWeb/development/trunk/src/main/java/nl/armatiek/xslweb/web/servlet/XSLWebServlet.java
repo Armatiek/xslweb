@@ -89,10 +89,10 @@ public class XSLWebServlet extends HttpServlet {
   @SuppressWarnings("unchecked")
   @Override
   protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    OutputStream respOs = resp.getOutputStream();
-    boolean developmentMode = true;
+    OutputStream respOs = resp.getOutputStream();    
+    WebApp webApp = null;
     try {            
-      WebApp webApp = (WebApp) req.getAttribute(Definitions.ATTRNAME_WEBAPP);
+      webApp = (WebApp) req.getAttribute(Definitions.ATTRNAME_WEBAPP);
       if (webApp.isClosed()) {
         resp.resetBuffer();
         resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
@@ -104,7 +104,7 @@ public class XSLWebServlet extends HttpServlet {
       executeRequest(webApp, req, resp, respOs);         
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
-      if (developmentMode) {              
+      if (webApp != null && webApp.getDevelopmentMode()) {              
         resp.setContentType("text/plain; charset=UTF-8");        
         e.printStackTrace(new PrintStream(respOs));        
       } else if (!resp.isCommitted()) {
