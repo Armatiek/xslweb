@@ -85,6 +85,7 @@ import nl.armatiek.xslweb.saxon.functions.sql.GetNextRow;
 import nl.armatiek.xslweb.saxon.functions.sql.ResultSetToNode;
 import nl.armatiek.xslweb.saxon.functions.sql.Rollback;
 import nl.armatiek.xslweb.saxon.functions.util.DiscardDocument;
+import nl.armatiek.xslweb.saxon.functions.util.Parse;
 import nl.armatiek.xslweb.saxon.uriresolver.XSLWebURIResolver;
 
 import org.expath.httpclient.saxon.SendRequestFunction;
@@ -211,6 +212,7 @@ public class XSLWebInitializer implements Initializer {
     
     /* Util */
     registerEXPathFunction(new DiscardDocument(), configuration);
+    registerEXPathFunction(new Parse(), configuration);
   }
   
   private void registerEXPathFunction(ExtensionFunctionDefinition function, Configuration configuration) {

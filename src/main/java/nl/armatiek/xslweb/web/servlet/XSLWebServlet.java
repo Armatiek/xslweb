@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.ErrorListener;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.stream.StreamSource;
 
 import net.sf.saxon.s9api.Destination;
@@ -218,6 +219,9 @@ public class XSLWebServlet extends HttpServlet {
       if (outputProperties != null) {
         for (String key : outputProperties.stringPropertyNames()) {
           String value = outputProperties.getProperty(key);
+          if (key.equals(OutputKeys.CDATA_SECTION_ELEMENTS)) {
+            value = value.replaceAll("\\{\\}", "{''}");
+          }
           Property prop = Property.get(key);
           if (prop == null) {
             continue;          
