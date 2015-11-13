@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  elementFormDefault="qualified" 
+  targetNamespace="http://www.armatiek.com/xslweb/zip-serializer"
+  xmlns:zip="http://www.armatiek.com/xslweb/zip-serializer">
+  
+  <xs:element name="archive">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="file-entry">
+          <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+            <xs:attribute name="src" type="xs:string" use="required"/>            
+          </xs:complexType>
+        </xs:element>        
+        <xs:element name="inline-entry">
+          <xs:complexType>                      
+            <xs:attribute name="byte-order-mark" type="zip:yesno"/>
+            <xs:attribute name="cdata-section-elements" type="xs:string"/>            
+            <xs:attribute name="doctype-public" type="xs:string"/>
+            <xs:attribute name="doctype-system" type="xs:string"/>
+            <xs:attribute name="encoding" type="xs:string"/>
+            <xs:attribute name="escape-uri-attributes" type="zip:yesno"/>
+            <xs:attribute name="exclude-result-prefixes" type="xs:string"/>
+            <xs:attribute name="html-version" type="xs:string"/>
+            <xs:attribute name="include-content-type" type="zip:yesno"/>
+            <xs:attribute name="indent" type="zip:yesno"/>
+            <xs:attribute name="media-type" type="xs:string"/>
+            <xs:attribute name="normalization-form">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="NFC"/>
+                  <xs:enumeration value="NFD"/>
+                  <xs:enumeration value="NFKC"/>
+                  <xs:enumeration value="NFKD"/>
+                  <xs:enumeration value="fully-normalized"/>
+                  <xs:enumeration value="none"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="omit-xml-declaration" type="zip:yesno"/>
+            <xs:attribute name="standalone">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="yes"/>
+                  <xs:enumeration value="no"/>
+                  <xs:enumeration value="omit"/>                  
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="method">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="xml"/>
+                  <xs:enumeration value="xhtml"/>
+                  <xs:enumeration value="html"/>
+                  <xs:enumeration value="text"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="undeclare-prefixes" type="zip:yesno"/>
+            <xs:attribute name="use-character-maps" type="xs:string"/>
+            <xs:attribute name="version" type="xs:string"/>
+          </xs:complexType>          
+        </xs:element>                
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" use="required"/>
+      <xs:attribute name="dir" type="xs:string"/>      
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:simpleType name="yesno">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="yes"/>
+      <xs:enumeration value="no"/>      
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

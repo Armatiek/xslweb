@@ -36,27 +36,40 @@
             <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
           </xs:complexType>
         </xs:element>
-        <xs:element minOccurs="0" name="json-serializer">
-          <xs:complexType/>
-          <!--
-          <xs:complexType>            
-            <xs:attribute name="name" type="xs:string" use="optional"/>            
-            <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
-            <xs:attribute name="debug" type="xs:boolean" use="optional" default="false"/>
-            <xs:attribute name="use-rabbitfish" type="xs:boolean" use="optional" default="false"/>
-            <xs:attribute name="use-badgerfish" type="xs:boolean" use="optional" default="false"/>
-            <xs:attribute name="use-namespaces" type="xs:boolean" use="optional" default="false"/>
-            <xs:attribute name="use-rayfish" type="xs:boolean" use="optional" default="false"/>
-            <xs:attribute name="jsonp" type="xs:string" use="optional" default="''"/>
-            <xs:attribute name="skip-root" type="xs:boolean" use="optional" default="false"/>           
-          </xs:complexType>
-          -->
-        </xs:element>
+        <xs:choice minOccurs="0">
+          <xs:element name="json-serializer">
+            <xs:complexType>            
+              <xs:attribute name="name" type="xs:string" use="optional"/>            
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>                                     
+            </xs:complexType>
+          </xs:element>                    
+          <xs:element name="zip-serializer">
+            <xs:complexType>            
+              <xs:attribute name="name" type="xs:string" use="optional"/>            
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>                                     
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="fop-serializer">
+            <xs:complexType>            
+              <xs:attribute name="name" type="xs:string" use="optional"/>            
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
+              <xs:attribute name="config-name" type="xs:string" use="optional"/>
+              <xs:attribute name="pdf-a-mode" use="optional">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:enumeration value="PDF/A-1a"/>
+                    <xs:enumeration value="PDF/A-1b"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:attribute>                        
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="cache" type="xs:boolean" use="optional" default="false"/>
-      <xs:attribute name="cache-key" type="xs:string" use="optional"/>      
+      <xs:attribute name="cache-key" type="xs:string" use="optional"/>
       <xs:attribute name="cache-time-to-live" type="xs:integer" use="optional" default="60"/>
-      <xs:attribute name="cache-time-to-idle" type="xs:integer" use="optional" default="60"/>      
+      <xs:attribute name="cache-time-to-idle" type="xs:integer" use="optional" default="60"/>
       <xs:attribute name="cache-scope" use="optional" default="webapp">
         <xs:simpleType>
           <xs:restriction base="xs:string">

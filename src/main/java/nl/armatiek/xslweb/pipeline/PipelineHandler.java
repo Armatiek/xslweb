@@ -179,11 +179,15 @@ public class PipelineHandler implements ContentHandler {
             cacheScope = getAttribute(atts, "cache-scope", "webapp");
             cacheHeaders = getAttribute(atts, "cache-headers", "false").equals("true");
           }
-        } else if (localName.equals("json-serializer")) {                    
-          String name = getAttribute(atts, "name", "json-serializer-" + Integer.toString(pipelineSteps.size()+1));
-          boolean log = getAttribute(atts, "log", "false").equals("true");          
-          JSONSerializerStep step = new JSONSerializerStep(name, log);
-          pipelineSteps.add(step);                                            
+        } else if (localName.equals("json-serializer")) {                                      
+          JSONSerializerStep step = new JSONSerializerStep(atts);
+          pipelineSteps.add(step);
+        } else if (localName.equals("zip-serializer")) {                                       
+          ZipSerializerStep step = new ZipSerializerStep(atts);
+          pipelineSteps.add(step);
+        } else if (localName.equals("fop-serializer")) {
+          FopSerializerStep step = new FopSerializerStep(atts);
+          pipelineSteps.add(step);
         } else if (localName.equals("value")) {          
         } else {
           throw new SAXException(String.format("Pipeline element \"%s\" not supported", localName));

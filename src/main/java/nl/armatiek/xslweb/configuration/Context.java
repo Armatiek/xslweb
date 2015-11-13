@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,14 +30,14 @@ import java.util.Properties;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.naming.NoInitialContextException;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletContext;
 import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-
-import net.sf.ehcache.CacheManager;
-import nl.armatiek.xslweb.error.XSLWebException;
-import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
@@ -50,6 +49,10 @@ import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.sf.ehcache.CacheManager;
+import nl.armatiek.xslweb.error.XSLWebException;
+import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 /**
  * 
@@ -68,7 +71,8 @@ public class Context {
   private ServletContext servletContext;
   private FileAlterationMonitor monitor;
   private Schema webAppSchema;
-  private Properties properties;  
+  private Properties properties;
+  private boolean parserHardening;
   private String contextPath;
   private File webInfDir; 
   private File homeDir;
@@ -160,9 +164,21 @@ public class Context {
     }    
   }
   
-  private void initProperties() throws IOException {                 
+  private void initProperties() throws Exception {
     File propsFile = new File(homeDir, "config" + File.separatorChar + Definitions.FILENAME_PROPERTIES);
     this.properties = XSLWebUtils.readProperties(propsFile);
+    boolean trustAllCerts = new Boolean(properties.getProperty(Definitions.PROPERTYNAME_TRUST_ALL_CERTS, "false")).booleanValue();
+    if (trustAllCerts) {
+      TrustManager[] trustAllCertsManager = new TrustManager[] { new X509TrustManager() {
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() { return null; }
+        public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) { }
+        public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) { }
+      }};
+      SSLContext sc = SSLContext.getInstance("SSL");
+      sc.init(null, trustAllCertsManager, new java.security.SecureRandom());
+      HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+    }
+    this.parserHardening = new Boolean(this.properties.getProperty(Definitions.PROPERTYNAME_PARSER_HARDENING, "false"));
   }
   
   private void initXMLSchemas() throws Exception {   
@@ -288,6 +304,10 @@ public class Context {
   
   public Properties getProperties() {     
     return this.properties;    
+  }
+  
+  public boolean getParserHardening() {     
+    return this.parserHardening;    
   }
   
   public Schema getWebAppSchema() {

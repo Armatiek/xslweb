@@ -30,8 +30,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
-import javanet.staxutils.IndentingXMLStreamWriter;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -39,12 +37,6 @@ import javax.xml.bind.DatatypeConverter;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-
-import nl.armatiek.xslweb.configuration.Attribute;
-import nl.armatiek.xslweb.configuration.Definitions;
-import nl.armatiek.xslweb.configuration.WebApp;
-import nl.armatiek.xslweb.error.XSLWebException;
-import nl.armatiek.xslweb.xml.BodyFilter;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.fileupload.FileItem;
@@ -54,6 +46,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -61,6 +54,14 @@ import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.sun.xml.ws.util.xml.ContentHandlerToXMLStreamWriter;
+
+import javanet.staxutils.IndentingXMLStreamWriter;
+import nl.armatiek.xslweb.configuration.Attribute;
+import nl.armatiek.xslweb.configuration.Context;
+import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.configuration.WebApp;
+import nl.armatiek.xslweb.error.XSLWebException;
+import nl.armatiek.xslweb.xml.BodyFilter;
 
 public class RequestSerializer {
   
@@ -403,7 +404,19 @@ public class RequestSerializer {
       this.xmlReader = XMLReaderFactory.createXMLReader();              
       this.xmlReader.setFeature("http://xml.org/sax/features/validation", false);
       this.xmlReader.setFeature("http://xml.org/sax/features/namespaces", true);
-      this.xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
+      this.xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", false);            
+      if (Context.getInstance().getParserHardening()) {
+        this.xmlReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        this.xmlReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        this.xmlReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        this.xmlReader.setEntityResolver(new EntityResolver() {
+          @Override
+          public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {            
+            return null;
+          }         
+        });
+        this.xmlReader.setProperty("http://apache.org/xml/properties/security-manager", "org.apache.xerces.util.SecurityManager");
+      }            
       this.xmlReader.setContentHandler(filter);      
     }
     return this.xmlReader;

@@ -41,6 +41,11 @@ import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.ProxyWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.sf.saxon.s9api.Destination;
 import net.sf.saxon.s9api.Serializer;
 import net.sf.saxon.s9api.Serializer.Property;
@@ -52,6 +57,7 @@ import net.sf.saxon.stax.XMLStreamWriterDestination;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
+import nl.armatiek.xslweb.pipeline.FopSerializerStep;
 import nl.armatiek.xslweb.pipeline.JSONSerializerStep;
 import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.pipeline.PipelineStep;
@@ -59,15 +65,11 @@ import nl.armatiek.xslweb.pipeline.ResponseStep;
 import nl.armatiek.xslweb.pipeline.SerializerStep;
 import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
+import nl.armatiek.xslweb.pipeline.ZipSerializerStep;
 import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
 import nl.armatiek.xslweb.utils.Closeable;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 import nl.armatiek.xslweb.xml.CleanupXMLStreamWriter;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.ProxyWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class XSLWebServlet extends HttpServlet {
   
@@ -232,8 +234,11 @@ public class XSLWebServlet extends HttpServlet {
       XMLStreamWriter xsw = new CleanupXMLStreamWriter(serializer.getXMLStreamWriter());
       dest = new XMLStreamWriterDestination(xsw);
     } else if (serializerStep instanceof JSONSerializerStep) {
-      XMLStreamWriter xsw = ((JSONSerializerStep) serializerStep).getWriter(os, outputProperties.getProperty("encoding", "UTF-8"));
-      dest = new XMLStreamWriterDestination(xsw);        
+      dest = ((JSONSerializerStep) serializerStep).getDestination(webApp, resp, os, outputProperties);             
+    } else if (serializerStep instanceof ZipSerializerStep) {
+      dest = ((ZipSerializerStep) serializerStep).getDestination(webApp, resp, os, outputProperties);
+    } else if (serializerStep instanceof FopSerializerStep) {
+      dest = ((FopSerializerStep) serializerStep).getDestination(webApp, resp, os, outputProperties);
     }
     
     Destination destination = getDestination(webApp, dest, steps.get(steps.size()-1));

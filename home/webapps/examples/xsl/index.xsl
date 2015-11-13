@@ -115,6 +115,12 @@
               <li>
                 <a href="{$path}/relational-database.html">Relation database access</a>
               </li>
+              <li>
+                <a href="{$path}/zip-serialization.zip">ZIP serialization</a>
+              </li>
+              <li>
+                <a href="{$path}/fop-serialization.pdf">Apache FOP/PDF serialization</a>
+              </li>
             </ol>
           </div>
         </div>

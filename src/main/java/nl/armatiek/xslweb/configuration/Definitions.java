@@ -76,7 +76,8 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_REQUEST       = NAMESPACEURI_XSLWEB + "/request";
   public final static String NAMESPACEURI_XSLWEB_RESPONSE      = NAMESPACEURI_XSLWEB + "/response";
   public final static String NAMESPACEURI_XSLWEB_FX_SESSION    = NAMESPACEURI_XSLWEB + "/session";
-  public final static String NAMESPACEURI_XSLWEB_PIPELINE      = NAMESPACEURI_XSLWEB + "/pipeline";  
+  public final static String NAMESPACEURI_XSLWEB_PIPELINE      = NAMESPACEURI_XSLWEB + "/pipeline";
+  public final static String NAMESPACEURI_XSLWEB_ZIP_SERIALIZER = NAMESPACEURI_XSLWEB + "/zip-serializer";
   public final static String NAMESPACEURI_EXPATH_FILE          = "http://expath.org/ns/file";
     
   public final static String MIMETYPE_XML                      = "text/xml";
@@ -106,5 +107,9 @@ public class Definitions {
   public final static String CACHENAME_RESPONSECACHINGFILTER   = "XSLWebResponseCachingFilter";
   
   public final static String SCHEME_XSLWEB                     = "xslweb";
+  
+  public final static String PROPERTYNAME_VERSION              = "xslweb.version";
+  public final static String PROPERTYNAME_TRUST_ALL_CERTS      = "xslweb.trustallcerts";
+  public final static String PROPERTYNAME_PARSER_HARDENING     = "xslweb.parserhardening";
   
 }

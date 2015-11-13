@@ -57,36 +57,8 @@
     <repository>
       <id>ettrema-repo</id>
       <url>http://milton.io/maven</url>
-    </repository>
-    <!--
-    <repository>
-      <id>apache.snapshots</id>
-      <url>https://repository.apache.org/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    -->
+    </repository>    
   </repositories>
-  
-  <!--
-  <pluginRepositories>
-    <pluginRepository>
-      <id>apache.snapshots</id>
-      <name>Apache Snapshots</name>
-      <url>https://repository.apache.org/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </pluginRepository>
-  </pluginRepositories>
-  -->
       
   <dependencies>
     <dependency>
@@ -170,31 +142,12 @@
       <groupId>javax.transaction</groupId>
       <artifactId>jta</artifactId>
       <version>1.1</version>
-    </dependency> 
-    <!--
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    -->
+    </dependency>     
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>1.1.2</version>
-    </dependency>
-    <!--
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>     
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>${log4j.version}</version>
-    </dependency>
-    -->
+    </dependency>    
     <dependency>
       <groupId>org.clapper</groupId>
       <artifactId>javautil</artifactId>
@@ -222,6 +175,12 @@
       <groupId>com.mchange</groupId>
       <artifactId>c3p0</artifactId>
       <version>0.9.5</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.xmlgraphics</groupId>
+      <artifactId>fop</artifactId>
+      <version>2.0</version>
     </dependency>
     
   </dependencies>
@@ -261,31 +220,7 @@
               <finalName>xslweb.jar</finalName>
               <enableNaming>false</enableNaming>              
               <charset>utf-8</charset>
-              <uriEncoding>utf-8</uriEncoding>                            
-              <!--
-              <extraDependencies>
-                <extraDependency>
-                  <groupId>org.slf4j</groupId>
-                  <artifactId>slf4j-api</artifactId>
-                  <version>1.7.5</version>
-                </extraDependency>
-                <extraDependency>
-                  <groupId>org.slf4j</groupId>
-                  <artifactId>jul-to-slf4j</artifactId>
-                  <version>1.7.5</version>
-                </extraDependency>
-                <extraDependency>
-                  <groupId>org.slf4j</groupId>
-                  <artifactId>slf4j-log4j12</artifactId>
-                  <version>${slf4j.version}</version>
-                </extraDependency>
-                <extraDependency>
-                  <groupId>log4j</groupId>
-                  <artifactId>log4j</artifactId>
-                  <version>${log4j.version}</version>
-                </extraDependency>
-              </extraDependencies>
-              -->
+              <uriEncoding>utf-8</uriEncoding>                                          
             </configuration>
           </execution>
         </executions>

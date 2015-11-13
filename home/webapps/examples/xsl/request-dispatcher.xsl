@@ -249,6 +249,22 @@
       <pipeline:transformer name="relational-database" xsl-path="relational-database/relational-database.xsl" log="true"/>       
     </pipeline:pipeline>
   </xsl:template>
+  
+  <!-- Example 23: Zip serialization -->
+  <xsl:template match="/req:request[req:path = '/zip-serialization.zip']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="zip-serialization" xsl-path="zip/zip-serialization.xsl" log="true"/>
+      <pipeline:zip-serializer name="zip" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <!-- Example 24: Apache FOP/PDF serialization -->
+  <xsl:template match="/req:request[req:path = '/fop-serialization.pdf']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="fop-serialization" xsl-path="fop/fop-serialization.xsl" log="true"/>
+      <pipeline:fop-serializer name="fop" log="true" config-name="fop.xconf"/> <!-- pdf-a-mode="PDF/A-1a" -->  
+    </pipeline:pipeline>
+  </xsl:template>
  
   <!-- Authentication functions called from basic-authentication.xsl: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    

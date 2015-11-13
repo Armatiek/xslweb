@@ -19,8 +19,8 @@ package nl.armatiek.xslweb.pipeline;
 
 public abstract class PipelineStep {
   
-  private String name;
-  private boolean log;
+  protected String name;
+  protected boolean log;
   
   public PipelineStep(String name, boolean log) {  
     this.name = name;

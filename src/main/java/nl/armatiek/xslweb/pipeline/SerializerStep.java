@@ -1,5 +1,15 @@
 package nl.armatiek.xslweb.pipeline;
 
+import java.io.OutputStream;
+import java.util.Properties;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.xml.sax.Attributes;
+
+import net.sf.saxon.s9api.Destination;
+import nl.armatiek.xslweb.configuration.WebApp;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -20,7 +30,22 @@ package nl.armatiek.xslweb.pipeline;
 public abstract class SerializerStep extends PipelineStep {
   
   public SerializerStep(String name, boolean log) {
-    super(name, log);        
+    super(name, log);            
   }
   
+  public SerializerStep(Attributes atts) {
+    super(
+      getAttribute(atts, "name", "serializer"),
+      getAttribute(atts, "log", "false").equals("true")
+    );         
+  }
+  
+  public abstract Destination getDestination(WebApp webApp, HttpServletResponse resp, 
+      OutputStream os, Properties outputProperties) throws Exception;
+  
+  protected static String getAttribute(Attributes attr, String name, String defaultValue) {
+    int index = -1;
+    return ((index = attr.getIndex(name)) >= 0) ? attr.getValue(index) : defaultValue;
+  }
+    
 }

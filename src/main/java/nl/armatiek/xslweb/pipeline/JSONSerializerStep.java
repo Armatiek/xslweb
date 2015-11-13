@@ -18,27 +18,34 @@ package nl.armatiek.xslweb.pipeline;
  */
 
 import java.io.OutputStream;
+import java.util.Properties;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+
+import org.xml.sax.Attributes;
 
 import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
+import net.sf.saxon.s9api.Destination;
+import net.sf.saxon.stax.XMLStreamWriterDestination;
+import nl.armatiek.xslweb.configuration.WebApp;
 
 public class JSONSerializerStep extends SerializerStep {
   
-  public JSONSerializerStep(String name, boolean log) {
-    super(name, log);        
+  public JSONSerializerStep(Attributes atts) {
+    super(atts);            
   }
   
-  public XMLStreamWriter getWriter(OutputStream os, String encoding) throws XMLStreamException {
+  @Override
+  public Destination getDestination(WebApp webApp, HttpServletResponse resp, OutputStream os, Properties outputProperties) throws XMLStreamException {              
     JsonXMLConfig config = new JsonXMLConfigBuilder().        
         prettyPrint(true).
         build();    
     XMLOutputFactory factory = new JsonXMLOutputFactory(config);
-    return factory.createXMLStreamWriter(os, encoding);
+    return new XMLStreamWriterDestination(factory.createXMLStreamWriter(os, outputProperties.getProperty("encoding", "UTF-8")));            
   }
   
 }
