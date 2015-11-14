@@ -1,24 +1,20 @@
 package nl.armatiek.xslweb.serializer;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
-import java.util.Properties;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.fop.apps.FOUserAgent;
+import org.apache.fop.apps.Fop;
+import org.apache.fop.apps.FopFactory;
+import org.apache.fop.apps.MimeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
@@ -27,10 +23,6 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.sun.xml.ws.util.xml.ContentHandlerToXMLStreamWriter;
-
-import net.sf.saxon.event.StreamWriterToReceiver;
-import net.sf.saxon.lib.SerializerFactory;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 
@@ -55,39 +47,35 @@ import nl.armatiek.xslweb.configuration.WebApp;
  * 
  * @author Maarten Kroon
  */
-public class ZipSerializer extends AbstractSerializer {
+public class FopSerializer extends AbstractSerializer {
   
-  protected static final Logger logger = LoggerFactory.getLogger(ZipSerializer.class);
+  protected static final Logger logger = LoggerFactory.getLogger(FopSerializer.class);
   
-  private ZipOutputStream zos;  
-  private SerializerFactory serializerFactory;  
-  private StreamWriterToReceiver xsw;  
   private ContentHandler serializingHandler;
   
-  public ZipSerializer(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, OutputStream os) {    
-    super(webApp, req, resp, os);
-    this.serializerFactory = new SerializerFactory(webApp.getConfiguration());
+  public FopSerializer(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, OutputStream os) {    
+    super(webApp, req, resp, os);                   
   }
   
-  public ZipSerializer(WebApp webApp) {
-    this(webApp, null, null, null);    
+  public FopSerializer(WebApp webApp) {
+    super(webApp);
   }
   
   @Override
   public void close() throws IOException {
-    IOUtils.closeQuietly(zos);      
+    IOUtils.closeQuietly(os);
   }
   
-  private void processZipSerializer(String uri, String localName, String qName, Attributes attributes) throws Exception {    
-    String path = attributes.getValue("", "path");            
+  @SuppressWarnings("unchecked")
+  private void processFopSerializer(String uri, String localName, String qName, Attributes attributes) throws Exception {    
+    String path = attributes.getValue("", "path");               
     if (path == null) {
       /* Write to HTTP response: */
       if (resp == null) {
-        throw new SAXException("No attribute \"path\" specified on zip-serializer element");
-      }                
-      this.zos = new ZipOutputStream(os);
+        throw new SAXException("No attribute \"path\" specified on fop-serializer element");
+      }
       if (StringUtils.isBlank(resp.getContentType())) {    
-        resp.setContentType(Definitions.MIMETYPE_ZIP);
+        resp.setContentType(Definitions.MIMETYPE_PDF);
       }      
       // resp.setHeader("Content-Disposition","attachment; filename=" + name);        
     } else {
@@ -98,7 +86,8 @@ public class ZipSerializer extends AbstractSerializer {
         if (!parentDir.mkdirs()) {
           throw new SAXException("Could not create directory \"" + parentDir.getAbsolutePath() + "\"");
         }
-      }      
+      }
+      
       if (outputFile.exists()) {
         if (outputFile.isDirectory()) {
           throw new SAXException("File \"" + parentDir.getAbsolutePath() + "\" already exists as directory");
@@ -106,55 +95,21 @@ public class ZipSerializer extends AbstractSerializer {
           throw new SAXException("Could not delete output file \"" + outputFile.getAbsolutePath() + "\"");
         }
       }                
-      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputFile));
-      this.zos = new ZipOutputStream(bos);
-    }
-  }
-  
-  private void processFileEntry(String uri, String localName, String qName, Attributes attributes) throws Exception {
-    String name = attributes.getValue("", "name");
-    if (name == null) {
-      throw new SAXException("No attribute \"name\" specified on file-entry element");
-    }
-    String src = attributes.getValue("", "src");
-    if (src == null) {
-      throw new SAXException("No attribute \"src\" specified on file-entry element");
-    }     
-    InputStream in;
-    if (src.startsWith("http")) {
-      in = new URL(src).openStream();
-    } else {
-      File file = new File(src);
-      if (!file.isFile()) {
-        throw new SAXException("File \"" + file.getAbsolutePath() + "\" not found");
-      }        
-      in = new BufferedInputStream(new FileInputStream(file));
-    }        
-    try {
-      ZipEntry entry = new ZipEntry(name);
-      zos.putNextEntry(entry);          
-      IOUtils.copy(in, zos); 
-    } finally {
-      IOUtils.closeQuietly(in);
-    }
-  }
-  
-  private void processInlineEntry(String uri, String localName, String qName, Attributes attributes) throws Exception {
-    String name = attributes.getValue("", "name");
-    if (name == null) {
-      throw new SAXException("No attribute \"name\" specified on inline-entry element");
+      this.os = new BufferedOutputStream(new FileOutputStream(outputFile));      
     }    
-    Properties props = new Properties();
-    for (int i=0; i<attributes.getLength(); i++) {
-      String n = attributes.getLocalName(i);
-      if (!n.equals("name")) {
-        props.put(n, attributes.getValue(i));
-      }
+    String configName = attributes.getValue("config-name");
+    if (configName == null) {
+      throw new SAXException("No attribute \"config-name\" specified on fop-serializer element");
+    }        
+    FopFactory fopFactory = webApp.getFopFactory(configName);
+    FOUserAgent userAgent = fopFactory.newFOUserAgent();
+    String mode = attributes.getValue("pdf-a-mode");        
+    if (mode != null) {
+      userAgent.getRendererOptions().put("pdf-a-mode", mode);
     }
-    ZipEntry entry = new ZipEntry(name);
-    zos.putNextEntry(entry);                     
-    this.xsw = serializerFactory.getXMLStreamWriter(new StreamResult(this.zos), props);    
-    this.serializingHandler = new ContentHandlerToXMLStreamWriter(xsw);
+    String outputFormat = attributes.getValue("output-format");
+    Fop fop = fopFactory.newFop(outputFormat == null ? MimeConstants.MIME_PDF : outputFormat, userAgent, os);
+    this.serializingHandler = fop.getDefaultHandler();     
   }
   
   @Override
@@ -163,16 +118,13 @@ public class ZipSerializer extends AbstractSerializer {
       serializingHandler.startElement(uri, localName, qName, attributes);
       return;
     }
-    if (!StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_ZIP_SERIALIZER)) {
+    if (!StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_FOP_SERIALIZER)) {
       return;      
     }
     try {
-      if (StringUtils.equals(localName, "zip-serializer")) {
-        processZipSerializer(uri, localName, qName, attributes);
-      } else if (StringUtils.equals(localName, "file-entry")) {
-        processFileEntry(uri, localName, qName, attributes);
-      } else if (StringUtils.equals(localName, "inline-entry")) {
-        processInlineEntry(uri, localName, qName, attributes);
+      if (StringUtils.equals(localName, "fop-serializer")) {
+        processFopSerializer(uri, localName, qName, attributes);
+        this.serializingHandler.startDocument();
       }
     } catch (Exception e) {
       throw new SAXException(e);
@@ -182,13 +134,10 @@ public class ZipSerializer extends AbstractSerializer {
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {        
     try {
-      boolean isInlineEntry = StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_ZIP_SERIALIZER) && 
-          StringUtils.equals(localName, "inline-entry");    
-      if (isInlineEntry) {
-        if (this.xsw != null) {
-          this.xsw.close();
-        }
-        this.xsw = null;
+      boolean isFopSerializer = StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_FOP_SERIALIZER) && 
+          StringUtils.equals(localName, "fop-serializer");    
+      if (isFopSerializer) {        
+        this.serializingHandler.endDocument();
         this.serializingHandler = null;        
       } else if (serializingHandler != null) {
         serializingHandler.endElement(uri, localName, qName);      
@@ -203,7 +152,7 @@ public class ZipSerializer extends AbstractSerializer {
     try {
       close();
     } catch (IOException ioe) {
-      throw new SAXException("Could not close ZipOutputStream", ioe);
+      throw new SAXException("Could not close OutputStream", ioe);
     }
   }
   

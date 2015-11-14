@@ -3,6 +3,7 @@ package nl.armatiek.xslweb.pipeline;
 import java.io.OutputStream;
 import java.util.Properties;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.xml.sax.Attributes;
@@ -40,7 +41,7 @@ public abstract class SerializerStep extends PipelineStep {
     );         
   }
   
-  public abstract Destination getDestination(WebApp webApp, HttpServletResponse resp, 
+  public abstract Destination getDestination(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
       OutputStream os, Properties outputProperties) throws Exception;
   
   protected static String getAttribute(Attributes attr, String name, String defaultValue) {

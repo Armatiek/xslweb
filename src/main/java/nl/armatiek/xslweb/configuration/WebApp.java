@@ -74,6 +74,7 @@ import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.fop.apps.FopFactory;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -113,6 +114,9 @@ public class WebApp implements ErrorHandler {
   
   private Map<String, ComboPooledDataSource> dataSourceCache = 
       Collections.synchronizedMap(new HashMap<String, ComboPooledDataSource>());
+  
+  private Map<String, FopFactory> fopFactoryCache = 
+      Collections.synchronizedMap(new HashMap<String, FopFactory>());
       
   private volatile boolean isClosed = true;
   private File definition;
@@ -126,6 +130,7 @@ public class WebApp implements ErrorHandler {
   private List<Resource> resources = new ArrayList<Resource>();
   private List<Parameter> parameters = new ArrayList<Parameter>();
   private Map<String, DataSource> dataSources = new HashMap<String, DataSource>();
+  private Map<String, String> fopConfigs = new HashMap<String, String>();
   private XSLWebConfiguration configuration;  
   private Processor processor;  
   private FileAlterationMonitor monitor;
@@ -214,12 +219,20 @@ public class WebApp implements ErrorHandler {
         scheduler.scheduleJob(job, trigger);
       }
     }    
+    
     NodeList dataSourceNodes = (NodeList) xpath.evaluate("webapp:datasources/webapp:datasource", docElem, XPathConstants.NODESET);
     for (int i=0; i<dataSourceNodes.getLength(); i++) {
       DataSource dataSource = new DataSource((Element) dataSourceNodes.item(i));
       dataSources.put(dataSource.getName(), dataSource);
     }
     
+    NodeList fopConfigNodes = (NodeList) xpath.evaluate("webapp:fop-configs/webapp:fop-config", docElem, XPathConstants.NODESET);
+    for (int i=0; i<fopConfigNodes.getLength(); i++) {
+      Element fopConfig = (Element) fopConfigNodes.item(i);     
+      Element fopElement = XMLUtils.getFirstChildElement(fopConfig);
+      fopConfigs.put(fopConfig.getAttribute("name"), XMLUtils.nodeToString(fopElement));
+    }
+   
     // initClassLoader();
             
     initFileAlterationObservers();    
@@ -579,6 +592,19 @@ public class WebApp implements ErrorHandler {
       dataSourceCache.put(name, cpds);
     }
     return cpds;
+  }
+  
+  public FopFactory getFopFactory(String configName) throws Exception {
+    FopFactory fopFactory = fopFactoryCache.get(configName);
+    if (fopFactory == null) {
+      String fopConfig = fopConfigs.get(configName);
+      if (fopConfig == null) {
+        throw new XSLWebException("FOP Configuration \"" + name + "\" not found in webapp.xml");        
+      }      
+      fopFactory = FopFactory.newInstance(getHomeDir().toURI(), IOUtils.toInputStream(fopConfig));      
+      fopFactoryCache.put(configName, fopFactory);
+    }
+    return fopFactory;
   }
   
   /*

@@ -20,6 +20,7 @@ package nl.armatiek.xslweb.pipeline;
 import java.io.OutputStream;
 import java.util.Properties;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -40,7 +41,8 @@ public class JSONSerializerStep extends SerializerStep {
   }
   
   @Override
-  public Destination getDestination(WebApp webApp, HttpServletResponse resp, OutputStream os, Properties outputProperties) throws XMLStreamException {              
+  public Destination getDestination(WebApp webApp, HttpServletRequest req, 
+      HttpServletResponse resp, OutputStream os, Properties outputProperties) throws XMLStreamException {              
     JsonXMLConfig config = new JsonXMLConfigBuilder().        
         prettyPrint(true).
         build();    

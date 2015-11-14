@@ -78,6 +78,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_SESSION    = NAMESPACEURI_XSLWEB + "/session";
   public final static String NAMESPACEURI_XSLWEB_PIPELINE      = NAMESPACEURI_XSLWEB + "/pipeline";
   public final static String NAMESPACEURI_XSLWEB_ZIP_SERIALIZER = NAMESPACEURI_XSLWEB + "/zip-serializer";
+  public final static String NAMESPACEURI_XSLWEB_FOP_SERIALIZER = NAMESPACEURI_XSLWEB + "/fop-serializer";
   public final static String NAMESPACEURI_EXPATH_FILE          = "http://expath.org/ns/file";
     
   public final static String MIMETYPE_XML                      = "text/xml";
@@ -86,6 +87,7 @@ public class Definitions {
   public final static String MIMETYPE_MSEXCEL                  = "application/vnd.ms-excel";
   public final static String MIMETYPE_MSPOWERPOINT             = "application/vnd.ms-powerpoint";
   public final static String MIMETYPE_PDF                      = "application/pdf";
+  public final static String MIMETYPE_ZIP                      = "application/zip";
   public final static String MIMETYPE_OO_TEXT                  = "application/vnd.oasis.opendocument.text";
   public final static String MIMETYPE_OO_TEXTTEMPLATE          = "application/vnd.oasis.opendocument.text-template";
   public final static String MIMETYPE_OO_TEXTWEB               = "application/vnd.oasis.opendocument.text-web";
@@ -98,7 +100,7 @@ public class Definitions {
   public final static String MIMETYPE_JPEG                     = "image/jpeg";
   public final static String MIMETYPE_GIF                      = "image/gif";
   public final static String MIMETYPE_PNG                      = "image/png";
-  public final static String MIMETYPE_TEXTPLAIN                = "text/plain";
+  public final static String MIMETYPE_TEXTPLAIN                = "text/plain";  
   
   public final static String ATTRNAME_WEBAPP                   = "xslweb.webapp";
   public final static String ATTRNAME_REQUESTXML               = "xslweb.requestxml";

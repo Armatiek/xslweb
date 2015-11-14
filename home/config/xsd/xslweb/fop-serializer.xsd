@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  elementFormDefault="qualified" 
+  targetNamespace="http://www.armatiek.com/xslweb/fop-serializer"
+  xmlns:zip="http://www.armatiek.com/xslweb/fop-serializer">
+  
+  <xs:element name="fop-serializer">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:any processContents="lax" namespace="http://www.w3.org/1999/XSL/Format/"/>
+      </xs:sequence>
+      <xs:attribute name="config-name" type="xs:string" use="required"/>
+      <xs:attribute name="path" type="xs:string"/>
+      <xs:attribute name="output-format" type="xs:string" default="application/pdf"/>
+      <xs:attribute name="pdf-a-mode" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="PDF/A-1a"/>
+            <xs:enumeration value="PDF/A-1b"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>             
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>

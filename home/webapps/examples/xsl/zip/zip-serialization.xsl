@@ -22,14 +22,14 @@
   </xsl:template>
   
   <xsl:template name="body">
-    <zip:archive name="test.zip">
+    <zip:zip-serializer>
       <zip:file-entry name="file/zip-serialization.xsl" src="{concat($config:webapp-dir, '/xsl/zip/zip-serialization.xsl')}"/>        
       <zip:inline-entry name="dir1/test.xml" method="xml" encoding="UTF-8" omit-xml-declaration="no" indent="yes">
         <a>
           <b>Hello World</b>
         </a>
       </zip:inline-entry>
-    </zip:archive>        
+    </zip:zip-serializer>        
   </xsl:template>
   
 </xsl:stylesheet>

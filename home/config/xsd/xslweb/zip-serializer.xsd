@@ -5,7 +5,7 @@
   targetNamespace="http://www.armatiek.com/xslweb/zip-serializer"
   xmlns:zip="http://www.armatiek.com/xslweb/zip-serializer">
   
-  <xs:element name="archive">
+  <xs:element name="zip-serializer">
     <xs:complexType>
       <xs:sequence>
         <xs:element name="file-entry">
@@ -65,8 +65,7 @@
           </xs:complexType>          
         </xs:element>                
       </xs:sequence>
-      <xs:attribute name="name" type="xs:string" use="required"/>
-      <xs:attribute name="dir" type="xs:string"/>      
+      <xs:attribute name="path" type="xs:string"/>           
     </xs:complexType>
   </xs:element>
   

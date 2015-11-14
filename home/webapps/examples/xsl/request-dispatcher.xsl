@@ -262,7 +262,7 @@
   <xsl:template match="/req:request[req:path = '/fop-serialization.pdf']">    
     <pipeline:pipeline>
       <pipeline:transformer name="fop-serialization" xsl-path="fop/fop-serialization.xsl" log="true"/>
-      <pipeline:fop-serializer name="fop" log="true" config-name="fop.xconf"/> <!-- pdf-a-mode="PDF/A-1a" -->  
+      <pipeline:fop-serializer name="fop" log="true"/>  
     </pipeline:pipeline>
   </xsl:template>
  

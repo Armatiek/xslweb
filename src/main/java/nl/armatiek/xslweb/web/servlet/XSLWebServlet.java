@@ -234,11 +234,11 @@ public class XSLWebServlet extends HttpServlet {
       XMLStreamWriter xsw = new CleanupXMLStreamWriter(serializer.getXMLStreamWriter());
       dest = new XMLStreamWriterDestination(xsw);
     } else if (serializerStep instanceof JSONSerializerStep) {
-      dest = ((JSONSerializerStep) serializerStep).getDestination(webApp, resp, os, outputProperties);             
+      dest = ((JSONSerializerStep) serializerStep).getDestination(webApp, req, resp, os, outputProperties);             
     } else if (serializerStep instanceof ZipSerializerStep) {
-      dest = ((ZipSerializerStep) serializerStep).getDestination(webApp, resp, os, outputProperties);
+      dest = ((ZipSerializerStep) serializerStep).getDestination(webApp, req, resp, os, outputProperties);
     } else if (serializerStep instanceof FopSerializerStep) {
-      dest = ((FopSerializerStep) serializerStep).getDestination(webApp, resp, os, outputProperties);
+      dest = ((FopSerializerStep) serializerStep).getDestination(webApp, req, resp, os, outputProperties);
     }
     
     Destination destination = getDestination(webApp, dest, steps.get(steps.size()-1));

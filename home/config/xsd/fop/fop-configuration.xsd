@@ -34,8 +34,7 @@
             <xsd:sequence>
               <xsd:element name="substitutions" maxOccurs="1" minOccurs="0"/>
               <xsd:element name="font" type="fontType" maxOccurs="unbounded" minOccurs="0"/>
-              <xsd:element name="referenced-fonts" type="referenceFontType" minOccurs="0" maxOccurs="unbounded"/>
-              <xsd:element minOccurs="0" name="auto-detect"/>
+              <xsd:element name="referenced-fonts" type="referenceFontType" minOccurs="0" maxOccurs="unbounded"/>              
             </xsd:sequence>
           </xsd:complexType>
         </xsd:element>
@@ -229,6 +228,7 @@
             <xsd:sequence>
               <xsd:element name="font" type="fontType" maxOccurs="unbounded" minOccurs="0"/>
               <xsd:element name="referenced-fonts" type="referenceFontType" maxOccurs="unbounded" minOccurs="0"/>
+              <xsd:element name="auto-detect" minOccurs="0"/>
             </xsd:sequence>
           </xsd:complexType>
         </xsd:element>

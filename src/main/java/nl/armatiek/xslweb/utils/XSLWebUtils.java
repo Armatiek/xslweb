@@ -24,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -31,6 +32,8 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
 
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.XdmAtomicValue;
@@ -42,8 +45,6 @@ import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.Parameter;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.error.XSLWebException;
-
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
 
 /**
  * Miscellaneous XSLWeb specific helper methods.
@@ -119,6 +120,16 @@ public class XSLWebUtils {
     transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_REQUEST, "request"),  XdmValue.wrap(new ObjectValue(req)));
     transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "response"),  XdmValue.wrap(new ObjectValue(resp)));
     transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_WEBAPP, "webapp"),  XdmValue.wrap(new ObjectValue(webApp)));               
+  }
+  
+  @SuppressWarnings("unchecked")
+  public static void addCloseable(HttpServletRequest req, Closeable closeable) {
+    List<Closeable> closeables = (List<Closeable>) req.getAttribute("xslweb-closeables");
+    if (closeables == null) {
+      closeables = new ArrayList<Closeable>();
+      req.setAttribute("xslweb-closeables", closeables);
+    }
+    closeables.add(closeable);
   }
   
 }

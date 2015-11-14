@@ -1,55 +1,45 @@
 package nl.armatiek.xslweb.pipeline;
 
-import java.io.File;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.fop.apps.FOUserAgent;
-import org.apache.fop.apps.Fop;
-import org.apache.fop.apps.FopFactory;
-import org.apache.fop.apps.MimeConstants;
 import org.xml.sax.Attributes;
 
 import net.sf.saxon.s9api.Destination;
 import net.sf.saxon.s9api.SAXDestination;
-import nl.armatiek.xslweb.configuration.Context;
-import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
+import nl.armatiek.xslweb.serializer.FopSerializer;
 
 public class FopSerializerStep extends SerializerStep {
-  
-  private static Map<String, FopFactory> fopFactoryMap = Collections.synchronizedMap(new HashMap<String, FopFactory>());
-  
-  private String configName; 
-  private String pdfAMode;
-  
+    
   public FopSerializerStep(Attributes atts) {
-    super(atts);        
-    pdfAMode = getAttribute(atts, "pdf-a-mode", null);
-    configName = getAttribute(atts, "config-name", "fop.xconf");
+    super(atts);    
   }
-  
-  @SuppressWarnings("unchecked")
+    
   @Override
-  public Destination getDestination(WebApp webApp, HttpServletResponse resp, 
-      OutputStream os, Properties outputProperties) throws Exception {    
-    resp.setContentType(Definitions.MIMETYPE_PDF);
-    FopFactory fopFactory = fopFactoryMap.get(configName);
-    if (fopFactory == null) {
-      fopFactory = FopFactory.newInstance(new File(Context.getInstance().getHomeDir(), "config/fop/" + configName));      
-      fopFactoryMap.put(configName, fopFactory);
-    }    
-    FOUserAgent userAgent = fopFactory.newFOUserAgent();    
-    if (pdfAMode != null) {
-      userAgent.getRendererOptions().put("pdf-a-mode", pdfAMode);
-    }
-    Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, userAgent, os);
-    return new SAXDestination(fop.getDefaultHandler());            
+  public Destination getDestination(WebApp webApp, HttpServletRequest req, 
+      HttpServletResponse resp, OutputStream os, Properties outputProperties) throws Exception {
+    return new SAXDestination(new FopSerializer(webApp, req, resp, os));                   
   }
   
 }
