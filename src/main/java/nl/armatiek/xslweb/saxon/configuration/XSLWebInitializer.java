@@ -22,6 +22,9 @@ import java.util.Set;
 
 import javax.xml.transform.TransformerException;
 
+import org.expath.httpclient.saxon.SendRequestFunction;
+import org.expath.pkg.saxon.EXPathFunctionDefinition;
+
 import net.sf.saxon.Configuration;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.lib.FeatureKeys;
@@ -86,10 +89,9 @@ import nl.armatiek.xslweb.saxon.functions.sql.ResultSetToNode;
 import nl.armatiek.xslweb.saxon.functions.sql.Rollback;
 import nl.armatiek.xslweb.saxon.functions.util.DiscardDocument;
 import nl.armatiek.xslweb.saxon.functions.util.Parse;
+import nl.armatiek.xslweb.saxon.functions.zip.Unzip;
+import nl.armatiek.xslweb.saxon.functions.zip.Zip;
 import nl.armatiek.xslweb.saxon.uriresolver.XSLWebURIResolver;
-
-import org.expath.httpclient.saxon.SendRequestFunction;
-import org.expath.pkg.saxon.EXPathFunctionDefinition;
 
 public class XSLWebInitializer implements Initializer {
   
@@ -213,6 +215,10 @@ public class XSLWebInitializer implements Initializer {
     /* Util */
     registerEXPathFunction(new DiscardDocument(), configuration);
     registerEXPathFunction(new Parse(), configuration);
+    
+    /* Zip */
+    registerEXPathFunction(new Zip(), configuration);
+    registerEXPathFunction(new Unzip(), configuration);
   }
   
   private void registerEXPathFunction(ExtensionFunctionDefinition function, Configuration configuration) {

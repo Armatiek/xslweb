@@ -599,7 +599,7 @@ public class WebApp implements ErrorHandler {
     if (fopFactory == null) {
       String fopConfig = fopConfigs.get(configName);
       if (fopConfig == null) {
-        throw new XSLWebException("FOP Configuration \"" + name + "\" not found in webapp.xml");        
+        throw new XSLWebException("FOP Configuration \"" + configName + "\" not found in webapp.xml");        
       }      
       fopFactory = FopFactory.newInstance(getHomeDir().toURI(), IOUtils.toInputStream(fopConfig));      
       fopFactoryCache.put(configName, fopFactory);

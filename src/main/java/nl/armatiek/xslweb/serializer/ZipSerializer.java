@@ -1,5 +1,22 @@
 package nl.armatiek.xslweb.serializer;
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -34,23 +51,6 @@ import net.sf.saxon.lib.SerializerFactory;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 /**
  * 
  * @author Maarten Kroon
@@ -66,7 +66,7 @@ public class ZipSerializer extends AbstractSerializer {
   
   public ZipSerializer(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, OutputStream os) {    
     super(webApp, req, resp, os);
-    this.serializerFactory = new SerializerFactory(webApp.getConfiguration());
+    this.serializerFactory = new SerializerFactory(webApp.getConfiguration());       
   }
   
   public ZipSerializer(WebApp webApp) {
@@ -85,11 +85,7 @@ public class ZipSerializer extends AbstractSerializer {
       if (resp == null) {
         throw new SAXException("No attribute \"path\" specified on zip-serializer element");
       }                
-      this.zos = new ZipOutputStream(os);
-      if (StringUtils.isBlank(resp.getContentType())) {    
-        resp.setContentType(Definitions.MIMETYPE_ZIP);
-      }      
-      // resp.setHeader("Content-Disposition","attachment; filename=" + name);        
+      this.zos = new ZipOutputStream(os);              
     } else {
       /* Write to file: */
       File outputFile = new File(path);
@@ -158,15 +154,19 @@ public class ZipSerializer extends AbstractSerializer {
   }
   
   @Override
-  public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-    if (serializingHandler != null) {
-      serializingHandler.startElement(uri, localName, qName, attributes);
-      return;
-    }
-    if (!StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_ZIP_SERIALIZER)) {
-      return;      
-    }
+  public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {       
     try {
+      if (altHandler != null) {
+        altHandler.startElement(uri, localName, qName, attributes);
+        return;
+      }
+      if (serializingHandler != null) {
+        serializingHandler.startElement(uri, localName, qName, attributes);
+        return;
+      }
+      if (!StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_ZIP_SERIALIZER)) {
+        getAltHandler().startElement(uri, localName, qName, attributes);      
+      }
       if (StringUtils.equals(localName, "zip-serializer")) {
         processZipSerializer(uri, localName, qName, attributes);
       } else if (StringUtils.equals(localName, "file-entry")) {
@@ -182,6 +182,10 @@ public class ZipSerializer extends AbstractSerializer {
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {        
     try {
+      if (altHandler != null) {
+        altHandler.endElement(uri, localName, qName);
+        return;
+      }
       boolean isInlineEntry = StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_ZIP_SERIALIZER) && 
           StringUtils.equals(localName, "inline-entry");    
       if (isInlineEntry) {
@@ -192,6 +196,8 @@ public class ZipSerializer extends AbstractSerializer {
         this.serializingHandler = null;        
       } else if (serializingHandler != null) {
         serializingHandler.endElement(uri, localName, qName);      
+      } else {
+        super.endElement(uri, localName, qName);
       }
     } catch (Exception e) {
       throw new SAXException(e);
@@ -201,6 +207,10 @@ public class ZipSerializer extends AbstractSerializer {
   @Override
   public void endDocument() throws SAXException {
     try {
+      if (altHandler != null) {
+        altHandler.endDocument();;
+        return;
+      }
       close();
     } catch (IOException ioe) {
       throw new SAXException("Could not close ZipOutputStream", ioe);
@@ -209,50 +219,63 @@ public class ZipSerializer extends AbstractSerializer {
   
   @Override
   public void characters(char[] ch, int start, int length) throws SAXException {
-    if (serializingHandler != null) {
-      serializingHandler.characters(ch, start, length);
-      return;
+    if (altHandler != null) {
+      altHandler.characters(ch, start, length);      
+    } else if (serializingHandler != null) {
+      serializingHandler.characters(ch, start, length);      
     }     
   }
   
   @Override
   public void endPrefixMapping(String prefix) throws SAXException {
-    if (serializingHandler != null) {
+    if (altHandler != null) {
+      altHandler.endDocument();;      
+    } else if (serializingHandler != null) {
       serializingHandler.endPrefixMapping(prefix);
     }
   }
   
   @Override
   public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {        
-    if (serializingHandler != null) {
+    if (altHandler != null) {
+      altHandler.ignorableWhitespace(ch, start, length);      
+    } else if (serializingHandler != null) {
       serializingHandler.ignorableWhitespace(ch, start, length);
     }
   }
   
   @Override
   public void processingInstruction(String target, String data) throws SAXException {
-    if (serializingHandler != null) {
+    if (altHandler != null) {
+      altHandler.processingInstruction(target, data);      
+    } else if (serializingHandler != null) {
       serializingHandler.processingInstruction(target, data);
     }
   }
   
   @Override
   public void setDocumentLocator(Locator locator) { 
-    if (serializingHandler != null) {
+    if (altHandler != null) {
+      altHandler.setDocumentLocator(locator);      
+    } else if (serializingHandler != null) {
       serializingHandler.setDocumentLocator(locator);
     }    
   }
   
   @Override
   public void skippedEntity(String name) throws SAXException {
-    if (serializingHandler != null) {
+    if (altHandler != null) {
+      altHandler.skippedEntity(name);      
+    } else if (serializingHandler != null) {
       serializingHandler.skippedEntity(name);
     }      
   }
   
   @Override
   public void startPrefixMapping(String prefix, String uri) throws SAXException {
-    if (serializingHandler != null) {
+    if (altHandler != null) {
+      altHandler.startPrefixMapping(prefix, uri);      
+    } else if (serializingHandler != null) {
       serializingHandler.startPrefixMapping(prefix, uri);
     }
   }
