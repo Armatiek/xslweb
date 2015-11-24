@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.lang3.StringUtils;
 
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.XdmAtomicValue;
@@ -130,6 +131,20 @@ public class XSLWebUtils {
       req.setAttribute("xslweb-closeables", closeables);
     }
     closeables.add(closeable);
+  }
+  
+  public static File getSafeTempFile(String path) {    
+    if (StringUtils.isBlank(path)) {
+      return null;
+    }
+    File file = new File(path);
+    if (!file.isAbsolute()) {
+      return null;
+    }
+    if (file.toPath().getNameCount() == 0) {
+      return null;
+    }
+    return new File(path);
   }
   
 }

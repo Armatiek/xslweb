@@ -63,6 +63,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FUNCTIONS     = NAMESPACEURI_XSLWEB + "/functions";
   public final static String NAMESPACEURI_XSLWEB_FX_BASE64     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/base64";
   public final static String NAMESPACEURI_XSLWEB_FX_CONTEXT    = NAMESPACEURI_XSLWEB_FUNCTIONS + "/context";
+  public final static String NAMESPACEURI_XSLWEB_FX_IO         = NAMESPACEURI_XSLWEB_FUNCTIONS + "/io";
   public final static String NAMESPACEURI_XSLWEB_FX_LOG        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/log";
   public final static String NAMESPACEURI_XSLWEB_FX_EMAIL      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/email";  
   public final static String NAMESPACEURI_XSLWEB_FX_SERIALIZE  = NAMESPACEURI_XSLWEB_FUNCTIONS + "/serialize";
@@ -106,6 +107,7 @@ public class Definitions {
   public final static String ATTRNAME_WEBAPP                   = "xslweb.webapp";
   public final static String ATTRNAME_REQUESTXML               = "xslweb.requestxml";
   public final static String ATTRNAME_PIPELINEHANDLER          = "xslweb.pipelinehandler";
+  public final static String ATTRNAME_TEMPFILES                = "xslweb.tempfiles";
   
   public final static String CACHENAME_RESPONSECACHINGFILTER   = "XSLWebResponseCachingFilter";
   

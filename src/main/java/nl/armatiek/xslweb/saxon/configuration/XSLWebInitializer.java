@@ -63,6 +63,7 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.Write;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteBinary;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteText;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteTextLines;
+import nl.armatiek.xslweb.saxon.functions.io.RegisterTempFile;
 import nl.armatiek.xslweb.saxon.functions.json.ParseJSON;
 import nl.armatiek.xslweb.saxon.functions.json.SerializeJSON;
 import nl.armatiek.xslweb.saxon.functions.log.Log;
@@ -89,6 +90,7 @@ import nl.armatiek.xslweb.saxon.functions.sql.ResultSetToNode;
 import nl.armatiek.xslweb.saxon.functions.sql.Rollback;
 import nl.armatiek.xslweb.saxon.functions.util.DiscardDocument;
 import nl.armatiek.xslweb.saxon.functions.util.Parse;
+import nl.armatiek.xslweb.saxon.functions.uuid.UUID;
 import nl.armatiek.xslweb.saxon.functions.zip.Unzip;
 import nl.armatiek.xslweb.saxon.functions.zip.Zip;
 import nl.armatiek.xslweb.saxon.uriresolver.XSLWebURIResolver;
@@ -212,6 +214,9 @@ public class XSLWebInitializer implements Initializer {
     registerEXPathFunction(new Rollback(), configuration);
     registerEXPathFunction(new ResultSetToNode(), configuration);
     
+    /* UUID */
+    registerEXPathFunction(new UUID(), configuration);
+    
     /* Util */
     registerEXPathFunction(new DiscardDocument(), configuration);
     registerEXPathFunction(new Parse(), configuration);
@@ -219,6 +224,9 @@ public class XSLWebInitializer implements Initializer {
     /* Zip */
     registerEXPathFunction(new Zip(), configuration);
     registerEXPathFunction(new Unzip(), configuration);
+    
+    /* IO */
+    registerEXPathFunction(new RegisterTempFile(), configuration);
   }
   
   private void registerEXPathFunction(ExtensionFunctionDefinition function, Configuration configuration) {

@@ -41,6 +41,7 @@ import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ProxyWriter;
 import org.slf4j.Logger;
@@ -118,6 +119,22 @@ public class XSLWebServlet extends HttpServlet {
         w.write("<html><body><h1>Internal Server Error</h1></body></html>");
       }
     } finally {
+      // Delete any registered temporary files:
+      try {
+        List<File> tempFiles = (List<File>) req.getAttribute(Definitions.ATTRNAME_TEMPFILES);                        
+        if (tempFiles != null) {
+          ListIterator<File> li = tempFiles.listIterator();
+          while(li.hasNext()) {
+            File file;
+            if ((file = li.next()) != null) {
+              FileUtils.deleteQuietly(file);
+            }           
+          }                    
+        }
+      } catch (Exception se) {
+        logger.error("Error deleting registered temporary files", se);
+      }
+      
       // Close any closeables:
       try {
         List<Closeable> closeables = (List<Closeable>) req.getAttribute("xslweb-closeables");                        
