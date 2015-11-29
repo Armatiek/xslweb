@@ -63,6 +63,7 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.Write;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteBinary;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteText;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteTextLines;
+import nl.armatiek.xslweb.saxon.functions.image.Scale;
 import nl.armatiek.xslweb.saxon.functions.io.RegisterTempFile;
 import nl.armatiek.xslweb.saxon.functions.json.ParseJSON;
 import nl.armatiek.xslweb.saxon.functions.json.SerializeJSON;
@@ -224,6 +225,9 @@ public class XSLWebInitializer implements Initializer {
     /* Zip */
     registerEXPathFunction(new Zip(), configuration);
     registerEXPathFunction(new Unzip(), configuration);
+    
+    /* Image */
+    registerEXPathFunction(new Scale(), configuration);
     
     /* IO */
     registerEXPathFunction(new RegisterTempFile(), configuration);
