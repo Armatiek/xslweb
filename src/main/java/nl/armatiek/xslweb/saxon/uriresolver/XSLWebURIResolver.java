@@ -39,7 +39,7 @@ public class XSLWebURIResolver extends StandardURIResolver {
         InternalRequest request = new InternalRequest();
         ByteArrayOutputStream boas = new ByteArrayOutputStream();        
         String path = uri.getPath();
-        String query = uri.getQuery();
+        String query = uri.getRawQuery();        
         if (query != null) {
           path = path + "?" + query;
         }        

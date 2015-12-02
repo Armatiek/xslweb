@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 
 import net.sf.saxon.expr.XPathContext;
@@ -93,7 +94,12 @@ public class Unzip extends ExtensionFunctionDefinition {
         if (source.startsWith("http")) {
           is = new URL(source).openStream();
         } else {
-          File file = new File(source);
+          File file;
+          if (source.startsWith("file:")) {
+            file = new File(new URI(source));
+          } else {
+            file = new File(source);
+          }                    
           if (!file.isFile()) {
             throw new IOException("File \"" + file.getAbsolutePath() + "\" not found or not a file");
           } 
@@ -105,8 +111,8 @@ public class Unzip extends ExtensionFunctionDefinition {
           is.close();
         }       
         return EmptySequence.getInstance();
-      } catch (IOException ioe) {
-        throw new XPathException("Error unzipping \"" + source + "\" to \"" + target + "\"", ioe);
+      } catch (Exception e) {
+        throw new XPathException("Error unzipping \"" + source + "\" to \"" + target + "\"", e);
       }
     }
   }

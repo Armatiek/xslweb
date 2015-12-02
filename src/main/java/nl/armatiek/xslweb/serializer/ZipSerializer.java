@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
@@ -120,7 +121,12 @@ public class ZipSerializer extends AbstractSerializer {
     if (src.startsWith("http")) {
       in = new URL(src).openStream();
     } else {
-      File file = new File(src);
+      File file;
+      if (src.startsWith("file:")) {
+        file = new File(new URI(src));
+      } else {
+        file = new File(src);
+      }                  
       if (!file.isFile()) {
         throw new SAXException("File \"" + file.getAbsolutePath() + "\" not found");
       }        
