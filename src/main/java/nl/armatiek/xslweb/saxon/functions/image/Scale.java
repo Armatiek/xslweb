@@ -1,5 +1,6 @@
 package nl.armatiek.xslweb.saxon.functions.image;
 
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -12,6 +13,8 @@ import java.net.URL;
 import javax.imageio.ImageIO;
 
 import org.imgscalr.Scalr;
+import org.imgscalr.Scalr.Method;
+import org.imgscalr.Scalr.Mode;
 
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
@@ -99,9 +102,12 @@ public class Scale extends ExtensionFunctionDefinition {
           is = new BufferedInputStream(new FileInputStream(file));
         } 
         try {                
-          BufferedImage img = ImageIO.read(is);
-          BufferedImage scaledImg = Scalr.resize(img, targetSize);          
-          ImageIO.write(scaledImg, formatName, targetFile);
+          BufferedImage img = ImageIO.read(is);          
+          BufferedImage scaledImg = Scalr.resize(img, Method.AUTOMATIC, Mode.AUTOMATIC, targetSize, targetSize);
+          BufferedImage imageToSave = new BufferedImage(scaledImg.getWidth(), scaledImg.getHeight(), BufferedImage.TYPE_INT_RGB);
+          Graphics g = imageToSave.getGraphics();
+          g.drawImage(scaledImg, 0, 0, null);          
+          ImageIO.write(imageToSave, formatName, targetFile);
         } finally {
           is.close();
         }
