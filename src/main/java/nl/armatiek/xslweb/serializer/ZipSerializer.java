@@ -27,13 +27,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
-import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.OutputKeys;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +47,8 @@ import org.xml.sax.SAXParseException;
 import com.sun.xml.ws.util.xml.ContentHandlerToXMLStreamWriter;
 
 import net.sf.saxon.event.StreamWriterToReceiver;
-import net.sf.saxon.lib.SerializerFactory;
+import net.sf.saxon.s9api.Serializer;
+import net.sf.saxon.s9api.Serializer.Property;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 
@@ -61,13 +61,13 @@ public class ZipSerializer extends AbstractSerializer {
   protected static final Logger logger = LoggerFactory.getLogger(ZipSerializer.class);
   
   private ZipOutputStream zos;  
-  private SerializerFactory serializerFactory;  
+  // private SerializerFactory serializerFactory;  
   private StreamWriterToReceiver xsw;  
   private ContentHandler serializingHandler;
   
   public ZipSerializer(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, OutputStream os) {    
     super(webApp, req, resp, os);
-    this.serializerFactory = new SerializerFactory(webApp.getConfiguration());       
+    // this.serializerFactory = new SerializerFactory(webApp.getConfiguration());       
   }
   
   public ZipSerializer(WebApp webApp) {
@@ -141,6 +141,7 @@ public class ZipSerializer extends AbstractSerializer {
     }
   }
   
+  /*
   private void processInlineEntry(String uri, String localName, String qName, Attributes attributes) throws Exception {
     String name = attributes.getValue("", "name");
     if (name == null) {
@@ -154,8 +155,32 @@ public class ZipSerializer extends AbstractSerializer {
       }
     }
     ZipEntry entry = new ZipEntry(name);
-    zos.putNextEntry(entry);                     
+    zos.putNextEntry(entry);
     this.xsw = serializerFactory.getXMLStreamWriter(new StreamResult(this.zos), props);    
+    this.serializingHandler = new ContentHandlerToXMLStreamWriter(xsw);
+  }
+  */
+  
+  private void processInlineEntry(String uri, String localName, String qName, Attributes attributes) throws Exception {
+    String name = attributes.getValue("", "name");
+    if (name == null) {
+      throw new SAXException("No attribute \"name\" specified on inline-entry element");
+    }
+    Serializer serializer = webApp.getProcessor().newSerializer(this.zos);    
+    for (int i=0; i<attributes.getLength(); i++) {
+      String n = attributes.getLocalName(i);
+      if (n.equals("name")) {
+        continue;
+      }
+      String value = attributes.getValue(i);
+      if (n.equals(OutputKeys.CDATA_SECTION_ELEMENTS)) {
+        value = value.replaceAll("\\{\\}", "{''}");
+      }
+      serializer.setOutputProperty(Property.get(n), value);             
+    }
+    ZipEntry entry = new ZipEntry(name);
+    zos.putNextEntry(entry);        
+    this.xsw = serializer.getXMLStreamWriter();     
     this.serializingHandler = new ContentHandlerToXMLStreamWriter(xsw);
   }
   
