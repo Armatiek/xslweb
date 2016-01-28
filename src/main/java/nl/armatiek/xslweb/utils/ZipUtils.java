@@ -42,11 +42,12 @@ public class ZipUtils {
       } else {
         InputStream in = new BufferedInputStream(new FileInputStream(files[i]));
         try {
-          ZipEntry entry = new ZipEntry(files[i].getPath().substring(base.getPath().length() + 1));
+          ZipEntry entry = new ZipEntry(files[i].getPath().substring(base.getPath().length() + 1).replace('\\', '/'));          
           zos.putNextEntry(entry);
           while (-1 != (read = in.read(buffer))) {
             zos.write(buffer, 0, read);
           }
+          zos.closeEntry();
         } finally {
           in.close();
         }
@@ -59,6 +60,7 @@ public class ZipUtils {
     try {
       zip(directory, directory, zos);
     } finally {
+      zos.flush();
       zos.close();
     }
   }
