@@ -125,9 +125,9 @@ public class RequestParser {
     if (user == null || pwd == null || method == null) {
       throw new HttpClientException("@username, @password and @auth-method must be all set");
     }
-    if ("basic".equals(method)) {
+    if ("basic".equals(method.toLowerCase())) {
       myCredentials = new HttpCredentials(user, pwd, method);
-    } else if ("digest".equals(method)) {
+    } else if ("digest".equals(method.toLowerCase())) {
       // FIXME: Wrong if HREF is not on http:request, but as a param, because
       // it will be set on myRequest after this method has been called.
       myCredentials = new HttpCredentials(user, pwd, method);

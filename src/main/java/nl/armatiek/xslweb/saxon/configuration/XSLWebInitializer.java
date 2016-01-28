@@ -112,6 +112,10 @@ public class XSLWebInitializer implements Initializer {
     /* Log */
     registerEXPathFunction(new Log(), configuration);
     
+    /* Request */
+    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.request.GetAttribute(), configuration);
+    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.request.SetAttribute(), configuration);
+    
     /* Response */
     registerEXPathFunction(new AddCookie(), configuration);
     registerEXPathFunction(new AddDateHeader(), configuration);
