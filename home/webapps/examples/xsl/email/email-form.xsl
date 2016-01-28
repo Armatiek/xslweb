@@ -20,7 +20,7 @@
     <form 
       method="post"
       enctype="multipart/form-data"
-      action="{/*/req:context-path}{/*/req:webapp-path}/email/email-send.html">
+      action="{/*/req:context-path}{/*/req:webapp-path}/email-send.html">
       <fieldset>            
         <label for="from">From: </label>
         <input type="text" name="from" value="john.doe@company.com"/><br/>            
