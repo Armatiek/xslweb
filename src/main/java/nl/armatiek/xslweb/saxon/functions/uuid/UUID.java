@@ -63,7 +63,7 @@ public class UUID extends ExtensionFunctionDefinition {
   
   @Override
   public boolean hasSideEffects() {    
-    return false;
+    return true;
   }
 
   @Override
