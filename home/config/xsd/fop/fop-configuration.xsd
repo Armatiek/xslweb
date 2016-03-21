@@ -31,10 +31,11 @@
         <xsd:element name="font-base" type="xsd:anyURI" minOccurs="0"/>
         <xsd:element name="fonts" minOccurs="0">
           <xsd:complexType>
-            <xsd:sequence>
+            <xsd:sequence>              
               <xsd:element name="substitutions" maxOccurs="1" minOccurs="0"/>
               <xsd:element name="font" type="fontType" maxOccurs="unbounded" minOccurs="0"/>
-              <xsd:element name="referenced-fonts" type="referenceFontType" minOccurs="0" maxOccurs="unbounded"/>              
+              <xsd:element name="referenced-fonts" type="referenceFontType" minOccurs="0"
+                maxOccurs="unbounded"/>
             </xsd:sequence>
           </xsd:complexType>
         </xsd:element>
@@ -151,7 +152,8 @@
               <xsd:element name="nocopy" minOccurs="0" maxOccurs="1"/>
               <xsd:element name="noedit" minOccurs="0" maxOccurs="1"/>
               <xsd:element name="noannotations" minOccurs="0" maxOccurs="1"/>
-              <xsd:element name="encryption-length" type="xsd:positiveInteger" minOccurs="0" maxOccurs="1"/>
+              <xsd:element name="encryption-length" type="xsd:positiveInteger" minOccurs="0"
+                maxOccurs="1"/>
               <xsd:element name="encrypt-metadata" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
             </xsd:sequence>
           </xsd:complexType>
@@ -205,7 +207,8 @@
             </xsd:restriction>
           </xsd:simpleType>
         </xsd:element>
-        <xsd:element name="transparent-page-background" type="xsd:boolean" default="false" minOccurs="0"/>
+        <xsd:element name="transparent-page-background" type="xsd:boolean" default="false"
+          minOccurs="0"/>
         <xsd:element name="encoding" type="xsd:string" default="UTF-8" minOccurs="0"/>
         <xsd:element name="compression" type="xsd:string" minOccurs="0"/>
         <xsd:element name="images" minOccurs="0">
@@ -226,8 +229,10 @@
         <xsd:element name="fonts" minOccurs="1">
           <xsd:complexType>
             <xsd:sequence>
+              <xsd:element name="directory" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
               <xsd:element name="font" type="fontType" maxOccurs="unbounded" minOccurs="0"/>
-              <xsd:element name="referenced-fonts" type="referenceFontType" maxOccurs="unbounded" minOccurs="0"/>
+              <xsd:element name="referenced-fonts" type="referenceFontType" maxOccurs="unbounded"
+                minOccurs="0"/>
               <xsd:element name="auto-detect" minOccurs="0"/>
             </xsd:sequence>
           </xsd:complexType>
@@ -281,7 +286,7 @@
   </xsd:complexType>
 
   <xsd:complexType name="fontType">
-    <xsd:sequence>
+    <xsd:sequence>      
       <xsd:element name="afp-font" type="afpFontType" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="font-triplet" type="fontTripletType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
