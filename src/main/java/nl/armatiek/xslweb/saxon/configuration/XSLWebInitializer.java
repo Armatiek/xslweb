@@ -31,6 +31,7 @@ import net.sf.saxon.lib.FeatureKeys;
 import net.sf.saxon.lib.Initializer;
 import nl.armatiek.xslweb.saxon.functions.base64.Base64Decode;
 import nl.armatiek.xslweb.saxon.functions.base64.Base64Encode;
+import nl.armatiek.xslweb.saxon.functions.exec.ExecExternal;
 import nl.armatiek.xslweb.saxon.functions.expath.file.Append;
 import nl.armatiek.xslweb.saxon.functions.expath.file.AppendBinary;
 import nl.armatiek.xslweb.saxon.functions.expath.file.AppendText;
@@ -235,6 +236,9 @@ public class XSLWebInitializer implements Initializer {
     
     /* IO */
     registerEXPathFunction(new RegisterTempFile(), configuration);
+    
+    /* ExecExternal */
+    registerEXPathFunction(new ExecExternal(), configuration);
   }
   
   private void registerEXPathFunction(ExtensionFunctionDefinition function, Configuration configuration) {
