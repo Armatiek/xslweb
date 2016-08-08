@@ -18,9 +18,13 @@ import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.ArrayIterator;
 import net.sf.saxon.value.Base64BinaryValue;
 import net.sf.saxon.value.StringValue;
+import nl.armatiek.xslweb.configuration.Context;
+
 import org.expath.httpclient.HttpClientException;
 import org.expath.httpclient.HttpResponse;
 import org.expath.httpclient.model.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link Item} for Saxon.
@@ -29,6 +33,9 @@ import org.expath.httpclient.model.Result;
  * @date 2011-03-10
  */
 public class SaxonResult implements Result {
+  
+  private static final Logger logger = LoggerFactory.getLogger(SaxonResult.class);
+  
   public SaxonResult(XPathContext ctxt) {
     myItems = new ArrayList<Item>();
     myCtxt = ctxt;
@@ -52,6 +59,7 @@ public class SaxonResult implements Result {
       Item doc = myCtxt.getConfiguration().buildDocument(src);
       myItems.add(doc);
     } catch (XPathException ex) {
+      logger.error("Error building the XML or HTML document", ex);
       throw new HttpClientException("Error building the XML or HTML document", ex);
     }
   }
