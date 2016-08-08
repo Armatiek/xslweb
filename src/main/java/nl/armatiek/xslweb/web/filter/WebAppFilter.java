@@ -52,6 +52,8 @@ public class WebAppFilter implements Filter {
     WebApp webApp = Context.getInstance().getWebApp(path);    
     if (webApp == null) {
       resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+    } else if (webApp.isClosed()) {
+      resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
     } else {
       req.setAttribute(Definitions.ATTRNAME_WEBAPP, webApp);
       Resource resource = webApp.matchesResource(webApp.getRelativePath(path));

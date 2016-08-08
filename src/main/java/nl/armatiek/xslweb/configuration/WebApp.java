@@ -125,6 +125,7 @@ public class WebApp implements ErrorHandler {
   private String title;
   private String description;
   private boolean developmentMode;
+  private boolean waitForJobsAtClose;
   private int maxUploadSize;
   private Scheduler scheduler;
   private List<Resource> resources = new ArrayList<Resource>();
@@ -173,7 +174,9 @@ public class WebApp implements ErrorHandler {
     String devModeValue = (String) xpath.evaluate("webapp:development-mode", docElem, XPathConstants.STRING);
     this.developmentMode = XMLUtils.getBooleanValue(devModeValue, false); 
     String maxUploadSizeValue = (String) xpath.evaluate("webapp:max-upload-size", docElem, XPathConstants.STRING);
-    this.maxUploadSize = XMLUtils.getIntegerValue(maxUploadSizeValue, 10);
+    this.maxUploadSize = XMLUtils.getIntegerValue(maxUploadSizeValue, 10);    
+    String waitForJobsAtCloseValue = (String) xpath.evaluate("webapp:wait-for-jobs-at-close", docElem, XPathConstants.STRING);
+    this.waitForJobsAtClose = XMLUtils.getBooleanValue(waitForJobsAtCloseValue, true);
     
     NodeList resourceNodes = (NodeList) xpath.evaluate("webapp:resources/webapp:resource", docElem, XPathConstants.NODESET);
     for (int i=0; i<resourceNodes.getLength(); i++) {
@@ -260,16 +263,16 @@ public class WebApp implements ErrorHandler {
     
     isClosed = true;
     
-    logger.debug("Stopping file alteration monitor ...");
+    logger.info("Stopping file alteration monitor ...");
     monitor.stop();
     
     if (scheduler != null) {
-      logger.debug("Shutting down Quartz scheduler ...");
-      scheduler.shutdown(!developmentMode);
-      logger.debug("Shutdown of Quartz scheduler complete.");
+      logger.info("Shutting down Quartz scheduler ...");
+      scheduler.shutdown(!developmentMode && waitForJobsAtClose);
+      logger.info("Shutdown of Quartz scheduler complete.");
     }
     
-    logger.debug("Closing XPath extension functions ...");
+    logger.info("Closing XPath extension functions ...");
     Iterator<ExtensionFunctionDefinition> functions = configuration.getRegisteredExtensionFunctions();
     while (functions.hasNext()) {
       ExtensionFunctionDefinition function = functions.next();
@@ -285,7 +288,7 @@ public class WebApp implements ErrorHandler {
     }
     
     if (!dataSourceCache.isEmpty()) {
-      logger.debug("Closing Datasources ...");
+      logger.info("Closing Datasources ...");
       for (ComboPooledDataSource cpds : dataSourceCache.values()) {
         cpds.close();
       }

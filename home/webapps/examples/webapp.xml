@@ -1,10 +1,15 @@
 <?xml version="1.0"?>
-<webapp xmlns="http://www.armatiek.com/xslweb/webapp" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
+<webapp 
+  xmlns="http://www.armatiek.com/xslweb/webapp" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
 
   <title>XSLWeb examples</title>
   <description>XSLWeb examples</description>
   <development-mode>true</development-mode>
   <max-upload-size>10</max-upload-size>
+  <wait-for-jobs-at-close>true</wait-for-jobs-at-close>
   <!-- 10MB -->
 
   <!-- Resources to serve straight away: -->

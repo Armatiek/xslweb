@@ -76,6 +76,7 @@ public class Context {
   private String contextPath;
   private File webInfDir; 
   private File homeDir;
+  private volatile boolean isOpen = false;
   
   private Context() { }
   
@@ -101,12 +102,15 @@ public class Context {
     
     logger.info("Starting webapps file alteration monitor ...");
     monitor.start();
-    
+  
+    isOpen = true;
     logger.info("XSLWeb Context opened.");
   }
   
   public void close() throws Exception {
     logger.info("Closing XSLWeb Context ...");
+    
+    isOpen = false;
     
     logger.info("Stopping webapps file alteration monitor ...");    
     monitor.stop();
@@ -191,7 +195,7 @@ public class Context {
     }
   }
     
-  public void reloadWebApp(File webAppDefFile, boolean createNew) {
+  public void reloadWebApp(File webAppDefFile, boolean createNew) {        
     try {
       Thread.sleep(1000);     
     } catch (Exception e) { }
@@ -351,6 +355,10 @@ public class Context {
     } else {
       attributes.remove(name);
     }
+  }
+  
+  public boolean isOpen() {
+    return isOpen;
   }
   
 }
