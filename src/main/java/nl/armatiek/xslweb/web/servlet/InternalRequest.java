@@ -28,21 +28,22 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import nl.armatiek.xslweb.configuration.Context;
+import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.web.filter.CachingFilter;
 import nl.armatiek.xslweb.web.filter.PipelineGeneratorFilter;
 import nl.armatiek.xslweb.web.filter.RequestSerializerFilter;
 import nl.armatiek.xslweb.web.filter.SetCharacterEncodingFilter;
 import nl.armatiek.xslweb.web.filter.WebAppFilter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class InternalRequest {
   
   private static final Logger logger = LoggerFactory.getLogger(InternalRequest.class);
   
-  public void execute(String path, OutputStream os) throws ServletException, IOException {
+  public void execute(String path, OutputStream os, boolean isJobRequest) throws ServletException, IOException {
     try {
       ArrayList<Filter> filters = new ArrayList<Filter>();
       XSLWebFilterConfig emptyConfig = new XSLWebFilterConfig();
@@ -80,12 +81,30 @@ public class InternalRequest {
       ServletRequest request = new XSLWebHttpServletRequest(servletContext, path);
       ServletResponse response = new XSLWebHttpServletResponse(os);
       
-      filterChain.doFilter(request, response);
+      WebApp webApp = null;
+      if (isJobRequest) {
+        webApp = WebAppFilter.getWebApp(request);
+        if (webApp != null) {
+          webApp.incJobRequestCount();
+        }
+      }
+      
+      try {
+        filterChain.doFilter(request, response);
+      } finally {
+        if (webApp != null) {
+          webApp.decJobRequestCount();
+        } 
+      }
       
     } catch (Exception e) {
       logger.error("Error executing internal servlet request to \"" + path + "\"", e);
       throw e;
     }            
+  }
+  
+  public void execute(String path, OutputStream os) throws ServletException, IOException {
+    this.execute(path, os, false);
   }
 
 }

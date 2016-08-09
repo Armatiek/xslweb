@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 public class XSLWebJob implements Job {
   
   private static final Logger logger = LoggerFactory.getLogger(XSLWebJob.class);
-
+  
   public XSLWebJob() {
     super();
   }
@@ -51,13 +51,13 @@ public class XSLWebJob implements Job {
       JobDataMap dataMap = context.getMergedJobDataMap();
       String webAppPath = dataMap.getString("webapp-path");
       String path = dataMap.getString("uri");      
-      InternalRequest request = new InternalRequest();
       ByteArrayOutputStream boas = new ByteArrayOutputStream();
-      request.execute(webAppPath + "/" + path, boas);
+      InternalRequest request = new InternalRequest();
+      request.execute(webAppPath + "/" + path, boas, true);
       logger.info(new String(boas.toByteArray()));            
     } catch (Exception e) {
       logger.error(String.format("Error executing job \"%s\"", context.getJobDetail().getKey().getName()), e);
-      throw new JobExecutionException(e);
     }
   }
+  
 }

@@ -36,77 +36,77 @@ public class DelegatingServletOutputStream extends ServletOutputStream {
 
   @Override
   public void print(String s) throws IOException {
-    IOUtils.write(s, os);    
+    IOUtils.write(s, os, "UTF-8");    
   }
 
   @Override
   public void print(boolean b) throws IOException {
-    IOUtils.write(String.valueOf(b), os);
+    IOUtils.write(String.valueOf(b), os, "UTF-8");
   }
 
   @Override
   public void print(char c) throws IOException {
-    IOUtils.write(String.valueOf(c), os);
+    IOUtils.write(String.valueOf(c), os, "UTF-8");
   }
 
   @Override
   public void print(int i) throws IOException {
-    IOUtils.write(String.valueOf(i), os);    
+    IOUtils.write(String.valueOf(i), os, "UTF-8");    
   }
 
   @Override
   public void print(long l) throws IOException {
-    IOUtils.write(String.valueOf(l), os);
+    IOUtils.write(String.valueOf(l), os, "UTF-8");
   }
 
   @Override
   public void print(float f) throws IOException {
-    IOUtils.write(String.valueOf(f), os);
+    IOUtils.write(String.valueOf(f), os, "UTF-8");
   }
 
   @Override
   public void print(double d) throws IOException {
-    IOUtils.write(String.valueOf(d), os);
+    IOUtils.write(String.valueOf(d), os, "UTF-8");
   }
 
   @Override
   public void println() throws IOException {
-    IOUtils.write(lineSeparator, os);    
+    IOUtils.write(lineSeparator, os, "UTF-8");    
   }
 
   @Override
   public void println(String s) throws IOException {    
-    IOUtils.write(s + lineSeparator, os);
+    IOUtils.write(s + lineSeparator, os, "UTF-8");
   }
 
   @Override
   public void println(boolean b) throws IOException {
-    IOUtils.write(String.valueOf(b) + lineSeparator, os);
+    IOUtils.write(String.valueOf(b) + lineSeparator, os, "UTF-8");
   }
 
   @Override
   public void println(char c) throws IOException {
-    IOUtils.write(String.valueOf(c) + lineSeparator, os);
+    IOUtils.write(String.valueOf(c) + lineSeparator, os, "UTF-8");
   }
 
   @Override
   public void println(int i) throws IOException {
-    IOUtils.write(String.valueOf(i) + lineSeparator, os);
+    IOUtils.write(String.valueOf(i) + lineSeparator, os, "UTF-8");
   }
 
   @Override
   public void println(long l) throws IOException {
-    IOUtils.write(String.valueOf(l) + lineSeparator, os);
+    IOUtils.write(String.valueOf(l) + lineSeparator, os, "UTF-8");
   }
 
   @Override
   public void println(float f) throws IOException {
-    IOUtils.write(String.valueOf(f) + lineSeparator, os);
+    IOUtils.write(String.valueOf(f) + lineSeparator, os, "UTF-8");
   }
 
   @Override
   public void println(double d) throws IOException {
-    IOUtils.write(String.valueOf(d) + lineSeparator, os);
+    IOUtils.write(String.valueOf(d) + lineSeparator, os, "UTF-8");
   }
 
   @Override

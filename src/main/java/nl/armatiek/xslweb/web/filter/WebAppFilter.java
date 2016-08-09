@@ -42,6 +42,12 @@ public class WebAppFilter implements Filter {
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException { }
+  
+  public static WebApp getWebApp(ServletRequest request) {
+    HttpServletRequest req = (HttpServletRequest) request;
+    String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();      
+    return Context.getInstance().getWebApp(path);
+  }
 
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
@@ -49,7 +55,7 @@ public class WebAppFilter implements Filter {
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse resp = (HttpServletResponse) response;        
     String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();      
-    WebApp webApp = Context.getInstance().getWebApp(path);    
+    WebApp webApp = getWebApp(request);    
     if (webApp == null) {
       resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
     } else if (webApp.isClosed()) {

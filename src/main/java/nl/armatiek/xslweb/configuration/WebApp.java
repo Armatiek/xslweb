@@ -44,25 +44,6 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.config.CacheConfiguration;
-import net.sf.ehcache.config.PersistenceConfiguration;
-import net.sf.ehcache.config.PersistenceConfiguration.Strategy;
-import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
-import net.sf.saxon.Configuration;
-import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.s9api.Processor;
-import net.sf.saxon.s9api.XsltCompiler;
-import net.sf.saxon.s9api.XsltExecutable;
-import net.sf.saxon.xpath.XPathFactoryImpl;
-import nl.armatiek.xslweb.error.XSLWebException;
-import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
-import nl.armatiek.xslweb.quartz.XSLWebJob;
-import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
-import nl.armatiek.xslweb.utils.XMLUtils;
-import nl.armatiek.xslweb.utils.XSLWebUtils;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOCase;
 import org.apache.commons.io.IOUtils;
@@ -87,7 +68,9 @@ import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerFactory;
 import org.quartz.Trigger;
+import org.quartz.TriggerKey;
 import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -101,6 +84,25 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.config.PersistenceConfiguration;
+import net.sf.ehcache.config.PersistenceConfiguration.Strategy;
+import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
+import net.sf.saxon.Configuration;
+import net.sf.saxon.lib.ExtensionFunctionDefinition;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.XsltCompiler;
+import net.sf.saxon.s9api.XsltExecutable;
+import net.sf.saxon.xpath.XPathFactoryImpl;
+import nl.armatiek.xslweb.error.XSLWebException;
+import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
+import nl.armatiek.xslweb.quartz.XSLWebJob;
+import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
+import nl.armatiek.xslweb.utils.XMLUtils;
+import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 public class WebApp implements ErrorHandler {
   
@@ -136,8 +138,7 @@ public class WebApp implements ErrorHandler {
   private Processor processor;  
   private FileAlterationMonitor monitor;
   private CloseableHttpClient httpClient;
-  // private List<File> classPath;
-  // private ClassLoader classLoader;
+  private volatile int jobRequestCount = 0;
   
   public WebApp(File webAppDefinition) throws Exception {   
     logger.info(String.format("Loading webapp definition \"%s\" ...", webAppDefinition.getAbsolutePath()));
@@ -200,7 +201,7 @@ public class WebApp implements ErrorHandler {
         logger.info("Initializing Quartz scheduler ...");
         sf = new StdSchedulerFactory();        
       }
-      scheduler = sf.getScheduler();      
+      scheduler = sf.getScheduler(); 
       for (int i=0; i<jobNodes.getLength(); i++) {
         Element jobElem = (Element) jobNodes.item(i);      
         String jobName = XMLUtils.getValueOfChildElementByLocalName(jobElem, "name");
@@ -268,7 +269,18 @@ public class WebApp implements ErrorHandler {
     
     if (scheduler != null) {
       logger.info("Shutting down Quartz scheduler ...");
-      scheduler.shutdown(!developmentMode && waitForJobsAtClose);
+      if (waitForJobsAtClose) {
+        /* Unschedule all jobs: */
+        for (String triggerName : scheduler.getTriggerGroupNames()) {
+          for (TriggerKey triggerKey : scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals(triggerName))) {
+            scheduler.unscheduleJob(triggerKey);
+          }
+        }
+        while (jobRequestCount > 0) {
+          Thread.sleep(250);
+        }
+      }
+      scheduler.shutdown(false);
       logger.info("Shutdown of Quartz scheduler complete.");
     }
     
@@ -604,10 +616,18 @@ public class WebApp implements ErrorHandler {
       if (fopConfig == null) {
         throw new XSLWebException("FOP Configuration \"" + configName + "\" not found in webapp.xml");        
       }      
-      fopFactory = FopFactory.newInstance(getHomeDir().toURI(), IOUtils.toInputStream(fopConfig));      
+      fopFactory = FopFactory.newInstance(getHomeDir().toURI(), IOUtils.toInputStream(fopConfig, "UTF-8"));      
       fopFactoryCache.put(configName, fopFactory);
     }
     return fopFactory;
+  }
+  
+  public void incJobRequestCount() {
+    jobRequestCount++;
+  }
+  
+  public void decJobRequestCount() {
+    jobRequestCount--;
   }
   
   /*
