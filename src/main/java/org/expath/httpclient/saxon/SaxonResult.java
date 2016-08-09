@@ -10,7 +10,15 @@ package org.expath.httpclient.saxon;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.transform.Source;
+
+import org.expath.httpclient.HttpClientException;
+import org.expath.httpclient.HttpResponse;
+import org.expath.httpclient.model.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.SequenceIterator;
@@ -18,13 +26,6 @@ import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.ArrayIterator;
 import net.sf.saxon.value.Base64BinaryValue;
 import net.sf.saxon.value.StringValue;
-import nl.armatiek.xslweb.configuration.Context;
-
-import org.expath.httpclient.HttpClientException;
-import org.expath.httpclient.HttpResponse;
-import org.expath.httpclient.model.Result;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link Item} for Saxon.

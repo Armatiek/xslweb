@@ -273,7 +273,7 @@ public class RequestSerializer {
     } else if ((contentType != null) && contentType.startsWith("text/plain")) {      
       xsw.writeCharacters(IOUtils.toString(pushbackReader));      
     } else {
-      xsw.writeCData(Base64.encodeBase64String(IOUtils.toByteArray(pushbackReader)));
+      xsw.writeCData(Base64.encodeBase64String(IOUtils.toByteArray(pushbackReader, "UTF-8")));
     }
     xsw.writeEndElement();
   }

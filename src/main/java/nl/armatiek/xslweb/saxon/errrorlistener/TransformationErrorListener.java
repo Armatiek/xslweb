@@ -109,7 +109,7 @@ public class TransformationErrorListener implements ErrorListener, Serializable 
           response.setContentType("text/plain;charset=UTF-8");
           firstError = false;
         }
-        IOUtils.copy(new StringReader(message), response.getOutputStream());
+        IOUtils.copy(new StringReader(message), response.getOutputStream(), "UTF-8");
       }
     } catch (IOException ioe) {
       throw new TransformerException("IOException dumping track trace");
