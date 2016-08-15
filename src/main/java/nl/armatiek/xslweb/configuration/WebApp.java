@@ -276,8 +276,12 @@ public class WebApp implements ErrorHandler {
             scheduler.unscheduleJob(triggerKey);
           }
         }
-        while (jobRequestCount > 0) {
-          Thread.sleep(250);
+        if (jobRequestCount > 0) {
+          logger.info("Wait for running jobs to finish ...");
+          while (jobRequestCount > 0) {
+            Thread.sleep(250);
+          }
+          logger.info("All jobs finished");
         }
       }
       scheduler.shutdown(false);
@@ -622,12 +626,14 @@ public class WebApp implements ErrorHandler {
     return fopFactory;
   }
   
-  public void incJobRequestCount() {
+  public synchronized void incJobRequestCount() {
     jobRequestCount++;
+    logger.info("Ïncrement jobRequestCount " + jobRequestCount);
   }
   
-  public void decJobRequestCount() {
+  public synchronized void decJobRequestCount() {
     jobRequestCount--;
+    logger.info("Decrement jobRequestCount " + jobRequestCount);
   }
   
   /*
