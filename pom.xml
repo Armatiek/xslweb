@@ -10,7 +10,7 @@
   <groupId>nl.armatiek.xslweb</groupId>
   <artifactId>xslweb</artifactId>
   <packaging>war</packaging> 
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1.2-SNAPSHOT</version>
   
   <inceptionYear>2013</inceptionYear>
 
@@ -25,7 +25,7 @@
     </developer>
     <developer>
       <name>Arjan Loeffen</name>
-      <id>maartenkroon</id>
+      <id>arjanloeffen</id>
       <organization>Armatiek BV</organization>
       <roles>
         <role>Java Developer</role>
@@ -57,9 +57,33 @@
     <repository>
       <id>ettrema-repo</id>
       <url>http://milton.io/maven</url>
+    </repository>
+    <repository>
+      <id>apache.snapshots</id>
+      <url>https://repository.apache.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
     </repository>    
   </repositories>
-      
+  
+  <pluginRepositories>
+    <pluginRepository>
+      <id>apache.snapshots</id>
+      <name>Apache Snapshots</name>
+      <url>https://repository.apache.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+  
   <dependencies>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -80,7 +104,7 @@
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>
-      <version>1.3.1</version>
+      <version>1.3.2</version>
     </dependency>
     <dependency>
       <groupId>org.ccil.cowan.tagsoup</groupId>
