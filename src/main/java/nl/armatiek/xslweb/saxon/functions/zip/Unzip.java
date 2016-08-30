@@ -26,7 +26,6 @@ import java.net.URI;
 import java.net.URL;
 
 import net.sf.saxon.expr.XPathContext;
-import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
@@ -35,6 +34,7 @@ import net.sf.saxon.value.EmptySequence;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 import nl.armatiek.xslweb.utils.ZipUtils;
 
 /**
@@ -91,7 +91,12 @@ public class Unzip extends ExtensionFunctionDefinition {
           throw new IOException("Could not create output directory \"" + targetDir.getAbsolutePath() + "\"");
         }        
         InputStream is;
-        if (source.startsWith("http")) {
+        if (source.startsWith("http")) {          
+          /*
+          CloseableHttpClient client = getWebApp(context).getHttpClient();          
+          CloseableHttpResponse response = client.execute(new HttpGet(source));
+          is = response.getEntity().getContent();
+          */                                        
           is = new URL(source).openStream();
         } else {
           File file;
