@@ -10,6 +10,7 @@ package org.expath.httpclient.saxon;
 
 import net.sf.saxon.event.Builder;
 import net.sf.saxon.expr.XPathContext;
+import net.sf.saxon.expr.parser.ExplicitLocation;
 import net.sf.saxon.om.FingerprintedQName;
 import net.sf.saxon.om.NoNamespaceName;
 import net.sf.saxon.om.NodeInfo;
@@ -66,7 +67,7 @@ public class SaxonTreeBuilder implements TreeBuilder {
     final String uri = HttpConstants.HTTP_CLIENT_NS_URI;
     NodeName name = new FingerprintedQName(prefix, uri, localname);
     try {
-      myBuilder.startElement(name, Untyped.getInstance(), 0, 0);
+      myBuilder.startElement(name, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
     } catch (XPathException ex) {
       throw new HttpClientException("Error starting element on the Saxon tree builder", ex);
     }
@@ -77,7 +78,7 @@ public class SaxonTreeBuilder implements TreeBuilder {
     if (value != null) {
       NodeName name = new NoNamespaceName(localname);
       try {
-        myBuilder.attribute(name, BuiltInAtomicType.UNTYPED_ATOMIC, value, 0, 0);
+        myBuilder.attribute(name, BuiltInAtomicType.UNTYPED_ATOMIC, value, null, 0);
       } catch (XPathException ex) {
         throw new HttpClientException("Error creating attribute on the Saxon tree builder", ex);
       }

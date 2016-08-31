@@ -1,4 +1,4 @@
-package nl.armatiek.xslweb.saxon.errrorlistener;
+package nl.armatiek.xslweb.saxon.destination;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -17,15 +17,15 @@ package nl.armatiek.xslweb.saxon.errrorlistener;
  * limitations under the License.
  */
 
-import javax.servlet.http.HttpServletResponse;
+import javax.xml.transform.Source;
 
-import net.sf.saxon.lib.StandardErrorListener;
-import nl.armatiek.xslweb.saxon.log.Slf4JLogger;
+import net.sf.saxon.s9api.XdmDestination;
 
-public class TransformationErrorListener extends StandardErrorListener {
+public class XdmSourceDestination extends XdmDestination implements SourceDestination {
   
-  public TransformationErrorListener(HttpServletResponse response, boolean developmentMode) {
-    setLogger(new Slf4JLogger(response, developmentMode));
+  @Override
+  public Source asSource() {
+    return this.getXdmNode().asSource();
   }
   
 }

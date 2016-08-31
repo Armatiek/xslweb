@@ -23,6 +23,7 @@ import java.sql.ResultSetMetaData;
 import net.sf.saxon.event.SequenceOutputter;
 import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
+import net.sf.saxon.expr.parser.ExplicitLocation;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.NoNamespaceName;
 import net.sf.saxon.om.NodeName;
@@ -96,15 +97,15 @@ public class ResultSetToNode extends ExtensionFunctionDefinition {
         NodeName nameName = new NoNamespaceName("name");
         
         SequenceOutputter out = context.getController().allocateSequenceOutputter(50);
-        out.startElement(resultSetName, Untyped.getInstance(), 0, 0);
+        out.startElement(resultSetName, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0); // 9.7: null for third argument?
         while (rset.next()) {          
-          out.startElement(rowName, Untyped.getInstance(), 0, 0);
+          out.startElement(rowName, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
           for (int col = 1; col <= columnCount; col++) {            
-            out.startElement(colName, Untyped.getInstance(), 0, 0);
-            out.attribute(nameName, BuiltInAtomicType.UNTYPED_ATOMIC, metaData.getColumnName(col), 0, 0);            
+            out.startElement(colName, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+            out.attribute(nameName, BuiltInAtomicType.UNTYPED_ATOMIC, metaData.getColumnName(col), null, 0);            
             String value = rset.getString(col);
             if (value != null) {            
-              out.characters(value, 0, 0);
+              out.characters(value, null, 0);
             }
             out.endElement();                                               
           }

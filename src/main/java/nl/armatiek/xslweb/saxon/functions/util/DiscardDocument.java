@@ -23,6 +23,7 @@ import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.DocumentInfo;
 import net.sf.saxon.om.DocumentURI;
+import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.om.ZeroOrOne;
@@ -73,20 +74,21 @@ public class DiscardDocument extends ExtensionFunctionDefinition {
   private static class DiscardDocumentCall extends ExtensionFunctionCall {
 
     @Override
-    public ZeroOrOne<DocumentInfo> call(XPathContext context, Sequence[] arguments) throws XPathException {            
+    public ZeroOrOne<NodeInfo> call(XPathContext context, Sequence[] arguments) throws XPathException {            
       if (arguments.length == 0) {
-        return new ZeroOrOne<DocumentInfo>(null);
+        return new ZeroOrOne<NodeInfo>(null);
       }
       DocumentInfo doc = ((DocumentInfo) arguments[0].head()); 
       if (doc == null) {
-        return new ZeroOrOne<DocumentInfo>(null);
+        return new ZeroOrOne<NodeInfo>(null);
       }
       Controller c = context.getController();
       String uri = c.getDocumentPool().getDocumentURI(doc);
       if (uri != null) {
         c.removeUnavailableOutputDestination(new DocumentURI(uri));
       }
-      return new ZeroOrOne<DocumentInfo>(c.getDocumentPool().discard(doc));
+      c.getDocumentPool().discard(doc.getTreeInfo());
+      return new ZeroOrOne<NodeInfo>(doc);
     }
   }
 }

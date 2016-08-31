@@ -25,7 +25,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,7 +41,6 @@ import org.apache.commons.lang3.StringUtils;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
-import net.sf.saxon.s9api.XsltTransformer;
 import net.sf.saxon.value.ObjectValue;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
@@ -94,6 +95,44 @@ public class XSLWebUtils {
     return file.listFiles((FileFilter) DirectoryFileFilter.INSTANCE).length > 0;
   }
   
+  public static void addStylesheetParameters(Map<QName, XdmValue> params, List<Parameter> parameters) throws IOException {
+    if (parameters == null) {
+      return;
+    }
+    for (Parameter param : parameters) {
+      QName qname = (param.getURI() != null) ? new QName(param.getURI(), param.getName()) : new QName(param.getName());                 
+      params.put(qname, new XdmValue(param.getValue()));                  
+    }        
+  }
+  
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public static Map<QName, XdmValue> getStylesheetParameters(WebApp webApp, HttpServletRequest req, 
+      HttpServletResponse resp, File homeDir) throws Exception {
+    Map<QName, XdmValue> params = new HashMap<QName, XdmValue>();
+    
+    /* Property parameters : */
+    Properties props = Context.getInstance().getProperties();
+    for (String key : props.stringPropertyNames()) {
+      String value = props.getProperty(key);      
+      params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, key), new XdmAtomicValue(value));
+    }    
+    params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "home-dir"), new XdmAtomicValue(homeDir.getAbsolutePath()));
+    params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "webapp-dir"), new XdmAtomicValue(webApp.getHomeDir().getAbsolutePath()));
+    params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "webapp-path"), new XdmAtomicValue(webApp.getPath()));
+    params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "development-mode"), new XdmAtomicValue(webApp.getDevelopmentMode()));
+    
+    /* Object parameters: */
+    params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_REQUEST, "request"),  XdmValue.wrap(new ObjectValue(req)));
+    params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "response"),  XdmValue.wrap(new ObjectValue(resp)));
+    params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_WEBAPP, "webapp"),  XdmValue.wrap(new ObjectValue(webApp)));
+    
+    /* Webapp parameters: */
+    addStylesheetParameters(params, webApp.getParameters());
+    
+    return params;
+  }
+  
+  /*
   public static void setPropertyParameters(XsltTransformer transformer, WebApp webApp, File homeDir) throws IOException {
     Properties props = Context.getInstance().getProperties();
     for (String key : props.stringPropertyNames()) {
@@ -105,7 +144,7 @@ public class XSLWebUtils {
     transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "webapp-path"), new XdmAtomicValue(webApp.getPath()));
     transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "development-mode"), new XdmAtomicValue(webApp.getDevelopmentMode()));
   }
-  
+    
   public static void setParameters(XsltTransformer transformer, List<Parameter> parameters) throws IOException {
     if (parameters == null) {
       return;
@@ -122,6 +161,7 @@ public class XSLWebUtils {
     transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "response"),  XdmValue.wrap(new ObjectValue(resp)));
     transformer.setParameter(new QName(Definitions.NAMESPACEURI_XSLWEB_WEBAPP, "webapp"),  XdmValue.wrap(new ObjectValue(webApp)));               
   }
+  */
   
   @SuppressWarnings("unchecked")
   public static void addCloseable(HttpServletRequest req, Closeable closeable) {

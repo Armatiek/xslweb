@@ -66,7 +66,7 @@ public class SaxonElement implements Element {
   @Override
   public String getAttribute(String local_name) throws HttpClientException {
     // get the attribute
-    NamePool pool = myNode.getNamePool();
+    NamePool pool = myNode.getConfiguration().getNamePool();
     NodeTest pred = new NameTest(Type.ATTRIBUTE, "", local_name, pool);
     AxisIterator attrs = myNode.iterateAxis(AxisInfo.ATTRIBUTE, pred);
     NodeInfo a = (NodeInfo) attrs.next();
@@ -86,7 +86,7 @@ public class SaxonElement implements Element {
 
   @Override
   public boolean hasNoNsChild() throws HttpClientException {
-    NamePool pool = myNode.getNamePool();
+    NamePool pool = myNode.getConfiguration().getNamePool();
     NodeTest no_ns_pred = new NamespaceTest(pool, Type.ELEMENT, "");
     return myNode.iterateAxis(AxisInfo.CHILD, no_ns_pred).next() != null;
   }
@@ -131,7 +131,7 @@ public class SaxonElement implements Element {
   @Override
   public Iterable<Element> httpNsChildren() throws HttpClientException {
     String http_ns = HttpConstants.HTTP_CLIENT_NS_URI;
-    NamePool pool = myNode.getNamePool();
+    NamePool pool = myNode.getConfiguration().getNamePool();
     NodeTest pred = new NamespaceTest(pool, Type.ELEMENT, http_ns);
     AxisIterator it = myNode.iterateAxis(AxisInfo.CHILD, pred);
     return new ElemIterable(it);

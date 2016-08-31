@@ -18,14 +18,17 @@ package nl.armatiek.xslweb.saxon.log;
  */
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.stream.StreamResult;
 
-import net.sf.saxon.lib.Logger;
-
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ProxyWriter;
+
+import net.sf.saxon.lib.Logger;
 
 /**
  * Saxon Logger that logs to Slf4J logging framework.
@@ -35,6 +38,15 @@ import org.apache.commons.io.output.ProxyWriter;
 public class Slf4JLogger extends Logger {
   
   private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Slf4JLogger.class);
+  
+  private HttpServletResponse response;
+  private boolean firstError;
+  private boolean developmentMode;
+  
+  public Slf4JLogger(HttpServletResponse response, boolean developmentMode) {
+    this.response = response;
+    this.developmentMode = developmentMode;
+  }
 
   @Override
   public void println(String message, int severity) {
@@ -64,6 +76,32 @@ public class Slf4JLogger extends Logger {
       }
     };    
     return new StreamResult(w);        
+  }
+  
+  private void writeToResponse(String message) {
+    try {
+      if (developmentMode) {
+        if (firstError) {
+          response.setContentType("text/plain;charset=UTF-8");
+          firstError = false;
+        }
+        IOUtils.copy(new StringReader(message), response.getOutputStream(), "UTF-8");
+      }
+    } catch (Exception e) {
+      logger.error("Could not write error to HttpServletResponse", e);
+    }
+  }
+
+  @Override
+  public void error(String message) {
+    super.error(message);
+    writeToResponse(message);
+  }
+
+  @Override
+  public void disaster(String message) {
+    super.disaster(message);
+    writeToResponse(message);
   }
   
 }

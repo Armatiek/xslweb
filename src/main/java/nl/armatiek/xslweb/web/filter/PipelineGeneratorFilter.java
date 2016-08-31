@@ -33,11 +33,16 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.ErrorListener;
+import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import net.sf.saxon.s9api.Destination;
 import net.sf.saxon.s9api.SAXDestination;
+import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltExecutable;
-import net.sf.saxon.s9api.XsltTransformer;
 import net.sf.saxon.serialize.MessageWarner;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
@@ -45,9 +50,6 @@ import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PipelineGeneratorFilter implements Filter {
   
@@ -73,18 +75,15 @@ public class PipelineGeneratorFilter implements Filter {
       MessageWarner messageWarner = new MessageWarner();
       
       XsltExecutable templates = webApp.getRequestDispatcherTemplates(errorListener);
-      XsltTransformer transformer = templates.load();
-                        
-      XSLWebUtils.setPropertyParameters(transformer, webApp, homeDir);    
-      XSLWebUtils.setObjectParameters(transformer, webApp, req, resp);
-      XSLWebUtils.setParameters(transformer, webApp.getParameters());
+      Xslt30Transformer transformer = templates.load30();
+      transformer.setStylesheetParameters(XSLWebUtils.getStylesheetParameters(webApp, req, resp, homeDir));
       transformer.setErrorListener(errorListener);            
       transformer.getUnderlyingController().setMessageEmitter(messageWarner);            
                                
       PipelineHandler pipelineHandler = new PipelineHandler(webApp.getProcessor(), webApp.getConfiguration());
-      transformer.setSource(new StreamSource(new StringReader((String) req.getAttribute(Definitions.ATTRNAME_REQUESTXML))));
-      transformer.setDestination(new SAXDestination(pipelineHandler));
-      transformer.transform();
+      Source source = new StreamSource(new StringReader((String) req.getAttribute(Definitions.ATTRNAME_REQUESTXML)));
+      Destination destination = new SAXDestination(pipelineHandler);
+      transformer.applyTemplates(source, destination);
       
       req.setAttribute(Definitions.ATTRNAME_PIPELINEHANDLER, pipelineHandler);
       

@@ -22,6 +22,8 @@ import java.io.StringReader;
 import javax.xml.transform.Source;
 import javax.xml.transform.sax.SAXSource;
 
+import org.xml.sax.InputSource;
+
 import net.sf.saxon.Configuration;
 import net.sf.saxon.Controller;
 import net.sf.saxon.event.Builder;
@@ -32,7 +34,7 @@ import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.lib.ParseOptions;
-import net.sf.saxon.om.DocumentInfo;
+import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.om.TreeModel;
@@ -44,8 +46,6 @@ import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import net.sf.saxon.value.Whitespace;
 import nl.armatiek.xslweb.configuration.Definitions;
-
-import org.xml.sax.InputSource;
 
 /**
  * XPath extension function class for
@@ -88,9 +88,9 @@ public class Parse extends ExtensionFunctionDefinition {
   }
   
   private static class ParseCall extends ExtensionFunctionCall {
-
+    
     @Override
-    public ZeroOrOne<DocumentInfo> call(XPathContext context, Sequence[] arguments) throws XPathException {
+    public ZeroOrOne<NodeInfo> call(XPathContext context, Sequence[] arguments) throws XPathException {
       String xml = ((StringValue) arguments[0].head()).getStringValue();
       try {                
         Controller controller = context.getController();        
@@ -121,7 +121,7 @@ public class Parse extends ExtensionFunctionDefinition {
         // node.setBaseURI(baseURI);
         node.setSystemId(null);
         b.reset();
-        return new ZeroOrOne<DocumentInfo>((DocumentInfo)node);
+        return new ZeroOrOne<NodeInfo>((NodeInfo)node);
       } catch (XPathException err) {
         throw new XPathException("First argument to parse is not a well-formed and namespace-well-formed XML document. XML parser reported: " + err.getMessage(), "FODC0006");
       }

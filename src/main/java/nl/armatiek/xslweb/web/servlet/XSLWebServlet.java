@@ -27,9 +27,10 @@ import java.io.PrintStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
@@ -39,6 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.io.FileUtils;
@@ -48,16 +50,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.sf.saxon.s9api.Destination;
+import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.Serializer;
 import net.sf.saxon.s9api.Serializer.Property;
 import net.sf.saxon.s9api.TeeDestination;
+import net.sf.saxon.s9api.XdmDestination;
+import net.sf.saxon.s9api.XdmValue;
+import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltExecutable;
-import net.sf.saxon.s9api.XsltTransformer;
 import net.sf.saxon.serialize.MessageWarner;
 import net.sf.saxon.stax.XMLStreamWriterDestination;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
+import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.pipeline.FopSerializerStep;
 import nl.armatiek.xslweb.pipeline.JSONSerializerStep;
 import nl.armatiek.xslweb.pipeline.PipelineHandler;
@@ -67,6 +73,9 @@ import nl.armatiek.xslweb.pipeline.SerializerStep;
 import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
 import nl.armatiek.xslweb.pipeline.ZipSerializerStep;
+import nl.armatiek.xslweb.saxon.destination.SourceDestination;
+import nl.armatiek.xslweb.saxon.destination.TeeSourceDestination;
+import nl.armatiek.xslweb.saxon.destination.XdmSourceDestination;
 import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
 import nl.armatiek.xslweb.utils.Closeable;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
@@ -162,13 +171,141 @@ public class XSLWebServlet extends HttpServlet {
         }
       });                
       debugSerializer.setOutputProperty(Serializer.Property.METHOD, "xml");
-      debugSerializer.setOutputProperty(Serializer.Property.INDENT, "yes");           
-      destination = new TeeDestination(destination, debugSerializer);
+      debugSerializer.setOutputProperty(Serializer.Property.INDENT, "yes");
+      if (destination instanceof XdmDestination) {
+        destination = new TeeSourceDestination((XdmDestination) destination, debugSerializer);
+      } else {
+        destination = new TeeDestination(destination, debugSerializer);
+      }
     }
     return destination;
   }
   
+  private Properties getOutputProperties(WebApp webApp, ErrorListener errorListener, List<PipelineStep> steps) throws Exception {
+    for (int i=steps.size()-1; i>=0; i--) {
+      PipelineStep step = steps.get(i);
+      if (step instanceof TransformerStep) {
+        String xslPath = ((TransformerStep) step).getXslPath();
+        XsltExecutable executable = webApp.getTemplates(xslPath, errorListener);
+        return executable.getUnderlyingCompiledStylesheet().getOutputProperties();
+      }
+    }
+    return null;
+  }
+  
+  private void addResponseTransformationStep(List<PipelineStep> steps) {
+    SystemTransformerStep step = new SystemTransformerStep("system/response/response.xsl", "client-response", false);
+    if (steps.get(steps.size()-1) instanceof SerializerStep) {
+      steps.add(steps.size()-1, step);
+    } else {
+      steps.add(step);
+    }
+  }
+  
+  private Destination getDestination(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
+      OutputStream os, Properties outputProperties, PipelineStep currentStep, PipelineStep nextStep) throws Exception {
+    Destination dest;
+    if (nextStep == null) {      
+      Serializer serializer = webApp.getProcessor().newSerializer(os);
+      if (outputProperties != null) {
+        for (String key : outputProperties.stringPropertyNames()) {
+          String value = outputProperties.getProperty(key);
+          if (key.equals(OutputKeys.CDATA_SECTION_ELEMENTS)) {
+            value = value.replaceAll("\\{\\}", "{''}");
+          }
+          Property prop = Property.get(key);
+          if (prop == null) {
+            continue;          
+          }
+          serializer.setOutputProperty(prop, value);                      
+        }
+      }
+      XMLStreamWriter xsw = new CleanupXMLStreamWriter(serializer.getXMLStreamWriter());
+      dest = new XMLStreamWriterDestination(xsw);
+    } else if (nextStep instanceof TransformerStep) {
+      dest = new XdmSourceDestination();
+    } else if (nextStep instanceof JSONSerializerStep) {
+      dest = ((JSONSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);             
+    } else if (nextStep instanceof ZipSerializerStep) {
+      dest = ((ZipSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);
+    } else if (nextStep instanceof FopSerializerStep) {
+      dest = ((FopSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);
+    } else {
+      throw new XSLWebException("Could not determine destination");
+    }
+    return getDestination(webApp, dest, currentStep);
+  }
+  
   private void executeRequest(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
+      OutputStream respOs) throws Exception {        
+    boolean developmentMode = webApp.getDevelopmentMode();               
+    
+    String requestXML = (String) req.getAttribute(Definitions.ATTRNAME_REQUESTXML);
+    
+    PipelineHandler pipelineHandler = (PipelineHandler) req.getAttribute(Definitions.ATTRNAME_PIPELINEHANDLER);
+         
+    ErrorListener errorListener = new TransformationErrorListener(resp, developmentMode);      
+    MessageWarner messageWarner = new MessageWarner();
+    
+    List<PipelineStep> steps = pipelineHandler.getPipelineSteps();
+    if (steps == null || steps.isEmpty()) {
+      resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Resource not found");
+      return;
+    }
+    
+    OutputStream os = (developmentMode) ? new ByteArrayOutputStream() : respOs;
+    
+    Properties outputProperties = getOutputProperties(webApp, errorListener, steps);
+    
+    Map<QName, XdmValue> baseStylesheetParameters = XSLWebUtils.getStylesheetParameters(webApp, req, resp, homeDir);
+    
+    addResponseTransformationStep(steps);
+    
+    Source source = new StreamSource(new StringReader(requestXML));
+    Destination destination = null;
+    
+    for (int i=0; i<steps.size(); i++) {
+      PipelineStep step = steps.get(i);
+      if (step instanceof SerializerStep) {
+        break;
+      }
+      PipelineStep nextStep = (i<steps.size()-1) ? steps.get(i+1) : null;
+      if (step instanceof TransformerStep) {
+        String xslPath = null;
+        if (step instanceof SystemTransformerStep) {
+          xslPath = new File(homeDir, "common/xsl/" + ((TransformerStep) step).getXslPath()).getAbsolutePath();                      
+        } else {          
+          xslPath = ((TransformerStep) step).getXslPath();
+        }
+        XsltExecutable templates = webApp.getTemplates(xslPath, errorListener); 
+        Xslt30Transformer transformer = templates.load30();
+        transformer.getUnderlyingController().setMessageEmitter(messageWarner);
+        transformer.setErrorListener(errorListener);
+        Map<QName, XdmValue> stylesheetParameters = new HashMap<QName, XdmValue>();
+        stylesheetParameters.putAll(baseStylesheetParameters);
+        XSLWebUtils.addStylesheetParameters(stylesheetParameters, ((TransformerStep) step).getParameters());
+        transformer.setStylesheetParameters(stylesheetParameters);
+        destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep); 
+        transformer.applyTemplates(source, destination);
+      } else if (step instanceof ResponseStep) {
+        source = new StreamSource(new StringReader(((ResponseStep) step).getResponse()));
+        continue;
+      }
+      
+      if (destination instanceof SourceDestination) {
+        /* Set source for next pipeline step: */
+        source = ((SourceDestination)destination).asSource();
+      }
+    }
+    
+    if (developmentMode) {                       
+      byte[] body = ((ByteArrayOutputStream) os).toByteArray();                         
+      IOUtils.copy(new ByteArrayInputStream(body), respOs);
+    }                      
+  }
+  
+  /*
+  private void executeRequestOld(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
       OutputStream respOs) throws Exception {        
     boolean developmentMode = webApp.getDevelopmentMode();               
     
@@ -269,5 +406,6 @@ public class XSLWebServlet extends HttpServlet {
       IOUtils.copy(new ByteArrayInputStream(body), respOs);
     }                      
   }
+  */
   
 }
