@@ -83,6 +83,15 @@ public class PipelineHandler implements ContentHandler {
       if (StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_PIPELINE)) {
         if (localName.equals("value")) { 
           parameter.addValue(chars.toString());
+        } else if (localName.equals("schema-path")) {
+          if (pipelineSteps.isEmpty()) {
+            throw new SAXException("Element \"schema-path\" not expected at this location in pipeline definition");
+          }
+          PipelineStep step = pipelineSteps.get(pipelineSteps.size()-1);
+          if (!(step instanceof SchemaValidatorStep)) {
+            throw new SAXException("Element \"schema-path\" not expected at this location in pipeline definition");
+          }
+          ((SchemaValidatorStep) step).addSchemaPath(chars.toString());
         }
       } else if (StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_RESPONSE)) {
         if (localName.equals("response")) {
@@ -169,7 +178,12 @@ public class PipelineHandler implements ContentHandler {
               getAttribute(atts, "uri", null),
               name,
               getAttribute(atts, "type", "xs:string"));                
-          step.addParameter(this.parameter);          
+          step.addParameter(this.parameter);
+        } else if (localName.equals("schema-validator")) {
+          String name = getAttribute(atts, "name", "validator-" + Integer.toString(pipelineSteps.size()+1));
+          boolean log = getAttribute(atts, "log", "false").equals("true");
+          pipelineSteps.add(new SchemaValidatorStep(name, log));
+        } else if (localName.equals("schema-path")) {
         } else if (localName.equals("pipeline")) {
           cache = getAttribute(atts, "cache", "false").equals("true");
           if (cache) {

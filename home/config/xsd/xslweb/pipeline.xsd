@@ -4,38 +4,49 @@
   <xs:element name="pipeline">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="transformer" maxOccurs="unbounded">
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element maxOccurs="unbounded" minOccurs="0" name="parameter">
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element maxOccurs="unbounded" name="value" type="xs:string"/>
-                  </xs:sequence>
-                  <xs:attribute name="uri" type="xs:anyURI"/>
-                  <xs:attribute name="name" type="xs:string" use="required"/>
-                  <xs:attribute name="type" use="required">
-                    <xs:simpleType>
-                      <xs:restriction base="xs:string">
-                        <xs:enumeration value="xs:string"/>
-                        <xs:enumeration value="xs:boolean"/>
-                        <xs:enumeration value="xs:integer"/>
-                        <xs:enumeration value="xs:double"/>
-                        <xs:enumeration value="xs:float"/>
-                        <xs:enumeration value="xs:decimal"/>
-                        <xs:enumeration value="xs:integer"/>
-                        <xs:enumeration value="xs:dateTime"/>
-                      </xs:restriction>
-                    </xs:simpleType>
-                  </xs:attribute>
-                </xs:complexType>
-              </xs:element>
-            </xs:sequence>
-            <xs:attribute name="name" type="xs:string" use="optional"/>
-            <xs:attribute name="xsl-path" type="xs:string" use="required"/>
-            <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
-          </xs:complexType>
-        </xs:element>
+        <xs:choice minOccurs="1" maxOccurs="unbounded">
+          <xs:element name="transformer">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element maxOccurs="unbounded" minOccurs="0" name="parameter">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element maxOccurs="unbounded" name="value" type="xs:string"/>
+                    </xs:sequence>
+                    <xs:attribute name="uri" type="xs:anyURI"/>
+                    <xs:attribute name="name" type="xs:string" use="required"/>
+                    <xs:attribute name="type" use="required">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:enumeration value="xs:string"/>
+                          <xs:enumeration value="xs:boolean"/>
+                          <xs:enumeration value="xs:integer"/>
+                          <xs:enumeration value="xs:double"/>
+                          <xs:enumeration value="xs:float"/>
+                          <xs:enumeration value="xs:decimal"/>
+                          <xs:enumeration value="xs:integer"/>
+                          <xs:enumeration value="xs:dateTime"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:attribute>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+              <xs:attribute name="name" type="xs:string" use="optional"/>
+              <xs:attribute name="xsl-path" type="xs:string" use="required"/>
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="schema-validator">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="schema-path" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+              </xs:sequence>
+              <xs:attribute name="name" type="xs:string" use="optional"/>            
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>                                     
+            </xs:complexType>
+          </xs:element> 
+        </xs:choice>
         <xs:choice minOccurs="0">
           <xs:element name="json-serializer">
             <xs:complexType>            
