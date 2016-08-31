@@ -23,6 +23,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.StringReader;
 import java.net.ProxySelector;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParser;
@@ -41,6 +43,9 @@ import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.Source;
 import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 
@@ -110,6 +115,9 @@ public class WebApp implements ErrorHandler {
   
   private Map<String, XsltExecutable> templatesCache = 
       Collections.synchronizedMap(new HashMap<String, XsltExecutable>());
+  
+  private Map<String, Schema> schemaCache = 
+      Collections.synchronizedMap(new HashMap<String, Schema>());
   
   private Map<String, Collection<Attribute>> attributes = 
       Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
@@ -490,7 +498,7 @@ public class WebApp implements ErrorHandler {
   public XsltExecutable tryTemplatesCache(String transformationPath,  
       ErrorListener errorListener) throws Exception {
     String key = FilenameUtils.normalize(transformationPath);
-    XsltExecutable templates = (XsltExecutable) templatesCache.get(key);    
+    XsltExecutable templates = templatesCache.get(key);    
     if (templates == null) {
       logger.info("Compiling and caching stylesheet \"" + transformationPath + "\" ...");                 
       try {
@@ -513,6 +521,35 @@ public class WebApp implements ErrorHandler {
       }      
     }
     return templates;
+  }
+  
+  public Schema trySchemaCache(Collection<String> schemaPaths,  
+      ErrorListener errorListener) throws Exception {
+    String key = StringUtils.join(schemaPaths, ";");
+    Schema schema = schemaCache.get(key);    
+    if (schema == null) {
+      logger.info("Compiling and caching schema(s) \"" + key + "\" ...");                 
+      try {
+        ArrayList<Source> schemaSources = new ArrayList<Source>();
+        for (String path: schemaPaths) {
+          File file = new File(path);
+          if (!file.isFile()) {
+            throw new FileNotFoundException("XML Schema file \"" + file.getAbsolutePath() + "\" not found");
+          }
+          schemaSources.add(new StreamSource(file));
+        }
+        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);       
+        // schemaFactory.setErrorHandler(new RepositoryValidatorErrorHandler("Schema files"));
+        schema = schemaFactory.newSchema(schemaSources.toArray(new Source[schemaSources.size()]));            
+      } catch (Exception e) {
+        logger.error("Could not compile schema(s) \"" + key + "\"", e);
+        throw e;
+      }      
+      if (!developmentMode) {
+        schemaCache.put(key, schema);
+      }      
+    }
+    return schema;
   }
   
   public Map<String, Collection<Attribute>> getAttributes() {
