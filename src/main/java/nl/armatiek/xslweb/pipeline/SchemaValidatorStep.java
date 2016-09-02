@@ -23,9 +23,13 @@ import java.util.List;
 public class SchemaValidatorStep extends PipelineStep {
   
   private List<String> schemaPaths;
+  private String xslParamName;
+  private String xslParamNamespace;
     
-  public SchemaValidatorStep(String name, boolean log) {
-    super(name, log);   
+  public SchemaValidatorStep(String name, boolean log, String xslParamNamespace, String xslParamName) {
+    super(name, log);
+    this.xslParamNamespace = xslParamNamespace;
+    this.xslParamName = xslParamName;
   }
   
   public void addSchemaPath(String schemaPath) {
@@ -34,8 +38,16 @@ public class SchemaValidatorStep extends PipelineStep {
     }
     schemaPaths.add(schemaPath);
   }
+  
+  public String getXslParamName() {
+    return xslParamName;
+  }
+  
+  public String getXslParamNamespace() {
+    return xslParamNamespace;
+  }
     
-  public List<String> getParameters() {    
+  public List<String> getSchemaPaths() {    
     return schemaPaths;
   }
   

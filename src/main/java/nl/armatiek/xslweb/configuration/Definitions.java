@@ -83,6 +83,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_PIPELINE      = NAMESPACEURI_XSLWEB + "/pipeline";
   public final static String NAMESPACEURI_XSLWEB_ZIP_SERIALIZER = NAMESPACEURI_XSLWEB + "/zip-serializer";
   public final static String NAMESPACEURI_XSLWEB_FOP_SERIALIZER = NAMESPACEURI_XSLWEB + "/fop-serializer";
+  public final static String NAMESPACEURI_XSLWEB_VALIDATION     = NAMESPACEURI_XSLWEB + "/validation";
   public final static String NAMESPACEURI_EXPATH_FILE          = "http://expath.org/ns/file";
     
   public final static String MIMETYPE_XML                      = "text/xml";

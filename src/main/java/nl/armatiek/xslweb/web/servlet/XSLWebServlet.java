@@ -40,8 +40,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
 import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.Validator;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -49,12 +53,14 @@ import org.apache.commons.io.output.ProxyWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.s9api.Destination;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.Serializer;
 import net.sf.saxon.s9api.Serializer.Property;
 import net.sf.saxon.s9api.TeeDestination;
 import net.sf.saxon.s9api.XdmDestination;
+import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltExecutable;
@@ -69,6 +75,7 @@ import nl.armatiek.xslweb.pipeline.JSONSerializerStep;
 import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.pipeline.PipelineStep;
 import nl.armatiek.xslweb.pipeline.ResponseStep;
+import nl.armatiek.xslweb.pipeline.SchemaValidatorStep;
 import nl.armatiek.xslweb.pipeline.SerializerStep;
 import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
@@ -77,6 +84,7 @@ import nl.armatiek.xslweb.saxon.destination.SourceDestination;
 import nl.armatiek.xslweb.saxon.destination.TeeSourceDestination;
 import nl.armatiek.xslweb.saxon.destination.XdmSourceDestination;
 import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
+import nl.armatiek.xslweb.saxon.errrorlistener.ValidatorErrorHandler;
 import nl.armatiek.xslweb.utils.Closeable;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 import nl.armatiek.xslweb.xml.CleanupXMLStreamWriter;
@@ -222,7 +230,7 @@ public class XSLWebServlet extends HttpServlet {
       }
       XMLStreamWriter xsw = new CleanupXMLStreamWriter(serializer.getXMLStreamWriter());
       dest = new XMLStreamWriterDestination(xsw);
-    } else if (nextStep instanceof TransformerStep) {
+    } else if (nextStep instanceof TransformerStep || nextStep instanceof SchemaValidatorStep) {
       dest = new XdmSourceDestination();
     } else if (nextStep instanceof JSONSerializerStep) {
       dest = ((JSONSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);             
@@ -261,6 +269,7 @@ public class XSLWebServlet extends HttpServlet {
     
     addResponseTransformationStep(steps);
     
+    Map<QName, XdmValue> extraStylesheetParameters = null;
     Source source = new StreamSource(new StringReader(requestXML));
     Destination destination = null;
     
@@ -284,9 +293,61 @@ public class XSLWebServlet extends HttpServlet {
         Map<QName, XdmValue> stylesheetParameters = new HashMap<QName, XdmValue>();
         stylesheetParameters.putAll(baseStylesheetParameters);
         XSLWebUtils.addStylesheetParameters(stylesheetParameters, ((TransformerStep) step).getParameters());
+        if (extraStylesheetParameters != null) {
+          stylesheetParameters.putAll(extraStylesheetParameters);
+          extraStylesheetParameters.clear();
+        }
         transformer.setStylesheetParameters(stylesheetParameters);
         destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep); 
         transformer.applyTemplates(source, destination);
+      } else if (step instanceof SchemaValidatorStep) {
+        SchemaValidatorStep svStep = (SchemaValidatorStep) step;
+        List<String> schemaPaths = svStep.getSchemaPaths();
+        Schema schema = webApp.getSchema(schemaPaths, errorListener);
+        
+        // if (source instanceof NodeInfo) {
+        //  source = new DOMSource(NodeOverNodeInfo.wrap((NodeInfo) source));
+        // }
+        
+        // Document resultDoc = XMLUtils.getDocumentBuilder(false, true).newDocument();
+        // Result result = new DOMResult(resultDoc);
+        
+        if (source instanceof NodeInfo) {
+          Serializer serializer = webApp.getProcessor().newSerializer();
+          ByteArrayOutputStream sourceStream = new ByteArrayOutputStream();
+          serializer.setOutputStream(sourceStream);
+          serializer.setOutputProperty(Property.INDENT, "yes");
+          serializer.serializeNode(new XdmNode((NodeInfo) source));
+          source = new StreamSource(new ByteArrayInputStream(sourceStream.toByteArray()));
+        }
+        
+        destination = null;
+        ByteArrayOutputStream resultStream = new ByteArrayOutputStream();
+        Result result = new StreamResult(resultStream);
+        
+        Validator validator = schema.newValidator();
+        ValidatorErrorHandler errorHandler = new ValidatorErrorHandler("Step: " + ((step.getName() != null) ? step.getName() : "noname"));
+        validator.setErrorHandler(errorHandler);
+        
+        // validator.setFeature(name, value);
+        // validator.setProperty(name, object);
+        
+        validator.validate(source, result);
+        
+        source = new StreamSource(new ByteArrayInputStream(resultStream.toByteArray()));
+        
+        Source resultsSource = errorHandler.getValidationResults();
+        if (resultsSource != null) {
+          NodeInfo resultsNodeInfo = webApp.getConfiguration().buildDocumentTree(resultsSource).getRootNode();
+          String xslParamName = svStep.getXslParamName();
+          if (xslParamName != null) {
+            if (extraStylesheetParameters == null) {
+              extraStylesheetParameters = new HashMap<QName, XdmValue>();
+            }
+            extraStylesheetParameters.put(new QName(svStep.getXslParamNamespace(), xslParamName), 
+                new XdmNode(resultsNodeInfo));
+          }
+        }
       } else if (step instanceof ResponseStep) {
         source = new StreamSource(new StringReader(((ResponseStep) step).getResponse()));
         continue;
@@ -294,7 +355,7 @@ public class XSLWebServlet extends HttpServlet {
       
       if (destination instanceof SourceDestination) {
         /* Set source for next pipeline step: */
-        source = ((SourceDestination)destination).asSource();
+        source = ((SourceDestination) destination).asSource();
       }
     }
     

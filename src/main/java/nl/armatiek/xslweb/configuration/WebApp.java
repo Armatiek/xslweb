@@ -106,6 +106,7 @@ import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
 import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
+import nl.armatiek.xslweb.saxon.errrorlistener.ValidatorErrorHandler;
 import nl.armatiek.xslweb.utils.XMLUtils;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
@@ -268,10 +269,14 @@ public class WebApp implements ErrorHandler {
   }
   
   public void close() throws Exception {        
-    logger.info(String.format("Closing webapp \"%s\" ...", name));
+    if (isClosed) {
+      return;
+    }
     
     isClosed = true;
     
+    logger.info(String.format("Closing webapp \"%s\" ...", name));
+
     logger.info("Stopping file alteration monitor ...");
     monitor.stop();
     
@@ -317,6 +322,14 @@ public class WebApp implements ErrorHandler {
         cpds.close();
       }
     }
+    
+    logger.info("Clearing compiled stylesheets cache ...");
+    templatesCache.clear();
+    
+    logger.info("Clearing compiled schemas cache ...");
+    schemaCache.clear();
+    
+    Thread.sleep(1000);
     
     logger.info(String.format("Webapp \"%s\" closed.", name));
   }
@@ -477,6 +490,18 @@ public class WebApp implements ErrorHandler {
     return tryTemplatesCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener);
   }
   
+  public Schema getSchema(Collection<String> schemaPaths, ErrorListener errorListener) throws Exception {    
+    ArrayList<String> resolvedPaths = new ArrayList<String>();
+    for (String path : schemaPaths) {
+      if (new File(path).isAbsolute()) {
+        resolvedPaths.add(path);
+      } else {
+        resolvedPaths.add(new File(getHomeDir(), "xsd" + "/" + path).getAbsolutePath());
+      }
+    }
+    return trySchemaCache(resolvedPaths, errorListener);
+  }
+  
   public File getStaticFile(String path) {    
     String relPath = (name.equals("ROOT")) ? path.substring(1) : StringUtils.substringAfter(path, this.name + "/");
     return new File(this.homeDir, "static" + "/" + relPath);    
@@ -539,10 +564,10 @@ public class WebApp implements ErrorHandler {
           schemaSources.add(new StreamSource(file));
         }
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);       
-        // schemaFactory.setErrorHandler(new RepositoryValidatorErrorHandler("Schema files"));
-        schema = schemaFactory.newSchema(schemaSources.toArray(new Source[schemaSources.size()]));            
+        schemaFactory.setErrorHandler(new ValidatorErrorHandler("Schema file(s)"));
+        schema = schemaFactory.newSchema(schemaSources.toArray(new Source[schemaSources.size()]));
       } catch (Exception e) {
-        logger.error("Could not compile schema(s) \"" + key + "\"", e);
+        logger.error("Error compiling schema(s) \"" + key + "\"", e);
         throw e;
       }      
       if (!developmentMode) {

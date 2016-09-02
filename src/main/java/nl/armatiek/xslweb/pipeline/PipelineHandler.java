@@ -182,7 +182,9 @@ public class PipelineHandler implements ContentHandler {
         } else if (localName.equals("schema-validator")) {
           String name = getAttribute(atts, "name", "validator-" + Integer.toString(pipelineSteps.size()+1));
           boolean log = getAttribute(atts, "log", "false").equals("true");
-          pipelineSteps.add(new SchemaValidatorStep(name, log));
+          String xslParamName = getAttribute(atts, "xsl-param-name", null);
+          String xslParamNamespace = getAttribute(atts, "xsl-param-namespace", null);
+          pipelineSteps.add(new SchemaValidatorStep(name, log, xslParamNamespace, xslParamName));
         } else if (localName.equals("schema-path")) {
         } else if (localName.equals("pipeline")) {
           cache = getAttribute(atts, "cache", "false").equals("true");
