@@ -25,18 +25,18 @@ import java.util.Properties;
 
 import javax.xml.transform.OutputKeys;
 
-import net.sf.saxon.Configuration;
-import net.sf.saxon.s9api.Processor;
-import nl.armatiek.xslweb.configuration.Definitions;
-import nl.armatiek.xslweb.configuration.Parameter;
-import nl.armatiek.xslweb.xml.SerializingContentHandler;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
+
+import net.sf.saxon.Configuration;
+import net.sf.saxon.s9api.Processor;
+import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.configuration.Parameter;
+import nl.armatiek.xslweb.xml.SerializingContentHandler;
 
 public class PipelineHandler implements ContentHandler {
   
@@ -185,6 +185,14 @@ public class PipelineHandler implements ContentHandler {
           String xslParamName = getAttribute(atts, "xsl-param-name", null);
           String xslParamNamespace = getAttribute(atts, "xsl-param-namespace", null);
           pipelineSteps.add(new SchemaValidatorStep(name, log, xslParamNamespace, xslParamName));
+        } else if (localName.equals("schematron-validator")) {
+          String name = getAttribute(atts, "name", "validator-" + Integer.toString(pipelineSteps.size()+1));
+          boolean log = getAttribute(atts, "log", "false").equals("true");
+          String schematronPath = getAttribute(atts, "schematron-path", null);
+          String xslParamName = getAttribute(atts, "xsl-param-name", null);
+          String xslParamNamespace = getAttribute(atts, "xsl-param-namespace", null);
+          pipelineSteps.add(new SchematronValidatorStep(name, schematronPath, log, 
+              xslParamNamespace, xslParamName));
         } else if (localName.equals("schema-path")) {
         } else if (localName.equals("pipeline")) {
           cache = getAttribute(atts, "cache", "false").equals("true");

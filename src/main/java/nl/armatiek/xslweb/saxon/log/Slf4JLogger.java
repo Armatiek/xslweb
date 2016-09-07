@@ -79,6 +79,9 @@ public class Slf4JLogger extends Logger {
   }
   
   private void writeToResponse(String message) {
+    if (response == null) {
+      return;
+    }
     try {
       if (developmentMode) {
         if (firstError) {

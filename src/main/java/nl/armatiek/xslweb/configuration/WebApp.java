@@ -99,13 +99,17 @@ import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.XdmDestination;
+import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
+import net.sf.saxon.serialize.MessageWarner;
 import net.sf.saxon.xpath.XPathFactoryImpl;
 import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
 import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
+import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
 import nl.armatiek.xslweb.saxon.errrorlistener.ValidatorErrorHandler;
 import nl.armatiek.xslweb.utils.XMLUtils;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
@@ -158,7 +162,7 @@ public class WebApp implements ErrorHandler {
     this.name = this.homeDir.getName();
     
     this.configuration = new XSLWebConfiguration(this);
-    this.processor = new Processor(this.configuration);
+    this.processor = new Processor(this.configuration.getConfiguration());
     
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);    
@@ -457,7 +461,7 @@ public class WebApp implements ErrorHandler {
   }
   
   public Configuration getConfiguration() {
-    return configuration;
+    return configuration.getConfiguration();
   }
   
   public Processor getProcessor() {
@@ -500,6 +504,13 @@ public class WebApp implements ErrorHandler {
       }
     }
     return trySchemaCache(resolvedPaths, errorListener);
+  }
+  
+  public XsltExecutable getSchematron(String path, ErrorListener errorListener) throws Exception {    
+    if (new File(path).isAbsolute()) {
+      return trySchematronCache(path, errorListener);
+    }    
+    return trySchematronCache(new File(getHomeDir(), "sch" + "/" + path).getAbsolutePath(), errorListener);
   }
   
   public File getStaticFile(String path) {    
@@ -575,6 +586,51 @@ public class WebApp implements ErrorHandler {
       }      
     }
     return schema;
+  }
+  
+  public XsltExecutable trySchematronCache(String schematronPath,  
+      ErrorListener errorListener) throws Exception {
+    String key = FilenameUtils.normalize(schematronPath);
+    XsltExecutable templates = templatesCache.get(key);    
+    if (templates == null) {
+      logger.info("Compiling and caching schematron schema \"" + schematronPath + "\" ...");                 
+      try {
+        Source source = new StreamSource(new File(schematronPath));
+        File schematronDir = new File(Context.getInstance().getHomeDir(), "common/xsl/system/schematron");
+        
+        ErrorListener listener = new TransformationErrorListener(null, developmentMode);      
+        MessageWarner messageWarner = new MessageWarner();
+        
+        Xslt30Transformer stage1 = tryTemplatesCache(new File(schematronDir, "iso_dsdl_include.xsl").getAbsolutePath(), errorListener).load30();
+        stage1.setErrorListener(listener);
+        Xslt30Transformer stage2 = tryTemplatesCache(new File(schematronDir, "iso_abstract_expand.xsl").getAbsolutePath(), errorListener).load30();
+        stage2.setErrorListener(listener);
+        Xslt30Transformer stage3 = tryTemplatesCache(new File(schematronDir, "iso_svrl_for_xslt2.xsl").getAbsolutePath(), errorListener).load30();
+        stage3.setErrorListener(listener);
+        
+        XdmDestination destStage1 = new XdmDestination();
+        XdmDestination destStage2 = new XdmDestination();
+        XdmDestination destStage3 = new XdmDestination();
+
+        stage1.applyTemplates(source, destStage1);
+        stage2.setGlobalContextItem(destStage1.getXdmNode());
+        stage2.applyTemplates(destStage1.getXdmNode(), destStage2);
+        stage3.setGlobalContextItem(destStage2.getXdmNode());
+        stage3.applyTemplates(destStage2.getXdmNode(), destStage3);
+        
+        XsltCompiler comp = processor.newXsltCompiler();
+        comp.setErrorListener(errorListener);
+        templates = comp.compile(destStage3.getXdmNode().asSource());
+        
+      } catch (Exception e) {
+        logger.error("Could not compile schematron schema \"" + schematronPath + "\"", e);
+        throw e;
+      }      
+      if (!developmentMode) {
+        templatesCache.put(key, templates);
+      }      
+    }
+    return templates;
   }
   
   public Map<String, Collection<Attribute>> getAttributes() {

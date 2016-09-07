@@ -47,7 +47,16 @@
               <xs:attribute name="xsl-param-namespace" type="xs:string" use="optional"/>
               <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>                                     
             </xs:complexType>
-          </xs:element> 
+          </xs:element>
+          <xs:element name="schematron-validator">
+            <xs:complexType>
+              <xs:attribute name="name" type="xs:string" use="optional"/>
+              <xs:attribute name="schematron-path" type="xs:string" use="required"/>
+              <xs:attribute name="xsl-param-name" type="xs:string" use="optional"/>
+              <xs:attribute name="xsl-param-namespace" type="xs:string" use="optional"/>
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>                                     
+            </xs:complexType>
+          </xs:element>
         </xs:choice>
         <xs:choice minOccurs="0">
           <xs:element name="json-serializer">

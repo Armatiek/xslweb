@@ -76,6 +76,7 @@ import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.pipeline.PipelineStep;
 import nl.armatiek.xslweb.pipeline.ResponseStep;
 import nl.armatiek.xslweb.pipeline.SchemaValidatorStep;
+import nl.armatiek.xslweb.pipeline.SchematronValidatorStep;
 import nl.armatiek.xslweb.pipeline.SerializerStep;
 import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
@@ -347,6 +348,34 @@ public class XSLWebServlet extends HttpServlet {
             extraStylesheetParameters.put(new QName(svStep.getXslParamNamespace(), xslParamName), 
                 new XdmNode(resultsNodeInfo));
           }
+        }
+      } else if (step instanceof SchematronValidatorStep) {
+        SchematronValidatorStep svStep = (SchematronValidatorStep) step;
+        
+        if (!(source instanceof NodeInfo)) {
+          Xslt30Transformer identityTransformer = webApp.getTemplates(
+            new File(homeDir, "common/xsl/system/identity/identity.xsl").getAbsolutePath(), errorListener).load30();
+          XdmDestination dest = new XdmDestination();
+          identityTransformer.applyTemplates(source, dest);
+          source = dest.getXdmNode().asSource();
+        }
+        
+        /* Execute schematron validation */
+        XsltExecutable templates = webApp.getSchematron(svStep.getSchematronPath(), errorListener); 
+        Xslt30Transformer transformer = templates.load30();
+        transformer.getUnderlyingController().setMessageEmitter(messageWarner);
+        transformer.setErrorListener(errorListener);    
+        XdmDestination svrlDest = new XdmDestination();
+    
+        transformer.applyTemplates(source, svrlDest);
+        
+        String xslParamName = svStep.getXslParamName();
+        if (xslParamName != null) {
+          if (extraStylesheetParameters == null) {
+            extraStylesheetParameters = new HashMap<QName, XdmValue>();
+          }
+          extraStylesheetParameters.put(new QName(svStep.getXslParamNamespace(), xslParamName), 
+              svrlDest.getXdmNode());
         }
       } else if (step instanceof ResponseStep) {
         source = new StreamSource(new StringReader(((ResponseStep) step).getResponse()));
