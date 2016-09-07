@@ -1,16 +1,12 @@
 package nl.armatiek.xslweb.saxon.configuration;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-
-import net.sf.saxon.Configuration;
-import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import nl.armatiek.xslweb.configuration.Context;
-import nl.armatiek.xslweb.configuration.WebApp;
-import nl.armatiek.xslweb.utils.XSLWebUtils;
+import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOCase;
@@ -28,17 +24,49 @@ import org.clapper.util.classutil.SubclassClassFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class XSLWebConfiguration extends Configuration {
+import net.sf.saxon.Configuration;
+import net.sf.saxon.lib.ExtensionFunctionDefinition;
+import net.sf.saxon.lib.FeatureKeys;
+import nl.armatiek.xslweb.configuration.Context;
+import nl.armatiek.xslweb.configuration.WebApp;
+import nl.armatiek.xslweb.utils.XSLWebUtils;
+
+public class XSLWebConfiguration {
   
   private static final Logger logger = LoggerFactory.getLogger(XSLWebConfiguration.class);
 
   private XSLWebInitializer initializer;
+  private Configuration config;
   private List<ExtensionFunctionDefinition> extensionFunctions = new ArrayList<ExtensionFunctionDefinition>();
   
   public XSLWebConfiguration(WebApp webApp) throws Exception {    
-    initializer = new XSLWebInitializer();
-    initializer.initialize(this);
+    this.config = createConfiguration();
+    this.initializer = new XSLWebInitializer();
+    this.initializer.initialize(this.config);
     addCustomExtensionFunctions(webApp);
+  }
+  
+  public Configuration getConfiguration() {
+    return this.config;
+  }
+  
+  private Configuration createConfiguration() throws IOException {
+    File licenseFile = new File(Context.getInstance().getHomeDir(), "config/saxon-license.lic");
+    String className = "net.sf.saxon.Configuration";
+    if (licenseFile.isFile()) {
+      Properties props = XSLWebUtils.readProperties(licenseFile);
+      String edition = props.getProperty("Edition", "-");
+      if (edition.equals("PE")) {
+        className = "com.saxonica.config.ProfessionalConfiguration";
+      } else if (edition.equals("EE")) {
+        className = "com.saxonica.config.EnterpriseConfiguration";
+      }
+      Configuration config = Configuration.makeLicensedConfiguration(this.getClass().getClassLoader(), className);
+      config.setConfigurationProperty(FeatureKeys.LICENSE_FILE_LOCATION, licenseFile.getAbsolutePath());
+    } else {
+      config = new Configuration();
+    }
+    return config;
   }
   
   private void addCustomExtensionFunctions(WebApp webApp) throws Exception {            
@@ -88,9 +116,8 @@ public class XSLWebConfiguration extends Configuration {
     }
   }
 
-  @Override
   public void registerExtensionFunction(ExtensionFunctionDefinition function) {    
-    super.registerExtensionFunction(function);
+    config.registerExtensionFunction(function);
     if (extensionFunctions != null) {
       extensionFunctions.add(function);
     }

@@ -85,17 +85,78 @@
   </pluginRepositories>
   
   <dependencies>
+    
+    <!-- Saxon Home Edition (HE): -->
+    <dependency>
+      <groupId>net.sf.saxon</groupId>
+      <artifactId>Saxon-HE</artifactId>            
+      <version>${saxon.version}</version>
+    </dependency>
+    
+    <!--
+    Saxon Professional Edition (PE):
+    - Purchase PE license from http://www.saxonica.com/
+    - Download PE package from http://www.saxonica.com/download/SaxonPE9-7-0-7J.zip
+    - Extract and register jars in local Maven repository using the following commands:
+        mvn install:install-file -Dfile=saxon9pe.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion=9.7.0-7 -Dpackaging=jar
+        mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion=9.7.0-7 -Dpackaging=jar
+        mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion=9.7.0-7 -Dpackaging=jar
+    - Place license file saxon-license.lic in <<xslweb.home>>/config
+    - Build XSLWeb with following dependencies (first remove artifact Saxon-HE above):
+    -->
+    <!--
+    <dependency>
+      <groupId>net.sf.saxon</groupId>
+      <artifactId>Saxon-PE</artifactId>            
+      <version>${saxon.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.saxon</groupId>
+      <artifactId>Saxon-PE-icu</artifactId>            
+      <version>${saxon.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.saxon</groupId>
+      <artifactId>Saxon-PE-sql</artifactId>            
+      <version>${saxon.version}</version>
+    </dependency>
+    -->
+    
+    <!--
+    Saxon Enterprise Edition (EE):
+    - Purchase EE license from http://www.saxonica.com/
+    - Download EE package from http://www.saxonica.com/download/SaxonEE9-7-0-7J.zip
+    - Extract and register jars in local Maven repository using the following commands:
+        mvn install:install-file -Dfile=saxon9ee.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE -Dversion=9.7.0-7 -Dpackaging=jar
+        mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion=9.7.0-7 -Dpackaging=jar
+        mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion=9.7.0-7 -Dpackaging=jar
+    - Place license file saxon-license.lic in <<xslweb.home>>/config
+    - Build XSLWeb with following dependencies (first remove artifact Saxon-HE above):
+    -->
+    <!--
+    <dependency>
+      <groupId>net.sf.saxon</groupId>
+      <artifactId>Saxon-EE</artifactId>            
+      <version>${saxon.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.saxon</groupId>
+      <artifactId>Saxon-EE-icu</artifactId>            
+      <version>${saxon.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.saxon</groupId>
+      <artifactId>Saxon-EE-sql</artifactId>            
+      <version>${saxon.version}</version>
+    </dependency>
+    -->
+    
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
       <scope>provided</scope>
       <version>3.0.1</version>
     </dependency>           
-    <dependency>
-      <groupId>net.sf.saxon</groupId>
-      <artifactId>Saxon-HE</artifactId>            
-      <version>${saxon.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.codehaus.woodstox</groupId>
       <artifactId>woodstox-core-asl</artifactId>
