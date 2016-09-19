@@ -109,7 +109,8 @@
           mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion=9.7.0-7 -Dpackaging=jar
           mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion=9.7.0-7 -Dpackaging=jar
       - Place license file saxon-license.lic in <<xslweb.home>>/config
-      - Build XSLWeb with following dependencies (first remove artifact Saxon-HE above):
+      - Build XSLWeb with Saxon-PE profile:
+          mvn -PSaxon-PE clean install
       -->
       <id>Saxon-PE</id>
       <dependencies>
@@ -140,7 +141,8 @@
           mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion=9.7.0-7 -Dpackaging=jar
           mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion=9.7.0-7 -Dpackaging=jar
       - Place license file saxon-license.lic in <<xslweb.home>>/config
-      - Build XSLWeb with following dependencies (first remove artifact Saxon-HE above):
+      - Build XSLWeb with Saxon-EE profile:
+          mvn -PSaxon-EE clean install
       -->
       <id>Saxon-EE</id>
       <dependencies>
