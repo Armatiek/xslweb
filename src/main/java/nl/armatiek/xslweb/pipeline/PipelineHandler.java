@@ -19,9 +19,9 @@ package nl.armatiek.xslweb.pipeline;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Stack;
 
 import javax.xml.transform.OutputKeys;
 
@@ -40,7 +40,7 @@ import nl.armatiek.xslweb.xml.SerializingContentHandler;
 
 public class PipelineHandler implements ContentHandler {
   
-  private ArrayList<PipelineStep> pipelineSteps = new ArrayList<PipelineStep>();
+  private Stack<PipelineStep> pipelineSteps = new Stack<PipelineStep>();
   private boolean cache;
   private String cacheKey;
   private int cacheTimeToLive = 60;
@@ -52,7 +52,6 @@ public class PipelineHandler implements ContentHandler {
   private StringBuilder chars = new StringBuilder();
   private Processor processor;
   private Configuration conf;
-  private Parameter parameter;
   
   public PipelineHandler(Processor processor, Configuration conf) {
     this.processor = processor;
@@ -82,16 +81,9 @@ public class PipelineHandler implements ContentHandler {
       }    
       if (StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_PIPELINE)) {
         if (localName.equals("value")) { 
-          parameter.addValue(chars.toString());
+          ((TransformerStep) pipelineSteps.peek()).getParameters().peek().addValue(chars.toString());
         } else if (localName.equals("schema-path")) {
-          if (pipelineSteps.isEmpty()) {
-            throw new SAXException("Element \"schema-path\" not expected at this location in pipeline definition");
-          }
-          PipelineStep step = pipelineSteps.get(pipelineSteps.size()-1);
-          if (!(step instanceof SchemaValidatorStep)) {
-            throw new SAXException("Element \"schema-path\" not expected at this location in pipeline definition");
-          }
-          ((SchemaValidatorStep) step).addSchemaPath(chars.toString());
+          ((SchemaValidatorStep) pipelineSteps.peek()).addSchemaPath(chars.toString());
         }
       } else if (StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_RESPONSE)) {
         if (localName.equals("response")) {
@@ -165,35 +157,38 @@ public class PipelineHandler implements ContentHandler {
           boolean log = getAttribute(atts, "log", "false").equals("true");
           pipelineSteps.add(new TransformerStep(xslPath, name, log));
         } else if (localName.equals("parameter")) {
-          if (pipelineSteps.isEmpty()) {
-            throw new SAXException("Element \"parameter\" not expected at this location in pipeline definition");
-          }
-          TransformerStep step = (TransformerStep) pipelineSteps.get(pipelineSteps.size()-1);
+          TransformerStep step = (TransformerStep) pipelineSteps.peek();
           String name = getAttribute(atts, "name", null);
           if (StringUtils.isBlank(name)) {
             throw new SAXException("Element \"parameter\" must have an attribute \"name\"");
           }                 
-          this.parameter = new Parameter(
+          Parameter parameter = new Parameter(
               processor,
               getAttribute(atts, "uri", null),
               name,
               getAttribute(atts, "type", "xs:string"));                
-          step.addParameter(this.parameter);
+          step.addParameter(parameter);
         } else if (localName.equals("schema-validator")) {
           String name = getAttribute(atts, "name", "validator-" + Integer.toString(pipelineSteps.size()+1));
           boolean log = getAttribute(atts, "log", "false").equals("true");
           String xslParamName = getAttribute(atts, "xsl-param-name", null);
           String xslParamNamespace = getAttribute(atts, "xsl-param-namespace", null);
           pipelineSteps.add(new SchemaValidatorStep(name, log, xslParamNamespace, xslParamName));
+        } else if (localName.equals("properties")) {
+        } else if (localName.equals("property")) {
+          ((SchemaValidatorStep) pipelineSteps.peek()).addProperty(getAttribute(atts, "name", null), getAttribute(atts, "value", null));
+        } else if (localName.equals("features")) {
+        } else if (localName.equals("feature")) {
+          ((SchemaValidatorStep) pipelineSteps.peek()).addFeature(getAttribute(atts, "name", null), getAttribute(atts, "value", null));
         } else if (localName.equals("schematron-validator")) {
           String name = getAttribute(atts, "name", "validator-" + Integer.toString(pipelineSteps.size()+1));
           boolean log = getAttribute(atts, "log", "false").equals("true");
           String schematronPath = getAttribute(atts, "schematron-path", null);
           String xslParamName = getAttribute(atts, "xsl-param-name", null);
           String xslParamNamespace = getAttribute(atts, "xsl-param-namespace", null);
-          pipelineSteps.add(new SchematronValidatorStep(name, schematronPath, log, 
-              xslParamNamespace, xslParamName));
+          pipelineSteps.add(new SchematronValidatorStep(name, schematronPath, log, xslParamNamespace, xslParamName));
         } else if (localName.equals("schema-path")) {
+        } else if (localName.equals("schema-paths")) {
         } else if (localName.equals("pipeline")) {
           cache = getAttribute(atts, "cache", "false").equals("true");
           if (cache) {

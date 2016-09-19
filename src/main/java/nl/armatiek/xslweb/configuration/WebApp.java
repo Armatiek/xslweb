@@ -598,25 +598,28 @@ public class WebApp implements ErrorHandler {
         Source source = new StreamSource(new File(schematronPath));
         File schematronDir = new File(Context.getInstance().getHomeDir(), "common/xsl/system/schematron");
         
-        ErrorListener listener = new TransformationErrorListener(null, developmentMode);      
+        ErrorListener listener = new TransformationErrorListener(null, developmentMode); 
         MessageWarner messageWarner = new MessageWarner();
         
         Xslt30Transformer stage1 = tryTemplatesCache(new File(schematronDir, "iso_dsdl_include.xsl").getAbsolutePath(), errorListener).load30();
         stage1.setErrorListener(listener);
+        stage1.getUnderlyingController().setMessageEmitter(messageWarner);
         Xslt30Transformer stage2 = tryTemplatesCache(new File(schematronDir, "iso_abstract_expand.xsl").getAbsolutePath(), errorListener).load30();
         stage2.setErrorListener(listener);
+        stage2.getUnderlyingController().setMessageEmitter(messageWarner);
         Xslt30Transformer stage3 = tryTemplatesCache(new File(schematronDir, "iso_svrl_for_xslt2.xsl").getAbsolutePath(), errorListener).load30();
         stage3.setErrorListener(listener);
+        stage3.getUnderlyingController().setMessageEmitter(messageWarner);
         
         XdmDestination destStage1 = new XdmDestination();
         XdmDestination destStage2 = new XdmDestination();
         XdmDestination destStage3 = new XdmDestination();
 
         stage1.applyTemplates(source, destStage1);
-        stage2.setGlobalContextItem(destStage1.getXdmNode());
-        stage2.applyTemplates(destStage1.getXdmNode(), destStage2);
-        stage3.setGlobalContextItem(destStage2.getXdmNode());
-        stage3.applyTemplates(destStage2.getXdmNode(), destStage3);
+        // stage2.setGlobalContextItem(destStage1.getXdmNode());
+        stage2.applyTemplates(destStage1.getXdmNode().asSource(), destStage2);
+        // stage3.setGlobalContextItem(destStage2.getXdmNode());
+        stage3.applyTemplates(destStage2.getXdmNode().asSource(), destStage3);
         
         XsltCompiler comp = processor.newXsltCompiler();
         comp.setErrorListener(errorListener);

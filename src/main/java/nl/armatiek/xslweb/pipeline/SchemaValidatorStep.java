@@ -2,6 +2,7 @@ package nl.armatiek.xslweb.pipeline;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,6 +24,8 @@ import java.util.List;
 public class SchemaValidatorStep extends PipelineStep {
   
   private List<String> schemaPaths;
+  private Properties properties;
+  private Properties features;
   private String xslParamName;
   private String xslParamNamespace;
     
@@ -39,6 +42,20 @@ public class SchemaValidatorStep extends PipelineStep {
     schemaPaths.add(schemaPath);
   }
   
+  public void addProperty(String name, String value) {
+    if (properties == null) {
+      properties = new Properties();
+    }
+    properties.setProperty(name, value);
+  }
+  
+  public void addFeature(String name, String value) {
+    if (features == null) {
+      features = new Properties();
+    }
+    features.setProperty(name, value);
+  }
+  
   public String getXslParamName() {
     return xslParamName;
   }
@@ -49,6 +66,14 @@ public class SchemaValidatorStep extends PipelineStep {
     
   public List<String> getSchemaPaths() {    
     return schemaPaths;
+  }
+  
+  public Properties getProperties() {
+    return properties;
+  }
+  
+  public Properties getFeatures() {
+    return features;
   }
   
 }

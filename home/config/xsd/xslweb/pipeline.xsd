@@ -40,12 +40,42 @@
           <xs:element name="schema-validator">
             <xs:complexType>
               <xs:sequence>
-                <xs:element name="schema-path" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="schema-paths">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="schema-path" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+                <xs:element minOccurs="0" name="features">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="feature" maxOccurs="unbounded">
+                        <xs:complexType>
+                          <xs:attribute name="name" type="xs:string" use="required"/>
+                          <xs:attribute name="value" type="xs:string" use="required"/>
+                        </xs:complexType>
+                      </xs:element>
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+                <xs:element name="properties" minOccurs="0">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="property" maxOccurs="unbounded">
+                        <xs:complexType>
+                          <xs:attribute name="name" type="xs:string" use="required"/>
+                          <xs:attribute name="value" type="xs:string" use="required"/>
+                        </xs:complexType>
+                      </xs:element>
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
               </xs:sequence>
               <xs:attribute name="name" type="xs:string" use="optional"/>
               <xs:attribute name="xsl-param-name" type="xs:string" use="optional"/>
               <xs:attribute name="xsl-param-namespace" type="xs:string" use="optional"/>
-              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>                                     
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
           </xs:element>
           <xs:element name="schematron-validator">
@@ -54,27 +84,27 @@
               <xs:attribute name="schematron-path" type="xs:string" use="required"/>
               <xs:attribute name="xsl-param-name" type="xs:string" use="optional"/>
               <xs:attribute name="xsl-param-namespace" type="xs:string" use="optional"/>
-              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>                                     
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
           </xs:element>
         </xs:choice>
         <xs:choice minOccurs="0">
           <xs:element name="json-serializer">
-            <xs:complexType>            
-              <xs:attribute name="name" type="xs:string" use="optional"/>            
-              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>                                     
+            <xs:complexType>
+              <xs:attribute name="name" type="xs:string" use="optional"/>
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
-          </xs:element>                    
+          </xs:element>
           <xs:element name="zip-serializer">
-            <xs:complexType>            
-              <xs:attribute name="name" type="xs:string" use="optional"/>            
-              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>                                     
+            <xs:complexType>
+              <xs:attribute name="name" type="xs:string" use="optional"/>
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
           </xs:element>
           <xs:element name="fop-serializer">
-            <xs:complexType>            
-              <xs:attribute name="name" type="xs:string" use="optional"/>            
-              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>                                                   
+            <xs:complexType>
+              <xs:attribute name="name" type="xs:string" use="optional"/>
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
           </xs:element>
         </xs:choice>

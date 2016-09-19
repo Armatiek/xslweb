@@ -27,6 +27,7 @@ import java.io.PrintStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -40,9 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
 import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
@@ -245,6 +244,17 @@ public class XSLWebServlet extends HttpServlet {
     return getDestination(webApp, dest, currentStep);
   }
   
+  private Source makeNodeInfoSource(Source source, WebApp webApp, ErrorListener errorListener) throws Exception {
+    if (source instanceof NodeInfo) {
+      return source;
+    }
+    Xslt30Transformer identityTransformer = webApp.getTemplates(
+        new File(homeDir, "common/xsl/system/identity/identity.xsl").getAbsolutePath(), errorListener).load30();
+    XdmDestination dest = new XdmDestination();
+    identityTransformer.applyTemplates(source, dest);
+    return dest.getXdmNode().asSource();
+  }
+  
   private void executeRequest(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
       OutputStream respOs) throws Exception {        
     boolean developmentMode = webApp.getDevelopmentMode();               
@@ -306,36 +316,41 @@ public class XSLWebServlet extends HttpServlet {
         List<String> schemaPaths = svStep.getSchemaPaths();
         Schema schema = webApp.getSchema(schemaPaths, errorListener);
         
-        // if (source instanceof NodeInfo) {
-        //  source = new DOMSource(NodeOverNodeInfo.wrap((NodeInfo) source));
-        // }
-        
-        // Document resultDoc = XMLUtils.getDocumentBuilder(false, true).newDocument();
-        // Result result = new DOMResult(resultDoc);
-        
-        if (source instanceof NodeInfo) {
-          Serializer serializer = webApp.getProcessor().newSerializer();
-          ByteArrayOutputStream sourceStream = new ByteArrayOutputStream();
-          serializer.setOutputStream(sourceStream);
-          serializer.setOutputProperty(Property.INDENT, "yes");
-          serializer.serializeNode(new XdmNode((NodeInfo) source));
-          source = new StreamSource(new ByteArrayInputStream(sourceStream.toByteArray()));
-        }
-        
+        source = makeNodeInfoSource(source, webApp, errorListener);
         destination = null;
-        ByteArrayOutputStream resultStream = new ByteArrayOutputStream();
-        Result result = new StreamResult(resultStream);
+        
+        Serializer serializer = webApp.getProcessor().newSerializer();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        serializer.setOutputStream(outputStream);
+        serializer.setOutputProperty(Property.INDENT, "yes");
+        serializer.serializeNode(new XdmNode((NodeInfo) source));
+        Source validationSource = new StreamSource(new ByteArrayInputStream(outputStream.toByteArray()));
         
         Validator validator = schema.newValidator();
         ValidatorErrorHandler errorHandler = new ValidatorErrorHandler("Step: " + ((step.getName() != null) ? step.getName() : "noname"));
         validator.setErrorHandler(errorHandler);
         
-        // validator.setFeature(name, value);
-        // validator.setProperty(name, object);
+        Properties properties = svStep.getProperties();
+        if (properties != null) {
+          @SuppressWarnings("rawtypes")
+          Enumeration names = properties.propertyNames();
+          while (names.hasMoreElements()) {
+            String name = (String) names.nextElement();
+            validator.setProperty(name, properties.getProperty(name));
+          }
+        }
         
-        validator.validate(source, result);
+        Properties features = svStep.getProperties();
+        if (features != null) {
+          @SuppressWarnings("rawtypes")
+          Enumeration names = features.propertyNames();
+          while (names.hasMoreElements()) {
+            String name = (String) names.nextElement();
+            validator.setProperty(name, features.getProperty(name));
+          }
+        }
         
-        source = new StreamSource(new ByteArrayInputStream(resultStream.toByteArray()));
+        validator.validate(validationSource);
         
         Source resultsSource = errorHandler.getValidationResults();
         if (resultsSource != null) {
@@ -352,14 +367,9 @@ public class XSLWebServlet extends HttpServlet {
       } else if (step instanceof SchematronValidatorStep) {
         SchematronValidatorStep svStep = (SchematronValidatorStep) step;
         
-        if (!(source instanceof NodeInfo)) {
-          Xslt30Transformer identityTransformer = webApp.getTemplates(
-            new File(homeDir, "common/xsl/system/identity/identity.xsl").getAbsolutePath(), errorListener).load30();
-          XdmDestination dest = new XdmDestination();
-          identityTransformer.applyTemplates(source, dest);
-          source = dest.getXdmNode().asSource();
-        }
-        
+        source = makeNodeInfoSource(source, webApp, errorListener);
+        destination = null;
+       
         /* Execute schematron validation */
         XsltExecutable templates = webApp.getSchematron(svStep.getSchematronPath(), errorListener); 
         Xslt30Transformer transformer = templates.load30();
