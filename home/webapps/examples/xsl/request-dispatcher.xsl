@@ -265,7 +265,14 @@
       <pipeline:fop-serializer name="fop" log="true"/>  
     </pipeline:pipeline>
   </xsl:template>
- 
+  
+  <!-- Example 25: XSLT 3.0 exception handling with Saxon PE/EE -->
+  <xsl:template match="/req:request[req:path = '/saxon-xslt3-pe.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="saxon-xslt3-pe" xsl-path="saxon-xslt3-pe/saxon-xslt3-pe.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
   <!-- Authentication functions called from basic-authentication.xsl: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    
     <xsl:param name="request" as="document-node()"/>       

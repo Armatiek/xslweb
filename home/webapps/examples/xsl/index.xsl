@@ -121,6 +121,9 @@
               <li>
                 <a href="{$path}/fop-serialization.pdf">Apache FOP/PDF serialization</a>
               </li>
+              <li>
+                <a href="{$path}/saxon-xslt3-pe.html">XSLT 3.0 exception handling with Saxon PE/EE</a>
+              </li>
             </ol>
           </div>
         </div>

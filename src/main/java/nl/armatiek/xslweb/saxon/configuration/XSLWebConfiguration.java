@@ -53,18 +53,21 @@ public class XSLWebConfiguration {
   private Configuration createConfiguration() throws IOException {
     File licenseFile = new File(Context.getInstance().getHomeDir(), "config/saxon-license.lic");
     String className = "net.sf.saxon.Configuration";
+    String edition = "HE";
     if (licenseFile.isFile()) {
       Properties props = XSLWebUtils.readProperties(licenseFile);
-      String edition = props.getProperty("Edition", "-");
+      edition = props.getProperty("Edition", edition);
       if (edition.equals("PE")) {
         className = "com.saxonica.config.ProfessionalConfiguration";
       } else if (edition.equals("EE")) {
         className = "com.saxonica.config.EnterpriseConfiguration";
       }
-      Configuration config = Configuration.makeLicensedConfiguration(this.getClass().getClassLoader(), className);
+      logger.info("Creating Saxon " + edition + " configuration ...");
+      this.config = Configuration.makeLicensedConfiguration(this.getClass().getClassLoader(), className);
       config.setConfigurationProperty(FeatureKeys.LICENSE_FILE_LOCATION, licenseFile.getAbsolutePath());
     } else {
-      config = new Configuration();
+      logger.info("Creating Saxon " + edition + " configuration ...");
+      this.config = new Configuration();
     }
     return config;
   }
