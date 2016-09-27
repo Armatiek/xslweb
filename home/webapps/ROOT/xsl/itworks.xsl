@@ -31,7 +31,7 @@
       </head>
       <body>        
         <h1>It works!</h1>        
-        <p>Go to the <a href="{/*/req:context-path}/documentation/XSLWeb-1_1-Quick-Start-Guide.pdf">documentation</a> (in PDF) 
+        <p>Go to the <a href="{/*/req:context-path}/documentation/XSLWeb-2_0-Quick-Start-Guide.pdf">documentation</a> (in PDF) 
           or to the <a href="{/*/req:context-path}/examples">examples</a></p>
         <br/>        
         <p><i>XSLWeb version <xsl:value-of select="$config:xslweb.version"/></i></p>
