@@ -199,7 +199,11 @@
   <xsl:template match="/req:request[req:path = '/json-serialization.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="json-serialization" xsl-path="json/json-serialization.xsl" log="true"/>
-      <pipeline:json-serializer name="json" log="true"/>  
+      <pipeline:json-serializer 
+        name="json" 
+        log="true"
+        auto-array="false"
+        pretty-print="true"/>  
     </pipeline:pipeline>
   </xsl:template>
   
@@ -259,7 +263,7 @@
   </xsl:template>
   
   <!-- Example 24: Apache FOP/PDF serialization -->
-  <xsl:template match="/req:request[req:path = '/fop-serialization.pdf']">    
+  <xsl:template name="fop-serialization" match="/req:request[req:path = '/fop-serialization.pdf']">    
     <pipeline:pipeline>
       <pipeline:transformer name="fop-serialization" xsl-path="fop/fop-serialization.xsl" log="true"/>
       <pipeline:fop-serializer name="fop" log="true"/>  
@@ -267,9 +271,36 @@
   </xsl:template>
   
   <!-- Example 25: XSLT 3.0 exception handling with Saxon PE/EE -->
-  <xsl:template match="/req:request[req:path = '/saxon-xslt3-pe.html']">    
+  <xsl:template name="saxon-xslt3-pe" match="/req:request[req:path = '/saxon-xslt3-pe.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="saxon-xslt3-pe" xsl-path="saxon-xslt3-pe/saxon-xslt3-pe.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <!-- Example 26: XML Validation -->
+  <xsl:template name="xml-validation" match="/req:request[req:path = '/xml-validation.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="generate-sample" xsl-path="xml-validation/generate-sample.xsl" log="true"/>   
+      
+      <!-- First validate using XML schema: -->
+      <pipeline:schema-validator 
+        name="schema-validator" 
+        xsl-param-namespace="http://www.armatiek.com/xslweb/validation" 
+        xsl-param-name="schema-validation-report">
+        <pipeline:schema-paths>
+          <pipeline:schema-path>example-26.xsd</pipeline:schema-path>  
+        </pipeline:schema-paths>
+      </pipeline:schema-validator>
+      
+      <!-- Then validate using Schematron: -->
+      <pipeline:schematron-validator 
+        name="schematron-validator" 
+        schematron-path="example-26.sch" 
+        xsl-param-namespace="http://www.armatiek.com/xslweb/validation" 
+        xsl-param-name="schematron-validation-report"/>
+      
+      <pipeline:transformer name="validation-report" xsl-path="xml-validation/validation-report.xsl"/>
+      
     </pipeline:pipeline>
   </xsl:template>
   

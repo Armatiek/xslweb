@@ -33,7 +33,9 @@
             <title>
               <xsl:call-template name="title"/>
             </title>
-            <xsl:variable name="base-path" select="concat(/*/req:context-path, /*/req:webapp-path)" as="xs:string"/>
+            <xsl:variable name="base-path" as="xs:string">
+              <xsl:call-template name="base-path"/>
+            </xsl:variable>
             <link href="{$base-path}/styles/google-code-prettify/xslweb.css" type="text/css" rel="stylesheet"/>
             <link href="{$base-path}/styles/jquery-ui/jquery-ui.min.css" type="text/css" rel="stylesheet"/>
             <link href="{$base-path}/styles/xslweb/base.css" type="text/css" rel="stylesheet"/>
@@ -53,6 +55,10 @@
         </html>
       </resp:body>
     </resp:response>          
+  </xsl:template>
+  
+  <xsl:template name="base-path" as="xs:string">
+    <xsl:value-of select="concat(/*/req:context-path, /*/req:webapp-path)"/>
   </xsl:template>
   
   <xsl:template name="headers" as="element()?"/>

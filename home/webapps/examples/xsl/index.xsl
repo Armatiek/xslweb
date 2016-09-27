@@ -124,6 +124,9 @@
               <li>
                 <a href="{$path}/saxon-xslt3-pe.html">XSLT 3.0 exception handling with Saxon PE/EE</a>
               </li>
+              <li>
+                <a href="{$path}/xml-validation.html">XML validation with XML Schema and Schematron</a>
+              </li>
             </ol>
           </div>
         </div>
