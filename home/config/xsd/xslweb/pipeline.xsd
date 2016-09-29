@@ -82,6 +82,7 @@
             <xs:complexType>
               <xs:attribute name="name" type="xs:string" use="optional"/>
               <xs:attribute name="schematron-path" type="xs:string" use="required"/>
+              <xs:attribute name="phase" type="xs:string" use="optional"/>
               <xs:attribute name="xsl-param-name" type="xs:string" use="optional"/>
               <xs:attribute name="xsl-param-namespace" type="xs:string" use="optional"/>
               <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
@@ -91,8 +92,31 @@
         <xs:choice minOccurs="0">
           <xs:element name="json-serializer">
             <xs:complexType>
+              <xs:sequence>
+                <xs:element minOccurs="0" name="namespace-declarations">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="namespace-declaration" maxOccurs="unbounded">
+                        <xs:complexType>
+                          <xs:attribute name="namespace-uri" type="xs:string" use="optional"/>
+                          <xs:attribute name="name" type="xs:string" use="required"/>
+                        </xs:complexType>
+                      </xs:element>
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>  
+              </xs:sequence>
               <xs:attribute name="name" type="xs:string" use="optional"/>
               <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
+              <xs:attribute name="auto-array" type="xs:boolean" use="optional" default="false"/>
+              <xs:attribute name="auto-primitive" type="xs:boolean" use="optional" default="false"/>
+              <xs:attribute name="multi-pi" type="xs:boolean" use="optional" default="true"/>
+              <xs:attribute name="namespace-declarations" type="xs:boolean" use="optional" default="true"/>
+              <xs:attribute name="namespace-separator" type="xs:string" use="optional" default=":"/>
+              <xs:attribute name="pretty-print" type="xs:boolean" use="optional" default="false"/>
+              <xs:attribute name="virtual-root-namespace" type="xs:string" use="optional"/>
+              <xs:attribute name="virtual-root-name" type="xs:string" use="optional"/>
+              <xs:attribute name="repairing-namespaces" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
           </xs:element>
           <xs:element name="zip-serializer">
