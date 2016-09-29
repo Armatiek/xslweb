@@ -25,6 +25,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.ProxySelector;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,8 +42,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.ErrorListener;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -97,6 +102,7 @@ import net.sf.ehcache.config.PersistenceConfiguration;
 import net.sf.ehcache.config.PersistenceConfiguration.Strategy;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 import net.sf.saxon.Configuration;
+import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.XdmDestination;
@@ -506,11 +512,11 @@ public class WebApp implements ErrorHandler {
     return trySchemaCache(resolvedPaths, errorListener);
   }
   
-  public XsltExecutable getSchematron(String path, ErrorListener errorListener) throws Exception {    
+  public XsltExecutable getSchematron(String path, String phase, ErrorListener errorListener) throws Exception {    
     if (new File(path).isAbsolute()) {
-      return trySchematronCache(path, errorListener);
+      return trySchematronCache(path, phase, errorListener);
     }    
-    return trySchematronCache(new File(getHomeDir(), "sch" + "/" + path).getAbsolutePath(), errorListener);
+    return trySchematronCache(new File(getHomeDir(), "sch" + "/" + path).getAbsolutePath(), phase, errorListener);
   }
   
   public File getStaticFile(String path) {    
@@ -588,9 +594,9 @@ public class WebApp implements ErrorHandler {
     return schema;
   }
   
-  public XsltExecutable trySchematronCache(String schematronPath,  
+  public XsltExecutable trySchematronCache(String schematronPath, String phase, 
       ErrorListener errorListener) throws Exception {
-    String key = FilenameUtils.normalize(schematronPath);
+    String key = FilenameUtils.normalize(schematronPath) + (phase != null ? phase : "");
     XsltExecutable templates = templatesCache.get(key);    
     if (templates == null) {
       logger.info("Compiling and caching schematron schema \"" + schematronPath + "\" ...");                 
@@ -610,20 +616,32 @@ public class WebApp implements ErrorHandler {
         Xslt30Transformer stage3 = tryTemplatesCache(new File(schematronDir, "iso_svrl_for_xslt2.xsl").getAbsolutePath(), errorListener).load30();
         stage3.setErrorListener(listener);
         stage3.getUnderlyingController().setMessageEmitter(messageWarner);
-        
+       
         XdmDestination destStage1 = new XdmDestination();
         XdmDestination destStage2 = new XdmDestination();
         XdmDestination destStage3 = new XdmDestination();
 
         stage1.applyTemplates(source, destStage1);
-        // stage2.setGlobalContextItem(destStage1.getXdmNode());
         stage2.applyTemplates(destStage1.getXdmNode().asSource(), destStage2);
-        // stage3.setGlobalContextItem(destStage2.getXdmNode());
         stage3.applyTemplates(destStage2.getXdmNode().asSource(), destStage3);
+        
+        Source generatedXsltSource = destStage3.getXdmNode().asSource();
+        
+        if (this.developmentMode) {
+          TransformerFactory factory = new TransformerFactoryImpl();
+          Transformer transformer = factory.newTransformer();
+          Properties props = new Properties();
+          props.put(OutputKeys.INDENT, "yes");
+          transformer.setOutputProperties(props);
+          StringWriter sw = new StringWriter();
+          transformer.transform(generatedXsltSource, new StreamResult(sw));
+          logger.info("Generated Schematron XSLT for \"" + schematronPath + "\", phase \"" + (phase != null ? phase : "") + "\" [" + sw.toString() + "]");
+        }
+        
         
         XsltCompiler comp = processor.newXsltCompiler();
         comp.setErrorListener(errorListener);
-        templates = comp.compile(destStage3.getXdmNode().asSource());
+        templates = comp.compile(generatedXsltSource);
         
       } catch (Exception e) {
         logger.error("Could not compile schematron schema \"" + schematronPath + "\"", e);
