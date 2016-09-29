@@ -177,7 +177,7 @@
 		<xsl:otherwise>#ALL</xsl:otherwise>
 	</xsl:choose>
 </xsl:param>
-<xsl:param name="allow-foreign">false</xsl:param>
+<xsl:param name="allow-foreign">true</xsl:param>
 <xsl:param name="generate-paths">true</xsl:param>
 <xsl:param name="generate-fired-rule">true</xsl:param>
 <xsl:param name="optimize" />
