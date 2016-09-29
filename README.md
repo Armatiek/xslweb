@@ -4,6 +4,12 @@ XSLWeb is an open source and free to use web development framework for XSLT deve
 
 Using XSLWeb, XSLT developers can develop both web applications (dynamic websites) and web services. In essence, an XSLWeb web application is a set of XSLT stylesheets that transform an XML representation of the HTTP request (the *Request XML*) to an XML representation of the HTTP response (the *Response XML*). Which specific XSLT stylesheet or pipeline of XSLT stylesheets must be executed for a particular HTTP request is governed by another XSLT stylesheet, the request dispatcher stylesheet.
 
-During transformations, data sources can be accessed using built-in extension functions that provide HTTP communication (for example to consume REST or SOAP based web services), file and directory access, relational database access and so on.
+After every XSLT transformation step, an optional validation pipeline step (XML Schema or Schematron) can be added to validate the result of the previous transformation step.
 
-See [Quick Start Guide](https://github.com/Armatiek/xslweb/blob/master/docs/XSLWeb_1_1_Quick_Start.pdf).
+During transformations, data sources can be accessed using a built-in library of extension functions that provide HTTP communication (for example to consume REST or SOAP based web services), file and directory access, relational database access and so on.
+
+The result of a pipeline can be serialized to XML, (X)HTML or plain text and using specific serializer pipeline steps to JSON, ZIP files, PDF, Postscript or RTF (using XSL:FO and Apache FOP).
+
+See [Quick Start Guide](https://github.com/Armatiek/xslweb/blob/master/docs/XSLWeb_2_0_Quick_Start.pdf).
+
+![XSLWeb HTTP request to response flow]https://github.com/Armatiek/xslweb/blob/master/docs/xslweb_flow.png)
