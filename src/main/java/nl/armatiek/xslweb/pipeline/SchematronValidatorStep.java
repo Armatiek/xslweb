@@ -22,13 +22,16 @@ public class SchematronValidatorStep extends PipelineStep {
   private String schematronPath;
   private String xslParamName;
   private String xslParamNamespace;
+  private String phase;
+  
     
   public SchematronValidatorStep(String name, String schematronPath, boolean log, 
-      String xslParamNamespace, String xslParamName) {
+      String xslParamNamespace, String xslParamName, String phase) {
     super(name, log);
     this.schematronPath = schematronPath;
     this.xslParamNamespace = xslParamNamespace;
     this.xslParamName = xslParamName;
+    this.phase = phase;
   }
   
   public String getXslParamName() {
@@ -41,6 +44,10 @@ public class SchematronValidatorStep extends PipelineStep {
     
   public String getSchematronPath() {    
     return schematronPath;
+  }
+  
+  public String getPhase() {    
+    return phase;
   }
   
 }

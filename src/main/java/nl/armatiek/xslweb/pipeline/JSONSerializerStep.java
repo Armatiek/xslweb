@@ -18,10 +18,14 @@ package nl.armatiek.xslweb.pipeline;
  */
 
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 
@@ -36,16 +40,52 @@ import nl.armatiek.xslweb.configuration.WebApp;
 
 public class JSONSerializerStep extends SerializerStep {
   
+  private boolean autoArray;
+  private boolean autoPrimitive;
+  private boolean multiplePI;
+  private boolean namespaceDeclarations;
+  private char namespaceSeparator;
+  private boolean prettyPrint;
+  private QName virtualRoot;
+  private boolean repairingNamespaces;
+  private Map<String, String> namespaceMappings = new HashMap<String, String>();
+  
   public JSONSerializerStep(Attributes atts) {
-    super(atts);            
+    super(atts);
+    this.autoArray = Boolean.parseBoolean(getAttribute(atts, "auto-array", "false"));
+    this.autoPrimitive = Boolean.parseBoolean(getAttribute(atts, "auto-primitive", "false"));
+    this.multiplePI = Boolean.parseBoolean(getAttribute(atts, "multi-pi", "true"));
+    this.namespaceDeclarations = Boolean.parseBoolean(getAttribute(atts, "namespace-declarations", "true"));
+    this.namespaceSeparator = getAttribute(atts, "namespace-separator", ":").charAt(0);
+    this.prettyPrint = Boolean.parseBoolean(getAttribute(atts, "pretty-print", "false"));
+    String name = getAttribute(atts, "virtual-root-name", null);
+    if (name != null) {
+      this.virtualRoot = new QName(getAttribute(atts, "virtual-root-namespace", XMLConstants.NULL_NS_URI), name);
+    }
+    this.repairingNamespaces = Boolean.parseBoolean(getAttribute(atts, "repairing-namespaces", "false"));
+  }
+  
+  public void addNamespaceDeclaration(String namespace, String name) {
+    if (namespaceMappings == null) {
+      namespaceMappings = new HashMap<String, String>();
+    }
+    namespaceMappings.put(namespace, name);
   }
   
   @Override
   public Destination getDestination(WebApp webApp, HttpServletRequest req, 
-      HttpServletResponse resp, OutputStream os, Properties outputProperties) throws XMLStreamException {              
-    JsonXMLConfig config = new JsonXMLConfigBuilder().        
-        prettyPrint(true).
-        build();    
+      HttpServletResponse resp, OutputStream os, Properties outputProperties) throws XMLStreamException {
+    JsonXMLConfig config = new JsonXMLConfigBuilder()
+        .autoArray(autoArray)
+        .autoPrimitive(autoPrimitive)
+        .multiplePI(multiplePI)
+        .namespaceDeclarations(namespaceDeclarations)
+        .namespaceSeparator(namespaceSeparator)
+        .prettyPrint(prettyPrint)
+        .virtualRoot(virtualRoot)
+        .repairingNamespaces(repairingNamespaces)
+        .namespaceMappings(namespaceMappings)
+        .build();
     XMLOutputFactory factory = new JsonXMLOutputFactory(config);
     return new XMLStreamWriterDestination(factory.createXMLStreamWriter(os, outputProperties.getProperty("encoding", "UTF-8")));            
   }

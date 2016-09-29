@@ -184,9 +184,10 @@ public class PipelineHandler implements ContentHandler {
           String name = getAttribute(atts, "name", "validator-" + Integer.toString(pipelineSteps.size()+1));
           boolean log = getAttribute(atts, "log", "false").equals("true");
           String schematronPath = getAttribute(atts, "schematron-path", null);
+          String phase = getAttribute(atts, "phase", null);
           String xslParamName = getAttribute(atts, "xsl-param-name", null);
           String xslParamNamespace = getAttribute(atts, "xsl-param-namespace", null);
-          pipelineSteps.add(new SchematronValidatorStep(name, schematronPath, log, xslParamNamespace, xslParamName));
+          pipelineSteps.add(new SchematronValidatorStep(name, schematronPath, log, xslParamNamespace, xslParamName, phase));
         } else if (localName.equals("schema-path")) {
         } else if (localName.equals("schema-paths")) {
         } else if (localName.equals("pipeline")) {
@@ -201,6 +202,9 @@ public class PipelineHandler implements ContentHandler {
         } else if (localName.equals("json-serializer")) {                                      
           JSONSerializerStep step = new JSONSerializerStep(atts);
           pipelineSteps.add(step);
+        } else if (localName.equals("namespace-declarations")) {
+        } else if (localName.equals("namespace-declaration")) {
+          ((JSONSerializerStep) pipelineSteps.peek()).addNamespaceDeclaration(getAttribute(atts, "namespace-uri", null), getAttribute(atts, "name", null));
         } else if (localName.equals("zip-serializer")) {                                       
           ZipSerializerStep step = new ZipSerializerStep(atts);
           pipelineSteps.add(step);
