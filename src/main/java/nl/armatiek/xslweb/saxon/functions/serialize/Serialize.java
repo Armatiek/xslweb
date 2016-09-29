@@ -57,7 +57,7 @@ public class Serialize extends ExtensionFunctionDefinition {
 
   @Override
   public SequenceType[] getArgumentTypes() {
-    return new SequenceType[] { SequenceType.ANY_SEQUENCE, SequenceType.SINGLE_NODE };
+    return new SequenceType[] { SequenceType.ANY_SEQUENCE, SequenceType.OPTIONAL_NODE };
   }
 
   @Override
