@@ -27,6 +27,8 @@ import java.io.FileNotFoundException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.ProxySelector;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.net.ssl.SSLContext;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -67,7 +70,15 @@ import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fop.apps.FopFactory;
 import org.apache.http.HttpHost;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLContextBuilder;
+import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -476,7 +487,30 @@ public class WebApp implements ErrorHandler {
   
   public CloseableHttpClient getHttpClient() {    
     if (httpClient == null) {
-      PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+      PoolingHttpClientConnectionManager cm;
+      if (Context.getInstance().getTrustAllCerts()) {
+        try {
+          SSLContextBuilder scb = SSLContexts.custom();
+          scb.loadTrustMaterial(null, new TrustStrategy() {
+            @Override
+            public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+              return true;
+            }
+          });
+          SSLContext sslContext = scb.build();
+          SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+          Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create()
+              .register("https", sslsf)
+              .register("http", new PlainConnectionSocketFactory())
+              .build();
+          cm = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+        } catch (Exception e) {
+          logger.warn("Could not set HttpClient to trust all SSL certificates", e);
+          cm = new PoolingHttpClientConnectionManager();
+        }
+      } else {
+        cm = new PoolingHttpClientConnectionManager();
+      }
       cm.setMaxTotal(200);
       cm.setDefaultMaxPerRoute(20);
       HttpHost localhost = new HttpHost("localhost", 80);

@@ -73,6 +73,7 @@ public class Context {
   private Schema webAppSchema;
   private Properties properties;
   private boolean parserHardening;
+  private boolean trustAllCerts;
   private String contextPath;
   private File webInfDir; 
   private File homeDir;
@@ -171,7 +172,7 @@ public class Context {
   private void initProperties() throws Exception {
     File propsFile = new File(homeDir, "config" + File.separatorChar + Definitions.FILENAME_PROPERTIES);
     this.properties = XSLWebUtils.readProperties(propsFile);
-    boolean trustAllCerts = new Boolean(properties.getProperty(Definitions.PROPERTYNAME_TRUST_ALL_CERTS, "false")).booleanValue();
+    this.trustAllCerts = new Boolean(properties.getProperty(Definitions.PROPERTYNAME_TRUST_ALL_CERTS, "false"));
     if (trustAllCerts) {
       TrustManager[] trustAllCertsManager = new TrustManager[] { new X509TrustManager() {
         public java.security.cert.X509Certificate[] getAcceptedIssuers() { return null; }
@@ -312,6 +313,10 @@ public class Context {
   
   public boolean getParserHardening() {     
     return this.parserHardening;    
+  }
+  
+  public boolean getTrustAllCerts() {     
+    return this.trustAllCerts;    
   }
   
   public Schema getWebAppSchema() {
