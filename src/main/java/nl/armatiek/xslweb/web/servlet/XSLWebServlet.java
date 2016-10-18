@@ -73,6 +73,7 @@ import nl.armatiek.xslweb.pipeline.FopSerializerStep;
 import nl.armatiek.xslweb.pipeline.JSONSerializerStep;
 import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.pipeline.PipelineStep;
+import nl.armatiek.xslweb.pipeline.ResourceSerializerStep;
 import nl.armatiek.xslweb.pipeline.ResponseStep;
 import nl.armatiek.xslweb.pipeline.SchemaValidatorStep;
 import nl.armatiek.xslweb.pipeline.SchematronValidatorStep;
@@ -236,6 +237,8 @@ public class XSLWebServlet extends HttpServlet {
       dest = ((JSONSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);             
     } else if (nextStep instanceof ZipSerializerStep) {
       dest = ((ZipSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);
+    } else if (nextStep instanceof ResourceSerializerStep) {
+      dest = ((ResourceSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);
     } else if (nextStep instanceof FopSerializerStep) {
       dest = ((FopSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);
     } else {

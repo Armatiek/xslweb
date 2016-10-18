@@ -127,6 +127,9 @@
               <li>
                 <a href="{$path}/xml-validation.html">XML validation with XML Schema and Schematron</a>
               </li>
+              <li>
+                <a href="{$path}/resource-serialization.jpg">Resource serialization (download of custom resources)</a>
+              </li>
             </ol>
           </div>
         </div>

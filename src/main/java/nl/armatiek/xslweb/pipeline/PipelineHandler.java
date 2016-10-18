@@ -208,6 +208,9 @@ public class PipelineHandler implements ContentHandler {
         } else if (localName.equals("zip-serializer")) {                                       
           ZipSerializerStep step = new ZipSerializerStep(atts);
           pipelineSteps.add(step);
+        } else if (localName.equals("resource-serializer")) {
+          ResourceSerializerStep step = new ResourceSerializerStep(atts);
+          pipelineSteps.add(step);
         } else if (localName.equals("fop-serializer")) {
           FopSerializerStep step = new FopSerializerStep(atts);
           pipelineSteps.add(step);

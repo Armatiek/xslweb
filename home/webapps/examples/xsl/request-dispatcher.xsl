@@ -304,6 +304,14 @@
     </pipeline:pipeline>
   </xsl:template>
   
+  <!-- Example 27: Resource serialization -->
+  <xsl:template name="resource-serialization" match="/req:request[req:path = '/resource-serialization.jpg']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="fop-serialization" xsl-path="resource/resource-serialization.xsl" log="true"/>
+      <pipeline:resource-serializer name="resource" log="false"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
   <!-- Authentication functions called from basic-authentication.xsl: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    
     <xsl:param name="request" as="document-node()"/>       

@@ -50,6 +50,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.medsea.mimeutil.MimeUtil;
 import net.sf.ehcache.CacheManager;
 import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
@@ -95,7 +96,8 @@ public class Context {
     logger.info("Opening XSLWeb Context ...");
     
     initHomeDir();      
-    initProperties();      
+    initProperties();
+    initMimeUtil();
     initXMLSchemas();
     initFileAlterationObservers();
     initCacheManager();
@@ -123,6 +125,10 @@ public class Context {
     
     logger.info("Shutting down cache manager ...");
     cacheManager.shutdown();
+    
+    logger.info("Unregistering MIME detectors ...");
+    MimeUtil.unregisterMimeDetector("eu.medsea.mimeutil.detector.ExtensionMimeDetector");
+    MimeUtil.unregisterMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
         
     logger.info("XSLWeb Context closed.");
   }
@@ -184,6 +190,12 @@ public class Context {
       HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
     }
     this.parserHardening = new Boolean(this.properties.getProperty(Definitions.PROPERTYNAME_PARSER_HARDENING, "false"));
+  }
+  
+  private void initMimeUtil() {
+    logger.info("Registering MIME detectors ...");
+    MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.ExtensionMimeDetector");
+    MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
   }
   
   private void initXMLSchemas() throws Exception {   
