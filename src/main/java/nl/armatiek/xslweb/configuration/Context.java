@@ -336,7 +336,12 @@ public class Context {
   }
   
   public WebApp getWebApp(String path) {
-    String name = StringUtils.substringBefore(path.substring(1), "/");
+    String name;
+    if (StringUtils.isBlank(path)) {
+      name = "ROOT";
+    } else {
+      name = StringUtils.substringBefore(path.substring(1), "/");
+    }
     WebApp webApp = webApps.get(name);
     if (webApp == null) {
       webApp = webApps.get("ROOT");
