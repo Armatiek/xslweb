@@ -57,6 +57,7 @@ public class SaxonResult implements Result {
   @Override
   public void add(Source src) throws HttpClientException {
     try {
+      @SuppressWarnings("deprecation")
       Item doc = myCtxt.getConfiguration().buildDocument(src);
       myItems.add(doc);
     } catch (XPathException ex) {

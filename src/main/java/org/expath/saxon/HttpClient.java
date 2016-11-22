@@ -11,16 +11,10 @@ package org.expath.saxon;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import net.sf.saxon.expr.XPathContext;
-import net.sf.saxon.om.NodeInfo;
-import net.sf.saxon.om.SequenceIterator;
-import net.sf.saxon.trans.XPathException;
-
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.expath.httpclient.HttpClientException;
 import org.expath.httpclient.HttpConnection;
 import org.expath.httpclient.HttpRequest;
-import org.expath.httpclient.HttpResponse;
 import org.expath.httpclient.impl.ApacheHttpConnection;
 import org.expath.httpclient.impl.RequestParser;
 import org.expath.httpclient.model.Element;
@@ -28,6 +22,11 @@ import org.expath.httpclient.model.Sequence;
 import org.expath.httpclient.saxon.SaxonElement;
 import org.expath.httpclient.saxon.SaxonResult;
 import org.expath.httpclient.saxon.SaxonSequence;
+
+import net.sf.saxon.expr.XPathContext;
+import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.om.SequenceIterator;
+import net.sf.saxon.trans.XPathException;
 
 /**
  * EXPath module http-client, for Saxon.
@@ -113,6 +112,8 @@ public class HttpClient {
     SaxonResult result = new SaxonResult(ctxt);
     HttpConnection conn = new ApacheHttpConnection(uri);
     try {
+      request.send(result, conn, parser.getCredentials(), httpClient);
+      /*
       if (parser.getSendAuth()) {
         request.send(result, conn, parser.getCredentials(), httpClient);
       } else {
@@ -125,6 +126,7 @@ public class HttpClient {
           request.send(result, conn, parser.getCredentials(), httpClient);
         }
       }
+      */
     } finally {
       conn.disconnect();
     }

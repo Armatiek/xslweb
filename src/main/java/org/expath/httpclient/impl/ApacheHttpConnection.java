@@ -18,14 +18,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -37,14 +33,14 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentProducer;
 import org.apache.http.entity.EntityTemplate;
+import org.apache.http.impl.auth.AuthSchemeBase;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.protocol.HttpContext;
 import org.expath.httpclient.HeaderSet;
 import org.expath.httpclient.HttpClientException;
 import org.expath.httpclient.HttpConnection;
@@ -69,7 +65,7 @@ public class ApacheHttpConnection implements HttpConnection {
 
   public void connect(HttpRequestBody body, HttpCredentials cred, CloseableHttpClient httpClient) throws HttpClientException {
     try {
-      HttpContext context = getHttpContext(cred);
+      // HttpContext context = getHttpContext(cred);
       // set the request entity body (if any)
       setRequestEntity(body);
 
@@ -80,13 +76,23 @@ public class ApacheHttpConnection implements HttpConnection {
         LoggerHelper.logHeaders(LOG, "REQ HEADERS", headers);
         LoggerHelper.logCookies(LOG, "COOKIES", COOKIES.getCookies());
       }
-      // send the request
-      if (context == null) {
-        myResponse = httpClient.execute(myRequest);
-      } else {
-        myResponse = httpClient.execute(myRequest, context);
+      
+      if (cred != null) {
+        UsernamePasswordCredentials creds = new UsernamePasswordCredentials(cred.getUser(), cred.getPwd());
+        AuthSchemeBase scheme = null;
+        String method = (cred.getMethod() == null) ? "BASIC" : cred.getMethod().toUpperCase();
+        if (method.equals("BASIC")) {
+          scheme = new BasicScheme();
+        } else if (method.equals("DIGEST")) {
+          scheme = new DigestScheme();
+        } else {
+          throw new HttpClientException("Authentication method \"" + method + "\" not supported"); 
+        }
+        myRequest.addHeader(scheme.authenticate(creds, myRequest, null));
       }
-
+      
+      myResponse = httpClient.execute(myRequest);
+      
       // TODO: Handle 'Connection' headers (for instance "Connection: close")
       // See for instance http://www.jmarshall.com/easy/http/.
       // ...
@@ -97,8 +103,8 @@ public class ApacheHttpConnection implements HttpConnection {
         LoggerHelper.logHeaders(LOG, "RESP HEADERS", headers);
         LoggerHelper.logCookies(LOG, "COOKIES", COOKIES.getCookies());
       }
-    } catch (IOException ex) {
-      throw new HttpClientException("Error executing the HTTP method: " + ex.getMessage(), ex);
+    } catch (Exception e) {
+      throw new HttpClientException("Error executing the HTTP method: " + e.getMessage(), e);
     }
   }
 
@@ -256,6 +262,7 @@ public class ApacheHttpConnection implements HttpConnection {
    * Set the credentials on the client, based on the {@link HttpCredentials}
    * object.
    */
+  /*
   private HttpContext getHttpContext(HttpCredentials cred) throws HttpClientException {
     if (cred == null) {
       return null;
@@ -285,19 +292,10 @@ public class ApacheHttpConnection implements HttpConnection {
 
     CredentialsProvider credsProvider = new BasicCredentialsProvider();
     credsProvider.setCredentials(scope, c);
-    /*
-     * AuthCache authCache = new BasicAuthCache(); String method =
-     * cred.getMethod().toLowerCase(); if (method.equals("basic")) { BasicScheme
-     * basicAuth = new BasicScheme(); authCache.put(targetHost, basicAuth); }
-     * else if (method.equals("digest")) { DigestScheme digestAuth = new
-     * DigestScheme(); authCache.put(targetHost, digestAuth); } else throw new
-     * HttpClientException
-     * (String.format("Authentication method %s not supported",
-     * cred.getMethod())); context.setAuthCache(authCache);
-     */
     context.setCredentialsProvider(credsProvider);
     return context;
   }
+  */
 
   /**
    * Configure the request to get its entity body from the
