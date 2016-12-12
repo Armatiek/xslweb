@@ -350,7 +350,7 @@ public class WebApp implements ErrorHandler {
     logger.info("Clearing compiled schemas cache ...");
     schemaCache.clear();
     
-    Thread.sleep(1000);
+    Thread.sleep(250);
     
     logger.info(String.format("Webapp \"%s\" closed.", name));
   }
