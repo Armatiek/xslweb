@@ -252,7 +252,8 @@ public class RequestSerializer {
   }
   
   private void serializeBody(List<FileItem> fileItems) throws Exception {
-    if (!req.getMethod().equals("POST") || fileItems != null) {
+    String method = req.getMethod().toUpperCase();
+    if (!(method.equals("POST") || method.equals("PUT")) || fileItems != null) {
       return;
     }    
     PushbackReader pushbackReader = new PushbackReader(req.getReader());    
