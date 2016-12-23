@@ -9,6 +9,7 @@ import org.apache.commons.exec.Executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.Item;
@@ -16,6 +17,7 @@ import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
+import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.EmptySequence;
 import net.sf.saxon.value.Int64Value;
@@ -47,17 +49,16 @@ public class ExecExternal extends ExtensionFunctionDefinition {
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 5;
+    return 4;
   }
 
   @Override
   public SequenceType[] getArgumentTypes() {
-    // commandline, (args), exitValue, watchdog, async
+    // commandline, (args), watchdog, async
     return new SequenceType[] { 
-        SequenceType.SINGLE_STRING, 
-        SequenceType.STRING_SEQUENCE,
-        SequenceType.SINGLE_INTEGER,
-        SequenceType.SINGLE_INTEGER,
+        SequenceType.SINGLE_STRING,
+        SequenceType.makeSequenceType(BuiltInAtomicType.STRING, StaticProperty.ALLOWS_ZERO_OR_MORE),
+        SequenceType.OPTIONAL_INTEGER,
         SequenceType.SINGLE_BOOLEAN};
   }
 
@@ -76,24 +77,22 @@ public class ExecExternal extends ExtensionFunctionDefinition {
     @Override
     public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {                                  
       final CommandLine cmdLine = new CommandLine(((StringValue) arguments[0].head()).getStringValue());      
-      SequenceIterator args = arguments[1].iterate();      
-      Item arg;
-      while ((arg = args.next()) != null) {
-        cmdLine.addArgument(((StringValue) arg).getStringValue());
-      }            
-      Executor executor = new DefaultExecutor();
-      Item exitValue;
-      if ((exitValue = arguments[2].head()) != null) {
-        executor.setExitValue((int) ((Int64Value) exitValue).longValue());
+      if (arguments.length > 1) {
+        SequenceIterator args = arguments[1].iterate();      
+        Item arg;
+        while ((arg = args.next()) != null) {
+          cmdLine.addArgument(((StringValue) arg).getStringValue());
+        }
       }
+      Executor executor = new DefaultExecutor();
       Item timeout;
-      if ((timeout = arguments[3].head()) != null) {
+      if (arguments.length > 2 && (timeout = arguments[2].head()) != null) {
         ExecuteWatchdog watchdog = new ExecuteWatchdog(((Int64Value) timeout).longValue());
         executor.setWatchdog(watchdog);                        
       }
       try {
         Item async;
-        if ((async = arguments[4].head()) != null && ((BooleanValue) async).getBooleanValue()) {                    
+        if (arguments.length > 3 && (async = arguments[3].head()) != null && ((BooleanValue) async).getBooleanValue()) {                    
           executor.execute(cmdLine, new ExecuteResultHandler() {
             @Override
             public void onProcessComplete(int exitValue) {
