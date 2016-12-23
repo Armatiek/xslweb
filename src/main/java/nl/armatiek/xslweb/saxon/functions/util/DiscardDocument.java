@@ -21,13 +21,14 @@ import net.sf.saxon.Controller;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.om.DocumentInfo;
 import net.sf.saxon.om.DocumentURI;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
+import net.sf.saxon.om.TreeInfo;
 import net.sf.saxon.om.ZeroOrOne;
 import net.sf.saxon.trans.XPathException;
+import net.sf.saxon.tree.tiny.TinyDocumentImpl;
 import net.sf.saxon.value.SequenceType;
 import nl.armatiek.xslweb.configuration.Definitions;
 
@@ -78,17 +79,17 @@ public class DiscardDocument extends ExtensionFunctionDefinition {
       if (arguments.length == 0) {
         return new ZeroOrOne<NodeInfo>(null);
       }
-      DocumentInfo doc = ((DocumentInfo) arguments[0].head()); 
+      TreeInfo doc = ((TinyDocumentImpl) arguments[0].head()).getTreeInfo(); 
       if (doc == null) {
         return new ZeroOrOne<NodeInfo>(null);
       }
       Controller c = context.getController();
-      String uri = c.getDocumentPool().getDocumentURI(doc);
+      String uri = c.getDocumentPool().getDocumentURI(doc.getRootNode());
       if (uri != null) {
         c.removeUnavailableOutputDestination(new DocumentURI(uri));
       }
-      c.getDocumentPool().discard(doc.getTreeInfo());
-      return new ZeroOrOne<NodeInfo>(doc);
+      c.getDocumentPool().discard(doc);
+      return new ZeroOrOne<NodeInfo>(doc.getRootNode());
     }
   }
 }
