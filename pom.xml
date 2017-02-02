@@ -43,6 +43,19 @@
   </properties>
   
   <repositories>
+    <!--
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <id>armatiek-repo</id>
+      <name>Armatiek Maven Repository</name>
+      <url>http://www.armatiek.nl/maven-repository</url>
+      <layout>default</layout>
+    </repository>
+    -->
     <repository>
       <releases>
         <enabled>true</enabled>
@@ -192,6 +205,13 @@
       <artifactId>httpcore</artifactId>
       <version>4.4.5</version>
     </dependency>
+    <!--
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+      <version>4.1</version>
+    </dependency>
+    -->
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>

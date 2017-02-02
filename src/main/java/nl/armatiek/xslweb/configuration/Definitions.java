@@ -77,6 +77,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_UTIL       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/util";
   public final static String NAMESPACEURI_XSLWEB_FX_ZIP        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/zip";
   public final static String NAMESPACEURI_XSLWEB_FX_EXEC       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/exec";
+  public final static String NAMESPACEURI_XSLWEB_FX_DIFF       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/diff";
   public final static String NAMESPACEURI_XSLWEB_REQUEST       = NAMESPACEURI_XSLWEB + "/request";
   public final static String NAMESPACEURI_XSLWEB_RESPONSE      = NAMESPACEURI_XSLWEB + "/response";
   public final static String NAMESPACEURI_XSLWEB_FX_SESSION    = NAMESPACEURI_XSLWEB + "/session";
