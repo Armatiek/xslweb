@@ -130,6 +130,9 @@
               <li>
                 <a href="{$path}/resource-serialization.jpg">Resource serialization (download of custom resources)</a>
               </li>
+              <li>
+                <a href="{$path}/diff.html">XML Differencing</a>
+              </li>
             </ol>
           </div>
         </div>

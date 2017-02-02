@@ -312,6 +312,13 @@
     </pipeline:pipeline>
   </xsl:template>
   
+  <!-- Example 28: XML Differencing -->
+  <xsl:template name="differencing" match="/req:request[req:path = '/diff.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="resource-serialization" xsl-path="diff/diff.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
   <!-- Authentication functions called from basic-authentication.xsl: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    
     <xsl:param name="request" as="document-node()"/>       
