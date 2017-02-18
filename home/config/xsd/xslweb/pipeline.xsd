@@ -1,42 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xslweb="http://www.armatiek.com/xslweb/pipeline" targetNamespace="http://www.armatiek.com/xslweb/pipeline" elementFormDefault="qualified">
+<xs:schema 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xslweb="http://www.armatiek.com/xslweb/pipeline" 
+  targetNamespace="http://www.armatiek.com/xslweb/pipeline" 
+  elementFormDefault="qualified">
+  
   <xs:import namespace="http://www.w3.org/2010/xslt-xquery-serialization" schemaLocation="../w3c/schema-for-serialization-parameters.xsd"/>
+  
   <xs:element name="pipeline">
     <xs:complexType>
       <xs:sequence>
         <xs:choice minOccurs="1" maxOccurs="unbounded">
+          
           <xs:element name="transformer">
             <xs:complexType>
               <xs:sequence>
-                <xs:element maxOccurs="unbounded" minOccurs="0" name="parameter">
-                  <xs:complexType>
-                    <xs:sequence>
-                      <xs:element maxOccurs="unbounded" name="value" type="xs:string"/>
-                    </xs:sequence>
-                    <xs:attribute name="uri" type="xs:anyURI"/>
-                    <xs:attribute name="name" type="xs:string" use="required"/>
-                    <xs:attribute name="type" use="required">
-                      <xs:simpleType>
-                        <xs:restriction base="xs:string">
-                          <xs:enumeration value="xs:string"/>
-                          <xs:enumeration value="xs:boolean"/>
-                          <xs:enumeration value="xs:integer"/>
-                          <xs:enumeration value="xs:double"/>
-                          <xs:enumeration value="xs:float"/>
-                          <xs:enumeration value="xs:decimal"/>
-                          <xs:enumeration value="xs:integer"/>
-                          <xs:enumeration value="xs:dateTime"/>
-                        </xs:restriction>
-                      </xs:simpleType>
-                    </xs:attribute>
-                  </xs:complexType>
-                </xs:element>
+                <xs:element name="parameter" type="xslweb:parameter-type" minOccurs="0" maxOccurs="unbounded"/>
               </xs:sequence>
               <xs:attribute name="name" type="xs:string" use="optional"/>
               <xs:attribute name="xsl-path" type="xs:string" use="required"/>
               <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
           </xs:element>
+          
+          <xs:element name="query">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="parameter" type="xslweb:parameter-type" minOccurs="0" maxOccurs="unbounded"/>
+              </xs:sequence>
+              <xs:attribute name="name" type="xs:string" use="optional"/>
+              <xs:attribute name="xquery-path" type="xs:string" use="required"/>
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
+            </xs:complexType>
+          </xs:element>
+          
           <xs:element name="schema-validator">
             <xs:complexType>
               <xs:sequence>
@@ -78,6 +75,7 @@
               <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
           </xs:element>
+          
           <xs:element name="schematron-validator">
             <xs:complexType>
               <xs:attribute name="name" type="xs:string" use="optional"/>
@@ -88,7 +86,9 @@
               <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
           </xs:element>
+          
         </xs:choice>
+        
         <xs:choice minOccurs="0">
           <xs:element name="json-serializer">
             <xs:complexType>
@@ -104,7 +104,7 @@
                       </xs:element>
                     </xs:sequence>
                   </xs:complexType>
-                </xs:element>  
+                </xs:element>
               </xs:sequence>
               <xs:attribute name="name" type="xs:string" use="optional"/>
               <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
@@ -119,24 +119,28 @@
               <xs:attribute name="repairing-namespaces" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
           </xs:element>
+          
           <xs:element name="zip-serializer">
             <xs:complexType>
               <xs:attribute name="name" type="xs:string" use="optional"/>
               <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
           </xs:element>
+          
           <xs:element name="resource-serializer">
             <xs:complexType>
               <xs:attribute name="name" type="xs:string" use="optional"/>
               <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
           </xs:element>
+          
           <xs:element name="fop-serializer">
             <xs:complexType>
               <xs:attribute name="name" type="xs:string" use="optional"/>
               <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
             </xs:complexType>
           </xs:element>
+          
         </xs:choice>
       </xs:sequence>
       <xs:attribute name="cache" type="xs:boolean" use="optional" default="false"/>
@@ -154,4 +158,27 @@
       <xs:attribute name="cache-headers" type="xs:boolean" use="optional" default="false"/>
     </xs:complexType>
   </xs:element>
+  
+  <xs:complexType name="parameter-type">
+    <xs:sequence>
+      <xs:element name="value" type="xs:string" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="uri" type="xs:anyURI"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="xs:string"/>
+          <xs:enumeration value="xs:boolean"/>
+          <xs:enumeration value="xs:integer"/>
+          <xs:enumeration value="xs:double"/>
+          <xs:enumeration value="xs:float"/>
+          <xs:enumeration value="xs:decimal"/>
+          <xs:enumeration value="xs:integer"/>
+          <xs:enumeration value="xs:dateTime"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  
 </xs:schema>

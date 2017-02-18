@@ -312,10 +312,24 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 28: XML Differencing -->
-  <xsl:template name="differencing" match="/req:request[req:path = '/diff.html']">    
+  <!-- Example 28: XML Differencing file upload -->
+  <xsl:template name="differencing-fileupload" match="/req:request[req:path = '/diff-fileupload.html']">    
     <pipeline:pipeline>
-      <pipeline:transformer name="resource-serialization" xsl-path="diff/diff.xsl" log="true"/>  
+      <pipeline:transformer name="differencing-fileupload" xsl-path="diff/diff.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <!-- Example 29: XML Differencing sandbox -->
+  <xsl:template name="differencing-sandbox" match="/req:request[req:path = '/diff-sandbox.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="differencing-sandbox" xsl-path="diff/diff-sandbox.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <!-- Example 30: XQuery example: Tour -->
+  <xsl:template name="tour" match="/req:request[req:path = '/tour.html']">    
+    <pipeline:pipeline>
+      <pipeline:query name="tour" xquery-path="tour/tour.xq" log="true"/>  
     </pipeline:pipeline>
   </xsl:template>
   

@@ -131,7 +131,13 @@
                 <a href="{$path}/resource-serialization.jpg">Resource serialization (download of custom resources)</a>
               </li>
               <li>
-                <a href="{$path}/diff.html">XML Differencing</a>
+                <a href="{$path}/diff-fileupload.html">XML Differencing (file upload)</a>
+              </li>
+              <li>
+                <a href="{$path}/diff-sandbox.html">XML Differencing (sandbox)</a>
+              </li>
+              <li>
+                <a href="{$path}/tour.html?start=a1&amp;end=52">XQuery example: Tour</a>
               </li>
             </ol>
           </div>

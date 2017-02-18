@@ -1,9 +1,5 @@
 package nl.armatiek.xslweb.pipeline;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -20,6 +16,10 @@ import java.util.Properties;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class SchemaValidatorStep extends PipelineStep {
   

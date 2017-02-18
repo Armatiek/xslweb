@@ -58,6 +58,8 @@ import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.Serializer;
 import net.sf.saxon.s9api.Serializer.Property;
 import net.sf.saxon.s9api.TeeDestination;
+import net.sf.saxon.s9api.XQueryEvaluator;
+import net.sf.saxon.s9api.XQueryExecutable;
 import net.sf.saxon.s9api.XdmDestination;
 import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
@@ -73,6 +75,7 @@ import nl.armatiek.xslweb.pipeline.FopSerializerStep;
 import nl.armatiek.xslweb.pipeline.JSONSerializerStep;
 import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.pipeline.PipelineStep;
+import nl.armatiek.xslweb.pipeline.QueryStep;
 import nl.armatiek.xslweb.pipeline.ResourceSerializerStep;
 import nl.armatiek.xslweb.pipeline.ResponseStep;
 import nl.armatiek.xslweb.pipeline.SchemaValidatorStep;
@@ -314,6 +317,25 @@ public class XSLWebServlet extends HttpServlet {
         transformer.setStylesheetParameters(stylesheetParameters);
         destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep); 
         transformer.applyTemplates(source, destination);
+      } else if (step instanceof QueryStep) {
+        String xqueryPath = ((QueryStep) step).getXQueryPath();
+        XQueryExecutable xquery = webApp.getQuery(xqueryPath, errorListener);
+        XQueryEvaluator eval = xquery.load();
+        eval.setErrorListener(errorListener);
+        Map<QName, XdmValue> stylesheetParameters = new HashMap<QName, XdmValue>();
+        stylesheetParameters.putAll(baseStylesheetParameters);
+        XSLWebUtils.addStylesheetParameters(stylesheetParameters, ((QueryStep) step).getParameters());
+        if (extraStylesheetParameters != null) {
+          stylesheetParameters.putAll(extraStylesheetParameters);
+          extraStylesheetParameters.clear();
+        }
+        for (Map.Entry<QName, XdmValue> entry : stylesheetParameters.entrySet()) {
+          eval.setExternalVariable(entry.getKey(), entry.getValue());
+        }
+        destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep);
+        NodeInfo nodeInfo = (NodeInfo) makeNodeInfoSource(source, webApp, errorListener);
+        eval.setContextItem(new XdmNode(nodeInfo));
+        eval.run(destination);
       } else if (step instanceof SchemaValidatorStep) {
         SchemaValidatorStep svStep = (SchemaValidatorStep) step;
         List<String> schemaPaths = svStep.getSchemaPaths();

@@ -17,17 +17,17 @@ package nl.armatiek.xslweb.pipeline;
  * limitations under the License.
  */
 
-public class TransformerStep extends ParameterizablePipelineStep {
+public class QueryStep extends ParameterizablePipelineStep {
   
-  private String xslPath;  
+  private String xqueryPath;  
   
-  public TransformerStep(String xslPath, String name, boolean log) {
+  public QueryStep(String xqueryPath, String name, boolean log) {
     super(name, log);
-    this.xslPath = xslPath;    
+    this.xqueryPath = xqueryPath;    
   }
   
-  public String getXslPath() {
-    return this.xslPath;
+  public String getXQueryPath() {
+    return this.xqueryPath;
   }
   
 }

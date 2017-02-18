@@ -1,16 +1,5 @@
 package nl.armatiek.xslweb.pipeline;
 
-import java.io.OutputStream;
-import java.util.Properties;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.xml.sax.Attributes;
-
-import net.sf.saxon.s9api.Destination;
-import nl.armatiek.xslweb.configuration.WebApp;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -27,6 +16,17 @@ import nl.armatiek.xslweb.configuration.WebApp;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import java.io.OutputStream;
+import java.util.Properties;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.xml.sax.Attributes;
+
+import net.sf.saxon.s9api.Destination;
+import nl.armatiek.xslweb.configuration.WebApp;
 
 public abstract class SerializerStep extends PipelineStep {
   

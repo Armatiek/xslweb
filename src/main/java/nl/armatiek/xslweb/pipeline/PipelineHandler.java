@@ -156,8 +156,16 @@ public class PipelineHandler implements ContentHandler {
           String name = getAttribute(atts, "name", "transformer-" + Integer.toString(pipelineSteps.size()+1));
           boolean log = getAttribute(atts, "log", "false").equals("true");
           pipelineSteps.add(new TransformerStep(xslPath, name, log));
+        } else if (localName.equals("query")) {         
+          String xqueryPath = getAttribute(atts, "xquery-path", null);
+          if (StringUtils.isBlank(xqueryPath)) {
+            throw new SAXException("Query step must have an attribute \"xquery-path\"");
+          }
+          String name = getAttribute(atts, "name", "query-" + Integer.toString(pipelineSteps.size()+1));
+          boolean log = getAttribute(atts, "log", "false").equals("true");
+          pipelineSteps.add(new QueryStep(xqueryPath, name, log));
         } else if (localName.equals("parameter")) {
-          TransformerStep step = (TransformerStep) pipelineSteps.peek();
+          ParameterizablePipelineStep step = (ParameterizablePipelineStep) pipelineSteps.peek();
           String name = getAttribute(atts, "name", null);
           if (StringUtils.isBlank(name)) {
             throw new SAXException("Element \"parameter\" must have an attribute \"name\"");

@@ -57,6 +57,7 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOCase;
 import org.apache.commons.io.IOUtils;
@@ -116,6 +117,8 @@ import net.sf.saxon.Configuration;
 import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.XQueryCompiler;
+import net.sf.saxon.s9api.XQueryExecutable;
 import net.sf.saxon.s9api.XdmDestination;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltCompiler;
@@ -137,6 +140,9 @@ public class WebApp implements ErrorHandler {
   
   private Map<String, XsltExecutable> templatesCache = 
       Collections.synchronizedMap(new HashMap<String, XsltExecutable>());
+  
+  private Map<String, XQueryExecutable> xqueryCache = 
+      Collections.synchronizedMap(new HashMap<String, XQueryExecutable>());
   
   private Map<String, Schema> schemaCache = 
       Collections.synchronizedMap(new HashMap<String, Schema>());
@@ -534,6 +540,13 @@ public class WebApp implements ErrorHandler {
     return tryTemplatesCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener);
   }
   
+  public XQueryExecutable getQuery(String path, ErrorListener errorListener) throws Exception {    
+    if (new File(path).isAbsolute()) {
+      return tryQueryCache(path, errorListener);
+    }    
+    return tryQueryCache(new File(getHomeDir(), "xquery" + "/" + path).getAbsolutePath(), errorListener);
+  }
+  
   public Schema getSchema(Collection<String> schemaPaths, ErrorListener errorListener) throws Exception {    
     ArrayList<String> resolvedPaths = new ArrayList<String>();
     for (String path : schemaPaths) {
@@ -589,7 +602,7 @@ public class WebApp implements ErrorHandler {
         comp.setErrorListener(errorListener);
         templates = comp.compile(source);        
       } catch (Exception e) {
-        logger.error("Could not compile stylesheet \"" + transformationPath + "\"", e);
+        logger.error("Could not compile XSLT stylesheet \"" + transformationPath + "\"", e);
         throw e;
       }      
       if (!developmentMode) {
@@ -597,6 +610,28 @@ public class WebApp implements ErrorHandler {
       }      
     }
     return templates;
+  }
+  
+  public XQueryExecutable tryQueryCache(String xqueryPath,  
+      ErrorListener errorListener) throws Exception {
+    String key = FilenameUtils.normalize(xqueryPath);
+    XQueryExecutable xquery = xqueryCache.get(key);    
+    if (xquery == null) {
+      logger.info("Compiling and caching xquery \"" + xqueryPath + "\" ...");                 
+      try {
+        XQueryCompiler comp = processor.newXQueryCompiler();
+        comp.setErrorListener(errorListener);
+        String query = FileUtils.readFileToString(new File(xqueryPath), "UTF-8");
+        xquery = comp.compile(query);     
+      } catch (Exception e) {
+        logger.error("Could not compile XQuery \"" + xqueryPath + "\"", e);
+        throw e;
+      }      
+      if (!developmentMode) {
+        xqueryCache.put(key, xquery);
+      }      
+    }
+    return xquery;
   }
   
   public Schema trySchemaCache(Collection<String> schemaPaths,  
