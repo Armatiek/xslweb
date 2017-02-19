@@ -20,6 +20,7 @@ package nl.armatiek.xslweb.web.filter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.io.StringWriter;
 import java.io.Writer;
 
 import javax.servlet.Filter;
@@ -31,12 +32,15 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.s9api.Serializer;
+import net.sf.saxon.s9api.XdmNode;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.serializer.RequestSerializer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RequestSerializerFilter implements Filter {
   
@@ -59,10 +63,18 @@ public class RequestSerializerFilter implements Filter {
       webApp = (WebApp) request.getAttribute(Definitions.ATTRNAME_WEBAPP);    
       RequestSerializer requestSerializer = new RequestSerializer(req, webApp);
       try {
-        String requestXML = requestSerializer.serializeToXML();
-        request.setAttribute(Definitions.ATTRNAME_REQUESTXML, requestXML);      
+        NodeInfo requestNodeInfo = requestSerializer.serializeToNodeInfo();
+        request.setAttribute(Definitions.ATTRNAME_REQUESTXML, requestNodeInfo);      
         if (webApp.getDevelopmentMode()) {
-          logger.debug("----------\nREQUEST XML:" + lineSeparator + requestXML);                
+          StringWriter sw = new StringWriter();
+          try {
+            Serializer ser = webApp.getProcessor().newSerializer(sw);
+            ser.setOutputProperty(Serializer.Property.INDENT, "yes");
+            ser.serializeNode(new XdmNode(requestNodeInfo));
+            logger.debug("----------\nREQUEST XML:" + lineSeparator + sw.toString());
+          } finally {
+            sw.close();
+          }
         }      
         chain.doFilter(request, response);        
       } finally {

@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.io.StringReader;
 import java.io.Writer;
 
 import javax.servlet.Filter;
@@ -33,12 +32,11 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.ErrorListener;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.s9api.Destination;
 import net.sf.saxon.s9api.SAXDestination;
 import net.sf.saxon.s9api.Xslt30Transformer;
@@ -81,7 +79,7 @@ public class PipelineGeneratorFilter implements Filter {
       transformer.getUnderlyingController().setMessageEmitter(messageWarner);            
                                
       PipelineHandler pipelineHandler = new PipelineHandler(webApp.getProcessor(), webApp.getConfiguration());
-      Source source = new StreamSource(new StringReader((String) req.getAttribute(Definitions.ATTRNAME_REQUESTXML)));
+      NodeInfo source = (NodeInfo) req.getAttribute(Definitions.ATTRNAME_REQUESTXML);
       Destination destination = new SAXDestination(pipelineHandler);
       transformer.applyTemplates(source, destination);
       

@@ -265,7 +265,7 @@ public class XSLWebServlet extends HttpServlet {
       OutputStream respOs) throws Exception {        
     boolean developmentMode = webApp.getDevelopmentMode();               
     
-    String requestXML = (String) req.getAttribute(Definitions.ATTRNAME_REQUESTXML);
+    Source source = (NodeInfo) req.getAttribute(Definitions.ATTRNAME_REQUESTXML);
     
     PipelineHandler pipelineHandler = (PipelineHandler) req.getAttribute(Definitions.ATTRNAME_PIPELINEHANDLER);
          
@@ -287,7 +287,6 @@ public class XSLWebServlet extends HttpServlet {
     addResponseTransformationStep(steps);
     
     Map<QName, XdmValue> extraStylesheetParameters = null;
-    Source source = new StreamSource(new StringReader(requestXML));
     Destination destination = null;
     
     for (int i=0; i<steps.size(); i++) {

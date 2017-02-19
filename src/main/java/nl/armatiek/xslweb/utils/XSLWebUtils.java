@@ -120,6 +120,7 @@ public class XSLWebUtils {
     params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "webapp-dir"), new XdmAtomicValue(webApp.getHomeDir().getAbsolutePath()));
     params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "webapp-path"), new XdmAtomicValue(webApp.getPath()));
     params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "development-mode"), new XdmAtomicValue(webApp.getDevelopmentMode()));
+    params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "version"), new XdmAtomicValue(Definitions.PROJECT_VERSION));
     
     /* Object parameters: */
     params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_REQUEST, "request"),  XdmValue.wrap(new ObjectValue(req)));
