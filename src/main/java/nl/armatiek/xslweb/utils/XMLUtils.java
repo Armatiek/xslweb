@@ -44,6 +44,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 /**
@@ -278,6 +279,15 @@ public class XMLUtils {
       child = child.getNextSibling();
     }
     return null;
+  }
+  
+  public static boolean containsNode(NodeList nodes, Node node) {
+    for (int i=0; i<nodes.getLength(); i++) {
+      if (nodes.item(i).isEqualNode(node)) {
+        return true;
+      }
+    }
+    return false;
   }
   
   public static boolean getBooleanValue(String value, boolean defaultValue) {

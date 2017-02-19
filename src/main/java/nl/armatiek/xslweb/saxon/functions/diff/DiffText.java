@@ -35,8 +35,8 @@ import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
-import nl.armatiek.xslweb.saxon.functions.diff.text.DiffMatchPatch;
-import nl.armatiek.xslweb.saxon.functions.diff.text.DiffMatchPatch.Diff;
+import com.sksamuel.diffpatch.DiffMatchPatch;
+import com.sksamuel.diffpatch.DiffMatchPatch.Diff;
 
 /**
  * 
@@ -87,7 +87,7 @@ public class DiffText extends ExtensionFunctionDefinition {
         
         DiffMatchPatch dmp = new DiffMatchPatch();
         
-        LinkedList<DiffMatchPatch.Diff> diffs = dmp.diffMain(text1, text2);
+        LinkedList<DiffMatchPatch.Diff> diffs = dmp.diff_main(text1, text2);
         
         LinkedTreeBuilder builder = (LinkedTreeBuilder) TreeModel.LINKED_TREE.makeBuilder(context.getController().makePipelineConfiguration());
         builder.setLineNumbering(false);

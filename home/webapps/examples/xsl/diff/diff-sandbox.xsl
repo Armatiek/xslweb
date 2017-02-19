@@ -8,13 +8,14 @@
   xmlns:file="http://expath.org/ns/file" 
   xmlns:diff="http://www.armatiek.com/xslweb/functions/diff"
   xmlns:ser="http://www.armatiek.com/xslweb/functions/serialize"
+  xmlns:util="http://www.armatiek.com/xslweb/functions/util"
   xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization"  
   exclude-result-prefixes="#all"
   version="2.0">
   
   <xsl:import href="../common/example-page.xsl"/>
   
-  <xsl:template name="title" as="xs:string">Example 28: XML Differencing - file upload</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 29: XML Differencing - sandbox</xsl:template>
   
   <xsl:variable name="diff-options" as="element(diff:options)">
     <diff:options>
@@ -30,9 +31,10 @@
     </diff:options>  
   </xsl:variable>
   
-  <xsl:variable name="output-parameters" as="element(output:serialization-parameters)">
+  <xsl:variable name="output-parameters" as="node()">
     <output:serialization-parameters>
       <output:method value="xml"/>
+      <output:indent value="yes"/>
       <output:omit-xml-declaration value="yes"/>
     </output:serialization-parameters>  
   </xsl:variable>
@@ -44,26 +46,55 @@
       method="post"           
       name="diffform"          
       enctype="multipart/form-data"
-      action="{/*/req:context-path}{/*/req:webapp-path}/diff-fileupload.html">
-      <fieldset>            
-        <label for="file">XML file 1: </label>
-        <input type="file" name="file1"/>
-        <br/><br/>
-        <label for="file">XML file 2: </label>
-        <input type="file" name="file2"/>
-        <br/><br/>
+      action="{/*/req:context-path}{/*/req:webapp-path}/diff-sandbox.html">
+      <fieldset>
+        <label for="docA" style="width: 400px; float: left; margin: 0 20px 0 0;">
+          <b>Document A</b>
+          <textarea name="docA" id="docA" style="width: 400px; height: 200px; border: 1px solid #000; padding: 5px;">
+            <xsl:choose>
+              <xsl:when test="normalize-space($params[@name='docA'])">
+                <xsl:value-of select="replace(replace($params[@name='docA'],'\s+$',''),'^\s+','')"/>
+              </xsl:when>
+              <xsl:otherwise><![CDATA[<root xmlns:test="urn:test">
+  <a><a1/></a>
+  <b/>
+  <c>hello world</c>
+  <d/>
+  <f/>
+  <e>Hello World!</e>
+</root>]]></xsl:otherwise>
+            </xsl:choose>
+          </textarea>
+        </label>
+        <label for="docB" style="width: 400px; float: left; margin: 0 20px 0 0;">
+          <b>Document B</b>
+          <textarea name="docB" id="docB" style="width: 400px; height: 200px; border: 1px solid #000; padding: 5px;">
+            <xsl:choose>
+              <xsl:when test="normalize-space($params[@name='docB'])">
+                <xsl:value-of select="replace(replace($params[@name='docB'],'\s+$',''),'^\s+','')"/>
+              </xsl:when>
+              <xsl:otherwise><![CDATA[<root xmlns:test="urn:test">
+  <a><a1/></a>
+  <b><b1/></b>
+  <c attr="hello world"/>
+  <e>Hello Universe!</e>
+</root>]]></xsl:otherwise>  
+            </xsl:choose>
+          </textarea>
+        </label>
+        <br/>
         <input type="submit" value="Difference XML files"/>
-      </fieldset>          
+      </fieldset>        
     </form>
     
-    <xsl:if test="/*/req:file-uploads[count(req:file-upload) = 2]">
+    <xsl:if test="normalize-space($params[@name='docA']/req:value) and normalize-space($params[@name='docB']/req:value)">
       
       <pre class="prettyprint lang-xml linenums">
         <xsl:sequence select="
           ser:serialize(
             diff:diff-xml(
-              document(concat('file:///', replace(/*/req:file-uploads/req:file-upload[1]/req:file-path, '\\', '/'))), 
-              document(concat('file:///', replace(/*/req:file-uploads/req:file-upload[2]/req:file-path, '\\', '/'))),
+              util:parse($params[@name='docA']/req:value[1]), 
+              util:parse($params[@name='docB']/req:value[1]),
               $diff-options
             ),
             $output-parameters
@@ -71,6 +102,8 @@
       </pre>
       
     </xsl:if>
+    
+    
   </xsl:template>
   
   <!-- These variables can be ignored: -->
