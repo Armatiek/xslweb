@@ -296,10 +296,10 @@ declare function tour:print-board (
     
     <form method="post" name="tour" action="{$context/*/req:context-path}{$context/*/req:webapp-path}/tour.html">
       <fieldset>            
-        <label for="start">Start field: </label>
+        <label for="start">Start field:</label>
         <input type="text" name="start" value="{$start}"/>
         <br/><br/>
-        <label for="end">End: </label>
+        <label for="end">Number of steps:</label>
         <input type="text" name="end" value="{$end}"/>
         <br/><br/>
         <input type="submit" value="Show tour!"/>
@@ -330,7 +330,7 @@ declare function tour:print-board (
     <p>{
         if ($endd != 64) 
         then
-          <a href="{$context/*/req:context-path}{$context/*/req:webapp-path}/tour.html?start={$start}&amp;end={$endd+1}">Step</a>
+          <a href="{$context/*/req:context-path}{$context/*/req:webapp-path}/tour.html?start={$start}&amp;end={$endd+1}">Next steps</a>
         else ()
     }</p>    
     </div>
