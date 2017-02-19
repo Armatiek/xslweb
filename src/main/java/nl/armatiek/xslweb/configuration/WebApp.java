@@ -57,7 +57,6 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOCase;
 import org.apache.commons.io.IOUtils;
@@ -621,8 +620,7 @@ public class WebApp implements ErrorHandler {
       try {
         XQueryCompiler comp = processor.newXQueryCompiler();
         comp.setErrorListener(errorListener);
-        String query = FileUtils.readFileToString(new File(xqueryPath), "UTF-8");
-        xquery = comp.compile(query);     
+        xquery = comp.compile(new File(xqueryPath));     
       } catch (Exception e) {
         logger.error("Could not compile XQuery \"" + xqueryPath + "\"", e);
         throw e;
