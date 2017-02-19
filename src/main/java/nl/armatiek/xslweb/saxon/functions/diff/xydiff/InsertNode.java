@@ -87,6 +87,10 @@ public class InsertNode extends XMLCommand {
       if (this.isUpdated) {
         i.setAttribute("update", "yes");
       }
+      
+      if (this.nodeId > -1) {
+        i.setAttribute("id", Integer.toString(this.nodeId));
+      }
 
       i.appendChild(DiffUtils.cloneTreeNode(node));
 

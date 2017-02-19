@@ -86,6 +86,10 @@ public class DeleteNode extends XMLCommand {
       if (this.isUpdated) {
         d.setAttribute("update", "yes");
       }
+      
+      if (this.nodeId > -1) {
+        d.setAttribute("id", Integer.toString(this.nodeId));
+      }
 
       d.appendChild(node);
 

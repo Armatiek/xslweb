@@ -49,6 +49,8 @@ public interface TreeNode {
   public TreeNode removeChild(int pos);
 
   public void appendChild(TreeNode child);
+  
+  public void replaceChild(TreeNode newChild, TreeNode oldChild);
 
   public int getChildPosition(TreeNode child);
 

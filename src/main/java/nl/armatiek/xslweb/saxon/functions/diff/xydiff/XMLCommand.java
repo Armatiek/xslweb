@@ -33,6 +33,7 @@ public abstract class XMLCommand implements Comparable<Object> {
   protected String nodePath;
   protected int pos = -1;
   protected int type = -1;
+  protected int nodeId = -1;
 
   public XMLCommand(String nodePath) {
     this.nodePath = nodePath;
@@ -44,6 +45,14 @@ public abstract class XMLCommand implements Comparable<Object> {
 
   public String getNodePath() {
     return this.nodePath;
+  }
+  
+  public void setNodeId(int nodeId) {
+    this.nodeId = nodeId;
+  }
+
+  public int getNodeId() {
+    return this.nodeId;
   }
 
   public String toString() {

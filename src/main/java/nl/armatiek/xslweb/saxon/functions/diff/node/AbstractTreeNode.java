@@ -76,11 +76,9 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
   }
 
   public TreeNode getChild(int childPos) {
-    if (children.isEmpty()) {
-      return null;
-    } else {
-      return (TreeNode) children.get(childPos);
-    }
+    if (!allowChildren || children.isEmpty())
+      return null; 
+    return (TreeNode) children.get(childPos);
   }
 
   public void insertChild(int pos, TreeNode child) {
@@ -90,14 +88,6 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
 
     child.setParent(this);
     children.add(pos, child);
-    
-    /*
-    TreeNode node = this;
-    while (node != null) {
-      node.markAsChanged();
-      node = node.getParent();
-    }
-    */
   }
 
   public boolean removeChild(TreeNode child) {
@@ -125,7 +115,8 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
     }
     */
     
-    deletedChildren.add(child);
+    if (result)
+      deletedChildren.add(child);
 
     return result;
   }
@@ -140,9 +131,7 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
 
   public TreeNode removeChild(int pos) {
     TreeNode child = this.getChild(pos);
-
     this.removeChild(child);
-
     return child;
   }
 
@@ -150,17 +139,17 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
     if (!allowChildren) {
       throw new RuntimeException("Can't insert child to this node");
     }
-
     child.setParent(this);
     children.add(child);
-    
-    /*
-    TreeNode node = this;
-    while (node != null) {
-      node.markAsChanged();
-      node = node.getParent();
+  }
+  
+  public void replaceChild(TreeNode newChild, TreeNode oldChild) {
+    if (!allowChildren) {
+      throw new RuntimeException("Can't replace child in this node");
     }
-    */
+    int pos = getChildPosition(oldChild);
+    newChild.setParent(this);
+    children.set(pos, newChild);
   }
 
   public int getChildPosition(TreeNode child) {
@@ -169,13 +158,9 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
 
   public double getWeight() {
     double weight = 1.0;
-
     for (Iterator<TreeNode> i = getChildren().iterator(); i.hasNext();) {
       weight += ((AbstractTreeNode) i.next()).getWeight();
     }
-
-    // System.out.println("weight " + weight + " toString " +
-    // this.toString());
     return weight;
   }
 
@@ -204,15 +189,6 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
   public String getLastComputedPath() {
     return lastComputedPath;
   }
-
-  /*
-  public void toBase64(Writer osw) throws IOException {
-    StringWriter writer = new StringWriter();
-    exportXML(writer, false);
-    writer.close();
-    osw.write(Base64.encodeBytes(writer.toString().getBytes("UTF-8")));
-  }
-  */
 
   public boolean equalsContent(Object obj) {
     if (obj instanceof TreeNode) {
@@ -306,14 +282,6 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
     if (allowAttributes) {
       attributes.put(name, value);
     }
-    
-    /*
-    TreeNode node = this;
-    while (node != null) {
-      node.markAsChanged();
-      node = node.getParent();
-    }
-    */
   }
 
   public Hashtable<String, String> getAttributes() {
@@ -369,16 +337,6 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
     return node;
   }
   
-  /*
-  public void markAsChanged() {
-    this.isChanged = true;
-  }
-  
-  public boolean isChanged() {
-    return isChanged;
-  }
-  */
-  
   public void setDeletedFromPos(int pos) {
     this.deletedFromPos = pos;
   }
@@ -386,22 +344,6 @@ public abstract class AbstractTreeNode implements TreeNode, Serializable {
   public int getDeletedFromPos() {
     return deletedFromPos;
   }
-  
-  /*
-  @Override
-  public void reinsertDeletedChildren() {
-    for (TreeNode child: children) {
-      child.reinsertDeletedChildren();
-    }
-    if (deletedChildren == null || deletedChildren.size() == 0)
-      return;
-    int offset = 0;
-    for (TreeNode deletedChild: deletedChildren) {
-      children.add(deletedChild.getDeletedFromPos() + offset, deletedChild);
-      offset++;
-    }
-  }
-  */
   
   public void setDeltaXmlAttributes(ElementNode attrs) {
     deltaXmlAttrs = attrs;

@@ -241,7 +241,7 @@ public class DiffUtils {
     if (deep && copyNode != null && treeNode.hasChildren()) {
       List<TreeNode> childs = treeNode.getChildren();
       for (TreeNode childNode : childs) {
-        copyNode.appendChild(childNode);
+        copyNode.appendChild(cloneTreeNode(childNode, deep));
       }
     }
     

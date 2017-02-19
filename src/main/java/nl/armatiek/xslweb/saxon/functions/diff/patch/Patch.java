@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 
 import nl.armatiek.xslweb.saxon.functions.diff.node.Document;
@@ -34,6 +36,8 @@ import nl.armatiek.xslweb.saxon.functions.diff.text.DiffMatchPatch.Diff;
 import nl.armatiek.xslweb.saxon.functions.diff.util.DiffUtils;
 
 public class Patch {
+  
+  private static final Logger logger = LoggerFactory.getLogger(Patch.class);
   
   public static final String NAMESPACE_DELTAXML = "http://www.deltaxml.com/ns/well-formed-delta-v1";
   public static final String NAMESPACE_DXA      = "http://www.deltaxml.com/ns/non-namespaced-attribute";
@@ -95,6 +99,13 @@ public class Patch {
     }
   }
   
+  private void addRootAttributes(TreeNode node) {
+    if (node.getParent() != null && node.getParent().getNodeType() == Node.DOCUMENT_NODE) {
+      node.setAttribute("{" + NAMESPACE_DELTAXML + "}version", "2.0");
+      node.setAttribute("{" + NAMESPACE_DELTAXML + "}content-type", "full-context");
+    }
+  }
+  
   public void processEqualNode(TreeNode node) {
     if ((node.getNodeType() == Node.ELEMENT_NODE) && StringUtils.isBlank(node.getAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2"))) {
       node.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A=B");
@@ -125,18 +136,18 @@ public class Patch {
         switch (diff.operation) {
         case INSERT:
           textGroupElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}textGroup");
-          textGroupElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A!=B");
+          textGroupElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "B");
           textElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}text");
-          textElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A");
+          textElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "B");
           textGroupElem.appendChild(textElem);
           textElem.appendChild(new TextNode(diff.text));
           parentNode.appendChild(textGroupElem);
           break;
         case DELETE:
           textGroupElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}textGroup");
-          textGroupElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A!=B");
+          textGroupElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A");
           textElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}text");
-          textElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "B");
+          textElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A");
           textGroupElem.appendChild(textElem);
           textElem.appendChild(new TextNode(diff.text));
           parentNode.appendChild(textGroupElem);
@@ -179,6 +190,8 @@ public class Patch {
     
     boolean skipChilds = false;
     
+    addRootAttributes(node);
+    
     processEqualNode(node);
     
     processAttributeChangesAndDeletedChildren(node);
@@ -204,34 +217,73 @@ public class Patch {
       ElementNode attrsElem;
       ElementNode attrElem;
       ElementNode valElem;
+      ElementNode textGroupElem;
+      ElementNode textElem;
       switch (deltaChildElem.getElementName()) {
         case "Deleted":
           node = node1.getDescendantByPos(pos);
+          
+          if (node == null) {
+            logger.warn("Node not found: " + deltaChildElem.toString());
+            break;
+          }
+          
           markParentsChanged(node);
           if ((node.getNodeType() == Node.TEXT_NODE) && StringUtils.equals(deltaChildElem.getAttribute("update"), "yes")) {
             node.markAsUpdateOld();
-            break;
           } else if (node.getNodeType() == Node.ELEMENT_NODE) {
             node.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A");
+            node.getParent().removeChild(node);
+          } else if (node.getNodeType() == Node.TEXT_NODE) {
+            textGroupElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}textGroup");
+            textGroupElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A");
+            textElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}text");
+            textElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A");
+            textGroupElem.appendChild(textElem);
+            textElem.appendChild(new TextNode(((TextNode) node).getContent()));
+            node.getParent().replaceChild(textGroupElem, node);
+            textGroupElem.getParent().removeChild(textGroupElem);
           }
-          node.getParent().removeChild(node);
           break;
         case "Inserted":
           int lastIndex = StringUtils.lastIndexOf(pos, ":");
           String parentPos = StringUtils.substring(pos, 0, lastIndex);
           String childPos = StringUtils.substring(pos, lastIndex+1);
           node = node1.getDescendantByPos(parentPos);
+          
+          if (node == null) {
+            logger.warn("Node not found: " + deltaChildElem.toString());
+            break;
+          }
+          
           TreeNode newNode = DiffUtils.cloneTreeNode(deltaChild.getFirstChild());
-          node.insertChild(Integer.parseInt(childPos), newNode);
           if (newNode.getNodeType() == Node.ELEMENT_NODE) {
             newNode.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "B");
+            node.insertChild(Integer.parseInt(childPos), newNode);
+            markParentsChanged(newNode);
           } else if ((newNode.getNodeType() == Node.TEXT_NODE) && StringUtils.equals(deltaChildElem.getAttribute("update"), "yes")) {
             newNode.markAsUpdateNew();
+            node.insertChild(Integer.parseInt(childPos), newNode);
+            markParentsChanged(newNode);
+          } else if (newNode.getNodeType() == Node.TEXT_NODE) {
+            textGroupElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}textGroup");
+            textGroupElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "B");
+            textElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}text");
+            textElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "B");
+            textGroupElem.appendChild(textElem);
+            textElem.appendChild(newNode);
+            node.insertChild(Integer.parseInt(childPos), textGroupElem);
+            markParentsChanged(textGroupElem);
           }
-          markParentsChanged(newNode);
+          
           break;
         case "AttributeInserted":
           node = node1.getDescendantByPos(pos);
+          
+          if (node == null) {
+            logger.warn("Node not found: " + deltaChildElem.toString());
+            break;
+          }
           
           String attrName = deltaChildElem.getAttribute("name");
           
@@ -240,7 +292,11 @@ public class Patch {
             attrsElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}attributes");
             attrsElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A!=B");
           }
-          attrElem = new ElementNode("{" + NAMESPACE_DXA + "}" + attrName); // TODO: dxx and namespaces
+          if (attrName.startsWith("{")) {
+            attrElem = new ElementNode(attrName);
+          } else {
+            attrElem = new ElementNode("{" + NAMESPACE_DXA + "}" + attrName);
+          }
           attrElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "B");
           attrsElem.appendChild(attrElem);
           valElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}attributeValue");
@@ -257,6 +313,11 @@ public class Patch {
         case "AttributeDeleted":
           node = node1.getDescendantByPos(pos);
           
+          if (node == null) {
+            logger.warn("Node not found: " + deltaChildElem.toString());
+            break;
+          }
+          
           attrName = deltaChildElem.getAttribute("name");
           
           attrsElem = node.getDeltaXmlAttributes();
@@ -264,7 +325,11 @@ public class Patch {
             attrsElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}attributes");
             attrsElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A!=B");
           }
-          attrElem = new ElementNode("{" + NAMESPACE_DXA + "}" + attrName); // TODO: dxx and namespaces
+          if (attrName.startsWith("{")) {
+            attrElem = new ElementNode(attrName);
+          } else {
+            attrElem = new ElementNode("{" + NAMESPACE_DXA + "}" + attrName);
+          }
           attrElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A");
           attrsElem.appendChild(attrElem);
           //valElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}attributeValue");
@@ -281,6 +346,11 @@ public class Patch {
         case "AttributeUpdated":
           node = node1.getDescendantByPos(pos);
           
+          if (node == null) {
+            logger.warn("Node not found: " + deltaChildElem.toString());
+            break;
+          }
+          
           attrName = deltaChildElem.getAttribute("name");
           
           attrsElem = node.getDeltaXmlAttributes();
@@ -288,7 +358,11 @@ public class Patch {
             attrsElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}attributes");
             attrsElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A!=B");
           }
-          attrElem = new ElementNode("{" + NAMESPACE_DXA + "}" + attrName); // TODO: dxx and namespaces
+          if (attrName.startsWith("{")) {
+            attrElem = new ElementNode(attrName);
+          } else {
+            attrElem = new ElementNode("{" + NAMESPACE_DXA + "}" + attrName);
+          }
           attrElem.setAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2", "A!=B");
           attrsElem.appendChild(attrElem);
           valElem = new ElementNode("{" + NAMESPACE_DELTAXML + "}attributeValue");
@@ -313,5 +387,17 @@ public class Patch {
     addDeltaVInformation(node1);
     
   }
+  
+  /*
+  private boolean isAncestorInserted(TreeNode node) {
+    while (node != null) {
+      if (StringUtils.equals(node.getAttribute("{" + NAMESPACE_DELTAXML + "}deltaV2"), "B")) {
+        return true;
+      }
+      node = node.getParent();
+    }
+    return false;
+  }
+  */
   
 }

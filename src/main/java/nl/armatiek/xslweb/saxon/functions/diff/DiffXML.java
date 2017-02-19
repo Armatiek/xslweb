@@ -85,6 +85,19 @@ public class DiffXML extends ExtensionFunctionDefinition {
 
   private static class DiffCall extends ExtensionFunctionCall {
 
+    /*
+    protected void testParent(TreeNode treeNode) {
+      if (treeNode.getParent() == null) {
+        System.out.println(treeNode.toString());
+      }
+      if (treeNode.allowChildren()) {
+        for (TreeNode node : treeNode.getChildren()) {
+          testParent(node);
+        }
+      }
+    }
+    */
+    
     @Override
     public ZeroOrOne<NodeInfo> call(XPathContext context, Sequence[] arguments) throws XPathException {
       try {

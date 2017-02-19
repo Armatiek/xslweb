@@ -160,6 +160,7 @@ public class DeltaConstructor {
             this.updateCount++;
             d.setIsUpdated(true);
           }
+          d.setNodeId(myAtomicInfo.myID);
 
           table.addElement(d);
 
@@ -170,6 +171,7 @@ public class DeltaConstructor {
           d = new DeleteNode(node.getLastComputedPath(), DiffUtils.cloneTreeNode(node));
           d.setIsMoved(true);
           d.setPos(myAtomicInfo.myPosition);
+          d.setNodeId(myAtomicInfo.myID);
           table.addElement(d);
           this.moveCount++;
 
@@ -216,6 +218,7 @@ public class DeltaConstructor {
           TreeNode inserted = this.deltaDocImportInsertNode(v1nodeID);
           InsertNode i = new InsertNode(node.getLastComputedPath(), inserted);
           i.setPos(myPosition);
+          i.setNodeId(myAtomicInfo.myID);
 
           if (myAtomicInfo.myEvent == AtomicInfo.NODEEVENT_UPDATE_NEW) {
             this.updateCount--;
@@ -230,6 +233,7 @@ public class DeltaConstructor {
         case AtomicInfo.NODEEVENT_WEAKMOVE:
           i = new InsertNode(node.getLastComputedPath(), DiffUtils.cloneTreeNode(node));
           i.setPos(myAtomicInfo.myPosition);
+          i.setNodeId(myAtomicInfo.myID);
           i.setIsMoved(true);
           table.addElement(i);
           this.moveCount--;
