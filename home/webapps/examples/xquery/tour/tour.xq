@@ -6,6 +6,8 @@ declare namespace config="http://www.armatiek.com/xslweb/configuration";
 declare namespace req="http://www.armatiek.com/xslweb/request";
 declare namespace log="http://www.armatiek.com/xslweb/functions/log";
 
+import module namespace functx = "http://www.functx.com" at "../../../../common/xquery/lib/functx/functx-1.0.xq";
+
 (:
     <Modified as example XQuery for XSLWeb by Maarten Kroon>
 
@@ -288,7 +290,7 @@ declare function tour:print-board (
 
     <html>
     <head>
-        <title>Knight's tour</title>
+        <title>{functx:words-to-camel-case("knight's tour")}</title>
     </head>
     <body>
     <div align="center">
