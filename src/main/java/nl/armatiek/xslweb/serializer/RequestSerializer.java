@@ -56,6 +56,9 @@ import org.xml.sax.helpers.XMLReaderFactory;
 import com.sun.xml.ws.util.xml.ContentHandlerToXMLStreamWriter;
 
 import javanet.staxutils.IndentingXMLStreamWriter;
+import net.sf.saxon.event.StreamWriterToReceiver;
+import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.tree.tiny.TinyBuilder;
 import nl.armatiek.xslweb.configuration.Attribute;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
@@ -79,18 +82,12 @@ public class RequestSerializer {
     this.webApp = webApp;
     this.developmentMode = webApp.getDevelopmentMode();    
   }
-    
-  public String serializeToXML() throws Exception {
-    StringWriter sw = new StringWriter();
+  
+  public void serializeToXMLStreamWriter(XMLStreamWriter xsw) throws Exception {  
+    this.xsw = xsw;
     
     List<FileItem> fileItems = getMultipartContentItems();
  
-    XMLOutputFactory output = XMLOutputFactory.newInstance();    
-    this.xsw = output.createXMLStreamWriter(sw);
-    if (developmentMode) {
-      this.xsw = new IndentingXMLStreamWriter(this.xsw);
-    }
-    
     xsw.writeStartDocument();                  
     xsw.setPrefix("req", URI);
     xsw.writeStartElement(URI, "request");
@@ -107,8 +104,24 @@ public class RequestSerializer {
     
     xsw.writeEndElement();
     xsw.writeEndDocument();
-    
+  }
+  
+  public String serializeToXML() throws Exception {
+    StringWriter sw = new StringWriter();
+    XMLOutputFactory output = XMLOutputFactory.newInstance();    
+    XMLStreamWriter xsw = output.createXMLStreamWriter(sw);
+    if (developmentMode) {
+      xsw = new IndentingXMLStreamWriter(xsw);
+    }
+    serializeToXMLStreamWriter(xsw);
     return sw.toString();
+  }
+  
+  public NodeInfo serializeToNodeInfo() throws Exception {
+    TinyBuilder builder = new TinyBuilder(webApp.getConfiguration().makePipelineConfiguration());
+    XMLStreamWriter xsw = new StreamWriterToReceiver(builder);
+    serializeToXMLStreamWriter(xsw);
+    return builder.getCurrentRoot();
   }
   
   public void close() throws IOException {
