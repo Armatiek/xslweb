@@ -63,9 +63,9 @@ public class EditScriptManager {
     this.editScript = editScript;
     this.effects = new HashMap<>(editScript.size());
     this.root = root.getNodeType() == Node.DOCUMENT_NODE ? ((Document) root).getDocumentElement() : root;
-    ((Element) this.root).setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:" + Definitions.PREFIX_DELTAXML, Definitions.NAMESPACEURI_DELTAXML);
-    ((Element) this.root).setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:" + Definitions.PREFIX_DXA, Definitions.NAMESPACEURI_DXA);
-    ((Element) this.root).setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:" + Definitions.PREFIX_DXX, Definitions.NAMESPACEURI_DXX);
+    ((Element) this.root).setAttributeNS(Definitions.NAMESPACEURI_XMLNS, "xmlns:" + Definitions.PREFIX_DELTAXML, Definitions.NAMESPACEURI_DELTAXML);
+    ((Element) this.root).setAttributeNS(Definitions.NAMESPACEURI_XMLNS, "xmlns:" + Definitions.PREFIX_DXA, Definitions.NAMESPACEURI_DXA);
+    ((Element) this.root).setAttributeNS(Definitions.NAMESPACEURI_XMLNS, "xmlns:" + Definitions.PREFIX_DXX, Definitions.NAMESPACEURI_DXX);
     parse();
   }
 
@@ -279,6 +279,8 @@ public class EditScriptManager {
     NamedNodeMap oldAttrs = elem.getAttributes();
     for (int i=0; i<oldAttrs.getLength(); i++) {
       Attr oldAttr = (Attr) oldAttrs.item(i);
+      if (StringUtils.equals(oldAttr.getNamespaceURI(), Definitions.NAMESPACEURI_XMLNS))
+        continue;
       Attr newAttr = (oldAttr.getNamespaceURI() == null) ? 
           (Attr) newAttrs.getNamedItem(oldAttr.getName()) : 
             (Attr) newAttrs.getNamedItemNS(oldAttr.getNamespaceURI(), oldAttr.getLocalName()); 
@@ -290,6 +292,8 @@ public class EditScriptManager {
     
     for (int i=0; i<newAttrs.getLength(); i++) {
       Attr newAttr = (Attr) newAttrs.item(i);
+      if (StringUtils.equals(newAttr.getNamespaceURI(), Definitions.NAMESPACEURI_XMLNS))
+        continue;
       Attr oldAttr = (newAttr.getNamespaceURI() == null) ? 
           (Attr) oldAttrs.getNamedItem(newAttr.getName()) : 
             (Attr) oldAttrs.getNamedItemNS(newAttr.getNamespaceURI(), newAttr.getLocalName()); 
