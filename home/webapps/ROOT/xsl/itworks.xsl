@@ -12,7 +12,7 @@
   
   <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   
-  <xsl:param name="config:xslweb.version" as="xs:string"/>
+  <xsl:param name="config:version" as="xs:string"/>
   
   <xsl:template match="/">
     <resp:response status="200">
@@ -34,7 +34,7 @@
         <p>Go to the <a href="{/*/req:context-path}/documentation/XSLWeb-2_0-Quick-Start-Guide.pdf">documentation</a> (in PDF) 
           or to the <a href="{/*/req:context-path}/examples">examples</a></p>
         <br/>        
-        <p><i>XSLWeb version <xsl:value-of select="$config:xslweb.version"/></i></p>
+        <p><i>XSLWeb version <xsl:value-of select="$config:version"/></i></p>
       </body>
     </html>
   </xsl:template>

@@ -28,6 +28,7 @@ import java.util.Set;
 public class Definitions {
   
   public final static String PROJECT_NAME                      = "xslweb";
+  public final static String PROJECT_VERSION                   = "2.0.5";
   public final static String PATHNAME_REQUESTDISPATCHER_XSL    = "xsl/request-dispatcher.xsl";
   public final static String FILENAME_PROPERTIES               = "xslweb.properties";
   public final static String FILENAME_QUARTZ                   = "xslweb-quartz.properties";
@@ -46,8 +47,9 @@ public class Definitions {
       xmlExtensions.add(XML_EXTENSIONS[i]);
     }
   }
-    
-  public final static String NAMESPACEURI_XML                   = "http://www.w3.org/XML/1998/namespace"; 
+  
+  public final static String NAMESPACEURI_XML                   = "http://www.w3.org/XML/1998/namespace";
+  public final static String NAMESPACEURI_XMLNS                 = "http://www.w3.org/2000/xmlns/";
   public final static String NAMESPACEURI_XSLT                  = "http://www.w3.org/1999/XSL/Transform";
   public final static String NAMESPACEURI_XMLSCHEMA_INSTANCE    = "http://www.w3.org/2001/XMLSchema-instance";
   public final static String NAMESPACEURI_XMLSCHEMA             = "http://www.w3.org/2001/XMLSchema";
