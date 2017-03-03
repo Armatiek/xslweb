@@ -120,6 +120,9 @@ public class RequestSerializer {
   public NodeInfo serializeToNodeInfo() throws Exception {
     TinyBuilder builder = new TinyBuilder(webApp.getConfiguration().makePipelineConfiguration());
     XMLStreamWriter xsw = new StreamWriterToReceiver(builder);
+    if (developmentMode) {
+      xsw = new IndentingXMLStreamWriter(xsw);
+    }
     serializeToXMLStreamWriter(xsw);
     return builder.getCurrentRoot();
   }
