@@ -21,17 +21,13 @@
     <diff:options>
       <diff:whitespace-stripping-policy value="all"/> <!-- all | ignorable | none -->
       <diff:enable-tnsm value="yes"/> <!-- Text node splitting & matching -->
-      <diff:add-statistics value="yes"/> <!-- Add statistic attributes to root element -->
       <diff:min-string-length value="8"/>
       <diff:min-word-count value="3"/>
       <diff:min-subtree-weight value="12"/>
-      <diff:record-split-ops value="no"/>
-      <diff:only-split-nodes value="no"/>
-      <diff:add-split-ids value="no"/>
     </diff:options>  
   </xsl:variable>
   
-  <xsl:variable name="output-parameters" as="node()">
+  <xsl:variable name="output-parameters" as="element(output:serialization-parameters)">
     <output:serialization-parameters>
       <output:method value="xml"/>
       <output:indent value="yes"/>
@@ -109,6 +105,6 @@
   <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="template-name" as="xs:string">diff-form</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">differencing-sandbox</xsl:variable>
   
 </xsl:stylesheet>

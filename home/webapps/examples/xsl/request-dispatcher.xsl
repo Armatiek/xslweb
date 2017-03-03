@@ -319,6 +319,12 @@
     </pipeline:pipeline>
   </xsl:template>
   
+  <xsl:template name="differencing-download" match="/req:request[req:path = '/diff-download.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="differencing-download" xsl-path="diff/diff-download.xsl" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
   <!-- Example 29: XML Differencing sandbox -->
   <xsl:template name="differencing-sandbox" match="/req:request[req:path = '/diff-sandbox.html']">    
     <pipeline:pipeline>
@@ -330,6 +336,20 @@
   <xsl:template name="tour" match="/req:request[req:path = '/tour.html']">    
     <pipeline:pipeline>
       <pipeline:query name="tour" xquery-path="tour/tour.xq" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <!-- Example 31: STX example: Huge file -->
+  <xsl:template name="huge-file" match="/req:request[req:path = '/huge-file.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer-stx name="huge-file" stx-path="huge-file/huge-file.stx" log="true"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <!-- Example 32: XUpdate sandbox -->
+  <xsl:template name="xupdate-sandbox" match="/req:request[req:path = '/xupdate-sandbox.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="xupdate-sandbox" xsl-path="xupdate/xupdate-sandbox.xsl" log="true"/>  
     </pipeline:pipeline>
   </xsl:template>
   

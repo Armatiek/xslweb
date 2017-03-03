@@ -137,7 +137,13 @@
                 <a href="{$path}/diff-sandbox.html">XML Differencing (sandbox)</a>
               </li>
               <li>
-                <a href="{$path}/tour.html?start=a1&amp;end=52">XQuery example: Tour</a>
+                <a href="{$path}/tour.html?start=a1&amp;end=52">XQuery pipeline step example: Tour</a>
+              </li>
+              <li>
+                <a href="{$path}/huge-file.html">STX transformation step: Huge file</a>
+              </li>
+              <li>
+                <a href="{$path}/xupdate-sandbox.html">XUpdate sandbox</a>
               </li>
             </ol>
           </div>

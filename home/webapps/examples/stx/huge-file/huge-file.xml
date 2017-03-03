@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  
+  <non-interesting-stuff/>
+  
+  <!-- Placeholder for a humongous amount of non-interesting XML markup ... -->
+  
+  <interesting-stuff>
+    <p>Helo World!</p>
+  </interesting-stuff>
+  
+  <non-interesting-stuff/>
+  
+  <!-- Placeholder for a humongous amount of non-interesting XML markup ... -->
+  
+</root>

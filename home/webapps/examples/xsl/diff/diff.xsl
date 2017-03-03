@@ -20,13 +20,9 @@
     <diff:options>
       <diff:whitespace-stripping-policy value="all"/> <!-- all | ignorable | none -->
       <diff:enable-tnsm value="yes"/> <!-- Text node splitting & matching -->
-      <diff:add-statistics value="yes"/> <!-- Add statistic attributes to root element -->
       <diff:min-string-length value="8"/>
       <diff:min-word-count value="3"/>
       <diff:min-subtree-weight value="12"/>
-      <diff:record-split-ops value="no"/>
-      <diff:only-split-nodes value="no"/>
-      <diff:add-split-ids value="no"/>
     </diff:options>  
   </xsl:variable>
   
@@ -39,18 +35,35 @@
   
   <xsl:variable name="params" select="/*/req:parameters/req:parameter" as="element(req:parameter)*"/>
   
+  <xsl:template name="head" as="element()*">
+    <script type="text/javascript">
+      function onSubmitForm() {
+        if (document.getElementById("download").checked) {
+          document.diffform.action += "diff-download.html";
+        } else {
+          document.diffform.action += "diff-fileupload.html";
+        }
+        return true;
+      }
+    </script>
+  </xsl:template>
+  
   <xsl:template name="tab-contents-1">
     <form 
       method="post"           
       name="diffform"          
       enctype="multipart/form-data"
-      action="{/*/req:context-path}{/*/req:webapp-path}/diff-fileupload.html">
+      action="{/*/req:context-path}{/*/req:webapp-path}/"
+      onsubmit="return onSubmitForm();">
       <fieldset>            
         <label for="file">XML file 1: </label>
         <input type="file" name="file1"/>
         <br/><br/>
         <label for="file">XML file 2: </label>
         <input type="file" name="file2"/>
+        <br/><br/>
+        <label for="download">Download</label>
+        <input type="checkbox" id="download" name="download"/>
         <br/><br/>
         <input type="submit" value="Difference XML files"/>
       </fieldset>          
@@ -76,6 +89,6 @@
   <!-- These variables can be ignored: -->
   <xsl:variable name="pipeline-xsl" select="document('')" as="document-node()"/>
   
-  <xsl:variable name="template-name" as="xs:string">diff-form</xsl:variable>
+  <xsl:variable name="template-name" as="xs:string">differencing-fileupload</xsl:variable>
   
 </xsl:stylesheet>
