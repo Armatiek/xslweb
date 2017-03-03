@@ -70,16 +70,4 @@ public class NodeDiffNodeAdapterTextContainer extends NodeDiffNodeAdapter {
     return node.getTextContent();
   }
   
-  /*
-  @Override
-  public void setNativeAttribute(String name, String value) {
-    throw new UnsupportedOperationException();
-  }
-  
-  @Override
-  public void setNativeAttributeNS(String namespaceURI, String qualifiedName, String value) {
-    throw new UnsupportedOperationException();
-  }
-  */
-  
 }

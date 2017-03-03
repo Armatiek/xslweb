@@ -34,7 +34,10 @@ import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.tree.iter.AxisIterator;
 import net.sf.saxon.type.Type;
 import net.sf.saxon.value.Whitespace;
+import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.saxon.functions.diff.DiffXML;
+import nl.armatiek.xslweb.saxon.functions.diff.DiffXML.WhitespaceStrippingPolicy;
 
 
 public class DiffUtils {
@@ -75,6 +78,13 @@ public class DiffUtils {
       while ((attr = attrs.next()) != null) {
         if (attr.getURI().equals("")) {
           ((Element) node).setAttribute(attr.getLocalPart(), attr.getStringValue());
+        } else if (attr.getURI().equals(Definitions.NAMESPACEURI_DELTAXML) && attr.getLocalPart().equals("whitespace")) {
+          String value = attr.getStringValue();
+          try {
+            whitespaceHandling = WhitespaceStrippingPolicy.valueOf(value);
+          } catch (Exception e) {
+            throw new XSLWebException("Value for whitespace handling not supported: \"" + value + "\"");
+          }
         } else {
           ((Element) node).setAttributeNS(attr.getURI(), attr.getPrefix() + ":" + attr.getLocalPart(), attr.getStringValue());
         }
@@ -115,6 +125,7 @@ public class DiffUtils {
     docFactory.setValidating(false);
     // docFactory.setExpandEntityReferences(true);
     Document doc = docFactory.newDocumentBuilder().newDocument();
+    doc.setStrictErrorChecking(true); // TODO
     doc.appendChild(createNodeFromNodeInfo(nodeInfo, doc, whitespaceHandling));
     return doc;
   }
@@ -127,12 +138,4 @@ public class DiffUtils {
     return c;
   }
   
-  public static Collection<AttrWrapper> toWrapperCollection(NamedNodeMap attrs) {
-    ArrayList<AttrWrapper> c = new ArrayList<AttrWrapper>(attrs.getLength());
-    for (int i=0; i<attrs.getLength(); i++) {
-      c.add(new AttrWrapper((Attr) attrs.item(i)));
-    }
-    return c;
-  }
-
 }

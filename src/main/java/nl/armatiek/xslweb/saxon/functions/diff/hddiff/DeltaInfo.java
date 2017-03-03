@@ -22,26 +22,32 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 public class DeltaInfo {
   
   private List<DeleteInfo> deletes;
-  private Element attrsElem;
-  private Element textGroupElem;
+  private boolean insertInfo;
+  private TextInfo textInfo;
+  private AttrInfo attrInfo;
   
-  public void addDeletedNode(Node deletedNode) {
+  public void addDeletedInfo(Node deletedNode, Node nextSiblingNode, Node prevSiblingNode, int position) {
     if (deletes == null) 
       deletes = new ArrayList<DeleteInfo>();
-    deletes.add(0, new DeleteInfo(deletedNode));
+    deletes.add(0, new DeleteInfo(deletedNode, nextSiblingNode, prevSiblingNode, position));
   }
   
-  public void addAttributesElem(Element attrsElem) {
-    this.attrsElem = attrsElem;
+  public void addInsertInfo(boolean value) {
+    insertInfo = value;
   }
   
-  public void addTextGroupElem(Element textGroupElem) {
-    this.textGroupElem = textGroupElem;
+  public void addTextInfo(String oldValue, String newValue) {
+    textInfo = new TextInfo(oldValue, newValue);
+  }
+  
+  public void addAttrInfo(Element elem, NamedNodeMap newAttrs) {
+    attrInfo = new AttrInfo(elem, newAttrs);
   }
   
   public Iterator<DeleteInfo> getDeletedNodes() {
@@ -50,34 +56,66 @@ public class DeltaInfo {
     return deletes.iterator();
   }
   
-  public Element getAttrsElem() {
-    return this.attrsElem;
+  public boolean hasInsertInfo() {
+    return insertInfo;
   }
   
-  public Element getTextGroupElem() {
-    return this.textGroupElem;
+  public TextInfo getTextInfo() {
+    return textInfo;
+  }
+  
+  public AttrInfo getAttrInfo() {
+    return attrInfo;
+  }
+  
+  public boolean hasDeleteInfo() {
+    return deletes != null && !deletes.isEmpty();
+  }
+  
+  public boolean hasTextInfo() {
+    return textInfo != null;
+  }
+  
+  public boolean hasAttrInfo() {
+    return attrInfo != null;
   }
   
   public static final class DeleteInfo {
     
     public final Node deletedNode;
-    public final Node nextSiblingNode;
-    public final Node prevSiblingNode;
+    public Node nextSiblingNode;
+    public Node prevSiblingNode;
     public final int position;
 
-    public DeleteInfo(Node deletedNode) {
+    public DeleteInfo(Node deletedNode, Node nextSiblingNode, Node prevSiblingNode, int position) {
       this.deletedNode = deletedNode;
-      this.nextSiblingNode = this.deletedNode.getNextSibling();
-      this.prevSiblingNode = this.deletedNode.getPreviousSibling();
-      int index = 0;
-      Node tmp = this.deletedNode;
-      while (true) {
-        tmp = tmp.getPreviousSibling();
-        if (tmp == null)
-          break;
-        ++index;
-      }
-      this.position = index;
+      this.nextSiblingNode = nextSiblingNode;
+      this.prevSiblingNode = prevSiblingNode;
+      this.position = position;
+    }
+    
+  }
+  
+  public static final class TextInfo {
+    
+    public String oldValue;
+    public String newValue;
+
+    public TextInfo(String oldValue, String newValue) {
+      this.oldValue = oldValue;
+      this.newValue = newValue;
+    }
+    
+  }
+    
+  public static final class AttrInfo {
+    
+    public Element elem;
+    public NamedNodeMap newAttrs;
+
+    public AttrInfo(Element elem, NamedNodeMap newAttrs) {
+      this.elem = (Element) elem.cloneNode(false);
+      this.newAttrs = newAttrs;
     }
     
   }

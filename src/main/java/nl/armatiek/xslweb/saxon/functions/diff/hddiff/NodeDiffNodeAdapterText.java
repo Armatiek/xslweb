@@ -49,16 +49,8 @@ public class NodeDiffNodeAdapterText extends NodeDiffNodeAdapterTextContainer {
     NodeDiffNodeAdapterText newNode = new NodeDiffNodeAdapterText(nb);
     
     getParent().appendOrInsert(newNode, getNextSibling());
-    return newNode;
     
-    /*
-    Node nb = node.getOwnerDocument().createElementNS("http://sweble.org/schema/wom30", "text"); // TODO
-    nb.setTextContent(tb);
-    
-    NodeDiffNodeAdapterText newNode = new NodeDiffNodeAdapterText(nb);
-    getParent().appendOrInsert(newNode, getNextSibling());
     return newNode;
-    */
   }
   
 }

@@ -164,12 +164,6 @@ public class NodeDiffNodeAdapter extends DiffNode {
 
   @Override
   public Object getNodeValue() {
-    /*
-    NamedNodeMap attrMap = node.getAttributes();
-    ArrayList<Attr> attrs = new ArrayList<Attr>();
-    for (int i=0; i<attrMap.getLength(); i++)
-      attrs.add((Attr) attrMap.item(i));
-    */
     return new NodeUpdate(node.getAttributes(), null);
   }
 

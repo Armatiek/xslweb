@@ -18,6 +18,24 @@ package nl.armatiek.xslweb.saxon.functions.diff.hddiff;
  */
 
 import java.util.ArrayList;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,16 +63,18 @@ import de.fau.cs.osr.hddiff.editscript.EditOpMove;
 import de.fau.cs.osr.hddiff.editscript.EditOpUpdate;
 import de.fau.cs.osr.hddiff.tree.DiffNode;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.diff.hddiff.DeltaInfo.AttrInfo;
 import nl.armatiek.xslweb.saxon.functions.diff.hddiff.DeltaInfo.DeleteInfo;
+import nl.armatiek.xslweb.saxon.functions.diff.hddiff.DeltaInfo.TextInfo;
 import nl.armatiek.xslweb.saxon.functions.diff.hddiff.NodeDiffNodeAdapter.NodeUpdate;
 import nl.armatiek.xslweb.utils.XMLUtils;
 
 public class EditScriptManager {
   
-  private static final String DELTAINFO_KEY = "deltaInfo";
+  private static final String USERDATA_KEY_DELTAINFO = "deltaInfo";
   
-  // private static final boolean ASSERTIONS = false;
-
+  private static final boolean ASSERTIONS = true;
+  
   private final List<EditOp> editScript;
   private final HashMap<DiffNode, Effect> effects;
   private Node root;
@@ -68,7 +88,23 @@ public class EditScriptManager {
     ((Element) this.root).setAttributeNS(Definitions.NAMESPACEURI_XMLNS, "xmlns:" + Definitions.PREFIX_DXX, Definitions.NAMESPACEURI_DXX);
     parse();
   }
-
+  
+  private DiffNode getNodeFromEditOp(EditOp eo) {
+    switch (eo.getType()) {
+    case DELETE:
+      return ((EditOpDelete) eo).getDeletedNode();
+    case INSERT:
+      return ((EditOpInsert) eo).getInsertedNode();
+    case MOVE:
+      return ((EditOpMove) eo).getMovedNode();
+    case UPDATE:
+      return null;
+      // return ((EditOpUpdate) eo).getUpdatedNode();
+    default:
+      throw new UnsupportedOperationException();
+    }
+  }
+  
   private void parse() {
     for (EditOp eo : editScript) {
       switch (eo.getType()) {
@@ -79,8 +115,7 @@ public class EditScriptManager {
         addMapping((EditOpInsert) eo);
         break;
       case MOVE:
-        EditOpMove mov = (EditOpMove) eo;
-        addMapping(mov);
+        addMapping((EditOpMove) eo);
         break;
       case UPDATE:
         addMapping((EditOpUpdate) eo);
@@ -99,7 +134,6 @@ public class EditScriptManager {
   private void addMapping(EditOpMove mov) {
     Effect e = addEffect(mov.getToParent());
     e.addNewChild(mov);
-
     e = addEffect(mov.getMovedNode());
     e.setIsMoved(mov);
   }
@@ -107,7 +141,6 @@ public class EditScriptManager {
   private void addMapping(EditOpInsert ins) {
     Effect e = addEffect(ins.getParent());
     e.addNewChild(ins);
-
     e = addEffect(ins.getInsertedNode());
     e.setIsInserted(ins);
   }
@@ -127,75 +160,114 @@ public class EditScriptManager {
   public void apply() {
     processRemoves();
     processNonRemoves();
-    addEqualAttribute(root.getOwnerDocument().getDocumentElement());
-    processDeltaInfo();
+    processDeltaInfo(root);
+    complementDeltaV2Attributes(root.getOwnerDocument().getDocumentElement());
   }
   
-  private void processNode(Node node, List<Node> nodesWithDeltaInfo) {
-    DeltaInfo info = (DeltaInfo) node.getUserData(DELTAINFO_KEY);
+  private void getNodesToProcess(Node node, List<Node> nodes) {
+    DeltaInfo info = (DeltaInfo) node.getUserData(USERDATA_KEY_DELTAINFO);
     if (info != null) {
-      nodesWithDeltaInfo.add(node);
+      nodes.add(node);
+      if (info.hasInsertInfo())
+        return;
     }
     Node childNode = node.getFirstChild();
     while (childNode != null) {
-      processNode(childNode, nodesWithDeltaInfo);
+      getNodesToProcess(childNode, nodes);
       childNode = childNode.getNextSibling();
     }
   }
   
-  private void processDeltaInfo() {
-    ArrayList<Node> nodesWithDeltaInfo = new ArrayList<Node>();
-    processNode(root, nodesWithDeltaInfo);
-    for (Node node : nodesWithDeltaInfo) {
-      DeltaInfo info = getDeltaInfo(node);
+  private void removeDeltaInfoFromDescendants(Node node) {
+    Node childNode = node.getFirstChild();
+    while (childNode != null) {
+      childNode.setUserData(USERDATA_KEY_DELTAINFO, null, null);
+      if (childNode.getNodeType() == Node.ELEMENT_NODE)
+        ((Element) childNode).removeAttributeNS(Definitions.NAMESPACEURI_DELTAXML, "deltaV2");
+      removeDeltaInfoFromDescendants(childNode);
+      childNode = childNode.getNextSibling();
+    }
+  }
+  
+  private int processDeltaInfo(Node root) {
+    ArrayList<Node> nodesToProcess = new ArrayList<Node>();
+    getNodesToProcess(root, nodesToProcess);
+    for (Node node : nodesToProcess) {
+      DeltaInfo info = (DeltaInfo) node.getUserData(USERDATA_KEY_DELTAINFO);
       
-      /* deleted nodes */
-      Iterator<DeleteInfo> deleteInfoIter = info.getDeletedNodes();
-      if (deleteInfoIter != null) {
-        while (deleteInfoIter.hasNext()) {
-          DeleteInfo deletedInfo = deleteInfoIter.next();
-          Node deletedNode = deletedInfo.deletedNode;
-          
-          Node nextSiblingNode = deletedInfo.nextSiblingNode;
-          Node prevSiblingNode = deletedInfo.prevSiblingNode;
-          if (nextSiblingNode == null) {
-            node.appendChild(deletedNode);
-          } else if (prevSiblingNode == null) {
-            node.insertBefore(deletedNode, node.getFirstChild());
-          } else if (XMLUtils.containsNode(node.getChildNodes(), nextSiblingNode)) {
-            node.insertBefore(deletedNode, nextSiblingNode);
-          } else if (XMLUtils.containsNode(node.getChildNodes(), prevSiblingNode)) {
-            node.insertBefore(deletedNode, prevSiblingNode.getNextSibling());
-          } else {
-            int pos = deletedInfo.position;
-            if (pos >= node.getChildNodes().getLength()-1) {
+      /* Process inserted node: */
+      if (info.hasInsertInfo()) {
+        setDeltaV2Attr((Element) node, "B");
+        removeDeltaInfoFromDescendants(node);
+        continue;
+      }
+      
+      /* Process deleted child nodes: */
+      if (info.hasDeleteInfo()) {
+        /* Process deleted nodes */
+        Iterator<DeleteInfo> deleteInfoIter = info.getDeletedNodes();
+        if (deleteInfoIter != null) {
+          while (deleteInfoIter.hasNext()) {
+            DeleteInfo deletedInfo = deleteInfoIter.next();
+            Node deletedNode = deletedInfo.deletedNode;
+            Node nextSiblingNode = deletedInfo.nextSiblingNode;
+            Node prevSiblingNode = deletedInfo.prevSiblingNode;
+            
+            if (nextSiblingNode != null && nextSiblingNode.getParentNode() != null && XMLUtils.containsNode(node, nextSiblingNode)) {
+              node.insertBefore(deletedNode, nextSiblingNode);
+            } else if (prevSiblingNode != null 
+                && ((prevSiblingNode.getNextSibling() == null || prevSiblingNode.getNextSibling().getParentNode() != null) 
+                    && XMLUtils.containsNode(node, prevSiblingNode))) {
+              node.insertBefore(deletedNode, prevSiblingNode.getNextSibling());
+            } else if (nextSiblingNode == null) {
               node.appendChild(deletedNode);
+            } else if (prevSiblingNode == null) {
+              node.insertBefore(deletedNode, node.getFirstChild());
             } else {
-              int insertPos = Math.max(deletedInfo.position, node.getChildNodes().getLength()-1);
-              Node refChild = node.getChildNodes().item(insertPos);
-              node.insertBefore(deletedNode, refChild);
+              int pos = deletedInfo.position;
+              if (pos >= node.getChildNodes().getLength()-1) {
+                node.appendChild(deletedNode);
+              } else {
+                int insertPos = Math.max(deletedInfo.position, node.getChildNodes().getLength()-1);
+                Node refChild = node.getChildNodes().item(insertPos);
+                node.insertBefore(deletedNode, refChild);
+              }
             }
           }
- 
-          DeltaInfo deletedNodeDeltaInfo = getDeltaInfo(deletedNode);
-          if (deletedNodeDeltaInfo != null && deletedNodeDeltaInfo.getTextGroupElem() != null) {
-            deletedNode.getParentNode().replaceChild(deletedNodeDeltaInfo.getTextGroupElem(), deletedNode);
+          deleteInfoIter = info.getDeletedNodes();
+          while (deleteInfoIter.hasNext()) {
+            DeleteInfo deletedInfo = deleteInfoIter.next();
+            Node deletedNode = deletedInfo.deletedNode;
+            removeDeltaInfoFromDescendants(deletedNode);
+            if (deletedNode.getNodeType() == Node.ELEMENT_NODE) {
+              setDeltaV2Attr((Element) deletedNode, "A");
+            } else {
+              Element textGroupElem = createTextGroupElem(node.getOwnerDocument(), deletedNode.getTextContent(), null);
+              node.replaceChild(textGroupElem, deletedNode);
+            }
           }
         }
       }
       
-      /* textGroup elements: */
-      Element textGroupElem = info.getTextGroupElem();
-      if (textGroupElem != null) {
+      /* Process inserted or changed text nodes */
+      if (info.hasTextInfo()) {
+        TextInfo textInfo = info.getTextInfo();
+        Element textGroupElem  = createTextGroupElem(node.getOwnerDocument(), textInfo.oldValue, textInfo.newValue);
         node.getParentNode().replaceChild(textGroupElem, node);
       }
       
-      /* attribute elements: */
-      Element attrsElem = info.getAttrsElem();
-      if (attrsElem != null) {
+      /* Process changed atribute elements: */
+      if (info.hasAttrInfo()) {
+        AttrInfo attrInfo = info.getAttrInfo();
+        replaceAttributes((Element) node, attrInfo.elem.getAttributes());
+        Element attrsElem = createAttributesElement((Element) node, attrInfo.newAttrs);
         node.insertBefore(attrsElem, node.getFirstChild());
+        setDeltaV2Attr((Element) node, "A!=B");
       }
+      
+      node.setUserData(USERDATA_KEY_DELTAINFO, null, null);
     }
+    return nodesToProcess.size();
   }
   
   private void markAncestorsChanged(Node node) {
@@ -206,15 +278,37 @@ public class EditScriptManager {
     }
   }
   
-  private void addEqualAttribute(Element elem) {
-    if (!elem.hasAttributeNS(Definitions.NAMESPACEURI_DELTAXML, "deltaV2"))
-      elem.setAttributeNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.PREFIX_DELTAXML + ":deltaV2", "A=B");
-    Node child = elem.getFirstChild();
+  private void markChanged(Node node) {
+    String value = getDeltaV2Attr(node);
+    if (value != null && (value.equals("A") || value.equals("B"))) {
+      markAncestorsChanged(node);
+      return;
+    }
+    Node child = node.getFirstChild();
     while (child != null) {
       if (child.getNodeType() == Node.ELEMENT_NODE)
-        addEqualAttribute((Element) child);
+        markChanged(child);
       child = child.getNextSibling();
     }
+  }
+  
+  private void markUnchanged(Node node) {
+    String value = getDeltaV2Attr(node);
+    if (value != null && (value.equals("A") || value.equals("B")))
+      return;
+    if (getDeltaV2Attr(node) == null)
+      setDeltaV2Attr((Element) node, "A=B");
+    Node child = node.getFirstChild();
+    while (child != null) {
+      if (child.getNodeType() == Node.ELEMENT_NODE)
+        markUnchanged(child);
+      child = child.getNextSibling();
+    }
+  }
+  
+  private void complementDeltaV2Attributes(Node node) {
+    markChanged(node);
+    markUnchanged(node);
   }
   
   private void appendTextElem(Element textGroupElem, String text, String delta) {
@@ -241,10 +335,10 @@ public class EditScriptManager {
   }
   
   private DeltaInfo getDeltaInfo(Node node) {
-    DeltaInfo info = (DeltaInfo) node.getUserData(DELTAINFO_KEY);
+    DeltaInfo info = (DeltaInfo) node.getUserData(USERDATA_KEY_DELTAINFO);
     if (info == null) {
       info = new DeltaInfo();
-      node.setUserData(DELTAINFO_KEY, info, null);
+      node.setUserData(USERDATA_KEY_DELTAINFO, info, null);
     }
     return info;
   }
@@ -253,8 +347,22 @@ public class EditScriptManager {
     return node.getNamespaceURI() == null ? node.getNodeName() : node.getLocalName();
   }
   
+  private String getDeltaV2Attr(Node node) {
+    if (node.getNodeType() == Node.ELEMENT_NODE) {
+      String value = ((Element) node).getAttributeNS(Definitions.NAMESPACEURI_DELTAXML, "deltaV2");
+      return value.equals("") ? null : value;
+    }
+    return null;
+  }
+  
+  private void setDeltaV2Attr(Element elem, String delta, boolean overwrite) {
+    boolean overwriteAllowed = overwrite || !elem.hasAttributeNS(Definitions.NAMESPACEURI_DELTAXML, "deltaV2");
+    if (overwriteAllowed)
+      elem.setAttributeNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.PREFIX_DELTAXML + ":deltaV2", delta);
+  }
+  
   private void setDeltaV2Attr(Element elem, String delta) {
-    elem.setAttributeNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.PREFIX_DELTAXML + ":deltaV2", delta);
+    setDeltaV2Attr(elem, delta, true); 
   }
   
   private Element getAttributeContainer(Document doc, Attr attr, String delta) {
@@ -271,11 +379,23 @@ public class EditScriptManager {
     parent.appendChild(attrValueElem);
   }
   
-  private void processAttributeChanges(Element elem, NamedNodeMap newAttrs) {
+  private void replaceAttributes(Element elem, NamedNodeMap newAttrs) {
+    NamedNodeMap attrs = elem.getAttributes();
+    while (attrs.getLength() > 0) {
+      elem.removeAttributeNode((Attr) attrs.item(0));
+    }
+    for (int i=0; i<newAttrs.getLength(); i++) {
+      Attr attr = (Attr) newAttrs.item(i);
+      elem.setAttributeNode((Attr) elem.getOwnerDocument().importNode(attr.cloneNode(true), true));
+    }
+  }
+  
+  private Element createAttributesElement(Element elem, NamedNodeMap newAttrs) {
     Collection<Pair<Attr, Attr>> updatedAttributes = new HashSet<Pair<Attr, Attr>>();
     Collection<Attr> insertedAttributes = new HashSet<Attr>();
     Collection<Attr> deletedAttributes = new HashSet<Attr>();
     
+    /* Process deleted and updated attributes: */
     NamedNodeMap oldAttrs = elem.getAttributes();
     for (int i=0; i<oldAttrs.getLength(); i++) {
       Attr oldAttr = (Attr) oldAttrs.item(i);
@@ -290,6 +410,7 @@ public class EditScriptManager {
         updatedAttributes.add(new ImmutablePair<Attr, Attr>(oldAttr, newAttr));
     }
     
+    /* Process inserted attributes: */
     for (int i=0; i<newAttrs.getLength(); i++) {
       Attr newAttr = (Attr) newAttrs.item(i);
       if (StringUtils.equals(newAttr.getNamespaceURI(), Definitions.NAMESPACEURI_XMLNS))
@@ -305,9 +426,9 @@ public class EditScriptManager {
       Document doc = elem.getOwnerDocument();
       Element attributesElem = doc.createElementNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.PREFIX_DELTAXML + ":attributes");
       String delta;
-      if (!insertedAttributes.isEmpty() && deletedAttributes.isEmpty())
+      if (!insertedAttributes.isEmpty() && deletedAttributes.isEmpty() && updatedAttributes.isEmpty())
         delta = "B";
-      else if (insertedAttributes.isEmpty() && !deletedAttributes.isEmpty())
+      else if (insertedAttributes.isEmpty() && !deletedAttributes.isEmpty() && updatedAttributes.isEmpty())
         delta = "A";
       else 
         delta = "A!=B";
@@ -340,90 +461,115 @@ public class EditScriptManager {
         appendAttrValueElem(doc, attrElem, "B", attr.getValue());
       }
       
-      getDeltaInfo(elem).addAttributesElem(attributesElem);
+      return attributesElem;
+      
+    }
+    return null;
+  }
+  
+  private boolean hasAncestorDelete(Node deleteNode, HashSet<Node> deleteNodes) {
+    Node parentNode = deleteNode.getParentNode();
+    while (parentNode != null) {
+      if (deleteNodes.contains(parentNode)) 
+        return true;
+      parentNode = parentNode.getParentNode();
     }
     
+    return false;
   }
-
+  
   private void processRemoves() {
-    ListIterator<EditOp> i = editScript.listIterator(editScript.size());
+    /* Gather all nodes to be deleted and moved */
+    HashSet<Node> deleteNodes = new HashSet<Node>();
+    ListIterator<EditOp> i = editScript.listIterator();
+    while (i.hasNext()) {
+      EditOp op = i.next();
+      if (op.getType() == Operation.DELETE || op.getType() == Operation.MOVE)
+        deleteNodes.add((Node)getNodeFromEditOp(op).getNativeNode());
+    }
+    
+    /* Make mapping of top ancestor nodes that will be deleted or moved and their clone */
+    HashMap<Node, Node> topLevelClones = new HashMap<Node, Node>();
+    for (Node node: deleteNodes) {
+      if (!hasAncestorDelete(node, deleteNodes))
+        topLevelClones.put(node, node.cloneNode(true));
+    }
+    
+    i = editScript.listIterator(editScript.size());
     while (i.hasPrevious()) {
-      EditOp op = i.previous();
-      Node deletedNode;
-      if (op.getType() == Operation.DELETE)
-        deletedNode = (Node) ((EditOpDelete) op).getDeletedNode().getNativeNode();
-      else if (op.getType() == Operation.MOVE)
-        deletedNode = (Node) ((EditOpMove) op).getMovedNode().getNativeNode();
-      else
-        continue;
-      
-      Node deltaInfoNode = (op.getType() == Operation.DELETE) ? deletedNode : deletedNode.cloneNode(true);
-      
-      getDeltaInfo(deletedNode.getParentNode()).addDeletedNode(deltaInfoNode);
-      
-      if (deletedNode.getNodeType() == Node.ELEMENT_NODE) {
-        setDeltaV2Attr((Element) deltaInfoNode, "A");
-      } else if (deletedNode.getNodeType() == Node.TEXT_NODE) {
-        Element textGroupElem = createTextGroupElem(deltaInfoNode.getOwnerDocument(), deltaInfoNode.getTextContent(), null);
-        getDeltaInfo(deltaInfoNode).addTextGroupElem(textGroupElem);
+      EditOp op = i.previous();    
+      switch (op.getType()) {
+      case DELETE:
+        EditOpDelete del = (EditOpDelete) op;
+        DiffNode deletedNode = del.getDeletedNode();
+        Node deletedNativeNode = (Node) deletedNode.getNativeNode();
+        Node clonedNativeNode = topLevelClones.get(deletedNativeNode);
+        if (clonedNativeNode == null)
+          clonedNativeNode = deletedNativeNode.cloneNode(true); // TODO : is this necessary?
+        getDeltaInfo(deletedNativeNode.getParentNode()).addDeletedInfo(clonedNativeNode, deletedNativeNode.getNextSibling(), 
+            deletedNativeNode.getPreviousSibling(), XMLUtils.getNodePosition(deletedNativeNode));
+        deletedNode.removeFromParent();
+        break;
+      case MOVE:
+        EditOpMove mov = (EditOpMove) op;
+        DiffNode movedNode = mov.getMovedNode();
+        Node movedNativeNode = (Node) movedNode.getNativeNode();
+        clonedNativeNode = topLevelClones.get(movedNativeNode);
+        if (clonedNativeNode == null)
+          clonedNativeNode = movedNativeNode.cloneNode(true); // TODO : is this necessary?
+        getDeltaInfo(movedNativeNode.getParentNode()).addDeletedInfo(clonedNativeNode, movedNativeNode.getNextSibling(), 
+            movedNativeNode.getPreviousSibling(), XMLUtils.getNodePosition(movedNativeNode));
+        movedNode.removeFromParent();
+        break;
+      default:
+        break;
       }
-      
-      markAncestorsChanged(deletedNode);
-      
-      deletedNode.getParentNode().removeChild(deletedNode);
     }
   }
 
   private void processNonRemoves() {
     for (Entry<DiffNode, Effect> e : effects.entrySet()) {
-      // DiffNode affectedParent = e.getKey();
-      Node affectedParent = (Node) e.getKey().getNativeNode();
+      DiffNode affectedParent = e.getKey();
       Effect effect = e.getValue();
 
       if (effect.isUpdated()) {
         EditOpUpdate upd = effect.getUpdateOp();
-        Node updatedNode = (Node) upd.getUpdatedNode().getNativeNode();
+        DiffNode updatedNode = upd.getUpdatedNode();
+        Node updatedNativeNode = (Node) updatedNode.getNativeNode();
         NodeUpdate newValue = (NodeUpdate) upd.getNewNodeValue();
-        if (updatedNode.getNodeType() == Node.ELEMENT_NODE) {
-          processAttributeChanges((Element) updatedNode, newValue.attributes);
-          setDeltaV2Attr((Element) updatedNode, "A!=B");
-        } else if (updatedNode.getNodeType() == Node.TEXT_NODE) {
-          Element textGroupElem = createTextGroupElem(updatedNode.getOwnerDocument(), updatedNode.getTextContent(), newValue.value);
-          getDeltaInfo(updatedNode).addTextGroupElem(textGroupElem);
+        DeltaInfo info = getDeltaInfo(updatedNativeNode);
+        int nodeType = updatedNativeNode.getNodeType();
+        if (nodeType == Node.ELEMENT_NODE) {
+          info.addAttrInfo((Element) updatedNativeNode, newValue.attributes);
+        } else if (nodeType == Node.TEXT_NODE) {
+          info.addTextInfo(updatedNativeNode.getTextContent(), newValue.value);
         }
-        markAncestorsChanged(updatedNode);
+        updatedNode.setNodeValue(upd.getNewNodeValue());
       }
-
+      
       Iterator<InsertOp> insIt = effect.getInserts().iterator();
       if (!insIt.hasNext())
         continue;
 
       int i = 0;
       InsertOp ins = insIt.next();
-      // DiffNode child = affectedParent.getFirstChild();
-      Node child = affectedParent.getFirstChild();
+      DiffNode child = affectedParent.getFirstChild();
 
       L2: while ((ins != null) || (child != null)) {
         while ((ins != null) && (ins.getFinalPosition() == i)) {
           DiffNode newDiffNodeChild = ins.getInsertedNode();
-          Node newNodeChild = (Node) newDiffNodeChild.getNativeNode();
+          affectedParent.appendOrInsert(newDiffNodeChild, child);
           
+          Node newNodeChild = (Node) newDiffNodeChild.getNativeNode();
+          DeltaInfo info = getDeltaInfo(newNodeChild);
           if (newNodeChild.getNodeType() == Node.ELEMENT_NODE) {
-            setDeltaV2Attr((Element) newNodeChild, "B");
+            info.addInsertInfo(true);
           } else if (newNodeChild.getNodeType() == Node.TEXT_NODE) {
-            Element textGroupElem = createTextGroupElem(newNodeChild.getOwnerDocument(), null, newNodeChild.getTextContent());
-            getDeltaInfo(newNodeChild).addTextGroupElem(textGroupElem);
+            info.addTextInfo(null, newNodeChild.getTextContent());
           }
           
-          // affectedParent.appendOrInsert(newDiffNodeChild, child);
-          affectedParent.insertBefore(newNodeChild, child);
-
-          markAncestorsChanged(newNodeChild);
-          
-          /*
           if (ASSERTIONS && (ins.getInsertedNode().indexOf() != ins.getFinalPosition()))
             throw new AssertionError();
-          */
 
           if (!insIt.hasNext())
             // No more inserts, no point going on...
