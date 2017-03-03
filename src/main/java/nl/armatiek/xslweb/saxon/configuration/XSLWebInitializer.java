@@ -96,6 +96,7 @@ import nl.armatiek.xslweb.saxon.functions.sql.Rollback;
 import nl.armatiek.xslweb.saxon.functions.util.DiscardDocument;
 import nl.armatiek.xslweb.saxon.functions.util.Parse;
 import nl.armatiek.xslweb.saxon.functions.uuid.UUID;
+import nl.armatiek.xslweb.saxon.functions.xquery.XUpdate;
 import nl.armatiek.xslweb.saxon.functions.zip.Unzip;
 import nl.armatiek.xslweb.saxon.functions.zip.Zip;
 import nl.armatiek.xslweb.saxon.uriresolver.XSLWebURIResolver;
@@ -247,6 +248,9 @@ public class XSLWebInitializer implements Initializer {
     /* Diff */
     registerEXPathFunction(new DiffXML(), configuration);
     registerEXPathFunction(new DiffText(), configuration);
+    
+    /* XQuery */
+    registerEXPathFunction(new XUpdate(), configuration);
   }
   
   private void registerEXPathFunction(ExtensionFunctionDefinition function, Configuration configuration) {

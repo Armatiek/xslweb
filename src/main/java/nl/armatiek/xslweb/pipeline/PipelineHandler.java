@@ -164,6 +164,14 @@ public class PipelineHandler implements ContentHandler {
           String name = getAttribute(atts, "name", "query-" + Integer.toString(pipelineSteps.size()+1));
           boolean log = getAttribute(atts, "log", "false").equals("true");
           pipelineSteps.add(new QueryStep(xqueryPath, name, log));
+        } else if (localName.equals("transformer-stx")) {         
+          String stxPath = getAttribute(atts, "stx-path", null);
+          if (StringUtils.isBlank(stxPath)) {
+            throw new SAXException("Transformer STX step must have an attribute \"stx-path\"");
+          }
+          String name = getAttribute(atts, "name", "transformer-stx-" + Integer.toString(pipelineSteps.size()+1));
+          boolean log = getAttribute(atts, "log", "false").equals("true");
+          pipelineSteps.add(new TransformerSTXStep(stxPath, name, log));
         } else if (localName.equals("parameter")) {
           ParameterizablePipelineStep step = (ParameterizablePipelineStep) pipelineSteps.peek();
           String name = getAttribute(atts, "name", null);

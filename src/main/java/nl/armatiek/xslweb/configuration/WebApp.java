@@ -47,6 +47,7 @@ import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
+import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXSource;
@@ -112,6 +113,7 @@ import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.config.PersistenceConfiguration;
 import net.sf.ehcache.config.PersistenceConfiguration.Strategy;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
+import net.sf.joost.trax.TrAXConstants;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
@@ -137,11 +139,14 @@ public class WebApp implements ErrorHandler {
   
   private static final Logger logger = LoggerFactory.getLogger(WebApp.class);
   
-  private Map<String, XsltExecutable> templatesCache = 
+  private Map<String, XsltExecutable> xsltExecutableCache = 
       Collections.synchronizedMap(new HashMap<String, XsltExecutable>());
   
-  private Map<String, XQueryExecutable> xqueryCache = 
+  private Map<String, XQueryExecutable> xqueryExecutableCache = 
       Collections.synchronizedMap(new HashMap<String, XQueryExecutable>());
+  
+  private Map<String, Templates> templatesCache = 
+      Collections.synchronizedMap(new HashMap<String, Templates>());
   
   private Map<String, Schema> schemaCache = 
       Collections.synchronizedMap(new HashMap<String, Schema>());
@@ -349,10 +354,16 @@ public class WebApp implements ErrorHandler {
       }
     }
     
-    logger.info("Clearing compiled stylesheets cache ...");
+    logger.info("Clearing compiled XSLT stylesheet cache ...");
+    xsltExecutableCache.clear();
+    
+    logger.info("Clearing compiled STX stylesheet cache ...");
     templatesCache.clear();
     
-    logger.info("Clearing compiled schemas cache ...");
+    logger.info("Clearing compiled XQuery cache ...");
+    xqueryExecutableCache.clear();
+    
+    logger.info("Clearing compiled XML Schema cache ...");
     schemaCache.clear();
     
     Thread.sleep(250);
@@ -529,14 +540,21 @@ public class WebApp implements ErrorHandler {
   }
 
   public XsltExecutable getRequestDispatcherTemplates(ErrorListener errorListener) throws Exception {
-    return tryTemplatesCache(new File(getHomeDir(), Definitions.PATHNAME_REQUESTDISPATCHER_XSL).getAbsolutePath(), errorListener);
+    return tryXsltExecutableCache(new File(getHomeDir(), Definitions.PATHNAME_REQUESTDISPATCHER_XSL).getAbsolutePath(), errorListener);
   }
   
-  public XsltExecutable getTemplates(String path, ErrorListener errorListener) throws Exception {    
+  public XsltExecutable getXsltExecutable(String path, ErrorListener errorListener) throws Exception {    
+    if (new File(path).isAbsolute()) {
+      return tryXsltExecutableCache(path, errorListener);
+    }    
+    return tryXsltExecutableCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener);
+  }
+  
+  public Templates getTemplates(String path, ErrorListener errorListener) throws Exception {    
     if (new File(path).isAbsolute()) {
       return tryTemplatesCache(path, errorListener);
     }    
-    return tryTemplatesCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener);
+    return tryTemplatesCache(new File(getHomeDir(), "stx" + "/" + path).getAbsolutePath(), errorListener);
   }
   
   public XQueryExecutable getQuery(String path, ErrorListener errorListener) throws Exception {    
@@ -583,12 +601,12 @@ public class WebApp implements ErrorHandler {
     return null;
   }
   
-  public XsltExecutable tryTemplatesCache(String transformationPath,  
+  public XsltExecutable tryXsltExecutableCache(String transformationPath,  
       ErrorListener errorListener) throws Exception {
     String key = FilenameUtils.normalize(transformationPath);
-    XsltExecutable templates = templatesCache.get(key);    
-    if (templates == null) {
-      logger.info("Compiling and caching stylesheet \"" + transformationPath + "\" ...");                 
+    XsltExecutable xsltExecutable = xsltExecutableCache.get(key);    
+    if (xsltExecutable == null) {
+      logger.info("Compiling and caching XSLT stylesheet \"" + transformationPath + "\" ...");                 
       try {
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
@@ -599,9 +617,38 @@ public class WebApp implements ErrorHandler {
         Source source = new SAXSource(reader, new InputSource(transformationPath));         
         XsltCompiler comp = processor.newXsltCompiler();
         comp.setErrorListener(errorListener);
-        templates = comp.compile(source);        
+        xsltExecutable = comp.compile(source);        
       } catch (Exception e) {
         logger.error("Could not compile XSLT stylesheet \"" + transformationPath + "\"", e);
+        throw e;
+      }      
+      if (!developmentMode) {
+        xsltExecutableCache.put(key, xsltExecutable);
+      }      
+    }
+    return xsltExecutable;
+  }
+  
+  public Templates tryTemplatesCache(String transformationPath,  
+      ErrorListener errorListener) throws Exception {
+    String key = FilenameUtils.normalize(transformationPath);
+    Templates templates = templatesCache.get(key);    
+    if (templates == null) {
+      logger.info("Compiling and caching STX stylesheet \"" + transformationPath + "\" ...");                 
+      try {
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        spf.setNamespaceAware(true);
+        spf.setXIncludeAware(true);
+        spf.setValidating(false);
+        SAXParser parser = spf.newSAXParser();
+        XMLReader reader = parser.getXMLReader();        
+        Source source = new SAXSource(reader, new InputSource(transformationPath));         
+        net.sf.joost.trax.TransformerFactoryImpl tfi = new net.sf.joost.trax.TransformerFactoryImpl();
+        tfi.setAttribute(TrAXConstants.MESSAGE_EMITTER_CLASS, "nl.armatiek.xslweb.joost.MessageEmitter");
+        tfi.setErrorListener(errorListener);
+        templates = tfi.newTemplates(source);
+      } catch (Exception e) {
+        logger.error("Could not compile STX stylesheet \"" + transformationPath + "\"", e);
         throw e;
       }      
       if (!developmentMode) {
@@ -614,7 +661,7 @@ public class WebApp implements ErrorHandler {
   public XQueryExecutable tryQueryCache(String xqueryPath,  
       ErrorListener errorListener) throws Exception {
     String key = FilenameUtils.normalize(xqueryPath);
-    XQueryExecutable xquery = xqueryCache.get(key);    
+    XQueryExecutable xquery = xqueryExecutableCache.get(key);    
     if (xquery == null) {
       logger.info("Compiling and caching xquery \"" + xqueryPath + "\" ...");                 
       try {
@@ -626,7 +673,7 @@ public class WebApp implements ErrorHandler {
         throw e;
       }      
       if (!developmentMode) {
-        xqueryCache.put(key, xquery);
+        xqueryExecutableCache.put(key, xquery);
       }      
     }
     return xquery;
@@ -664,7 +711,7 @@ public class WebApp implements ErrorHandler {
   public XsltExecutable trySchematronCache(String schematronPath, String phase, 
       ErrorListener errorListener) throws Exception {
     String key = FilenameUtils.normalize(schematronPath) + (phase != null ? phase : "");
-    XsltExecutable templates = templatesCache.get(key);    
+    XsltExecutable templates = xsltExecutableCache.get(key);    
     if (templates == null) {
       logger.info("Compiling and caching schematron schema \"" + schematronPath + "\" ...");                 
       try {
@@ -674,13 +721,13 @@ public class WebApp implements ErrorHandler {
         ErrorListener listener = new TransformationErrorListener(null, developmentMode); 
         MessageWarner messageWarner = new MessageWarner();
         
-        Xslt30Transformer stage1 = tryTemplatesCache(new File(schematronDir, "iso_dsdl_include.xsl").getAbsolutePath(), errorListener).load30();
+        Xslt30Transformer stage1 = tryXsltExecutableCache(new File(schematronDir, "iso_dsdl_include.xsl").getAbsolutePath(), errorListener).load30();
         stage1.setErrorListener(listener);
         stage1.getUnderlyingController().setMessageEmitter(messageWarner);
-        Xslt30Transformer stage2 = tryTemplatesCache(new File(schematronDir, "iso_abstract_expand.xsl").getAbsolutePath(), errorListener).load30();
+        Xslt30Transformer stage2 = tryXsltExecutableCache(new File(schematronDir, "iso_abstract_expand.xsl").getAbsolutePath(), errorListener).load30();
         stage2.setErrorListener(listener);
         stage2.getUnderlyingController().setMessageEmitter(messageWarner);
-        Xslt30Transformer stage3 = tryTemplatesCache(new File(schematronDir, "iso_svrl_for_xslt2.xsl").getAbsolutePath(), errorListener).load30();
+        Xslt30Transformer stage3 = tryXsltExecutableCache(new File(schematronDir, "iso_svrl_for_xslt2.xsl").getAbsolutePath(), errorListener).load30();
         stage3.setErrorListener(listener);
         stage3.getUnderlyingController().setMessageEmitter(messageWarner);
        
@@ -715,7 +762,7 @@ public class WebApp implements ErrorHandler {
         throw e;
       }      
       if (!developmentMode) {
-        templatesCache.put(key, templates);
+        xsltExecutableCache.put(key, templates);
       }      
     }
     return templates;

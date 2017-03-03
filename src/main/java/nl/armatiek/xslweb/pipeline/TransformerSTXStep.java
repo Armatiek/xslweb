@@ -1,4 +1,4 @@
-package nl.armatiek.xslweb.saxon.functions.diff.hddiff;
+package nl.armatiek.xslweb.pipeline;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -17,30 +17,17 @@ package nl.armatiek.xslweb.saxon.functions.diff.hddiff;
  * limitations under the License.
  */
 
-import org.apache.commons.lang3.StringUtils;
-import org.w3c.dom.Attr;
-
-public class AttrWrapper {
+public class TransformerSTXStep extends ParameterizablePipelineStep {
   
-  private Attr attr;
+  private String stxPath;  
   
-  public AttrWrapper(Attr attr) {
-    this.attr = attr;
+  public TransformerSTXStep(String stxPath, String name, boolean log) {
+    super(name, log);
+    this.stxPath = stxPath;    
   }
   
-  public Attr getAttr() {
-    return this.attr;
-  }
-
-  @Override
-  public int hashCode() {
-    return (StringUtils.defaultString(attr.getNamespaceURI()) + 
-        StringUtils.defaultString(attr.getLocalName() == null ? attr.getName() : attr.getLocalName())).hashCode();
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return ((Attr) obj).isEqualNode(attr);
+  public String getStxPath() {
+    return this.stxPath;
   }
   
 }

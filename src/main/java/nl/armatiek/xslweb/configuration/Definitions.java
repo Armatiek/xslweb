@@ -80,6 +80,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_ZIP         = NAMESPACEURI_XSLWEB_FUNCTIONS + "/zip";
   public final static String NAMESPACEURI_XSLWEB_FX_EXEC        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/exec";
   public final static String NAMESPACEURI_XSLWEB_FX_DIFF        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/diff";
+  public final static String NAMESPACEURI_XSLWEB_FX_XQUERY      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/xquery";
   public final static String NAMESPACEURI_XSLWEB_REQUEST        = NAMESPACEURI_XSLWEB + "/request";
   public final static String NAMESPACEURI_XSLWEB_RESPONSE       = NAMESPACEURI_XSLWEB + "/response";
   public final static String NAMESPACEURI_XSLWEB_FX_SESSION     = NAMESPACEURI_XSLWEB + "/session";
@@ -87,7 +88,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_ZIP_SERIALIZER = NAMESPACEURI_XSLWEB + "/zip-serializer";
   public final static String NAMESPACEURI_XSLWEB_FOP_SERIALIZER = NAMESPACEURI_XSLWEB + "/fop-serializer";
   public final static String NAMESPACEURI_XSLWEB_VALIDATION     = NAMESPACEURI_XSLWEB + "/validation";
-  public final static String NAMESPACEURI_XSLWEB_XQUERY         = NAMESPACEURI_XSLWEB + "/xquery";
+  
   public final static String NAMESPACEURI_EXPATH_FILE           = "http://expath.org/ns/file";
   
   public final static String NAMESPACEURI_DELTAXML              = "http://www.deltaxml.com/ns/well-formed-delta-v1";
@@ -122,6 +123,8 @@ public class Definitions {
   public final static String ATTRNAME_REQUESTXML               = "xslweb.requestxml";
   public final static String ATTRNAME_PIPELINEHANDLER          = "xslweb.pipelinehandler";
   public final static String ATTRNAME_TEMPFILES                = "xslweb.tempfiles";
+  
+  public final static String PARAMNAME_TRACE                   = "xslweb.trace";
   
   public final static String CACHENAME_RESPONSECACHINGFILTER   = "XSLWebResponseCachingFilter";
   

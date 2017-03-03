@@ -206,6 +206,13 @@
       <artifactId>mxquery</artifactId>
       <version>0.6</version>
     </dependency>
+    
+    <dependency>
+      <groupId>net.sf.joost</groupId>
+      <artifactId>joost</artifactId>
+      <version>0.9.1</version>
+    </dependency>
+    
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>

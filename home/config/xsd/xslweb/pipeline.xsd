@@ -34,6 +34,17 @@
             </xs:complexType>
           </xs:element>
           
+          <xs:element name="transformer-stx">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="parameter" type="xslweb:parameter-type" minOccurs="0" maxOccurs="unbounded"/>
+              </xs:sequence>
+              <xs:attribute name="name" type="xs:string" use="optional"/>
+              <xs:attribute name="stx-path" type="xs:string" use="required"/>
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
+            </xs:complexType>
+          </xs:element>
+          
           <xs:element name="schema-validator">
             <xs:complexType>
               <xs:sequence>
