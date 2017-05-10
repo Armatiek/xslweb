@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet 
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:deltaxml="http://www.deltaxml.com/ns/well-formed-delta-v1"
+  xmlns:deltaxml="http://www.armatiek.com/xslweb/diff/well-formed-delta"
   exclude-result-prefixes="#all"
   version="2.0">
   
@@ -20,7 +20,7 @@
       <xsl:apply-templates select="@*"/>
       <xsl:for-each select="deltaxml:attributes/*[deltaxml:attributeValue/@deltaxml:deltaV2='A']">
         <xsl:choose>
-          <xsl:when test="namespace-uri() = 'http://www.deltaxml.com/ns/non-namespaced-attribute'">
+          <xsl:when test="namespace-uri() = 'http://www.armatiek.com/xslweb/diff/non-namespaced-attribute'">
             <xsl:attribute name="{local-name()}" select="deltaxml:attributeValue[@deltaxml:deltaV2='A']"/>    
           </xsl:when>
           <xsl:otherwise>
