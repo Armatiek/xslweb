@@ -70,7 +70,13 @@ public class DiffUtils {
       AxisIterator namespaces = nodeInfo.iterateAxis(AxisInfo.NAMESPACE);
       NodeInfo ns;
       while ((ns = namespaces.next()) != null) {
-        ((Element) node).setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:" + ns.getLocalPart(), ns.getStringValue());
+        String localPart = ns.getLocalPart();
+        String qualifiedName;
+        if (localPart.equals(""))
+          qualifiedName = "xmlns";
+        else
+          qualifiedName = "xmlns:" + localPart;
+        ((Element) node).setAttributeNS("http://www.w3.org/2000/xmlns/", qualifiedName, ns.getStringValue());
       }
       
       AxisIterator attrs = nodeInfo.iterateAxis(AxisInfo.ATTRIBUTE);

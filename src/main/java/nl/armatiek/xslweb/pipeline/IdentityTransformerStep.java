@@ -3,6 +3,7 @@ package nl.armatiek.xslweb.pipeline;
 import java.io.File;
 
 import nl.armatiek.xslweb.configuration.Context;
+import nl.armatiek.xslweb.configuration.WebApp;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,8 +24,8 @@ import nl.armatiek.xslweb.configuration.Context;
 
 public class IdentityTransformerStep extends TransformerStep {
 
-  public IdentityTransformerStep() {
-    super(new File(Context.getInstance().getHomeDir(), "common/xsl/system/identity/identity.xsl").getAbsolutePath(), "identity", false);
+  public IdentityTransformerStep(WebApp webApp) {
+    super(webApp, new File(Context.getInstance().getHomeDir(), "common/xsl/system/identity/identity.xsl").getAbsolutePath(), "identity", false);
   }
   
 }

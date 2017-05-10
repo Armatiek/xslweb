@@ -36,6 +36,7 @@ import net.sf.saxon.Configuration;
 import net.sf.saxon.s9api.Processor;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.Parameter;
+import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.xml.SerializingContentHandler;
 
 public class PipelineHandler implements ContentHandler {
@@ -52,10 +53,12 @@ public class PipelineHandler implements ContentHandler {
   private StringBuilder chars = new StringBuilder();
   private Processor processor;
   private Configuration conf;
+  private WebApp webApp;
   
-  public PipelineHandler(Processor processor, Configuration conf) {
-    this.processor = processor;
-    this.conf = conf;
+  public PipelineHandler(WebApp webApp) {
+    this.webApp = webApp;
+    this.processor = webApp.getProcessor();
+    this.conf = webApp.getConfiguration();
   }
     
   @Override
@@ -155,7 +158,7 @@ public class PipelineHandler implements ContentHandler {
           }
           String name = getAttribute(atts, "name", "transformer-" + Integer.toString(pipelineSteps.size()+1));
           boolean log = getAttribute(atts, "log", "false").equals("true");
-          pipelineSteps.add(new TransformerStep(xslPath, name, log));
+          pipelineSteps.add(new TransformerStep(webApp, xslPath, name, log));
         } else if (localName.equals("query")) {         
           String xqueryPath = getAttribute(atts, "xquery-path", null);
           if (StringUtils.isBlank(xqueryPath)) {
@@ -163,7 +166,7 @@ public class PipelineHandler implements ContentHandler {
           }
           String name = getAttribute(atts, "name", "query-" + Integer.toString(pipelineSteps.size()+1));
           boolean log = getAttribute(atts, "log", "false").equals("true");
-          pipelineSteps.add(new QueryStep(xqueryPath, name, log));
+          pipelineSteps.add(new QueryStep(webApp, xqueryPath, name, log));
         } else if (localName.equals("transformer-stx")) {         
           String stxPath = getAttribute(atts, "stx-path", null);
           if (StringUtils.isBlank(stxPath)) {

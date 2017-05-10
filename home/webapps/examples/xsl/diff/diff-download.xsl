@@ -6,7 +6,8 @@
   xmlns:req="http://www.armatiek.com/xslweb/request" 
   xmlns:resp="http://www.armatiek.com/xslweb/response"
   xmlns:diff="http://www.armatiek.com/xslweb/functions/diff"
-  xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization"  
+  xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization"
+  xmlns:local="url:local"  
   exclude-result-prefixes="#all"
   version="2.0">
   
@@ -24,6 +25,22 @@
     </diff:options>  
   </xsl:variable>
   
+  <xsl:function name="local:path-to-file-uri" as="xs:string">
+    <xsl:param name="path" as="xs:string"/>
+    <xsl:variable name="protocol-prefix" as="xs:string">
+      <xsl:choose>
+        <xsl:when test="starts-with($path, '\\')">file://</xsl:when> <!-- UNC path -->
+        <xsl:when test="matches($path, '[a-zA-Z]:[\\/]')">file:///</xsl:when> <!-- Windows drive path -->
+        <xsl:when test="starts-with($path, '/')">file://</xsl:when> <!-- Unix path -->
+        <xsl:otherwise>file://</xsl:otherwise>
+      </xsl:choose>  
+    </xsl:variable>
+    <xsl:variable name="norm-path" select="translate($path, '\', '/')" as="xs:string"/>
+    <xsl:variable name="path-parts" select="tokenize($norm-path, '/')" as="xs:string*"/>
+    <xsl:variable name="encoded-path" select="string-join(for $p in $path-parts return encode-for-uri($p), '/')" as="xs:string"/>
+    <xsl:value-of select="concat($protocol-prefix, $encoded-path)"/>        
+  </xsl:function>
+  
   <xsl:template match="/">
     <resp:response status="200">
       <resp:headers>                              
@@ -31,8 +48,8 @@
       </resp:headers>
       <resp:body>
         <xsl:sequence select="diff:diff-xml(
-          document(concat('file:///', replace(/*/req:file-uploads/req:file-upload[1]/req:file-path, '\\', '/'))), 
-          document(concat('file:///', replace(/*/req:file-uploads/req:file-upload[2]/req:file-path, '\\', '/'))),
+          document(local:path-to-file-uri(/*/req:file-uploads/req:file-upload[1]/req:file-path)),
+          document(local:path-to-file-uri(/*/req:file-uploads/req:file-upload[2]/req:file-path)),
           $diff-options)"/>
       </resp:body>
     </resp:response>

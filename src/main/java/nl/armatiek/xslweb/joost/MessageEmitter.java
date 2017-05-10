@@ -18,7 +18,11 @@ package nl.armatiek.xslweb.joost;
  */
 
 import java.io.StringWriter;
+import java.util.Properties;
 
+import javax.xml.transform.OutputKeys;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -28,14 +32,22 @@ import net.sf.joost.emitter.XmlEmitter;
 public class MessageEmitter extends XmlEmitter {
   
   private static final Logger logger = LoggerFactory.getLogger(MessageEmitter.class);
+  
+  private static Properties outputProperties = new Properties();
+  
+  static {
+    outputProperties.put(OutputKeys.OMIT_XML_DECLARATION, "yes");
+    outputProperties.put(OutputKeys.INDENT, "yes");
+  }
 
   public MessageEmitter() {
-    super(new StringWriter(), "UTF-8", null);
+    super(new StringWriter(), "UTF-8", outputProperties);
   }
   
   @Override
   public void endDocument() throws SAXException {
     super.endDocument();
-    logger.info(writer.toString()); 
+    logger.info(StringUtils.trim(writer.toString()));
+    writer = new StringWriter();
   }
 }

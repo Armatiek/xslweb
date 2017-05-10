@@ -72,13 +72,13 @@ public class PipelineGeneratorFilter implements Filter {
       ErrorListener errorListener = new TransformationErrorListener(resp, webApp.getDevelopmentMode());      
       MessageWarner messageWarner = new MessageWarner();
       
-      XsltExecutable templates = webApp.getRequestDispatcherTemplates(errorListener);
+      XsltExecutable templates = webApp.getRequestDispatcherTemplates(errorListener, false);
       Xslt30Transformer transformer = templates.load30();
       transformer.setStylesheetParameters(XSLWebUtils.getStylesheetParameters(webApp, req, resp, homeDir));
       transformer.setErrorListener(errorListener);            
       transformer.getUnderlyingController().setMessageEmitter(messageWarner);            
                                
-      PipelineHandler pipelineHandler = new PipelineHandler(webApp.getProcessor(), webApp.getConfiguration());
+      PipelineHandler pipelineHandler = new PipelineHandler(webApp);
       NodeInfo source = (NodeInfo) req.getAttribute(Definitions.ATTRNAME_REQUESTXML);
       Destination destination = new SAXDestination(pipelineHandler);
       transformer.applyTemplates(source, destination);

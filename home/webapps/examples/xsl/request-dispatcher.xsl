@@ -342,7 +342,8 @@
   <!-- Example 31: STX example: Huge file -->
   <xsl:template name="huge-file" match="/req:request[req:path = '/huge-file.html']">    
     <pipeline:pipeline>
-      <pipeline:transformer-stx name="huge-file" stx-path="huge-file/huge-file.stx" log="true"/>  
+      <pipeline:transformer-stx name="huge-file" stx-path="huge-file/huge-file.stx" log="true"/>
+      <pipeline:transformer name="huge-file" xsl-path="huge-file/huge-file.xsl" log="true"/>
     </pipeline:pipeline>
   </xsl:template>
   

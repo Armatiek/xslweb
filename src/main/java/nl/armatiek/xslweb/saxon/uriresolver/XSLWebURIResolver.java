@@ -34,12 +34,25 @@ import java.util.Map;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
+import net.sf.saxon.functions.ResolveURI;
 import net.sf.saxon.lib.StandardURIResolver;
 import net.sf.saxon.trans.XPathException;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.web.servlet.InternalRequest;
 
 public class XSLWebURIResolver extends StandardURIResolver {
+  
+  public enum DefaultBehaviour { SAXON, STREAM } 
+  
+  private DefaultBehaviour defaultBehaviour;
+  
+  public XSLWebURIResolver() {
+    this.defaultBehaviour = DefaultBehaviour.SAXON;
+  }
+  
+  public XSLWebURIResolver(DefaultBehaviour defaultBehaviour) {
+    this.defaultBehaviour = defaultBehaviour;
+  }
   
   private Map<String, List<String>> splitQuery(URI uri) throws UnsupportedEncodingException {
     String query = uri.getRawQuery();
@@ -88,7 +101,17 @@ public class XSLWebURIResolver extends StandardURIResolver {
         URLConnection connection = new URL(href).openConnection(proxy);                                        
         return new StreamSource(connection.getInputStream(), href);  
       }
-      return super.resolve(href, base);                  
+      if (defaultBehaviour == DefaultBehaviour.SAXON)
+        return super.resolve(href, base);
+      else {
+        URI absoluteUri;
+        if (uri.isAbsolute()) 
+          absoluteUri = uri;
+        else {
+          absoluteUri = ResolveURI.makeAbsolute(href, base);
+        }
+        return new StreamSource(absoluteUri.toString());
+      }
     } catch (Exception e) {
       throw new XPathException(e);
     }

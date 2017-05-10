@@ -55,9 +55,9 @@
   <a><a1/></a>
   <b/>
   <c>hello world</c>
-  <d/>
+  <d color="green"/>
   <f/>
-  <e>Hello World!</e>
+  <e>The quick brown fox jumps over the lazy dog</e>
 </root>]]></xsl:otherwise>
             </xsl:choose>
           </textarea>
@@ -73,7 +73,8 @@
   <a><a1/></a>
   <b><b1/></b>
   <c attr="hello world"/>
-  <e>Hello Universe!</e>
+  <d color="red"/>
+  <e>The quick brown fox jumped over the lazy dog</e>
 </root>]]></xsl:otherwise>  
             </xsl:choose>
           </textarea>

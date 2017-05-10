@@ -161,7 +161,7 @@ public class EditScriptManager {
     processRemoves();
     processNonRemoves();
     processDeltaInfo(root);
-    complementDeltaV2Attributes(root.getOwnerDocument().getDocumentElement());
+    complementDeltaAttributes(root.getOwnerDocument().getDocumentElement());
   }
   
   private void getNodesToProcess(Node node, List<Node> nodes) {
@@ -183,7 +183,7 @@ public class EditScriptManager {
     while (childNode != null) {
       childNode.setUserData(USERDATA_KEY_DELTAINFO, null, null);
       if (childNode.getNodeType() == Node.ELEMENT_NODE)
-        ((Element) childNode).removeAttributeNS(Definitions.NAMESPACEURI_DELTAXML, "deltaV2");
+        ((Element) childNode).removeAttributeNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.ATTRNAME_DELTA);
       removeDeltaInfoFromDescendants(childNode);
       childNode = childNode.getNextSibling();
     }
@@ -197,7 +197,7 @@ public class EditScriptManager {
       
       /* Process inserted node: */
       if (info.hasInsertInfo()) {
-        setDeltaV2Attr((Element) node, "B");
+        setDeltaAttr((Element) node, "B");
         removeDeltaInfoFromDescendants(node);
         continue;
       }
@@ -240,7 +240,7 @@ public class EditScriptManager {
             Node deletedNode = deletedInfo.deletedNode;
             removeDeltaInfoFromDescendants(deletedNode);
             if (deletedNode.getNodeType() == Node.ELEMENT_NODE) {
-              setDeltaV2Attr((Element) deletedNode, "A");
+              setDeltaAttr((Element) deletedNode, "A");
             } else {
               Element textGroupElem = createTextGroupElem(node.getOwnerDocument(), deletedNode.getTextContent(), null);
               node.replaceChild(textGroupElem, deletedNode);
@@ -262,7 +262,7 @@ public class EditScriptManager {
         replaceAttributes((Element) node, attrInfo.elem.getAttributes());
         Element attrsElem = createAttributesElement((Element) node, attrInfo.newAttrs);
         node.insertBefore(attrsElem, node.getFirstChild());
-        setDeltaV2Attr((Element) node, "A!=B");
+        setDeltaAttr((Element) node, "A!=B");
       }
       
       node.setUserData(USERDATA_KEY_DELTAINFO, null, null);
@@ -273,13 +273,13 @@ public class EditScriptManager {
   private void markAncestorsChanged(Node node) {
     Node parent = (Node) node.getParentNode();
     while (parent != null && parent.getNodeType() == Node.ELEMENT_NODE) {
-      setDeltaV2Attr((Element) parent, "A!=B");
+      setDeltaAttr((Element) parent, "A!=B");
       parent = parent.getParentNode();
     }
   }
   
   private void markChanged(Node node) {
-    String value = getDeltaV2Attr(node);
+    String value = getDeltaAttr(node);
     if (value != null && (value.equals("A") || value.equals("B"))) {
       markAncestorsChanged(node);
       return;
@@ -293,11 +293,13 @@ public class EditScriptManager {
   }
   
   private void markUnchanged(Node node) {
-    String value = getDeltaV2Attr(node);
+    String value = getDeltaAttr(node);
     if (value != null && (value.equals("A") || value.equals("B")))
       return;
-    if (getDeltaV2Attr(node) == null)
-      setDeltaV2Attr((Element) node, "A=B");
+    if (getDeltaAttr(node) == null) {
+      setDeltaAttr((Element) node, "A=B");
+      return;
+    }
     Node child = node.getFirstChild();
     while (child != null) {
       if (child.getNodeType() == Node.ELEMENT_NODE)
@@ -306,7 +308,7 @@ public class EditScriptManager {
     }
   }
   
-  private void complementDeltaV2Attributes(Node node) {
+  private void complementDeltaAttributes(Node node) {
     markChanged(node);
     markUnchanged(node);
   }
@@ -314,7 +316,7 @@ public class EditScriptManager {
   private void appendTextElem(Element textGroupElem, String text, String delta) {
     Element textElem = (Element) textGroupElem.appendChild(textGroupElem.getOwnerDocument().createElementNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.PREFIX_DELTAXML + ":text"));
     textElem.appendChild(textGroupElem.getOwnerDocument().createTextNode(text));
-    setDeltaV2Attr(textElem, delta);
+    setDeltaAttr(textElem, delta);
   }
   
   private Element createTextGroupElem(Document doc, String oldValue, String newValue) {
@@ -326,7 +328,7 @@ public class EditScriptManager {
       delta = "B";
     else
       delta = "A!=B";    
-    setDeltaV2Attr(textGroupElem, delta);
+    setDeltaAttr(textGroupElem, delta);
     if (oldValue != null)
       appendTextElem(textGroupElem, oldValue, "A");
     if (newValue != null)
@@ -347,34 +349,34 @@ public class EditScriptManager {
     return node.getNamespaceURI() == null ? node.getNodeName() : node.getLocalName();
   }
   
-  private String getDeltaV2Attr(Node node) {
+  private String getDeltaAttr(Node node) {
     if (node.getNodeType() == Node.ELEMENT_NODE) {
-      String value = ((Element) node).getAttributeNS(Definitions.NAMESPACEURI_DELTAXML, "deltaV2");
+      String value = ((Element) node).getAttributeNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.ATTRNAME_DELTA);
       return value.equals("") ? null : value;
     }
     return null;
   }
   
-  private void setDeltaV2Attr(Element elem, String delta, boolean overwrite) {
-    boolean overwriteAllowed = overwrite || !elem.hasAttributeNS(Definitions.NAMESPACEURI_DELTAXML, "deltaV2");
+  private void setDeltaAttr(Element elem, String delta, boolean overwrite) {
+    boolean overwriteAllowed = overwrite || !elem.hasAttributeNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.ATTRNAME_DELTA);
     if (overwriteAllowed)
-      elem.setAttributeNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.PREFIX_DELTAXML + ":deltaV2", delta);
+      elem.setAttributeNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.PREFIX_DELTAXML + ":" + Definitions.ATTRNAME_DELTA, delta);
   }
   
-  private void setDeltaV2Attr(Element elem, String delta) {
-    setDeltaV2Attr(elem, delta, true); 
+  private void setDeltaAttr(Element elem, String delta) {
+    setDeltaAttr(elem, delta, true); 
   }
   
   private Element getAttributeContainer(Document doc, Attr attr, String delta) {
     Element elem = doc.createElementNS(attr.getNamespaceURI() == null ? Definitions.NAMESPACEURI_DXA : attr.getNamespaceURI(), 
         (attr.getNamespaceURI() == null) ? Definitions.PREFIX_DXA + ":" +  getLocalName(attr) : attr.getPrefix() + ":" + getLocalName(attr));
-    setDeltaV2Attr(elem, delta);
+    setDeltaAttr(elem, delta);
     return elem;
   }
   
   private void appendAttrValueElem(Document doc, Element parent, String delta, String value) {
     Element attrValueElem = doc.createElementNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.PREFIX_DELTAXML + ":attributeValue");
-    setDeltaV2Attr(attrValueElem, delta);
+    setDeltaAttr(attrValueElem, delta);
     attrValueElem.appendChild(doc.createTextNode(value));
     parent.appendChild(attrValueElem);
   }
@@ -432,7 +434,7 @@ public class EditScriptManager {
         delta = "A";
       else 
         delta = "A!=B";
-      setDeltaV2Attr(attributesElem, delta);
+      setDeltaAttr(attributesElem, delta);
       
       /* Updates: */
       for (Pair<Attr, Attr> attrs : updatedAttributes) {

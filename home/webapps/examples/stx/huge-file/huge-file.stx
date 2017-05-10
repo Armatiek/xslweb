@@ -2,62 +2,27 @@
   version="1.0"
   xmlns:stx="http://stx.sourceforge.net/2002/ns" 
   xmlns:config="http://www.armatiek.com/xslweb/configuration"
-  exclude-result-prefixes="config" 
+  xmlns:req="http://www.armatiek.com/xslweb/request"
+  exclude-result-prefixes="config req" 
   pass-through="none"
   strip-space="yes">
   
   <stx:param name="config:webapp-dir"/>
   
-  <stx:template match="/">
+  <stx:template match="/req:request">
     <root>
       <stx:message select="'Start of transformation'"/>
-      <stx:variable name="uri">
-        <stx:call-procedure name="path-to-file-uri">
-          <stx:with-param name="path" select="concat($config:webapp-dir, '/stx/huge-file/huge-file.xml')"/>
-        </stx:call-procedure>
-      </stx:variable>
-      <stx:process-document href="$uri" group="pass-trough-none"/>
+      <!-- Process external document, initially not producing any output because of /*/@pass-through='none': -->
+      <stx:process-document href="'huge-file.xml'"/>
       <stx:message select="'End of transformation'"/>
     </root>
   </stx:template>
   
-  <stx:group name="pass-trough-all" pass-through="all">
-    
-    <stx:template match="*">
-      <stx:copy attributes="@*">
-        <stx:process-children group="pass-trough-all"/>  
-      </stx:copy>
-    </stx:template>
-    
-  </stx:group>
+  <stx:template match="interesting-stuff">
+    <!-- Interesting stuff!, let's copy to output: -->
+    <stx:process-self group="copy"/>  
+  </stx:template>
   
-  <stx:group name="pass-trough-none" pass-through="none">
-    
-    <stx:template match="interesting-stuff">
-      <yes/>
-      <stx:process-self group="pass-trough-all"/>  
-    </stx:template>
-    
-  </stx:group>
-  
-  <stx:procedure name="path-to-file-uri">
-    <stx:param name="path"/>
-    <stx:variable name="protocol-prefix">
-      <stx:choose>
-        <stx:when test="starts-with($path, '\\')">file://</stx:when> <!-- UNC path -->
-        <stx:when test="matches($path, '[a-zA-Z]:[\\/]')">file:///</stx:when> <!-- Windows drive path -->
-        <stx:when test="starts-with($path, '/')">file://</stx:when> <!-- Unix path -->
-        <stx:otherwise>file://</stx:otherwise>
-      </stx:choose>  
-    </stx:variable>
-    <stx:variable name="norm-path" select="translate($path, '\', '/')"/>
-    <stx:variable name="path-parts" select="tokenize($norm-path, '/')"/>
-    <stx:variable name="escaped">
-      <stx:for-each-item name="part" select="$path-parts">
-        <stx:value-of select="concat(escape-uri($part, false()), '/')"/>
-      </stx:for-each-item>
-    </stx:variable>
-    <stx:value-of select="concat($protocol-prefix, substring($escaped, 1, string-length($escaped)-1))"/>        
-  </stx:procedure>
+  <stx:group name="copy" pass-through="all"/>
   
 </stx:transform>
