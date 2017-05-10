@@ -10,7 +10,7 @@
   <groupId>nl.armatiek.xslweb</groupId>
   <artifactId>xslweb</artifactId>
   <packaging>war</packaging> 
-  <version>2.0.5-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   
   <inceptionYear>2013</inceptionYear>
 
@@ -37,7 +37,7 @@
     <compiler.source.version>1.8</compiler.source.version>
     <compiler.target.version>1.8</compiler.target.version>
     <project.build.sourceEncoding>${file.encoding}</project.build.sourceEncoding>
-    <saxon.version>9.7.0-7</saxon.version>
+    <saxon.version>9.7.0-18</saxon.version>
     <log4j.version>1.2.17</log4j.version>
     <slf4j.version>1.7.5</slf4j.version>
   </properties>
@@ -258,7 +258,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.4</version>
+      <version>3.5</version>
     </dependency>                                        
     <dependency>
       <groupId>commons-io</groupId>
@@ -402,6 +402,12 @@
       <groupId>com.sksamuel.diff</groupId>
       <artifactId>diff</artifactId>
       <version>1.1.11</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>nl.armatiek.xmlindex</groupId>
+      <artifactId>xmlindex</artifactId>
+      <version>0.1</version>
     </dependency>
     
   </dependencies>

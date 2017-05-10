@@ -27,6 +27,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -37,15 +38,15 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import nl.armatiek.xslweb.error.XSLWebException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+
+import nl.armatiek.xslweb.error.XSLWebException;
 
 /**
  * Helper class containing several XML/DOM/JAXP related methods.  
@@ -347,6 +348,29 @@ public class XMLUtils {
          return prefixes.iterator();
       }      
     };    
+  }
+  
+  public static String getNamespace(Node node, String searchPrefix) {
+    Element el;
+    while (!(node instanceof Element))
+      node = node.getParentNode();
+    el = (Element) node;
+    NamedNodeMap atts = el.getAttributes();
+    for (int i = 0; i < atts.getLength(); i++) {
+      Node currentAttribute = atts.item(i);
+      String currentLocalName = currentAttribute.getLocalName();
+      String currentPrefix = currentAttribute.getPrefix();
+      if (searchPrefix.equals(currentLocalName) && XMLConstants.XMLNS_ATTRIBUTE.equals(currentPrefix)) {
+        return currentAttribute.getNodeValue();
+      } else if (StringUtils.isEmpty(searchPrefix) && XMLConstants.XMLNS_ATTRIBUTE.equals(currentLocalName) && StringUtils.isEmpty(currentPrefix)) {
+        return currentAttribute.getNodeValue();
+      }
+    }
+    Node parent = el.getParentNode();
+    if (parent instanceof Element) {
+      return getNamespace((Element) parent, searchPrefix);
+    }
+    return null;
   }
   
 }

@@ -67,6 +67,17 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.WriteBinary;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteText;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteTextLines;
 import nl.armatiek.xslweb.saxon.functions.image.Scale;
+import nl.armatiek.xslweb.saxon.functions.index.AddDocument;
+import nl.armatiek.xslweb.saxon.functions.index.Collection;
+import nl.armatiek.xslweb.saxon.functions.index.CopyToMemory;
+import nl.armatiek.xslweb.saxon.functions.index.Document;
+import nl.armatiek.xslweb.saxon.functions.index.DocumentAvailable;
+import nl.armatiek.xslweb.saxon.functions.index.DocumentURI;
+import nl.armatiek.xslweb.saxon.functions.index.GetSession;
+import nl.armatiek.xslweb.saxon.functions.index.ImportDocuments;
+import nl.armatiek.xslweb.saxon.functions.index.OwnerDocument;
+import nl.armatiek.xslweb.saxon.functions.index.RemoveDocument;
+import nl.armatiek.xslweb.saxon.functions.index.Transform;
 import nl.armatiek.xslweb.saxon.functions.io.RegisterTempFile;
 import nl.armatiek.xslweb.saxon.functions.json.ParseJSON;
 import nl.armatiek.xslweb.saxon.functions.json.SerializeJSON;
@@ -214,6 +225,21 @@ public class XSLWebInitializer implements Initializer {
     /* JSON */
     registerEXPathFunction(new ParseJSON(), configuration);
     registerEXPathFunction(new SerializeJSON(), configuration);
+    
+    /* XMLIndex */
+    registerEXPathFunction(new AddDocument(), configuration);
+    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.index.Close(), configuration);
+    registerEXPathFunction(new Collection(), configuration);
+    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.index.Commit(), configuration);
+    registerEXPathFunction(new CopyToMemory(), configuration);
+    registerEXPathFunction(new Document(), configuration);
+    registerEXPathFunction(new DocumentAvailable(), configuration);
+    registerEXPathFunction(new DocumentURI(), configuration);
+    registerEXPathFunction(new GetSession(), configuration);
+    registerEXPathFunction(new ImportDocuments(), configuration);
+    registerEXPathFunction(new OwnerDocument(), configuration);
+    registerEXPathFunction(new RemoveDocument(), configuration);
+    registerEXPathFunction(new Transform(), configuration);
     
     /* Sql */
     registerEXPathFunction(new Close(), configuration);

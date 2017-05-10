@@ -27,16 +27,18 @@ import java.io.FileNotFoundException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.ProxySelector;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.net.ssl.SSLContext;
 import javax.xml.XMLConstants;
@@ -126,7 +128,9 @@ import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.serialize.MessageWarner;
 import net.sf.saxon.xpath.XPathFactoryImpl;
+import nl.armatiek.xmlindex.XMLIndex;
 import nl.armatiek.xslweb.error.XSLWebException;
+import nl.armatiek.xslweb.joost.MessageEmitter;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
 import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
@@ -139,26 +143,14 @@ public class WebApp implements ErrorHandler {
   
   private static final Logger logger = LoggerFactory.getLogger(WebApp.class);
   
-  private Map<String, XsltExecutable> xsltExecutableCache = 
-      Collections.synchronizedMap(new HashMap<String, XsltExecutable>());
-  
-  private Map<String, XQueryExecutable> xqueryExecutableCache = 
-      Collections.synchronizedMap(new HashMap<String, XQueryExecutable>());
-  
-  private Map<String, Templates> templatesCache = 
-      Collections.synchronizedMap(new HashMap<String, Templates>());
-  
-  private Map<String, Schema> schemaCache = 
-      Collections.synchronizedMap(new HashMap<String, Schema>());
-  
-  private Map<String, Collection<Attribute>> attributes = 
-      Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
-  
-  private Map<String, ComboPooledDataSource> dataSourceCache = 
-      Collections.synchronizedMap(new HashMap<String, ComboPooledDataSource>());
-  
-  private Map<String, FopFactory> fopFactoryCache = 
-      Collections.synchronizedMap(new HashMap<String, FopFactory>());
+  private Map<String, XsltExecutable> xsltExecutableCache = new ConcurrentHashMap<String, XsltExecutable>();
+  private Map<String, XQueryExecutable> xqueryExecutableCache = new ConcurrentHashMap<String, XQueryExecutable>();
+  private Map<String, Templates> templatesCache =  new ConcurrentHashMap<String, Templates>();
+  private Map<String, Schema> schemaCache = new ConcurrentHashMap<String, Schema>();
+  private Map<String, Collection<Attribute>> attributes = new ConcurrentHashMap<String, Collection<Attribute>>();
+  private Map<String, XMLIndex> indexCache = new ConcurrentHashMap<String, XMLIndex>();
+  private Map<String, ComboPooledDataSource> dataSourceCache = new ConcurrentHashMap<String, ComboPooledDataSource>();
+  private Map<String, FopFactory> fopFactoryCache = new ConcurrentHashMap<String, FopFactory>();
       
   private volatile boolean isClosed = true;
   private File definition;
@@ -172,6 +164,7 @@ public class WebApp implements ErrorHandler {
   private Scheduler scheduler;
   private List<Resource> resources = new ArrayList<Resource>();
   private List<Parameter> parameters = new ArrayList<Parameter>();
+  private Map<String, Index> indexes = new HashMap<String, Index>();
   private Map<String, DataSource> dataSources = new HashMap<String, DataSource>();
   private Map<String, String> fopConfigs = new HashMap<String, String>();
   private XSLWebConfiguration configuration;  
@@ -270,6 +263,12 @@ public class WebApp implements ErrorHandler {
       dataSources.put(dataSource.getName(), dataSource);
     }
     
+    NodeList indexNodes = (NodeList) xpath.evaluate("webapp:indexes/webapp:index", docElem, XPathConstants.NODESET);
+    for (int i=0; i<indexNodes.getLength(); i++) {
+      Index index = new Index(xpath, (Element) indexNodes.item(i), homeDir);
+      indexes.put(index.getName(), index);
+    } 
+    
     NodeList fopConfigNodes = (NodeList) xpath.evaluate("webapp:fop-configs/webapp:fop-config", docElem, XPathConstants.NODESET);
     for (int i=0; i<fopConfigNodes.getLength(); i++) {
       Element fopConfig = (Element) fopConfigNodes.item(i);     
@@ -345,6 +344,13 @@ public class WebApp implements ErrorHandler {
       logger.debug("Closing HTTP client ...");
       httpClient.close();
       httpClient = null;
+    }
+    
+    if (!indexCache.isEmpty()) {
+      logger.info("Closing Indexes ...");
+      for (XMLIndex index : indexCache.values()) {
+        index.close();
+      }
     }
     
     if (!dataSourceCache.isEmpty()) {
@@ -489,6 +495,10 @@ public class WebApp implements ErrorHandler {
     return parameters;
   }
   
+  public Map<String, Index> getIndexes() {
+    return indexes;
+  }
+  
   public Map<String, DataSource> getDataSources() {
     return dataSources;
   }
@@ -539,15 +549,16 @@ public class WebApp implements ErrorHandler {
     return httpClient;
   }
 
-  public XsltExecutable getRequestDispatcherTemplates(ErrorListener errorListener) throws Exception {
-    return tryXsltExecutableCache(new File(getHomeDir(), Definitions.PATHNAME_REQUESTDISPATCHER_XSL).getAbsolutePath(), errorListener);
+  public XsltExecutable getRequestDispatcherTemplates(ErrorListener errorListener, boolean tracing) throws Exception {
+    return tryXsltExecutableCache(new File(getHomeDir(), 
+        Definitions.PATHNAME_REQUESTDISPATCHER_XSL).getAbsolutePath(), errorListener, tracing);
   }
   
-  public XsltExecutable getXsltExecutable(String path, ErrorListener errorListener) throws Exception {    
+  public XsltExecutable getXsltExecutable(String path, ErrorListener errorListener, boolean tracing) throws Exception {    
     if (new File(path).isAbsolute()) {
-      return tryXsltExecutableCache(path, errorListener);
+      return tryXsltExecutableCache(path, errorListener, tracing);
     }    
-    return tryXsltExecutableCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener);
+    return tryXsltExecutableCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener, tracing);
   }
   
   public Templates getTemplates(String path, ErrorListener errorListener) throws Exception {    
@@ -557,11 +568,11 @@ public class WebApp implements ErrorHandler {
     return tryTemplatesCache(new File(getHomeDir(), "stx" + "/" + path).getAbsolutePath(), errorListener);
   }
   
-  public XQueryExecutable getQuery(String path, ErrorListener errorListener) throws Exception {    
+  public XQueryExecutable getQuery(String path, ErrorListener errorListener, boolean tracing) throws Exception {    
     if (new File(path).isAbsolute()) {
-      return tryQueryCache(path, errorListener);
+      return tryQueryCache(path, errorListener, tracing);
     }    
-    return tryQueryCache(new File(getHomeDir(), "xquery" + "/" + path).getAbsolutePath(), errorListener);
+    return tryQueryCache(new File(getHomeDir(), "xquery" + "/" + path).getAbsolutePath(), errorListener, tracing);
   }
   
   public Schema getSchema(Collection<String> schemaPaths, ErrorListener errorListener) throws Exception {    
@@ -602,7 +613,7 @@ public class WebApp implements ErrorHandler {
   }
   
   public XsltExecutable tryXsltExecutableCache(String transformationPath,  
-      ErrorListener errorListener) throws Exception {
+      ErrorListener errorListener, boolean tracing) throws Exception {
     String key = FilenameUtils.normalize(transformationPath);
     XsltExecutable xsltExecutable = xsltExecutableCache.get(key);    
     if (xsltExecutable == null) {
@@ -616,6 +627,7 @@ public class WebApp implements ErrorHandler {
         XMLReader reader = parser.getXMLReader();        
         Source source = new SAXSource(reader, new InputSource(transformationPath));         
         XsltCompiler comp = processor.newXsltCompiler();
+        comp.setCompileWithTracing(tracing);
         comp.setErrorListener(errorListener);
         xsltExecutable = comp.compile(source);        
       } catch (Exception e) {
@@ -644,7 +656,7 @@ public class WebApp implements ErrorHandler {
         XMLReader reader = parser.getXMLReader();        
         Source source = new SAXSource(reader, new InputSource(transformationPath));         
         net.sf.joost.trax.TransformerFactoryImpl tfi = new net.sf.joost.trax.TransformerFactoryImpl();
-        tfi.setAttribute(TrAXConstants.MESSAGE_EMITTER_CLASS, "nl.armatiek.xslweb.joost.MessageEmitter");
+        tfi.setAttribute(TrAXConstants.MESSAGE_EMITTER_CLASS, new MessageEmitter());
         tfi.setErrorListener(errorListener);
         templates = tfi.newTemplates(source);
       } catch (Exception e) {
@@ -659,7 +671,7 @@ public class WebApp implements ErrorHandler {
   }
   
   public XQueryExecutable tryQueryCache(String xqueryPath,  
-      ErrorListener errorListener) throws Exception {
+      ErrorListener errorListener, boolean tracing) throws Exception {
     String key = FilenameUtils.normalize(xqueryPath);
     XQueryExecutable xquery = xqueryExecutableCache.get(key);    
     if (xquery == null) {
@@ -667,6 +679,7 @@ public class WebApp implements ErrorHandler {
       try {
         XQueryCompiler comp = processor.newXQueryCompiler();
         comp.setErrorListener(errorListener);
+        comp.setCompileWithTracing(tracing);
         xquery = comp.compile(new File(xqueryPath));     
       } catch (Exception e) {
         logger.error("Could not compile XQuery \"" + xqueryPath + "\"", e);
@@ -721,13 +734,13 @@ public class WebApp implements ErrorHandler {
         ErrorListener listener = new TransformationErrorListener(null, developmentMode); 
         MessageWarner messageWarner = new MessageWarner();
         
-        Xslt30Transformer stage1 = tryXsltExecutableCache(new File(schematronDir, "iso_dsdl_include.xsl").getAbsolutePath(), errorListener).load30();
+        Xslt30Transformer stage1 = tryXsltExecutableCache(new File(schematronDir, "iso_dsdl_include.xsl").getAbsolutePath(), errorListener, false).load30();
         stage1.setErrorListener(listener);
         stage1.getUnderlyingController().setMessageEmitter(messageWarner);
-        Xslt30Transformer stage2 = tryXsltExecutableCache(new File(schematronDir, "iso_abstract_expand.xsl").getAbsolutePath(), errorListener).load30();
+        Xslt30Transformer stage2 = tryXsltExecutableCache(new File(schematronDir, "iso_abstract_expand.xsl").getAbsolutePath(), errorListener, false).load30();
         stage2.setErrorListener(listener);
         stage2.getUnderlyingController().setMessageEmitter(messageWarner);
-        Xslt30Transformer stage3 = tryXsltExecutableCache(new File(schematronDir, "iso_svrl_for_xslt2.xsl").getAbsolutePath(), errorListener).load30();
+        Xslt30Transformer stage3 = tryXsltExecutableCache(new File(schematronDir, "iso_svrl_for_xslt2.xsl").getAbsolutePath(), errorListener, false).load30();
         stage3.setErrorListener(listener);
         stage3.getUnderlyingController().setMessageEmitter(messageWarner);
        
@@ -839,6 +852,23 @@ public class WebApp implements ErrorHandler {
     logger.warn(String.format("Error parsing \"%s\"", definition.getAbsolutePath()), e);     
   }
   
+  public XMLIndex getXMLIndex(String name) throws Exception {
+    XMLIndex xmlIndex = indexCache.get(name);
+    if (xmlIndex == null) {      
+      Index index = indexes.get(name);
+      if (index == null)
+        throw new XSLWebException("Index definition \"" + name + "\" not found in webapp.xml");        
+      Path indexPath = Paths.get(index.getPath());
+      if (!indexPath.isAbsolute())
+        indexPath = homeDir.toPath().resolve(indexPath);
+      xmlIndex = new XMLIndex(index.getName(), indexPath);
+      xmlIndex.setConfiguration(index.getConfig());
+      xmlIndex.open();
+      indexCache.put(name, xmlIndex);
+    }
+    return xmlIndex;
+  }
+  
   public ComboPooledDataSource getDataSource(String name) throws Exception {
     ComboPooledDataSource cpds = dataSourceCache.get(name);    
     if (cpds == null) {      
@@ -881,21 +911,12 @@ public class WebApp implements ErrorHandler {
   
   public synchronized void incJobRequestCount() {
     jobRequestCount++;
-    logger.info("Ïncrement jobRequestCount " + jobRequestCount);
+    logger.debug("Ïncrement jobRequestCount " + jobRequestCount);
   }
   
   public synchronized void decJobRequestCount() {
     jobRequestCount--;
-    logger.info("Decrement jobRequestCount " + jobRequestCount);
+    logger.debug("Decrement jobRequestCount " + jobRequestCount);
   }
-  
-  /*
-  public void closeDataSource(String id) {
-    ComboPooledDataSource cpds = dataSourceCache.remove(id);    
-    if (cpds != null) {
-      cpds.close();
-    }
-  }
-  */
   
 }

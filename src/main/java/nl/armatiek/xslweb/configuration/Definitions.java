@@ -28,7 +28,7 @@ import java.util.Set;
 public class Definitions {
   
   public final static String PROJECT_NAME                      = "xslweb";
-  public final static String PROJECT_VERSION                   = "2.0.5";
+  public final static String PROJECT_VERSION                   = "3.0.0-beta1";
   public final static String PATHNAME_REQUESTDISPATCHER_XSL    = "xsl/request-dispatcher.xsl";
   public final static String FILENAME_PROPERTIES               = "xslweb.properties";
   public final static String FILENAME_QUARTZ                   = "xslweb-quartz.properties";
@@ -75,6 +75,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_WEBAPP      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/webapp";
   public final static String NAMESPACEURI_XSLWEB_FX_CACHE       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/cache";
   public final static String NAMESPACEURI_XSLWEB_FX_SCRIPT      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/script";
+  public final static String NAMESPACEURI_XSLWEB_FX_XMLINDEX    = NAMESPACEURI_XSLWEB_FUNCTIONS + "/xmlindex";
   public final static String NAMESPACEURI_XSLWEB_FX_SQL         = NAMESPACEURI_XSLWEB_FUNCTIONS + "/sql";
   public final static String NAMESPACEURI_XSLWEB_FX_UTIL        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/util";
   public final static String NAMESPACEURI_XSLWEB_FX_ZIP         = NAMESPACEURI_XSLWEB_FUNCTIONS + "/zip";
@@ -91,12 +92,18 @@ public class Definitions {
   
   public final static String NAMESPACEURI_EXPATH_FILE           = "http://expath.org/ns/file";
   
-  public final static String NAMESPACEURI_DELTAXML              = "http://www.deltaxml.com/ns/well-formed-delta-v1";
-  public final static String NAMESPACEURI_DXA                   = "http://www.deltaxml.com/ns/non-namespaced-attribute";
-  public final static String NAMESPACEURI_DXX                   = "http://www.deltaxml.com/ns/xml-namespaced-attribute";
+  public final static String ATTRNAME_DELTA                     = "delta";
+  //public final static String NAMESPACEURI_DELTAXML              = "http://www.deltaxml.com/ns/well-formed-delta-v1";
+  //public final static String NAMESPACEURI_DXA                   = "http://www.deltaxml.com/ns/non-namespaced-attribute";
+  //public final static String NAMESPACEURI_DXX                   = "http://www.deltaxml.com/ns/xml-namespaced-attribute";
+  public final static String NAMESPACEURI_DELTAXML              = NAMESPACEURI_XSLWEB + "/diff/well-formed-delta";
+  public final static String NAMESPACEURI_DXA                   = NAMESPACEURI_XSLWEB + "/diff/non-namespaced-attribute";
+  public final static String NAMESPACEURI_DXX                   = NAMESPACEURI_XSLWEB + "/diff/xml-namespaced-attribute";
   public final static String PREFIX_DELTAXML                    = "deltaxml";
   public final static String PREFIX_DXA                         = "dxa";
   public final static String PREFIX_DXX                         = "dxx";
+  
+  
     
   public final static String MIMETYPE_XML                      = "text/xml";
   public final static String MIMETYPE_HTML                     = "text/html";
@@ -124,7 +131,8 @@ public class Definitions {
   public final static String ATTRNAME_PIPELINEHANDLER          = "xslweb.pipelinehandler";
   public final static String ATTRNAME_TEMPFILES                = "xslweb.tempfiles";
   
-  public final static String PARAMNAME_TRACE                   = "xslweb.trace";
+  public final static String PARAMNAME_TRACE_BASIC             = "xslweb.trace.basic";
+  public final static String PARAMNAME_TRACE_TIME              = "xslweb.trace.time";
   
   public final static String CACHENAME_RESPONSECACHINGFILTER   = "XSLWebResponseCachingFilter";
   
