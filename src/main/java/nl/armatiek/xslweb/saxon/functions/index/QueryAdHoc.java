@@ -17,12 +17,10 @@
 
 package nl.armatiek.xslweb.saxon.functions.index;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.StringReader;
 import java.util.Map;
 
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.stream.StreamSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,12 +54,12 @@ import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
  * 
  * @author Maarten Kroon
  */
-public class Transform extends ExtensionFunctionDefinition {
+public class QueryAdHoc extends ExtensionFunctionDefinition {
   
-  private static final Logger logger = LoggerFactory.getLogger(Transform.class);
+  private static final Logger logger = LoggerFactory.getLogger(QueryAdHoc.class);
     
   private static final StructuredQName qName = 
-      new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_XMLINDEX, "transform");
+      new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_XMLINDEX, "query-adhoc");
 
   @Override
   public StructuredQName getFunctionQName() {
@@ -94,38 +92,32 @@ public class Transform extends ExtensionFunctionDefinition {
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {
-    return new TransformCall();
+    return new QueryAdHocCall();
   }
     
-  private static class TransformCall extends TransformOrQueryCall {
+  private static class QueryAdHocCall extends TransformOrQueryCall {
 
     @Override
     public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
       @SuppressWarnings("unchecked")
       Session session = ((ObjectValue<Session>) arguments[0].head()).getObject();
-      String path = ((StringValue) arguments[1].head()).getStringValue();
+      String xquery = ((StringValue) arguments[1].head()).getStringValue();
       Map<QName, XdmValue> params = null;
       if (arguments.length > 2)
         params = mapToParams((HashTrieMap) arguments[2].head());
       boolean throwErrors = true;
       if (arguments.length > 3)
         throwErrors = ((BooleanValue) arguments[3].head()).getBooleanValue();
-      File xslFile = new File(path);
-      if (!xslFile.isAbsolute())
-        xslFile = new File(getWebApp(context).getHomeDir(), "xsl" + File.separatorChar + path);
       TinyBuilder builder = new TinyBuilder(context.getConfiguration().makePipelineConfiguration());
-      try {  
+      try {
         try {
-          if (!xslFile.isFile())
-            throw new FileNotFoundException("XSL stylesheet \"" + xslFile.getAbsolutePath() + "\" not found");
-          
           XMLStreamWriter xsw = new StreamWriterToReceiver(builder);
           XMLStreamWriterDestination dest = new XMLStreamWriterDestination(xsw);
-          ErrorListener errorListener = new ErrorListener("\"" + path + "\" on index \"" + session.getIndex().getIndexName() + "\"");            
+          ErrorListener errorListener = new ErrorListener("on index \"" + session.getIndex().getIndexName() + "\"");            
           try {
-            session.transform(new StreamSource(xslFile), dest, params, errorListener, null);
+            session.query(new StringReader(xquery), getWebApp(context).getHomeDir().toURI(), dest, params, errorListener, null);
           } catch (SaxonApiException sae) {
-            XPathException xpe = getXPathException(errorListener, sae);
+            XPathException xpe = this.getXPathException(errorListener, sae);
             if (xpe != null)
               throw xpe;
             else
@@ -142,11 +134,11 @@ public class Transform extends ExtensionFunctionDefinition {
             throw new XPathException(sae.getMessage(), sae);
         } catch (Exception e) {
           throw new XPathException(e.getMessage(), e);
-        } 
+        }
       } catch (Exception e) {
         if (throwErrors)
           throw e;
-        logger.error("Error processing \"" + path + "\" on index \"" + session.getIndex().getIndexName() + "\"", e);
+        logger.error("Error executing XQuery on index \"" + session.getIndex().getIndexName() + "\"", e);
         return getErrorNode(builder, e);
       }
     }

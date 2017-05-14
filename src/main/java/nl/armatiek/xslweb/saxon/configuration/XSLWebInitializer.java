@@ -38,6 +38,7 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.Append;
 import nl.armatiek.xslweb.saxon.functions.expath.file.AppendBinary;
 import nl.armatiek.xslweb.saxon.functions.expath.file.AppendText;
 import nl.armatiek.xslweb.saxon.functions.expath.file.AppendTextLines;
+import nl.armatiek.xslweb.saxon.functions.expath.file.Children;
 import nl.armatiek.xslweb.saxon.functions.expath.file.Copy;
 import nl.armatiek.xslweb.saxon.functions.expath.file.CreateDir;
 import nl.armatiek.xslweb.saxon.functions.expath.file.CreateTempDir;
@@ -76,8 +77,11 @@ import nl.armatiek.xslweb.saxon.functions.index.DocumentURI;
 import nl.armatiek.xslweb.saxon.functions.index.GetSession;
 import nl.armatiek.xslweb.saxon.functions.index.ImportDocuments;
 import nl.armatiek.xslweb.saxon.functions.index.OwnerDocument;
+import nl.armatiek.xslweb.saxon.functions.index.Query;
+import nl.armatiek.xslweb.saxon.functions.index.QueryAdHoc;
 import nl.armatiek.xslweb.saxon.functions.index.RemoveDocument;
 import nl.armatiek.xslweb.saxon.functions.index.Transform;
+import nl.armatiek.xslweb.saxon.functions.index.TransformAdHoc;
 import nl.armatiek.xslweb.saxon.functions.io.RegisterTempFile;
 import nl.armatiek.xslweb.saxon.functions.json.ParseJSON;
 import nl.armatiek.xslweb.saxon.functions.json.SerializeJSON;
@@ -177,6 +181,7 @@ public class XSLWebInitializer implements Initializer {
     registerEXPathFunction(new AppendBinary(), configuration);
     registerEXPathFunction(new AppendText(), configuration);
     registerEXPathFunction(new AppendTextLines(), configuration);
+    registerEXPathFunction(new Children(), configuration);
     registerEXPathFunction(new Copy(), configuration);
     registerEXPathFunction(new CreateDir(), configuration);
     registerEXPathFunction(new CreateTempDir(), configuration);
@@ -240,6 +245,9 @@ public class XSLWebInitializer implements Initializer {
     registerEXPathFunction(new OwnerDocument(), configuration);
     registerEXPathFunction(new RemoveDocument(), configuration);
     registerEXPathFunction(new Transform(), configuration);
+    registerEXPathFunction(new TransformAdHoc(), configuration);
+    registerEXPathFunction(new Query(), configuration);
+    registerEXPathFunction(new QueryAdHoc(), configuration);
     
     /* Sql */
     registerEXPathFunction(new Close(), configuration);

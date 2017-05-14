@@ -22,7 +22,6 @@ import java.io.FileNotFoundException;
 import java.util.Map;
 
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.stream.StreamSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,12 +55,12 @@ import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
  * 
  * @author Maarten Kroon
  */
-public class Transform extends ExtensionFunctionDefinition {
+public class Query extends ExtensionFunctionDefinition {
   
-  private static final Logger logger = LoggerFactory.getLogger(Transform.class);
+  private static final Logger logger = LoggerFactory.getLogger(Query.class);
     
   private static final StructuredQName qName = 
-      new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_XMLINDEX, "transform");
+      new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_XMLINDEX, "query");
 
   @Override
   public StructuredQName getFunctionQName() {
@@ -94,10 +93,10 @@ public class Transform extends ExtensionFunctionDefinition {
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {
-    return new TransformCall();
+    return new QueryCall();
   }
     
-  private static class TransformCall extends TransformOrQueryCall {
+  private static class QueryCall extends TransformOrQueryCall {
 
     @Override
     public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
@@ -110,22 +109,21 @@ public class Transform extends ExtensionFunctionDefinition {
       boolean throwErrors = true;
       if (arguments.length > 3)
         throwErrors = ((BooleanValue) arguments[3].head()).getBooleanValue();
-      File xslFile = new File(path);
-      if (!xslFile.isAbsolute())
-        xslFile = new File(getWebApp(context).getHomeDir(), "xsl" + File.separatorChar + path);
+      File xqueryFile = new File(path);
+      if (!xqueryFile.isAbsolute())
+        xqueryFile = new File(getWebApp(context).getHomeDir(), "xquery" + File.separatorChar + path);
       TinyBuilder builder = new TinyBuilder(context.getConfiguration().makePipelineConfiguration());
-      try {  
+      try {
         try {
-          if (!xslFile.isFile())
-            throw new FileNotFoundException("XSL stylesheet \"" + xslFile.getAbsolutePath() + "\" not found");
-          
+          if (!xqueryFile.isFile())
+            throw new FileNotFoundException("XQuery \"" + xqueryFile.getAbsolutePath() + "\" not found");
           XMLStreamWriter xsw = new StreamWriterToReceiver(builder);
           XMLStreamWriterDestination dest = new XMLStreamWriterDestination(xsw);
           ErrorListener errorListener = new ErrorListener("\"" + path + "\" on index \"" + session.getIndex().getIndexName() + "\"");            
           try {
-            session.transform(new StreamSource(xslFile), dest, params, errorListener, null);
+            session.query(xqueryFile, dest, params, errorListener, null);
           } catch (SaxonApiException sae) {
-            XPathException xpe = getXPathException(errorListener, sae);
+            XPathException xpe = this.getXPathException(errorListener, sae);
             if (xpe != null)
               throw xpe;
             else
@@ -142,7 +140,7 @@ public class Transform extends ExtensionFunctionDefinition {
             throw new XPathException(sae.getMessage(), sae);
         } catch (Exception e) {
           throw new XPathException(e.getMessage(), e);
-        } 
+        }
       } catch (Exception e) {
         if (throwErrors)
           throw e;

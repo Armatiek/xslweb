@@ -17,8 +17,6 @@
 
 package nl.armatiek.xslweb.saxon.functions.index;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Map;
 
 import javax.xml.stream.XMLStreamWriter;
@@ -27,6 +25,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.mxquery.util.StringReader;
 import net.sf.saxon.event.StreamWriterToReceiver;
 import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
@@ -56,12 +55,12 @@ import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
  * 
  * @author Maarten Kroon
  */
-public class Transform extends ExtensionFunctionDefinition {
+public class TransformAdHoc extends ExtensionFunctionDefinition {
   
-  private static final Logger logger = LoggerFactory.getLogger(Transform.class);
+  private static final Logger logger = LoggerFactory.getLogger(TransformAdHoc.class);
     
   private static final StructuredQName qName = 
-      new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_XMLINDEX, "transform");
+      new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_XMLINDEX, "transform-adhoc");
 
   @Override
   public StructuredQName getFunctionQName() {
@@ -94,36 +93,30 @@ public class Transform extends ExtensionFunctionDefinition {
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {
-    return new TransformCall();
+    return new TransformAdHocCall();
   }
     
-  private static class TransformCall extends TransformOrQueryCall {
+  private static class TransformAdHocCall extends TransformOrQueryCall {
 
     @Override
     public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
       @SuppressWarnings("unchecked")
       Session session = ((ObjectValue<Session>) arguments[0].head()).getObject();
-      String path = ((StringValue) arguments[1].head()).getStringValue();
+      String xsl = ((StringValue) arguments[1].head()).getStringValue();
       Map<QName, XdmValue> params = null;
       if (arguments.length > 2)
         params = mapToParams((HashTrieMap) arguments[2].head());
       boolean throwErrors = true;
       if (arguments.length > 3)
         throwErrors = ((BooleanValue) arguments[3].head()).getBooleanValue();
-      File xslFile = new File(path);
-      if (!xslFile.isAbsolute())
-        xslFile = new File(getWebApp(context).getHomeDir(), "xsl" + File.separatorChar + path);
       TinyBuilder builder = new TinyBuilder(context.getConfiguration().makePipelineConfiguration());
       try {  
         try {
-          if (!xslFile.isFile())
-            throw new FileNotFoundException("XSL stylesheet \"" + xslFile.getAbsolutePath() + "\" not found");
-          
           XMLStreamWriter xsw = new StreamWriterToReceiver(builder);
           XMLStreamWriterDestination dest = new XMLStreamWriterDestination(xsw);
-          ErrorListener errorListener = new ErrorListener("\"" + path + "\" on index \"" + session.getIndex().getIndexName() + "\"");            
+          ErrorListener errorListener = new ErrorListener("on index \"" + session.getIndex().getIndexName() + "\"");            
           try {
-            session.transform(new StreamSource(xslFile), dest, params, errorListener, null);
+            session.transform(new StreamSource(new StringReader(xsl)), dest, params, errorListener, null);
           } catch (SaxonApiException sae) {
             XPathException xpe = getXPathException(errorListener, sae);
             if (xpe != null)
@@ -146,7 +139,7 @@ public class Transform extends ExtensionFunctionDefinition {
       } catch (Exception e) {
         if (throwErrors)
           throw e;
-        logger.error("Error processing \"" + path + "\" on index \"" + session.getIndex().getIndexName() + "\"", e);
+        logger.error("Error executing transormation on index \"" + session.getIndex().getIndexName() + "\"", e);
         return getErrorNode(builder, e);
       }
     }
