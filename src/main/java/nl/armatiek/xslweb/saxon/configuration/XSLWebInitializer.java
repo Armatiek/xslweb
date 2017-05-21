@@ -83,8 +83,10 @@ import nl.armatiek.xslweb.saxon.functions.index.RemoveDocument;
 import nl.armatiek.xslweb.saxon.functions.index.Transform;
 import nl.armatiek.xslweb.saxon.functions.index.TransformAdHoc;
 import nl.armatiek.xslweb.saxon.functions.io.RegisterTempFile;
+import nl.armatiek.xslweb.saxon.functions.json.EscapeJSON;
 import nl.armatiek.xslweb.saxon.functions.json.ParseJSON;
 import nl.armatiek.xslweb.saxon.functions.json.SerializeJSON;
+import nl.armatiek.xslweb.saxon.functions.json.UnescapeJSON;
 import nl.armatiek.xslweb.saxon.functions.log.Log;
 import nl.armatiek.xslweb.saxon.functions.mail.SendMail;
 import nl.armatiek.xslweb.saxon.functions.response.AddCookie;
@@ -230,6 +232,8 @@ public class XSLWebInitializer implements Initializer {
     /* JSON */
     registerEXPathFunction(new ParseJSON(), configuration);
     registerEXPathFunction(new SerializeJSON(), configuration);
+    registerEXPathFunction(new EscapeJSON(), configuration);
+    registerEXPathFunction(new UnescapeJSON(), configuration);
     
     /* XMLIndex */
     registerEXPathFunction(new AddDocument(), configuration);
