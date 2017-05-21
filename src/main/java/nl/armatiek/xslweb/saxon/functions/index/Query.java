@@ -19,10 +19,13 @@ package nl.armatiek.xslweb.saxon.functions.index;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +35,11 @@ import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.ma.map.HashTrieMap;
 import net.sf.saxon.ma.map.MapType;
+import net.sf.saxon.om.Item;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
+import net.sf.saxon.om.ZeroOrMore;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmValue;
@@ -44,10 +49,12 @@ import net.sf.saxon.tree.tiny.TinyBuilder;
 import net.sf.saxon.type.JavaExternalObjectType;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.EmptySequence;
+import net.sf.saxon.value.Int64Value;
 import net.sf.saxon.value.ObjectValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xmlindex.Session;
+import nl.armatiek.xmlindex.error.XMLIndexException;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 
@@ -74,7 +81,7 @@ public class Query extends ExtensionFunctionDefinition {
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 4;
+    return 5;
   }
 
   @Override
@@ -83,6 +90,7 @@ public class Query extends ExtensionFunctionDefinition {
         SequenceType.makeSequenceType(new JavaExternalObjectType(Session.class), StaticProperty.ALLOWS_ONE),
         SequenceType.SINGLE_STRING, 
         SequenceType.makeSequenceType(MapType.ANY_MAP_TYPE, StaticProperty.ALLOWS_ZERO_OR_ONE),
+        SequenceType.OPTIONAL_BOOLEAN, 
         SequenceType.SINGLE_BOOLEAN };
   }
 
@@ -107,8 +115,13 @@ public class Query extends ExtensionFunctionDefinition {
       if (arguments.length > 2)
         params = mapToParams((HashTrieMap) arguments[2].head());
       boolean throwErrors = true;
-      if (arguments.length > 3)
-        throwErrors = ((BooleanValue) arguments[3].head()).getBooleanValue();
+      boolean timing = false;
+      BooleanValue bool;
+      Int64Value duration = null;
+      if (arguments.length > 3 && (bool = (BooleanValue) arguments[3].head()) != null)
+        throwErrors = bool.getBooleanValue();
+      if (arguments.length > 4 && (bool = (BooleanValue) arguments[4].head()) != null)
+        timing = bool.getBooleanValue();
       File xqueryFile = new File(path);
       if (!xqueryFile.isAbsolute())
         xqueryFile = new File(getWebApp(context).getHomeDir(), "xquery" + File.separatorChar + path);
@@ -121,7 +134,16 @@ public class Query extends ExtensionFunctionDefinition {
           XMLStreamWriterDestination dest = new XMLStreamWriterDestination(xsw);
           ErrorListener errorListener = new ErrorListener("\"" + path + "\" on index \"" + session.getIndex().getIndexName() + "\"");            
           try {
+            StopWatch stopwatch = null;
+            if (timing) {
+              stopwatch = new StopWatch();
+              stopwatch.start();
+            }
             session.query(xqueryFile, dest, params, errorListener, null);
+            if (timing) {
+              stopwatch.stop();
+              duration =  Int64Value.makeIntegerValue(stopwatch.getTime(TimeUnit.MICROSECONDS));
+            }
           } catch (SaxonApiException sae) {
             XPathException xpe = this.getXPathException(errorListener, sae);
             if (xpe != null)
@@ -130,14 +152,21 @@ public class Query extends ExtensionFunctionDefinition {
               throw sae;
           }
           NodeInfo root = builder.getCurrentRoot();
-          return (root != null) ? root : EmptySequence.getInstance();
+          Sequence result = (root != null) ? root : EmptySequence.getInstance();
+          if (timing) {
+            ArrayList<Item> results = new ArrayList<Item>();             
+            results.add(duration);                                        
+            results.add(root);
+            return new ZeroOrMore<Item>(results);
+          } else 
+            return result;
         } catch (XPathException xpe) {
           throw xpe;
-        } catch (SaxonApiException sae) {
-          if (sae.getCause() instanceof XPathException)
-            throw (XPathException) sae.getCause();
+        } catch (SaxonApiException | XMLIndexException e) {
+          if (e.getCause() instanceof XPathException)
+            throw (XPathException) e.getCause();
           else 
-            throw new XPathException(sae.getMessage(), sae);
+            throw new XPathException(e.getMessage(), e);
         } catch (Exception e) {
           throw new XPathException(e.getMessage(), e);
         }
@@ -145,7 +174,7 @@ public class Query extends ExtensionFunctionDefinition {
         if (throwErrors)
           throw e;
         logger.error("Error processing \"" + path + "\" on index \"" + session.getIndex().getIndexName() + "\"", e);
-        return getErrorNode(builder, e);
+        return getErrorResults(builder, e, timing);
       }
     }
   }

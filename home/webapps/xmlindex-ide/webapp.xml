@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<webapp 
+  xmlns="http://www.armatiek.com/xslweb/webapp"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:va="http://www.armatiek.nl/xmlindex/virtualattribute"
+  xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
+  
+  <title>XSLWeb/XMLIndex IDE</title>
+  <description>XSLWeb/XMLIndex IDE</description>
+  <development-mode>true</development-mode>
+  <max-upload-size>10</max-upload-size>
+  
+  <!-- Resources to serve straight away: -->
+  <resources> 
+    <resource pattern="/favicon.ico" media-type="image/x-icon" duration="P7DT0H0M0S"/>
+    <resource pattern="/robots.txt" media-type="text/plain" duration="P1DT0H0M0S"/> 
+    <resource pattern="/.+\.png" media-type="image/png"/>
+    <resource pattern="/.+\.gif" media-type="image/gif"/>
+    <resource pattern="/.+\.(jpg|jpeg)" media-type="image/jpg"/>
+    <resource pattern="/.+\.js" media-type="text/javascript"/>
+    <resource pattern="/.+\.css" media-type="text/css"/>
+    <resource pattern="/.+\.woff" media-type="application/font-woff"/>
+    <resource pattern="/.+\.woff2" media-type="application/font-woff2"/>
+    <resource pattern="/.+\.ttf" media-type="application/x-font-ttf"/>
+  </resources>
+  
+  <indexes>
+    
+    <index>
+      <name>BWB</name>
+      <path>indexes/index-bwb</path>
+      
+      <!-- Value type definitions: -->
+      <value-type-defs>
+        <value-type-def>
+          <node-type>attribute()</node-type>
+          <name>inwerkingtreding</name>
+          <item-type>xs:date</item-type>
+        </value-type-def>
+      </value-type-defs>
+      
+      <!-- Virtual attribute definitions: -->
+      <virtual-attribute-defs>
+        
+        <xquery-path>xquery/VirtualAttributes.xqy</xquery-path>
+        
+        <virtual-attribute-def>
+          <elem-name>toestand</elem-name>
+          <virtual-attribute-name>expression-id</virtual-attribute-name>
+          <function-name>va:toestand-expression-id</function-name>
+          <item-type>xs:string</item-type>
+        </virtual-attribute-def>
+        
+        <virtual-attribute-def>
+          <elem-name>expression</elem-name>
+          <virtual-attribute-name>bwb-id</virtual-attribute-name>
+          <function-name>va:expression-bwb-id</function-name>
+          <item-type>xs:string</item-type>
+        </virtual-attribute-def>
+        
+        <virtual-attribute-def>
+          <elem-name>expression</elem-name>
+          <virtual-attribute-name>inwerkingtredingsdatum</virtual-attribute-name>
+          <function-name>va:expression-inwerkingtredingsdatum</function-name>
+          <item-type>xs:date</item-type>
+        </virtual-attribute-def>
+        
+        <virtual-attribute-def>
+          <elem-name>expression</elem-name>
+          <virtual-attribute-name>einddatum</virtual-attribute-name>
+          <function-name>va:expression-einddatum</function-name>
+          <item-type>xs:date</item-type>
+        </virtual-attribute-def>
+        
+        <virtual-attribute-def>
+          <elem-name>expression</elem-name>
+          <virtual-attribute-name>zichtdatum-start</virtual-attribute-name>
+          <function-name>va:expression-zichtdatum-start</function-name>
+          <item-type>xs:date</item-type>
+        </virtual-attribute-def>
+        
+        <virtual-attribute-def>
+          <elem-name>expression</elem-name>
+          <virtual-attribute-name>zichtdatum-eind</virtual-attribute-name>
+          <function-name>va:expression-zichtdatum-eind</function-name>
+          <item-type>xs:date</item-type>
+        </virtual-attribute-def>
+        
+        <!-- Full text virtual attribute: -->
+        <virtual-attribute-def>
+          <elem-name>citeertitel</elem-name>
+          <virtual-attribute-name>citeertitel</virtual-attribute-name>
+          <function-name>va:citeertitel</function-name>
+          <item-type>xs:string</item-type>
+          <analyzer>
+            <tokenizer class="standard"/>
+            <filter class="standard"/>
+            <filter class="lowercase"/>
+            <filter class="stop" ignoreCase="true"/>
+          </analyzer>
+        </virtual-attribute-def>
+        
+      </virtual-attribute-defs>
+    
+    </index>
+    
+    <index>
+      <name>PUC Open Data</name>
+      <path>indexes/index-pod</path>
+    </index>
+    
+  </indexes>
+  
+</webapp>

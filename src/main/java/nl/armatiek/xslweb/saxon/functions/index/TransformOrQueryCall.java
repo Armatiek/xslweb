@@ -17,6 +17,7 @@
 
 package nl.armatiek.xslweb.saxon.functions.index;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -29,13 +30,16 @@ import net.sf.saxon.lib.NamespaceConstant;
 import net.sf.saxon.ma.map.HashTrieMap;
 import net.sf.saxon.ma.map.KeyValuePair;
 import net.sf.saxon.om.FingerprintedQName;
-import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.om.Item;
+import net.sf.saxon.om.Sequence;
+import net.sf.saxon.om.ZeroOrMore;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.tiny.TinyBuilder;
 import net.sf.saxon.type.Untyped;
+import net.sf.saxon.value.Int64Value;
 import net.sf.saxon.value.QualifiedNameValue;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 
@@ -80,7 +84,7 @@ public abstract class TransformOrQueryCall extends ExtensionFunctionCall {
     builder.endElement();
   }
   
-  public NodeInfo getErrorNode(TinyBuilder builder, Exception e) throws XPathException {
+  public Sequence getErrorResults(TinyBuilder builder, Exception e, boolean timing) throws XPathException {
     builder.open();
     builder.startElement(new FingerprintedQName("err", NamespaceConstant.ERR, "error"), 
         Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
@@ -101,7 +105,13 @@ public abstract class TransformOrQueryCall extends ExtensionFunctionCall {
     }
     builder.endElement();
     builder.close();
-    return builder.getCurrentRoot();
+    if (timing) {
+      ArrayList<Item> results = new ArrayList<Item>();             
+      results.add(new Int64Value((long) 0));                                        
+      results.add(builder.getCurrentRoot());
+      return new ZeroOrMore<Item>(results);
+    } else 
+      return builder.getCurrentRoot();
   }
   
 }
