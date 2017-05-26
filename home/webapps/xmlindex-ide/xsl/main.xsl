@@ -35,8 +35,9 @@
         <link href="{$app-path}/codemirror/addon/search/matchesonscrollbar.css" rel="stylesheet"/>
         <link href="{$app-path}/codemirror/theme/xq-dark.css" rel="stylesheet"/>
         <link href="{$app-path}/codemirror/theme/xq-light.css" rel="stylesheet"/>
-        <link href="{$app-path}/jstree/themes/default/style.min.css" rel="stylesheet" />
-        <link href="{$app-path}/jquery-layout/css/layout-default.css" rel="stylesheet" />
+        <link href="{$app-path}/jstree/themes/default/style.min.css" rel="stylesheet"/>
+        <link href="{$app-path}/jquery-layout/css/layout-default.css" rel="stylesheet"/>
+        <link href="{$app-path}/dropzone/css/dropzone.min.css" rel="stylesheet"/>
       </head>
       <body> 
         <div id="newFileDlg" title="Create new file">
@@ -61,6 +62,10 @@
           <p><span class="ui-icon ui-icon-alert" style="float:left; margin-right:10px;"></span>Do you want to save changes?</p>
         </div>
         
+        <div id="uploadDlg" title="Upload files to index">
+          <form action="{$app-path}/uploaddocument" class="dropzone" id="dropzone"></form>
+        </div>
+        
         <div id="optional-container">
           
           <!--
@@ -80,6 +85,7 @@
                 </select>
                 <button id="saveBtn" style="margin-left:5px">Save</button>
                 <button id="runBtn">Run</button>
+                <button id="uploadBtn">Upload &amp; index</button>
                 <button id="searchBtn" style="margin-left:5px">Search</button>
                 <button id="replaceBtn">Replace</button>
               </fieldset>
@@ -122,6 +128,7 @@
         <script src="{$app-path}/codemirror/addon/search/matchesonscrollbar.js"></script>
         <script src="{$app-path}/codemirror/addon/search/jump-to-line.js"></script>
         <script src="{$app-path}/jstree/jstree.min.js"></script>
+        <script src="{$app-path}/dropzone/js/dropzone.min.js"></script>
         <script src="{$app-path}/ide/js/ide.js"></script>
       </body>
     </html>

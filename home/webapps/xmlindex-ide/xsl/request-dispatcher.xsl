@@ -48,4 +48,8 @@
     <pipeline:transformer name="deletefile" xsl-path="deletefile.xsl" log="true"/>
   </xsl:template>
   
+  <xsl:template match="/req:request[req:path = '/uploaddocument']">    
+    <pipeline:transformer name="uploaddocument" xsl-path="uploaddocument.xsl" log="true"/>
+  </xsl:template>
+  
 </xsl:stylesheet>

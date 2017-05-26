@@ -89,7 +89,7 @@
         
         <!-- Full text virtual attribute: -->
         <virtual-attribute-def>
-          <elem-name>citeertitel</elem-name>
+          <elem-name>toestand</elem-name>
           <virtual-attribute-name>citeertitel</virtual-attribute-name>
           <function-name>va:citeertitel</function-name>
           <item-type>xs:string</item-type>
@@ -103,6 +103,11 @@
         
       </virtual-attribute-defs>
     
+    </index>
+    
+    <index>
+      <name>Spatial Test</name>
+      <path>indexes/index-spatial</path>
     </index>
     
     <index>

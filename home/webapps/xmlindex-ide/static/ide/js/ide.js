@@ -1,3 +1,5 @@
+Dropzone.autoDiscover = false;
+
 var myLayout;
 
 var fileName = $("#fileName");
@@ -37,6 +39,10 @@ $("#saveBtn").button({
 });
 $("#runBtn").button({
   "icon": "ui-icon-play",
+  "showLabel": true
+});
+$("#uploadBtn").button({
+  "icon": " ui-icon-arrowthick-1-n",
   "showLabel": true
 });
 $("#searchBtn").button({
@@ -119,6 +125,43 @@ var saveConfirmDlg = $("#saveConfirmDlg").dialog({
   },
 });
 
+var uploadDlg = $("#uploadDlg").dialog({
+  autoOpen: false,
+  resizeable: true,
+  height: $(window).height() * 0.6,
+  width: $(window).width() * 0.5,
+  modal: true,
+  buttons: {
+    Close: function() {
+      $(this).dialog("close");
+    }
+  },
+  open: function() {
+    Dropzone.forElement("#dropzone").removeAllFiles(true);
+  }
+});
+
+
+$("#dropzone").dropzone({
+  url: "xmlindex-ide/uploaddocument",
+  paramName: "file",
+  maxFilesize: 5,
+  parallelUploads: 1,
+  autoProcessQueue: true,
+  dictDefaultMessage: 'Drop XML files here or click to upload',
+  init: function() {
+    this.hiddenFileInput.click();
+  },
+  accept: function(file, done) {
+    done();
+  },
+  success: function (file, responseText) {
+  },
+  sending: function(file, xhr, formData) {
+    formData.append("index", $("#index").val());
+  }
+});
+
 var tabTemplate = "<li><a href='#{href}'><span>#{label}</span></a><span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>";
 var tabCounter = 0;
 
@@ -126,6 +169,8 @@ function createTextEditor(path, code) {
   var fileName = path.substring(path.lastIndexOf('/')  + 1);
   var ext = fileName.substring(fileName.lastIndexOf('.')  + 1);
   var mode = CodeMirror.findModeByExtension(ext);
+  
+  mode = (mode == undefined) ? CodeMirror.findModeByExtension('xml') : mode;
   
   var theme;
   if (mode.mode == 'xquery')
@@ -238,8 +283,10 @@ $(function() {
   resultsCodeMirror.refresh();
   
   $('#saveBtn').on('click', function () {
-	var tab = $("#tabs .ui-tabs-active a");
+	  var tab = $("#tabs .ui-tabs-active a");
     $.post("xmlindex-ide/save", { path: tab.data("path"), code: tab.data("editor").getValue() });
+    tab.data("modified", false);
+    tab.text(tab.text().substring(0, tab.text().length-2));
   });
   
   $('#runBtn').on('click', function () {
@@ -256,6 +303,10 @@ $(function() {
 		    editor.focus();
 	    }
     }, "json");
+  });
+  
+  $('#uploadBtn').on('click', function () {
+    uploadDlg.dialog("open");
   });
   
   $('#searchBtn').on('click', function () {

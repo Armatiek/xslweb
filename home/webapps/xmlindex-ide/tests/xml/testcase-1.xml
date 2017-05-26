@@ -1,12 +1,14 @@
-<?x  ml version="1.0"?>
+<?xml version="1.0"?>
 <root-node xmlns:pf1="local:urn1">
   <a>
     <b>
+      <y>Hello</y>
+      <z>World</z>
       <c>
         <d-preceding1>Preceding 1</d-preceding1>
         <d-preceding2>Preceding 2</d-preceding2>
         <d-preceding3>Preceding 3</d-preceding3>
-        <d id="1">
+        <d id="1" a="b" c="d">
           <e>
             <f>
               <g a="attribute-a" num1="100" num2="1000" date="2001-01-01"/>
@@ -17,6 +19,8 @@
         <d-following5>Following 5</d-following5>
         <d-following5>Following 6</d-following5>
       </c>
+      <p>Hello</p>
+      <q>World</q>
     </b>
   </a>
   <aa xmlns="local:urn2">

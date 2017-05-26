@@ -60,3 +60,14 @@ html, body {
   margin-left: 0;
   padding-left: 0;
 }
+
+#dropzone {
+  height: 100%;
+  border: 2px dashed #0087F7;
+  border-radius: 5px;
+  background: white;
+}
+
+#dropzone .dz-message {
+  font-size: 1.5em;
+}
