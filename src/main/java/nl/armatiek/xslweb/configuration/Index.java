@@ -38,6 +38,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 
+import net.sf.saxon.Configuration;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.type.ItemType;
@@ -57,11 +58,11 @@ public class Index {
   private String path;
   private Config config;
   
-  public Index(XPath xpath, Element indexElem, File homeDir) throws IOException, XPathExpressionException, 
+  public Index(Configuration saxonConfig, XPath xpath, Element indexElem, File homeDir) throws IOException, XPathExpressionException, 
       ClassNotFoundException, InstantiationException, IllegalAccessException, SaxonApiException {
     this.name = XMLUtils.getValueOfChildElementByLocalName(indexElem, "name");
     this.path = XMLUtils.getValueOfChildElementByLocalName(indexElem, "path");   
-    this.config = new Config();
+    this.config = new Config(saxonConfig);
     
     NodeList tdefs = (NodeList) xpath.evaluate("webapp:value-type-defs/webapp:value-type-def", indexElem, XPathConstants.NODESET);
     for (int i=0; i<tdefs.getLength(); i++) {
