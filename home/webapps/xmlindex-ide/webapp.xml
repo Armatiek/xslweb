@@ -106,8 +106,71 @@
     </index>
     
     <index>
-      <name>Spatial Test</name>
-      <path>indexes/index-spatial</path>
+      <name>Test Index</name>
+      <path>indexes/index-tests</path>
+      
+      <!-- Pluggable (custom) index modules to load: -->
+      <pluggable-indexes>
+        <pluggable-index>
+          <index-class>nl.armatiek.xmlindex.extensions.SpatialIndex</index-class>
+          <property name="fieldName">shape</property>
+          <property name="prefixTreeMaxLevels">11</property>
+        </pluggable-index>
+      </pluggable-indexes>
+      
+      <!-- Value type definitions: -->
+      <value-type-defs>
+        
+        <value-type-def>
+          <node-type>attribute()</node-type>
+          <name>bool1</name>
+          <item-type>xs:boolean</item-type>
+        </value-type-def>
+        
+        <value-type-def>
+          <node-type>attribute()</node-type>
+          <name>bool2</name>
+          <item-type>xs:boolean</item-type>
+        </value-type-def>
+        
+        <value-type-def>
+          <node-type>attribute()</node-type>
+          <name>int1</name>
+          <item-type>xs:int</item-type>
+        </value-type-def>
+        
+        <value-type-def>
+          <node-type>attribute()</node-type>
+          <name>double1</name>
+          <item-type>xs:double</item-type>
+        </value-type-def>
+        
+        <value-type-def>
+          <node-type>attribute()</node-type>
+          <name>float1</name>
+          <item-type>xs:float</item-type>
+        </value-type-def> 
+     
+        <value-type-def>
+          <node-type>attribute()</node-type>
+          <name>date1</name>
+          <item-type>xs:date</item-type>
+        </value-type-def>
+        
+        <value-type-def>
+          <node-type>element()</node-type>
+          <name>h</name>
+          <item-type>xs:int</item-type>
+        </value-type-def>
+        
+        <value-type-def>
+          <node-type>element()</node-type>
+          <name>i</name>
+          <item-type>xs:date</item-type>
+        </value-type-def>
+        
+      </value-type-defs>
+      
     </index>
     
     <index>

@@ -11,13 +11,22 @@
         <d id="1" a="b" c="d">
           <e>
             <f>
-              <g a="attribute-a" num1="100" num2="1000" date="2001-01-01"/>
+              <g 
+                 str1="hello" 
+                 bool1="false" 
+                 bool2="1" 
+                 int1="100" 
+                 double1="12.78e-2" 
+                 float1="1267.43233E12" 
+                 date1="2001-01-01"/>
+              <h>100</h>
+              <i>2001-01-01</i>
             </f>
           </e>
         </d>
         <d-following4>Following 4</d-following4>
         <d-following5>Following 5</d-following5>
-        <d-following5>Following 6</d-following5>
+        <d-following6>Following 6</d-following6>
       </c>
       <p>Hello</p>
       <q>World</q>
