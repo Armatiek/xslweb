@@ -28,13 +28,13 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element minOccurs="0" name="parameters">
+        <xs:element name="parameters" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
               <xs:element maxOccurs="unbounded" minOccurs="0" name="parameter">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element maxOccurs="unbounded" name="value" type="xs:string"/>
+                    <xs:element name="value" maxOccurs="unbounded" type="xs:string"/>
                   </xs:sequence>
                   <xs:attribute name="uri" type="xs:anyURI"/>
                   <xs:attribute name="name" type="xs:string" use="required"/>
@@ -80,62 +80,15 @@
                   <xs:sequence>
                     <xs:element name="name" type="xs:string"/>
                     <xs:element name="path" type="xs:string"/>
-                    <xs:element name="value-type-defs" minOccurs="0">
-                      <xs:complexType>
-                        <xs:sequence>
-                          <xs:element name="value-type-def" minOccurs="1" maxOccurs="unbounded">
-                            <xs:complexType>
-                              <xs:sequence>
-                                <xs:element name="node-type">
-                                  <xs:simpleType>
-                                    <xs:restriction base="xs:string">
-                                      <xs:enumeration value="element()"/>
-                                      <xs:enumeration value="attribute()"/>
-                                    </xs:restriction>
-                                  </xs:simpleType>
-                                </xs:element>
-                                <xs:element name="name" type="xs:QName"/>
-                                <xs:element name="item-type" type="xslweb:item-type"/>
-                              </xs:sequence>
-                            </xs:complexType>
-                          </xs:element>
-                        </xs:sequence>
-                      </xs:complexType>
-                    </xs:element>
-                    <xs:element name="virtual-attribute-defs" minOccurs="0">
-                      <xs:complexType>
-                        <xs:sequence>
-                          <xs:element name="xquery-path" type="xs:string"/>
-                          <xs:element name="virtual-attribute-def" minOccurs="1" maxOccurs="unbounded">
-                            <xs:complexType>
-                              <xs:sequence>
-                                <xs:element name="elem-name" type="xs:QName"/>
-                                <xs:element name="virtual-attribute-name" type="xs:string"/>
-                                <xs:element name="function-name" type="xs:QName"/>
-                                <xs:element name="item-type" type="xslweb:item-type"/>
-                                <xs:element name="analyzer" minOccurs="0">
-                                  <xs:complexType>
-                                    <xs:sequence>
-                                      <xs:element name="charFilter" minOccurs="0" maxOccurs="unbounded" type="xslweb:analyzer-type"/>
-                                      <xs:element name="tokenizer" minOccurs="0" maxOccurs="1"  type="xslweb:analyzer-type"/>
-                                      <xs:element name="filter" minOccurs="0" maxOccurs="unbounded"  type="xslweb:analyzer-type"/>
-                                    </xs:sequence>
-                                    <xs:attribute name="class" type="xs:string" use="optional"/>
-                                    <xs:attribute name="type" use="optional">
-                                      <xs:simpleType>
-                                        <xs:restriction base="xs:string">
-                                          <xs:enumeration value="index"/>
-                                          <xs:enumeration value="query"/>
-                                        </xs:restriction>
-                                      </xs:simpleType>
-                                    </xs:attribute>
-                                  </xs:complexType>
-                                </xs:element>
-                              </xs:sequence>
-                            </xs:complexType>
-                          </xs:element>
-                        </xs:sequence>
-                      </xs:complexType>
+                    <xs:element name="max-term-length" type="xs:integer" minOccurs="0"/>
+                    <xs:element name="index-compression" minOccurs="0">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:enumeration value="no_compression"/>
+                          <xs:enumeration value="best_speed"/>
+                          <xs:enumeration value="best_compression"/>
+                        </xs:restriction>
+                      </xs:simpleType>
                     </xs:element>
                   </xs:sequence>
                 </xs:complexType>
@@ -146,7 +99,7 @@
         <xs:element name="datasources" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
-              <xs:element maxOccurs="unbounded" minOccurs="0" name="datasource">
+              <xs:element name="datasource" minOccurs="0" maxOccurs="unbounded" >
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="name" type="xs:string"/>
@@ -154,15 +107,7 @@
                     <xs:element name="jdbc-url" type="xs:string"/>
                     <xs:element name="username" type="xs:string" minOccurs="0"/>
                     <xs:element name="password" type="xs:string" minOccurs="0"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="property">
-                      <xs:complexType>
-                        <xs:simpleContent>
-                          <xs:extension base="xs:string">
-                            <xs:attribute name="name" type="xs:string" use="required"/>
-                          </xs:extension>
-                        </xs:simpleContent>
-                      </xs:complexType>
-                    </xs:element>
+                    <xs:element name="property" minOccurs="0" maxOccurs="unbounded" type="xslweb:property-type"/>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
@@ -207,4 +152,13 @@
       <xs:enumeration value="xs:time"/>
     </xs:restriction>
   </xs:simpleType>
+  
+  <xs:complexType name="property-type">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="name" type="xs:string" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
 </xs:schema>

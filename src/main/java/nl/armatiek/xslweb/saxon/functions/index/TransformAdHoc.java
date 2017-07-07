@@ -81,14 +81,15 @@ public class TransformAdHoc extends ExtensionFunctionDefinition {
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 5;
+    return 6;
   }
 
   @Override
   public SequenceType[] getArgumentTypes() {
     return new SequenceType[] { 
         SequenceType.makeSequenceType(new JavaExternalObjectType(Session.class), StaticProperty.ALLOWS_ONE),
-        SequenceType.SINGLE_STRING, 
+        SequenceType.SINGLE_STRING,
+        SequenceType.OPTIONAL_ANY_URI,
         SequenceType.makeSequenceType(MapType.ANY_MAP_TYPE, StaticProperty.ALLOWS_ZERO_OR_ONE),
         SequenceType.OPTIONAL_BOOLEAN, 
         SequenceType.SINGLE_BOOLEAN };
@@ -111,16 +112,21 @@ public class TransformAdHoc extends ExtensionFunctionDefinition {
       @SuppressWarnings("unchecked")
       Session session = ((ObjectValue<Session>) arguments[0].head()).getObject();
       String xsl = ((StringValue) arguments[1].head()).getStringValue();
+      
+      Item baseURIItem = arguments[2].head();
+      String baseURI = (baseURIItem != null) ? ((StringValue) baseURIItem).getStringValue() :
+          getWebApp(context).getHomeDir().getAbsolutePath();
+      
       Map<QName, XdmValue> params = null;
-      if (arguments.length > 2)
-        params = mapToParams((HashTrieMap) arguments[2].head());
+      if (arguments.length > 3)
+        params = mapToParams((HashTrieMap) arguments[3].head());
       boolean throwErrors = true;
       boolean timing = false;
       BooleanValue bool;
       Int64Value duration = null;
-      if (arguments.length > 3 && (bool = (BooleanValue) arguments[3].head()) != null)
-        throwErrors = bool.getBooleanValue();
       if (arguments.length > 4 && (bool = (BooleanValue) arguments[4].head()) != null)
+        throwErrors = bool.getBooleanValue();
+      if (arguments.length > 5 && (bool = (BooleanValue) arguments[5].head()) != null)
         timing = bool.getBooleanValue();
       TinyBuilder builder = new TinyBuilder(context.getConfiguration().makePipelineConfiguration());
       try {  
@@ -134,7 +140,7 @@ public class TransformAdHoc extends ExtensionFunctionDefinition {
               stopwatch = new StopWatch();
               stopwatch.start();
             }
-            session.transform(new StreamSource(new StringReader(xsl)), dest, params, errorListener, null);
+            session.transform(new StreamSource(new StringReader(xsl), baseURI), dest, params, errorListener, null);
             if (timing) {
               stopwatch.stop();
               duration =  Int64Value.makeIntegerValue(stopwatch.getTime(TimeUnit.MICROSECONDS));

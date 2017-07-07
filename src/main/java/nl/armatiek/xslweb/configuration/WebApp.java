@@ -265,7 +265,7 @@ public class WebApp implements ErrorHandler {
     
     NodeList indexNodes = (NodeList) xpath.evaluate("webapp:indexes/webapp:index", docElem, XPathConstants.NODESET);
     for (int i=0; i<indexNodes.getLength(); i++) {
-      Index index = new Index(getConfiguration(), xpath, (Element) indexNodes.item(i), homeDir);
+      Index index = new Index(xpath, (Element) indexNodes.item(i), homeDir);
       indexes.put(index.getName(), index);
     } 
     
@@ -861,9 +861,7 @@ public class WebApp implements ErrorHandler {
       Path indexPath = Paths.get(index.getPath());
       if (!indexPath.isAbsolute())
         indexPath = homeDir.toPath().resolve(indexPath);
-      xmlIndex = new XMLIndex(index.getName(), indexPath);
-      xmlIndex.setConfiguration(index.getConfig());
-      xmlIndex.open();
+      xmlIndex = new XMLIndex(index.getName(), indexPath, index.getMaxTermLength(), index.getIndexCompression());
       indexCache.put(name, xmlIndex);
     }
     return xmlIndex;

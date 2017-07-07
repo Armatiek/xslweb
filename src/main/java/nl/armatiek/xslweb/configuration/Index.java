@@ -18,33 +18,13 @@
 package nl.armatiek.xslweb.configuration;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.analysis.custom.CustomAnalyzer.Builder;
-import org.apache.lucene.util.Version;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.NodeList;
 
-import net.sf.saxon.Configuration;
-import net.sf.saxon.s9api.QName;
-import net.sf.saxon.s9api.SaxonApiException;
-import net.sf.saxon.type.ItemType;
-import net.sf.saxon.type.Type;
-import nl.armatiek.xmlindex.conf.Config;
-import nl.armatiek.xslweb.error.XSLWebException;
+import nl.armatiek.xmlindex.XMLIndex;
+import nl.armatiek.xmlindex.lucene.codec.XMLIndexStoredFieldsFormat.Mode;
 import nl.armatiek.xslweb.utils.XMLUtils;
 
 /**
@@ -56,109 +36,16 @@ public class Index {
   
   private String name; 
   private String path;
-  private Config config;
+  private int maxTermLength;
+  private Mode indexCompression = XMLIndex.DEFAULT_INDEX_COMPRESSION;
   
-  public Index(Configuration saxonConfig, XPath xpath, Element indexElem, File homeDir) throws IOException, XPathExpressionException, 
-      ClassNotFoundException, InstantiationException, IllegalAccessException, SaxonApiException {
+  public Index(XPath xpath, Element indexElem, File homeDir) {
     this.name = XMLUtils.getValueOfChildElementByLocalName(indexElem, "name");
     this.path = XMLUtils.getValueOfChildElementByLocalName(indexElem, "path");   
-    this.config = new Config(saxonConfig);
-    
-    NodeList tdefs = (NodeList) xpath.evaluate("webapp:value-type-defs/webapp:value-type-def", indexElem, XPathConstants.NODESET);
-    for (int i=0; i<tdefs.getLength(); i++) {
-      Element defElem = (Element) tdefs.item(i);
-      
-      int nodeType = 0;  
-      String nodeTypeVal = XMLUtils.getValueOfChildElementByLocalName(defElem, "node-type");
-      switch (nodeTypeVal) {
-        case "element()":
-          nodeType = 1;
-          break;
-        case "attribute()":
-          nodeType = 2;
-          break;
-        default:
-          // Not possible because of XML schema validation of configuration file
-      }
-      
-      Element nameElem = XMLUtils.getChildElementByLocalName(defElem, "name");
-      QName name = getQName(nameElem.getTextContent(), nameElem);
-      
-      String itemTypeVal = XMLUtils.getValueOfChildElementByLocalName(defElem, "item-type");
-      ItemType itemType = Type.getBuiltInItemType(Definitions.NAMESPACEURI_XMLSCHEMA, StringUtils.substringAfter(itemTypeVal, ":"));      
-      config.addTypedValueDef(nodeType, name, itemType);
-    }
-    
-    NodeList adefs = (NodeList) xpath.evaluate("webapp:virtual-attribute-defs/webapp:virtual-attribute-def", indexElem, XPathConstants.NODESET);
-    if (adefs.getLength() > 0) {
-      String xqueryPath = (String) xpath.evaluate("webapp:virtual-attribute-defs/webapp:xquery-path/text()", indexElem, XPathConstants.STRING);
-      File file = new File(xqueryPath);
-      if (!file.isAbsolute())
-        file = new File(homeDir, xqueryPath);
-      if (!file.isFile())
-        throw new FileNotFoundException("Virtual attributes XQuery file \"" + file.getAbsolutePath() + "\" not found");
-      FileInputStream fis = new FileInputStream(file);
-      try {
-        config.loadVirtualAttrsXQuery(fis, file.toURI());
-      } finally {
-        fis.close();
-      }
-    }
-      
-    for (int i=0; i<adefs.getLength(); i++) {
-      Element defElem = (Element) adefs.item(i);
-      Element elemNameElem = XMLUtils.getChildElementByLocalName(defElem, "elem-name");
-      QName elemName = getQName(elemNameElem.getTextContent(), elemNameElem);
-      String virtualAttrName = XMLUtils.getValueOfChildElementByLocalName(defElem, "virtual-attribute-name");
-      Element functionNameElem = XMLUtils.getChildElementByLocalName(defElem, "function-name");
-      QName functionName = getQName(functionNameElem.getTextContent(), functionNameElem);
-      String itemTypeVal = XMLUtils.getValueOfChildElementByLocalName(defElem, "item-type");
-      ItemType itemType = Type.getBuiltInItemType(Definitions.NAMESPACEURI_XMLSCHEMA, StringUtils.substringAfter(itemTypeVal, ":"));
-      
-      Analyzer indexAnalyzer = null;
-      Analyzer queryAnalyzer = null;
-      NodeList analyzers = defElem.getElementsByTagNameNS(Definitions.NAMESPACEURI_XSLWEB_WEBAPP, "analyzer");
-      for (int j=0; j<analyzers.getLength(); j++) {
-        Analyzer analyzer;
-        Element analyzerElem = (Element) analyzers.item(j);
-        String analyzerClass = analyzerElem.getAttribute("class");
-        String analyzerType = analyzerElem.getAttribute("type");
-        if (StringUtils.isNotEmpty(analyzerClass)) {
-          Class<?> clazz = Class.forName(analyzerClass);
-          analyzer = (Analyzer) clazz.newInstance();
-        } else {
-          Builder builder = CustomAnalyzer.builder(homeDir.toPath());
-          Element childElem = XMLUtils.getFirstChildElement(analyzerElem);
-          while (childElem != null) {
-            String localName = childElem.getLocalName();
-            switch (localName) {
-            case "tokenizer":
-              builder = builder.withTokenizer(childElem.getAttribute("class"), attrToParams(childElem));
-              break;
-            case "filter":
-              builder = builder.addTokenFilter(childElem.getAttribute("class"), attrToParams(childElem));
-              break;
-            case "charFilter":
-              builder = builder.addCharFilter(childElem.getAttribute("class"), attrToParams(childElem));
-              break;
-            }
-            childElem = XMLUtils.getNextSiblingElement(childElem);
-          }
-          analyzer = builder.build();
-        }
-        if (StringUtils.isEmpty(analyzerType)) {
-          indexAnalyzer = analyzer;
-          queryAnalyzer = analyzer;
-        } else if (analyzerType.equals("index")) {
-          indexAnalyzer = analyzer;
-        } else if (analyzerType.equals("query")) {
-          queryAnalyzer = analyzer;
-        } 
-      }
-      if ((indexAnalyzer != null && queryAnalyzer == null) || (queryAnalyzer != null && indexAnalyzer == null))
-        throw new XSLWebException("Both index and query analyzer must be coonfigured for virtual attribute \"" + name + "\"");
-      config.addVirtualAttributeDef(elemName, virtualAttrName, functionName, itemType, indexAnalyzer, queryAnalyzer);
-    }
+    this.maxTermLength = XMLUtils.getIntegerValue(XMLUtils.getValueOfChildElementByLocalName(indexElem, "max-term-length"), XMLIndex.DEFAULT_MAX_TERM_LENGTH);
+    String mode = XMLUtils.getValueOfChildElementByLocalName(indexElem, "index-compression");
+    if (mode != null)
+      indexCompression = Mode.valueOf(mode.toUpperCase());
   }
   
   public String getName() {
@@ -168,33 +55,13 @@ public class Index {
   public String getPath() {
     return path;
   }
-    
-  public Config getConfig() {
-    return config;
+  
+  public int getMaxTermLength() {
+    return maxTermLength;
   }
   
-  private Map<String, String> attrToParams(Element elem) {
-    Map<String, String> params = new HashMap<String, String>();
-    NamedNodeMap attrs = elem.getAttributes();
-    for (int i=0; i<attrs.getLength(); i++) {
-      Attr attr = (Attr) attrs.item(i);
-      String localName = attr.getNamespaceURI() == null ? attr.getName() : attr.getLocalName();
-      if (localName.equals("class"))
-        continue;
-      params.put(localName, attr.getValue());
-    }
-    params.put("luceneMatchVersion", Version.LATEST.toString());
-    return params;
-  }
-  
-  private QName getQName(String qName, Element elem) {
-    if (qName.indexOf(':') == -1)
-      return new QName(qName);
-    String prefix = StringUtils.substringBefore(qName, ":");
-    String localName = StringUtils.substringAfter(qName, ":");
-    String namespace = XMLUtils.getNamespace(elem, prefix);
-    return new QName(prefix, namespace, localName);
-    
+  public Mode getIndexCompression() {
+    return indexCompression;
   }
   
 }

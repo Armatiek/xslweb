@@ -9,7 +9,7 @@
   <title>XSLWeb/XMLIndex IDE</title>
   <description>XSLWeb/XMLIndex IDE</description>
   <development-mode>true</development-mode>
-  <max-upload-size>10</max-upload-size>
+  <max-upload-size>100</max-upload-size>
   
   <!-- Resources to serve straight away: -->
   <resources> 
@@ -30,147 +30,13 @@
     <index>
       <name>BWB</name>
       <path>indexes/index-bwb</path>
-      
-      <!-- Value type definitions: -->
-      <value-type-defs>
-        <value-type-def>
-          <node-type>attribute()</node-type>
-          <name>inwerkingtreding</name>
-          <item-type>xs:date</item-type>
-        </value-type-def>
-      </value-type-defs>
-      
-      <!-- Virtual attribute definitions: -->
-      <virtual-attribute-defs>
-        
-        <xquery-path>xquery/VirtualAttributes.xqy</xquery-path>
-        
-        <virtual-attribute-def>
-          <elem-name>toestand</elem-name>
-          <virtual-attribute-name>expression-id</virtual-attribute-name>
-          <function-name>va:toestand-expression-id</function-name>
-          <item-type>xs:string</item-type>
-        </virtual-attribute-def>
-        
-        <virtual-attribute-def>
-          <elem-name>expression</elem-name>
-          <virtual-attribute-name>bwb-id</virtual-attribute-name>
-          <function-name>va:expression-bwb-id</function-name>
-          <item-type>xs:string</item-type>
-        </virtual-attribute-def>
-        
-        <virtual-attribute-def>
-          <elem-name>expression</elem-name>
-          <virtual-attribute-name>inwerkingtredingsdatum</virtual-attribute-name>
-          <function-name>va:expression-inwerkingtredingsdatum</function-name>
-          <item-type>xs:date</item-type>
-        </virtual-attribute-def>
-        
-        <virtual-attribute-def>
-          <elem-name>expression</elem-name>
-          <virtual-attribute-name>einddatum</virtual-attribute-name>
-          <function-name>va:expression-einddatum</function-name>
-          <item-type>xs:date</item-type>
-        </virtual-attribute-def>
-        
-        <virtual-attribute-def>
-          <elem-name>expression</elem-name>
-          <virtual-attribute-name>zichtdatum-start</virtual-attribute-name>
-          <function-name>va:expression-zichtdatum-start</function-name>
-          <item-type>xs:date</item-type>
-        </virtual-attribute-def>
-        
-        <virtual-attribute-def>
-          <elem-name>expression</elem-name>
-          <virtual-attribute-name>zichtdatum-eind</virtual-attribute-name>
-          <function-name>va:expression-zichtdatum-eind</function-name>
-          <item-type>xs:date</item-type>
-        </virtual-attribute-def>
-        
-        <!-- Full text virtual attribute: -->
-        <virtual-attribute-def>
-          <elem-name>toestand</elem-name>
-          <virtual-attribute-name>citeertitel</virtual-attribute-name>
-          <function-name>va:citeertitel</function-name>
-          <item-type>xs:string</item-type>
-          <analyzer>
-            <tokenizer class="standard"/>
-            <filter class="standard"/>
-            <filter class="lowercase"/>
-            <filter class="stop" ignoreCase="true"/>
-          </analyzer>
-        </virtual-attribute-def>
-        
-      </virtual-attribute-defs>
-    
+      <max-term-length>1024</max-term-length>
+      <index-compression>no_compression</index-compression>
     </index>
     
     <index>
       <name>Test Index</name>
-      <path>indexes/index-tests</path>
-      
-      <!-- Pluggable (custom) index modules to load: -->
-      <pluggable-indexes>
-        <pluggable-index>
-          <index-class>nl.armatiek.xmlindex.extensions.SpatialIndex</index-class>
-          <property name="fieldName">shape</property>
-          <property name="prefixTreeMaxLevels">11</property>
-        </pluggable-index>
-      </pluggable-indexes>
-      
-      <!-- Value type definitions: -->
-      <value-type-defs>
-        
-        <value-type-def>
-          <node-type>attribute()</node-type>
-          <name>bool1</name>
-          <item-type>xs:boolean</item-type>
-        </value-type-def>
-        
-        <value-type-def>
-          <node-type>attribute()</node-type>
-          <name>bool2</name>
-          <item-type>xs:boolean</item-type>
-        </value-type-def>
-        
-        <value-type-def>
-          <node-type>attribute()</node-type>
-          <name>int1</name>
-          <item-type>xs:int</item-type>
-        </value-type-def>
-        
-        <value-type-def>
-          <node-type>attribute()</node-type>
-          <name>double1</name>
-          <item-type>xs:double</item-type>
-        </value-type-def>
-        
-        <value-type-def>
-          <node-type>attribute()</node-type>
-          <name>float1</name>
-          <item-type>xs:float</item-type>
-        </value-type-def> 
-     
-        <value-type-def>
-          <node-type>attribute()</node-type>
-          <name>date1</name>
-          <item-type>xs:date</item-type>
-        </value-type-def>
-        
-        <value-type-def>
-          <node-type>element()</node-type>
-          <name>h</name>
-          <item-type>xs:int</item-type>
-        </value-type-def>
-        
-        <value-type-def>
-          <node-type>element()</node-type>
-          <name>i</name>
-          <item-type>xs:date</item-type>
-        </value-type-def>
-        
-      </value-type-defs>
-      
+      <path>indexes/index-tests</path>  
     </index>
     
     <index>

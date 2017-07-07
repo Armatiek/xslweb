@@ -187,6 +187,16 @@
         </dependency>
       </dependencies>
     </profile>
+    <profile>
+      <id>XMLIndex-Spatial</id>
+      <dependencies>
+        <dependency>
+          <groupId>nl.armatiek.xmlindex.spatial</groupId>
+          <artifactId>xmlindex-spatial</artifactId>            
+          <version>0.1</version>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
   
   <dependencies>
