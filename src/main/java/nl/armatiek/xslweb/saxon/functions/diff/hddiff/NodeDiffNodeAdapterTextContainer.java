@@ -19,40 +19,10 @@ package nl.armatiek.xslweb.saxon.functions.diff.hddiff;
 
 import org.w3c.dom.Node;
 
-import de.fau.cs.osr.hddiff.tree.DiffNode;
-
 public class NodeDiffNodeAdapterTextContainer extends NodeDiffNodeAdapter {
   
   public NodeDiffNodeAdapterTextContainer(Node node) {
     super(node);
-  }
-
-  @Override
-  public void setNodeValue(Object value_) {
-    NodeUpdate value = (NodeUpdate) value_;
-
-    if (value.attributes != null)
-      throw new IllegalArgumentException();
-    
-    String newValue = value.value;
-    if (!compareStrings(node.getTextContent(), newValue))
-      node.setTextContent(newValue);
-  }
-
-  @Override
-  public Object getNodeValue() {
-    return new NodeUpdate(null, node.getTextContent());
-  }
-
-  @Override
-  public boolean isNodeValueEqual(DiffNode o) {
-    if (!isSameNodeType(o))
-      throw new IllegalArgumentException();
-
-    Node a = this.node;
-    Node b = ((NodeDiffNodeAdapter) o).node;
-
-    return compareStrings(a.getTextContent(), b.getTextContent());
   }
 
   @Override

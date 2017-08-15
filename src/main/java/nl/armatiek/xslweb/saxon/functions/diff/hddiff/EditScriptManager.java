@@ -19,23 +19,6 @@ package nl.armatiek.xslweb.saxon.functions.diff.hddiff;
 
 import java.util.ArrayList;
 
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -66,7 +49,7 @@ import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.diff.hddiff.DeltaInfo.AttrInfo;
 import nl.armatiek.xslweb.saxon.functions.diff.hddiff.DeltaInfo.DeleteInfo;
 import nl.armatiek.xslweb.saxon.functions.diff.hddiff.DeltaInfo.TextInfo;
-import nl.armatiek.xslweb.saxon.functions.diff.hddiff.NodeDiffNodeAdapter.NodeUpdate;
+import nl.armatiek.xslweb.saxon.functions.diff.hddiff.NodeDiffNodeAdapter.MyNodeUpdate;
 import nl.armatiek.xslweb.utils.XMLUtils;
 
 public class EditScriptManager {
@@ -538,7 +521,7 @@ public class EditScriptManager {
         EditOpUpdate upd = effect.getUpdateOp();
         DiffNode updatedNode = upd.getUpdatedNode();
         Node updatedNativeNode = (Node) updatedNode.getNativeNode();
-        NodeUpdate newValue = (NodeUpdate) upd.getNewNodeValue();
+        MyNodeUpdate newValue = (MyNodeUpdate) upd.getUpdate();
         DeltaInfo info = getDeltaInfo(updatedNativeNode);
         int nodeType = updatedNativeNode.getNodeType();
         if (nodeType == Node.ELEMENT_NODE) {
@@ -546,7 +529,7 @@ public class EditScriptManager {
         } else if (nodeType == Node.TEXT_NODE) {
           info.addTextInfo(updatedNativeNode.getTextContent(), newValue.value);
         }
-        updatedNode.setNodeValue(upd.getNewNodeValue());
+        updatedNode.applyUpdate(upd.getUpdate());
       }
       
       Iterator<InsertOp> insIt = effect.getInserts().iterator();

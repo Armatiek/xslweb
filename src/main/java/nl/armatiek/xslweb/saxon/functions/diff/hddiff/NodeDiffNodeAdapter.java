@@ -33,6 +33,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import de.fau.cs.osr.hddiff.tree.DiffNode;
+import de.fau.cs.osr.hddiff.tree.NodeUpdate;
 import de.fau.cs.osr.utils.ComparisonException;
 
 public class NodeDiffNodeAdapter extends DiffNode {
@@ -150,8 +151,6 @@ public class NodeDiffNodeAdapter extends DiffNode {
     return new NodeDiffNodeAdapter(elem);
   }
   
-  
-
   @Override
   public String getLabel() {
     return node.getNodeName();
@@ -160,11 +159,6 @@ public class NodeDiffNodeAdapter extends DiffNode {
   @Override
   public Object getNativeNode() {
     return node;
-  }
-
-  @Override
-  public Object getNodeValue() {
-    return new NodeUpdate(node.getAttributes(), null);
   }
 
   @Override
@@ -183,38 +177,6 @@ public class NodeDiffNodeAdapter extends DiffNode {
   @Override
   public boolean isLeaf() {
     return node.getFirstChild() == null;
-  }
-
-  @Override
-  public boolean isNodeValueEqual(DiffNode o) {
-    if (!isSameNodeType(o))
-      throw new IllegalArgumentException();
-
-    Node a = this.node;
-    Node b = ((NodeDiffNodeAdapter) o).node;
-
-    Collection<Attr> aac = DiffUtils.toCollection(a.getAttributes());
-    Collection<Attr> bac = DiffUtils.toCollection(b.getAttributes());
-
-    if (!(aac.isEmpty() && bac.isEmpty())) {
-      if (aac.size() != bac.size())
-        return false;
-
-      Iterator<Attr> aai = aac.iterator();
-      Iterator<Attr> bai = bac.iterator();
-      while (aai.hasNext()) {
-        if (!attrEquals(aai.next(), bai.next()))
-          return false;
-      }
-    }
-    return true;
-  }
-  
-  private boolean attrEquals(Attr a, Attr b) {
-    return compareStrings(a.getNamespaceURI(), b.getNamespaceURI()) && 
-        compareStrings(a.getPrefix(), b.getPrefix()) && 
-        a.getNodeName().equals(b.getNodeName()) && 
-        a.getNodeValue().equals(b.getNodeValue());
   }
 
   @Override
@@ -242,8 +204,13 @@ public class NodeDiffNodeAdapter extends DiffNode {
   }
 
   @Override
-  public void setNodeValue(Object value_) {
-    NodeUpdate value = (NodeUpdate) value_;
+  public DiffNode splitText(int pos) {
+    throw new UnsupportedOperationException();
+  }
+  
+  @Override
+  public void applyUpdate(NodeUpdate value_) {
+    MyNodeUpdate value = (MyNodeUpdate) value_;
     if (value.value != null)
       throw new IllegalArgumentException();
     
@@ -264,20 +231,47 @@ public class NodeDiffNodeAdapter extends DiffNode {
   }
 
   @Override
-  public DiffNode splitText(int pos) {
-    throw new UnsupportedOperationException();
+  public NodeUpdate compareWith(DiffNode o) {
+    if (!isSameNodeType(o))
+      throw new IllegalArgumentException();
+
+    Node a = this.node;
+    Node b = ((NodeDiffNodeAdapter) o).node;
+
+    Collection<Attr> aac = DiffUtils.toCollection(a.getAttributes());
+    Collection<Attr> bac = DiffUtils.toCollection(b.getAttributes());
+
+    if (!(aac.isEmpty() && bac.isEmpty())) {
+      if (aac.size() != bac.size())
+        return new MyNodeUpdate(b.getAttributes(), null);
+
+      Iterator<Attr> aai = aac.iterator();
+      Iterator<Attr> bai = bac.iterator();
+      while (aai.hasNext()) {
+        if (!attrEquals(aai.next(), bai.next()))
+          return new MyNodeUpdate(b.getAttributes(), null);
+      }
+    }
+    return null;
+  }
+  
+  private boolean attrEquals(Attr a, Attr b) {
+    return compareStrings(a.getNamespaceURI(), b.getNamespaceURI()) && 
+        compareStrings(a.getPrefix(), b.getPrefix()) && 
+        a.getNodeName().equals(b.getNodeName()) && 
+        a.getNodeValue().equals(b.getNodeValue());
   }
   
   protected boolean compareStrings(String a, String b) {
     return (a != null) ? a.equals(b) : (b == null);
   }
   
-  public static final class NodeUpdate {
+  public static final class MyNodeUpdate implements NodeUpdate {
     
     public final NamedNodeMap attributes;
     public final String value;
 
-    public NodeUpdate(NamedNodeMap attributes, String value) {
+    public MyNodeUpdate(NamedNodeMap attributes, String value) {
       super();
       this.attributes = attributes;
       this.value = value;
@@ -290,6 +284,12 @@ public class NodeDiffNodeAdapter extends DiffNode {
       else
         return "NodeUpdate [attributes=" + Arrays.toString(DiffUtils.toCollection(attributes).toArray()) + "]";
     }
+    
+    @Override
+    public void applyUpdates(Object node) {
+      throw new UnsupportedOperationException();
+    }
+    
   }
 
 }

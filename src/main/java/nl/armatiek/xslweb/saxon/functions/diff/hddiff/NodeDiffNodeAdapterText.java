@@ -21,6 +21,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import de.fau.cs.osr.hddiff.tree.DiffNode;
+import de.fau.cs.osr.hddiff.tree.NodeUpdate;
 
 public class NodeDiffNodeAdapterText extends NodeDiffNodeAdapterTextContainer {
   
@@ -51,6 +52,32 @@ public class NodeDiffNodeAdapterText extends NodeDiffNodeAdapterTextContainer {
     getParent().appendOrInsert(newNode, getNextSibling());
     
     return newNode;
+  }
+  
+  @Override
+  public void applyUpdate(NodeUpdate value_) {
+    MyNodeUpdate value = (MyNodeUpdate) value_;
+
+    if (value.attributes != null)
+      throw new IllegalArgumentException();
+
+    String newValue = value.value;
+    if (!compareStrings(node.getTextContent(), newValue))
+      node.setTextContent(newValue);
+  }
+
+  @Override
+  public NodeUpdate compareWith(DiffNode o) {
+    if (!isSameNodeType(o))
+      throw new IllegalArgumentException();
+
+    Node a = this.node;
+    Node b = ((NodeDiffNodeAdapter) o).node;
+
+    if (compareStrings(a.getTextContent(), b.getTextContent()))
+      return null;
+
+    return new MyNodeUpdate(null, o.getTextContent());
   }
   
 }
