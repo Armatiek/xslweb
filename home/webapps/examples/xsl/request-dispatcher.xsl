@@ -347,13 +347,6 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 32: XUpdate sandbox -->
-  <xsl:template name="xupdate-sandbox" match="/req:request[req:path = '/xupdate-sandbox.html']">    
-    <pipeline:pipeline>
-      <pipeline:transformer name="xupdate-sandbox" xsl-path="xupdate/xupdate-sandbox.xsl" log="true"/>  
-    </pipeline:pipeline>
-  </xsl:template>
-  
   <!-- Authentication functions called from basic-authentication.xsl: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    
     <xsl:param name="request" as="document-node()"/>       

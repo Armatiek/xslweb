@@ -142,9 +142,6 @@
               <li>
                 <a href="{$path}/huge-file.html">STX transformation step: Huge file</a>
               </li>
-              <li>
-                <a href="{$path}/xupdate-sandbox.html">XUpdate sandbox</a>
-              </li>
             </ol>
           </div>
         </div>
