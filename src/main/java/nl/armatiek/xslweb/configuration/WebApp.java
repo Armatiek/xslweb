@@ -27,8 +27,6 @@ import java.io.FileNotFoundException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.ProxySelector;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -128,7 +126,6 @@ import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.serialize.MessageWarner;
 import net.sf.saxon.xpath.XPathFactoryImpl;
-import nl.armatiek.xmlindex.XMLIndex;
 import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.joost.MessageEmitter;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
@@ -148,7 +145,6 @@ public class WebApp implements ErrorHandler {
   private Map<String, Templates> templatesCache =  new ConcurrentHashMap<String, Templates>();
   private Map<String, Schema> schemaCache = new ConcurrentHashMap<String, Schema>();
   private Map<String, Collection<Attribute>> attributes = new ConcurrentHashMap<String, Collection<Attribute>>();
-  private Map<String, XMLIndex> indexCache = new ConcurrentHashMap<String, XMLIndex>();
   private Map<String, ComboPooledDataSource> dataSourceCache = new ConcurrentHashMap<String, ComboPooledDataSource>();
   private Map<String, FopFactory> fopFactoryCache = new ConcurrentHashMap<String, FopFactory>();
       
@@ -164,7 +160,6 @@ public class WebApp implements ErrorHandler {
   private Scheduler scheduler;
   private List<Resource> resources = new ArrayList<Resource>();
   private List<Parameter> parameters = new ArrayList<Parameter>();
-  private Map<String, Index> indexes = new HashMap<String, Index>();
   private Map<String, DataSource> dataSources = new HashMap<String, DataSource>();
   private Map<String, String> fopConfigs = new HashMap<String, String>();
   private XSLWebConfiguration configuration;  
@@ -263,12 +258,6 @@ public class WebApp implements ErrorHandler {
       dataSources.put(dataSource.getName(), dataSource);
     }
     
-    NodeList indexNodes = (NodeList) xpath.evaluate("webapp:indexes/webapp:index", docElem, XPathConstants.NODESET);
-    for (int i=0; i<indexNodes.getLength(); i++) {
-      Index index = new Index(xpath, (Element) indexNodes.item(i), homeDir);
-      indexes.put(index.getName(), index);
-    } 
-    
     NodeList fopConfigNodes = (NodeList) xpath.evaluate("webapp:fop-configs/webapp:fop-config", docElem, XPathConstants.NODESET);
     for (int i=0; i<fopConfigNodes.getLength(); i++) {
       Element fopConfig = (Element) fopConfigNodes.item(i);     
@@ -344,13 +333,6 @@ public class WebApp implements ErrorHandler {
       logger.debug("Closing HTTP client ...");
       httpClient.close();
       httpClient = null;
-    }
-    
-    if (!indexCache.isEmpty()) {
-      logger.info("Closing Indexes ...");
-      for (XMLIndex index : indexCache.values()) {
-        index.close();
-      }
     }
     
     if (!dataSourceCache.isEmpty()) {
@@ -493,10 +475,6 @@ public class WebApp implements ErrorHandler {
 
   public List<Parameter> getParameters() {
     return parameters;
-  }
-  
-  public Map<String, Index> getIndexes() {
-    return indexes;
   }
   
   public Map<String, DataSource> getDataSources() {
@@ -850,21 +828,6 @@ public class WebApp implements ErrorHandler {
   @Override
   public void warning(SAXParseException e) throws SAXException {
     logger.warn(String.format("Error parsing \"%s\"", definition.getAbsolutePath()), e);     
-  }
-  
-  public XMLIndex getXMLIndex(String name) throws Exception {
-    XMLIndex xmlIndex = indexCache.get(name);
-    if (xmlIndex == null) {      
-      Index index = indexes.get(name);
-      if (index == null)
-        throw new XSLWebException("Index definition \"" + name + "\" not found in webapp.xml");        
-      Path indexPath = Paths.get(index.getPath());
-      if (!indexPath.isAbsolute())
-        indexPath = homeDir.toPath().resolve(indexPath);
-      xmlIndex = new XMLIndex(index.getName(), indexPath, index.getMaxTermLength(), index.getIndexCompression());
-      indexCache.put(name, xmlIndex);
-    }
-    return xmlIndex;
   }
   
   public ComboPooledDataSource getDataSource(String name) throws Exception {

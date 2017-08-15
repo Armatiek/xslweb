@@ -187,16 +187,6 @@
         </dependency>
       </dependencies>
     </profile>
-    <profile>
-      <id>XMLIndex-Spatial</id>
-      <dependencies>
-        <dependency>
-          <groupId>nl.armatiek.xmlindex</groupId>
-          <artifactId>xmlindex-spatial</artifactId>            
-          <version>0.1</version>
-        </dependency>
-      </dependencies>
-    </profile>
   </profiles>
   
   <dependencies>
@@ -405,12 +395,6 @@
       <groupId>com.sksamuel.diff</groupId>
       <artifactId>diff</artifactId>
       <version>1.1.11</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>nl.armatiek.xmlindex</groupId>
-      <artifactId>xmlindex-core</artifactId>
-      <version>0.1</version>
     </dependency>
     
   </dependencies>

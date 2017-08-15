@@ -72,30 +72,6 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="indexes" minOccurs="0">
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element name="index" minOccurs="0" maxOccurs="unbounded">
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element name="name" type="xs:string"/>
-                    <xs:element name="path" type="xs:string"/>
-                    <xs:element name="max-term-length" type="xs:integer" minOccurs="0"/>
-                    <xs:element name="index-compression" minOccurs="0">
-                      <xs:simpleType>
-                        <xs:restriction base="xs:string">
-                          <xs:enumeration value="no_compression"/>
-                          <xs:enumeration value="best_speed"/>
-                          <xs:enumeration value="best_compression"/>
-                        </xs:restriction>
-                      </xs:simpleType>
-                    </xs:element>
-                  </xs:sequence>
-                </xs:complexType>
-              </xs:element>
-            </xs:sequence>
-          </xs:complexType>
-        </xs:element>
         <xs:element name="datasources" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
