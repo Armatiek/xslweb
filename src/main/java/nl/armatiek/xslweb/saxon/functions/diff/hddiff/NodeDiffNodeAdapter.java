@@ -192,7 +192,7 @@ public class NodeDiffNodeAdapter extends DiffNode {
   @Override
   protected void removeFromParentNativeOnly() {
     if (node.getParentNode() == null)
-      throw new UnsupportedOperationException();
+      return; // node already removed from parent
     node.getParentNode().removeChild(node);
   }
 

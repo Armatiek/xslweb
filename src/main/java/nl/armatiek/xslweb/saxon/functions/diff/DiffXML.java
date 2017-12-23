@@ -8,6 +8,7 @@ import org.w3c.dom.Element;
 import de.fau.cs.osr.hddiff.HDDiff;
 import de.fau.cs.osr.hddiff.HDDiffOptions;
 import de.fau.cs.osr.hddiff.editscript.EditOp;
+import de.fau.cs.osr.hddiff.editscript.EditScriptOptimizer;
 import de.fau.cs.osr.hddiff.tree.DiffNode;
 import de.fau.cs.osr.hddiff.tree.NodeEligibilityTesterInterface;
 import de.fau.cs.osr.hddiff.utils.WordSubstringJudge;
@@ -168,6 +169,7 @@ public class DiffXML extends ExtensionFunctionDefinition {
         DiffNode node2 = NodeToDiffNodeConverter.preprocess(doc2.getDocumentElement());
         
         List<EditOp> ops = HDDiff.editScript(node1, node2, options);
+        EditScriptOptimizer.optimize(ops);
         EditScriptManager esm = new EditScriptManager(ops, doc1);
         esm.apply();
         

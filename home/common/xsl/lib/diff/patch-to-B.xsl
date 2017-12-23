@@ -18,13 +18,13 @@
   <xsl:template match="*[deltaxml:attributes]">
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
-      <xsl:for-each select="deltaxml:attributes/*[deltaxml:attributeValue/@deltaxml:deltaV2='B']">
+      <xsl:for-each select="deltaxml:attributes/*[deltaxml:attributeValue/@deltaxml:delta='B']">
         <xsl:choose>
           <xsl:when test="namespace-uri() = 'http://www.armatiek.com/xslweb/diff/non-namespaced-attribute'">
-            <xsl:attribute name="{local-name()}" select="deltaxml:attributeValue[@deltaxml:deltaV2='B']"/>    
+            <xsl:attribute name="{local-name()}" select="deltaxml:attributeValue[@deltaxml:delta='B']"/>    
           </xsl:when>
           <xsl:otherwise>
-            <xsl:attribute name="{name()}" namespace="{namespace-uri()}" select="deltaxml:attributeValue[@deltaxml:deltaV2='B']"/>
+            <xsl:attribute name="{name()}" namespace="{namespace-uri()}" select="deltaxml:attributeValue[@deltaxml:delta='B']"/>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:for-each>
@@ -32,14 +32,14 @@
     </xsl:copy>
   </xsl:template>
     
-  <xsl:template match="deltaxml:textGroup[deltaxml:text/@deltaxml:deltaV2='B']">
-    <xsl:value-of select="deltaxml:text[@deltaxml:deltaV2='B']"/>
+  <xsl:template match="deltaxml:textGroup[deltaxml:text/@deltaxml:delta='B']">
+    <xsl:value-of select="deltaxml:text[@deltaxml:delta='B']"/>
   </xsl:template>
   
   <xsl:template match="
-    *[@deltaxml:deltaV2='A']|
+    *[@deltaxml:delta='A']|
     @deltaxml:*|
     deltaxml:attributes|
-    deltaxml:textGroup[not(deltaxml:text/@deltaxml:deltaV2='B')]"/>
+    deltaxml:textGroup[not(deltaxml:text/@deltaxml:delta='B')]"/>
   
 </xsl:stylesheet>

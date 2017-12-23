@@ -18,7 +18,6 @@ package nl.armatiek.xslweb.saxon.functions.diff.hddiff;
  */
 
 import java.util.ArrayList;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,7 +46,6 @@ import de.fau.cs.osr.hddiff.editscript.EditOpUpdate;
 import de.fau.cs.osr.hddiff.tree.DiffNode;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.diff.hddiff.DeltaInfo.AttrInfo;
-import nl.armatiek.xslweb.saxon.functions.diff.hddiff.DeltaInfo.DeleteInfo;
 import nl.armatiek.xslweb.saxon.functions.diff.hddiff.DeltaInfo.TextInfo;
 import nl.armatiek.xslweb.saxon.functions.diff.hddiff.NodeDiffNodeAdapter.MyNodeUpdate;
 import nl.armatiek.xslweb.utils.XMLUtils;
@@ -145,6 +143,7 @@ public class EditScriptManager {
     processNonRemoves();
     processDeltaInfo(root);
     complementDeltaAttributes(root.getOwnerDocument().getDocumentElement());
+    combineDeltas(root.getOwnerDocument());
   }
   
   private void getNodesToProcess(Node node, List<Node> nodes) {
@@ -185,51 +184,15 @@ public class EditScriptManager {
         continue;
       }
       
-      /* Process deleted child nodes: */
+      /* Process deleted node: */
       if (info.hasDeleteInfo()) {
-        /* Process deleted nodes */
-        Iterator<DeleteInfo> deleteInfoIter = info.getDeletedNodes();
-        if (deleteInfoIter != null) {
-          while (deleteInfoIter.hasNext()) {
-            DeleteInfo deletedInfo = deleteInfoIter.next();
-            Node deletedNode = deletedInfo.deletedNode;
-            Node nextSiblingNode = deletedInfo.nextSiblingNode;
-            Node prevSiblingNode = deletedInfo.prevSiblingNode;
-            
-            if (nextSiblingNode != null && nextSiblingNode.getParentNode() != null && XMLUtils.containsNode(node, nextSiblingNode)) {
-              node.insertBefore(deletedNode, nextSiblingNode);
-            } else if (prevSiblingNode != null 
-                && ((prevSiblingNode.getNextSibling() == null || prevSiblingNode.getNextSibling().getParentNode() != null) 
-                    && XMLUtils.containsNode(node, prevSiblingNode))) {
-              node.insertBefore(deletedNode, prevSiblingNode.getNextSibling());
-            } else if (nextSiblingNode == null) {
-              node.appendChild(deletedNode);
-            } else if (prevSiblingNode == null) {
-              node.insertBefore(deletedNode, node.getFirstChild());
-            } else {
-              int pos = deletedInfo.position;
-              if (pos >= node.getChildNodes().getLength()-1) {
-                node.appendChild(deletedNode);
-              } else {
-                int insertPos = Math.max(deletedInfo.position, node.getChildNodes().getLength()-1);
-                Node refChild = node.getChildNodes().item(insertPos);
-                node.insertBefore(deletedNode, refChild);
-              }
-            }
-          }
-          deleteInfoIter = info.getDeletedNodes();
-          while (deleteInfoIter.hasNext()) {
-            DeleteInfo deletedInfo = deleteInfoIter.next();
-            Node deletedNode = deletedInfo.deletedNode;
-            removeDeltaInfoFromDescendants(deletedNode);
-            if (deletedNode.getNodeType() == Node.ELEMENT_NODE) {
-              setDeltaAttr((Element) deletedNode, "A");
-            } else {
-              Element textGroupElem = createTextGroupElem(node.getOwnerDocument(), deletedNode.getTextContent(), null);
-              node.replaceChild(textGroupElem, deletedNode);
-            }
-          }
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+          setDeltaAttr((Element) node, "A");
+        } else {
+          Element textGroupElem = createTextGroupElem(node.getOwnerDocument(), node.getTextContent(), null);
+          node.getParentNode().replaceChild(textGroupElem, node);
         }
+        removeDeltaInfoFromDescendants(node);
       }
       
       /* Process inserted or changed text nodes */
@@ -294,6 +257,47 @@ public class EditScriptManager {
   private void complementDeltaAttributes(Node node) {
     markChanged(node);
     markUnchanged(node);
+  }
+  
+  private boolean isDeletedTextGroup(Node node) {
+    return 
+      node != null &&
+      node.getNodeType() == Node.ELEMENT_NODE &&
+      StringUtils.equals(node.getNamespaceURI(), Definitions.NAMESPACEURI_DELTAXML) && 
+      node.getLocalName().equals("textGroup") &&
+      StringUtils.equals(((Element) node).getAttributeNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.ATTRNAME_DELTA), "A");
+  }
+  
+  private void combineDeltas(Node node) {
+    int i=0;
+    Node child = node.getFirstChild();
+    while (child != null) {
+      Node nextChild = child.getNextSibling();
+      boolean isDeletedTextGroup = isDeletedTextGroup(nextChild);
+      if (!isDeletedTextGroup) {
+        if (i > 1) {
+          StringBuilder sb = new StringBuilder();
+          Node n = child;
+          for (int j=0; j<i; j++) {
+            sb = sb.insert(0, XMLUtils.getTextFromNode(XMLUtils.getFirstChildElement((Element)n)));
+            Node p = n;
+            n = n.getPreviousSibling(); 
+            p.getParentNode().removeChild(p);
+          }
+          Element textGroupElem = node.getOwnerDocument().createElementNS(Definitions.NAMESPACEURI_DELTAXML, Definitions.PREFIX_DELTAXML + ":textGroup");
+          setDeltaAttr(textGroupElem, "A");
+          appendTextElem(textGroupElem, sb.toString(), "A");
+          node.insertBefore(textGroupElem, nextChild);
+        } else {
+          i = 0;
+        }
+      } else {
+        i++;
+      }
+      if (child.getNodeType() == Node.ELEMENT_NODE)
+          combineDeltas(child); 
+      child = nextChild;
+    }
   }
   
   private void appendTextElem(Element textGroupElem, String text, String delta) {
@@ -491,8 +495,8 @@ public class EditScriptManager {
         Node clonedNativeNode = topLevelClones.get(deletedNativeNode);
         if (clonedNativeNode == null)
           clonedNativeNode = deletedNativeNode.cloneNode(true); // TODO : is this necessary?
-        getDeltaInfo(deletedNativeNode.getParentNode()).addDeletedInfo(clonedNativeNode, deletedNativeNode.getNextSibling(), 
-            deletedNativeNode.getPreviousSibling(), XMLUtils.getNodePosition(deletedNativeNode));
+        deletedNativeNode.getParentNode().replaceChild(clonedNativeNode, deletedNativeNode);
+        getDeltaInfo(clonedNativeNode).addDeleteInfo(true);
         deletedNode.removeFromParent();
         break;
       case MOVE:
@@ -502,8 +506,8 @@ public class EditScriptManager {
         clonedNativeNode = topLevelClones.get(movedNativeNode);
         if (clonedNativeNode == null)
           clonedNativeNode = movedNativeNode.cloneNode(true); // TODO : is this necessary?
-        getDeltaInfo(movedNativeNode.getParentNode()).addDeletedInfo(clonedNativeNode, movedNativeNode.getNextSibling(), 
-            movedNativeNode.getPreviousSibling(), XMLUtils.getNodePosition(movedNativeNode));
+        movedNativeNode.getParentNode().replaceChild(clonedNativeNode, movedNativeNode);
+        getDeltaInfo(clonedNativeNode).addDeleteInfo(true);
         movedNode.removeFromParent();
         break;
       default:

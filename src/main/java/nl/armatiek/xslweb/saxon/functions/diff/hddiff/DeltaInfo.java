@@ -1,47 +1,24 @@
 package nl.armatiek.xslweb.saxon.functions.diff.hddiff;
 
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 public class DeltaInfo {
   
-  private List<DeleteInfo> deletes;
   private boolean insertInfo;
+  private boolean deleteInfo;
   private TextInfo textInfo;
   private AttrInfo attrInfo;
-  
-  public void addDeletedInfo(Node deletedNode, Node nextSiblingNode, Node prevSiblingNode, int position) {
-    if (deletes == null) 
-      deletes = new ArrayList<DeleteInfo>();
-    deletes.add(0, new DeleteInfo(deletedNode, nextSiblingNode, prevSiblingNode, position));
-  }
-  
+    
   public void addInsertInfo(boolean value) {
     insertInfo = value;
   }
   
+  public void addDeleteInfo(boolean value) {
+    deleteInfo = value;
+  }
+   
   public void addTextInfo(String oldValue, String newValue) {
     textInfo = new TextInfo(oldValue, newValue);
   }
@@ -50,14 +27,12 @@ public class DeltaInfo {
     attrInfo = new AttrInfo(elem, newAttrs);
   }
   
-  public Iterator<DeleteInfo> getDeletedNodes() {
-    if (deletes == null)
-      return null;
-    return deletes.iterator();
-  }
-  
   public boolean hasInsertInfo() {
     return insertInfo;
+  }
+  
+  public boolean hasDeleteInfo() {
+    return deleteInfo;
   }
   
   public TextInfo getTextInfo() {
@@ -68,9 +43,11 @@ public class DeltaInfo {
     return attrInfo;
   }
   
+  /*
   public boolean hasDeleteInfo() {
     return deletes != null && !deletes.isEmpty();
   }
+  */
   
   public boolean hasTextInfo() {
     return textInfo != null;
