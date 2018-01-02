@@ -347,6 +347,35 @@
     </pipeline:pipeline>
   </xsl:template>
   
+  <!-- Example 32: Queued request -->
+  <xsl:template name="queued-request-call" match="/req:request[req:path = '/queued-request-call']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="queued-request-call" xsl-path="queued-request/queued-request-call.xsl" log="false"/>
+      <pipeline:json-serializer name="json" log="true" auto-array="false" pretty-print="true" namespace-declarations="false" auto-primitive="true"/>
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template name="queued-request" match="/req:request[req:path = '/queued-request']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="queued-request" xsl-path="queued-request/queued-request.xsl" log="false"/>
+      <pipeline:fop-serializer name="fop" log="false"/> 
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template name="queued-request-status" match="/req:request[req:path = '/queued-request-status']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="queued-request-status" xsl-path="queued-request/queued-request-status.xsl" log="false"/>
+      <pipeline:json-serializer name="json" log="true" auto-array="false" pretty-print="true" namespace-declarations="false" auto-primitive="true"/>
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template name="queued-pdf" match="/req:request[req:path = '/queued-pdf']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="queued-pdf" xsl-path="queued-request/queued-pdf.xsl" log="false"/>
+      <pipeline:resource-serializer name="pdf" log="false"/>  
+    </pipeline:pipeline>
+  </xsl:template>
+  
   <!-- Authentication functions called from basic-authentication.xsl: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    
     <xsl:param name="request" as="document-node()"/>       

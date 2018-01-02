@@ -75,7 +75,7 @@
         <xs:element name="datasources" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="datasource" minOccurs="0" maxOccurs="unbounded" >
+              <xs:element name="datasource" minOccurs="0" maxOccurs="unbounded">
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="name" type="xs:string"/>
@@ -84,6 +84,20 @@
                     <xs:element name="username" type="xs:string" minOccurs="0"/>
                     <xs:element name="password" type="xs:string" minOccurs="0"/>
                     <xs:element name="property" minOccurs="0" maxOccurs="unbounded" type="xslweb:property-type"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="queues" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="queue" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="name" type="xs:string"/>
+                    <xs:element name="number-of-threads" type="xs:integer" default="3"/>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>

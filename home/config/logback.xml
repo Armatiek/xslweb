@@ -26,7 +26,7 @@
     <Append>true</Append>
     <File>${xslweb.home}/logs/pipeline.log</File>
     <encoder>
-      <pattern>%level - %m%n</pattern>
+      <pattern>%-5p [%t] %c - [%m] %d{ISO8601}%n</pattern>
     </encoder>    
     <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
       <maxIndex>8</maxIndex>

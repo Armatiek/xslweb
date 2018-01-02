@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.net.ssl.SSLContext;
 import javax.xml.XMLConstants;
@@ -147,6 +149,7 @@ public class WebApp implements ErrorHandler {
   private Map<String, Collection<Attribute>> attributes = new ConcurrentHashMap<String, Collection<Attribute>>();
   private Map<String, ComboPooledDataSource> dataSourceCache = new ConcurrentHashMap<String, ComboPooledDataSource>();
   private Map<String, FopFactory> fopFactoryCache = new ConcurrentHashMap<String, FopFactory>();
+  private Map<String, ExecutorService> executorServiceCache = new ConcurrentHashMap<String, ExecutorService>();
       
   private volatile boolean isClosed = true;
   private File definition;
@@ -162,6 +165,7 @@ public class WebApp implements ErrorHandler {
   private List<Parameter> parameters = new ArrayList<Parameter>();
   private Map<String, DataSource> dataSources = new HashMap<String, DataSource>();
   private Map<String, String> fopConfigs = new HashMap<String, String>();
+  private Map<String, Queue> queues = new HashMap<String, Queue>();
   private XSLWebConfiguration configuration;  
   private Processor processor;  
   private FileAlterationMonitor monitor;
@@ -264,6 +268,12 @@ public class WebApp implements ErrorHandler {
       Element fopElement = XMLUtils.getFirstChildElement(fopConfig);
       fopConfigs.put(fopConfig.getAttribute("name"), XMLUtils.nodeToString(fopElement));
     }
+    
+    NodeList queueNodes = (NodeList) xpath.evaluate("webapp:queues/webapp:queue", docElem, XPathConstants.NODESET);
+    for (int i=0; i<queueNodes.getLength(); i++) {
+      Queue queue = new Queue((Element) queueNodes.item(i));
+      queues.put(queue.getName(), queue);
+    }
    
     // initClassLoader();
             
@@ -340,6 +350,11 @@ public class WebApp implements ErrorHandler {
       for (ComboPooledDataSource cpds : dataSourceCache.values()) {
         cpds.close();
       }
+    }
+    
+    logger.info("Stopping queueing services ...");
+    for (ExecutorService service : executorServiceCache.values()) {
+      service.shutdownNow();
     }
     
     logger.info("Clearing compiled XSLT stylesheet cache ...");
@@ -835,7 +850,7 @@ public class WebApp implements ErrorHandler {
     if (cpds == null) {      
       DataSource dataSource = dataSources.get(name);
       if (dataSource == null) {
-        throw new XSLWebException("Datasource definition \"" + name + "\" not found in webapp.xml");        
+        throw new XSLWebException("Datasource definition \"" + name + "\" not configured in webapp.xml");        
       }
       
       Class.forName(dataSource.getDriverClass());
@@ -862,12 +877,25 @@ public class WebApp implements ErrorHandler {
     if (fopFactory == null) {
       String fopConfig = fopConfigs.get(configName);
       if (fopConfig == null) {
-        throw new XSLWebException("FOP Configuration \"" + configName + "\" not found in webapp.xml");        
+        throw new XSLWebException("FOP Configuration \"" + configName + "\" not configured in webapp.xml");        
       }      
       fopFactory = FopFactory.newInstance(getHomeDir().toURI(), IOUtils.toInputStream(fopConfig, "UTF-8"));      
       fopFactoryCache.put(configName, fopFactory);
     }
     return fopFactory;
+  }
+  
+  public ExecutorService getExecutorService(String queueName) {
+    ExecutorService service = executorServiceCache.get(queueName);
+    if (service == null) {
+      Queue queue = queues.get(queueName);
+      if (queueName == null) {
+        throw new XSLWebException("Queue \"" + queueName + "\" not configured in webapp.xml");        
+      }
+      service = Executors.newFixedThreadPool(queue.getNumberOfThreads());
+      executorServiceCache.put(queueName, service);
+    }
+    return service;
   }
   
   public synchronized void incJobRequestCount() {

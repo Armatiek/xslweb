@@ -26,6 +26,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -39,6 +42,8 @@ import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -78,6 +83,8 @@ public class Context {
   private String contextPath;
   private File webInfDir; 
   private File homeDir;
+  private File queueDir;
+  private ScheduledExecutorService queueCleanupScheduler;
   private volatile boolean isOpen = false;
   
   private Context() { }
@@ -96,6 +103,7 @@ public class Context {
     logger.info("Opening XSLWeb Context ...");
     
     initHomeDir();      
+    initQueueDir();
     initProperties();
     initMimeUtil();
     initXMLSchemas();
@@ -114,6 +122,9 @@ public class Context {
     logger.info("Closing XSLWeb Context ...");
     
     isOpen = false;
+    
+    logger.info("Shutting down queue cleanup scheduler ...");
+    queueCleanupScheduler.shutdownNow();
     
     logger.info("Stopping webapps file alteration monitor ...");    
     monitor.stop();
@@ -173,6 +184,24 @@ public class Context {
       logger.error(error);
       throw new XSLWebException(error);
     }    
+  }
+  
+  private void initQueueDir() {
+    queueDir = new File(homeDir, "queue");    
+    queueCleanupScheduler = Executors.newScheduledThreadPool(1);
+    queueCleanupScheduler.scheduleAtFixedRate(new Runnable() {
+      @Override
+      public void run() {
+        if (!queueDir.isDirectory())
+          return;
+        long cutoff = System.currentTimeMillis() - (10 * 60 * 1000); // 10 minutes old
+        File[] oldFiles = queueDir.listFiles((FileFilter) new AgeFileFilter(cutoff));
+        for (File file : oldFiles) {
+          if (!FileUtils.deleteQuietly(file))
+            logger.error("Could not delete stale file \"" + file.getAbsolutePath() + "\" in queue folder");
+        }   
+      }
+    }, 10, 10, TimeUnit.MINUTES);
   }
   
   private void initProperties() throws Exception {
@@ -317,6 +346,10 @@ public class Context {
   
   public File getHomeDir() {
     return this.homeDir;
+  }
+  
+  public File getQueueDir() {
+    return this.queueDir;
   }
   
   public Properties getProperties() {     

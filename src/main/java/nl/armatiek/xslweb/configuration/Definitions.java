@@ -82,6 +82,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_EXEC        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/exec";
   public final static String NAMESPACEURI_XSLWEB_FX_DIFF        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/diff";
   public final static String NAMESPACEURI_XSLWEB_FX_XQUERY      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/xquery";
+  public final static String NAMESPACEURI_XSLWEB_FX_QUEUE       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/queue";
   public final static String NAMESPACEURI_XSLWEB_REQUEST        = NAMESPACEURI_XSLWEB + "/request";
   public final static String NAMESPACEURI_XSLWEB_RESPONSE       = NAMESPACEURI_XSLWEB + "/response";
   public final static String NAMESPACEURI_XSLWEB_FX_SESSION     = NAMESPACEURI_XSLWEB + "/session";

@@ -13,11 +13,18 @@
       <xs:attribute name="config-name" type="xs:string" use="required"/>
       <xs:attribute name="path" type="xs:string"/>
       <xs:attribute name="output-format" type="xs:string" default="application/pdf"/>
+      <xs:attribute name="non-streaming" type="xs:boolean" default="false"/>
       <xs:attribute name="pdf-a-mode" use="optional">
         <xs:simpleType>
           <xs:restriction base="xs:string">
             <xs:enumeration value="PDF/A-1a"/>
             <xs:enumeration value="PDF/A-1b"/>
+            <xs:enumeration value="PDF/A-2a"/>
+            <xs:enumeration value="PDF/A-2b"/>
+            <xs:enumeration value="PDF/A-2u"/>
+            <xs:enumeration value="PDF/A-3a"/>
+            <xs:enumeration value="PDF/A-3b"/>
+            <xs:enumeration value="PDF/A-3u"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>             

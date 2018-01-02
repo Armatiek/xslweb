@@ -63,6 +63,13 @@
       <property name="user">sa</property>
     </datasource>
   </datasources>
+  
+  <queues>
+    <queue>
+      <name>queue-test</name>
+      <number-of-threads>3</number-of-threads>
+    </queue>
+  </queues>
 
   <fop-configs>
     <fop-config name="default">
