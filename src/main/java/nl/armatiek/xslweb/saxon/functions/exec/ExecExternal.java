@@ -85,6 +85,7 @@ public class ExecExternal extends ExtensionFunctionDefinition {
         }
       }
       Executor executor = new DefaultExecutor();
+      executor.setExitValue(0);
       Item timeout;
       if (arguments.length > 2 && (timeout = arguments[2].head()) != null) {
         ExecuteWatchdog watchdog = new ExecuteWatchdog(((Int64Value) timeout).longValue());
@@ -106,8 +107,12 @@ public class ExecExternal extends ExtensionFunctionDefinition {
           });                
           return EmptySequence.getInstance();          
         } else {
-          int result = executor.execute(cmdLine);        
-          return Int64Value.makeIntegerValue(result);
+          try {
+            executor.execute(cmdLine);
+            return Int64Value.makeIntegerValue(0);
+          } catch (ExecuteException e) {
+            return Int64Value.makeIntegerValue(e.getExitValue());
+          }
         }
       } catch (Exception e) {
         throw new XPathException("Error executing external process", e);
