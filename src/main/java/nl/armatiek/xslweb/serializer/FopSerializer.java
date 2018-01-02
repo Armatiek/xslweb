@@ -18,6 +18,8 @@ package nl.armatiek.xslweb.serializer;
  */
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -52,9 +54,10 @@ public class FopSerializer extends AbstractSerializer {
   protected static final Logger logger = LoggerFactory.getLogger(FopSerializer.class);
   
   private ContentHandler serializingHandler;
+  private ByteArrayOutputStream nsos = null;
   
   public FopSerializer(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, OutputStream os) {    
-    super(webApp, req, resp, os);                   
+    super(webApp, req, resp, os);      
   }
   
   public FopSerializer(WebApp webApp) {
@@ -63,6 +66,10 @@ public class FopSerializer extends AbstractSerializer {
   
   @Override
   public void close() throws IOException {
+    if (nsos != null) {
+      IOUtils.copy(new ByteArrayInputStream(nsos.toByteArray()), os);
+      IOUtils.closeQuietly(nsos);
+    }
     IOUtils.closeQuietly(os);
   }
   
@@ -104,7 +111,10 @@ public class FopSerializer extends AbstractSerializer {
       userAgent.getRendererOptions().put("pdf-a-mode", mode);
     }
     String outputFormat = attributes.getValue("output-format");
-    Fop fop = fopFactory.newFop(outputFormat == null ? MimeConstants.MIME_PDF : outputFormat, userAgent, os);
+    boolean nonStreaming = StringUtils.equals(attributes.getValue("non-streaming"), "true"); 
+    nsos = (nonStreaming) ? new ByteArrayOutputStream() : null;
+    Fop fop = fopFactory.newFop(outputFormat == null ? MimeConstants.MIME_PDF : outputFormat, 
+        userAgent, (nsos != null) ? nsos : os);
     this.serializingHandler = fop.getDefaultHandler();     
   }
   
