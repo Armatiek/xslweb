@@ -37,7 +37,11 @@
     <compiler.source.version>1.8</compiler.source.version>
     <compiler.target.version>1.8</compiler.target.version>
     <project.build.sourceEncoding>${file.encoding}</project.build.sourceEncoding>
-    <saxon.version>9.7.0-18</saxon.version>
+    <saxon.version>9.7.0-21</saxon.version>
+    <fop.version>2.2</fop.version>
+    <!--
+    <saxon.version>9.8.0-3</saxon.version>
+    -->
     <log4j.version>1.2.17</log4j.version>
     <slf4j.version>1.7.5</slf4j.version>
   </properties>
@@ -209,7 +213,7 @@
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>
-      <version>1.3.2</version>
+      <version>1.3.3</version>
     </dependency>
     <dependency>
       <groupId>org.ccil.cowan.tagsoup</groupId>
@@ -344,7 +348,7 @@
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>fop</artifactId>
-      <version>2.1</version>
+      <version>${fop.version}</version>
     </dependency>
     
     <dependency>
@@ -376,21 +380,6 @@
       <artifactId>hddiff</artifactId>
       <version>2.0.5-SNAPSHOT</version>
     </dependency>
-    
-    <!--
-    <dependency>
-      <groupId>de.fau.cs.osr.hddiff</groupId>
-      <artifactId>hddiff-perfsuite</artifactId>
-      <version>2.0.4-SNAPSHOT</version>
-    </dependency>
-    -->
-    <!--
-    <dependency>
-      <groupId>de.fau.cs.osr.utils</groupId>
-      <artifactId>utils</artifactId>
-      <version>3.0.5</version>
-    </dependency>
-    -->
     
     <dependency>
       <groupId>com.sksamuel.diff</groupId>
