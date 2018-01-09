@@ -76,7 +76,8 @@ import nl.armatiek.xslweb.saxon.functions.json.UnescapeJSON;
 import nl.armatiek.xslweb.saxon.functions.log.Log;
 import nl.armatiek.xslweb.saxon.functions.mail.SendMail;
 import nl.armatiek.xslweb.saxon.functions.queue.AddRequest;
-import nl.armatiek.xslweb.saxon.functions.queue.IsAvailable;
+import nl.armatiek.xslweb.saxon.functions.queue.GetInfo;
+import nl.armatiek.xslweb.saxon.functions.queue.GetStatus;
 import nl.armatiek.xslweb.saxon.functions.response.AddCookie;
 import nl.armatiek.xslweb.saxon.functions.response.AddDateHeader;
 import nl.armatiek.xslweb.saxon.functions.response.AddHeader;
@@ -258,7 +259,8 @@ public class XSLWebInitializer implements Initializer {
     
     /* Queue */
     registerEXPathFunction(new AddRequest(), configuration);
-    registerEXPathFunction(new IsAvailable(), configuration);
+    registerEXPathFunction(new GetStatus(), configuration);
+    registerEXPathFunction(new GetInfo(), configuration);
     
   }
   

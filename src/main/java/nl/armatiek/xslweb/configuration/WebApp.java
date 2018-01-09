@@ -889,7 +889,7 @@ public class WebApp implements ErrorHandler {
     ExecutorService service = executorServiceCache.get(queueName);
     if (service == null) {
       Queue queue = queues.get(queueName);
-      if (queueName == null) {
+      if (queue == null) {
         throw new XSLWebException("Queue \"" + queueName + "\" not configured in webapp.xml");        
       }
       service = Executors.newFixedThreadPool(queue.getNumberOfThreads());

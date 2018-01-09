@@ -72,16 +72,23 @@ public class AddRequest extends ExtensionFunctionDefinition {
     
     @Override
     public StringValue call(XPathContext context, Sequence[] arguments) throws XPathException {
-      String queueName = ((StringValue) arguments[0].head()).getStringValue();
-      String path = ((StringValue) arguments[1].head()).getStringValue();
-      String extraInfo = arguments.length > 2 ? serialize((NodeInfo) arguments[2].head()) : null;
-      WebApp webApp = getWebApp(context);
-      ExecutorService service = webApp.getExecutorService(queueName);
-      String ticket = UUID.randomUUID().toString();
-      service.execute(new QueuedRequest(ticket, webApp.getPath() + "/" + path, extraInfo));
-      return StringValue.makeStringValue(ticket);
+      try {
+        String queueName = ((StringValue) arguments[0].head()).getStringValue();
+        String path = ((StringValue) arguments[1].head()).getStringValue();
+        String extraInfo = arguments.length > 2 ? serialize((NodeInfo) arguments[2].head()) : null;
+        WebApp webApp = getWebApp(context);
+        ExecutorService service = webApp.getExecutorService(queueName);
+        String ticket = UUID.randomUUID().toString();
+        File queueDir = Context.getInstance().getQueueDir();
+        if (!queueDir.isDirectory() && !queueDir.mkdirs())
+          throw new IOException("Could not create queue directory \"" + queueDir.getAbsolutePath() + "\"");
+        FileUtils.touch(new File(queueDir, ticket + ".lck"));
+        service.execute(new QueuedRequest(ticket, webApp.getPath() + "/" + path, extraInfo));
+        return StringValue.makeStringValue(ticket);
+      } catch (IOException e) {
+        throw new XPathException("Error adding asynchronous request", e);
+      }
     }
-    
   }
   
   private static class QueuedRequest implements Runnable {
@@ -100,24 +107,28 @@ public class AddRequest extends ExtensionFunctionDefinition {
     public void run() {
       try {
         File queueDir = Context.getInstance().getQueueDir();
-        if (!queueDir.isDirectory() && !queueDir.mkdirs())
-          throw new IOException("Could not create queue directory \"" + queueDir.getAbsolutePath() + "\"");
         File lockFile = new File(queueDir, ticket + ".lck");
-        FileUtils.touch(lockFile);  
+        File outputFile = new File(queueDir, ticket + ".bin");  
+        boolean exceptionThrown = false;
         try {
           if (extraInfo != null)
             FileUtils.write(new File(queueDir, ticket + ".xml"), extraInfo, StandardCharsets.UTF_8);
-          OutputStream os = new BufferedOutputStream(new FileOutputStream(new File(queueDir, ticket + ".bin")));
+          OutputStream os = new BufferedOutputStream(new FileOutputStream(outputFile));
           try {
             new InternalRequest().execute(path, os, false);
+          } catch (Exception e) {
+            exceptionThrown = true;
+            FileUtils.write(new File(queueDir, ticket + ".err"), e.getMessage(), StandardCharsets.UTF_8);
           } finally {
             os.close();
           }
         } finally {
+          if (exceptionThrown)
+            FileUtils.deleteQuietly(outputFile);
           FileUtils.deleteQuietly(lockFile);
         }
       } catch (Exception e) {
-        logger.error("Error adding queued request \"" + path + "\"", e);
+        logger.error("Error executing asynchronous request \"" + path + "\"", e);
       }
     }
    
