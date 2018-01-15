@@ -55,6 +55,7 @@ public class FopSerializer extends AbstractSerializer {
   
   private ContentHandler serializingHandler;
   private ByteArrayOutputStream nsos = null;
+  private boolean exceptionThrown = false;
   
   public FopSerializer(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, OutputStream os) {    
     super(webApp, req, resp, os);      
@@ -67,7 +68,8 @@ public class FopSerializer extends AbstractSerializer {
   @Override
   public void close() throws IOException {
     if (nsos != null) {
-      IOUtils.copy(new ByteArrayInputStream(nsos.toByteArray()), os);
+      if (!exceptionThrown)
+        IOUtils.copy(new ByteArrayInputStream(nsos.toByteArray()), os);
       IOUtils.closeQuietly(nsos);
     }
     IOUtils.closeQuietly(os);
@@ -75,47 +77,52 @@ public class FopSerializer extends AbstractSerializer {
   
   @SuppressWarnings("unchecked")
   private void processFopSerializer(String uri, String localName, String qName, Attributes attributes) throws Exception {    
-    String path = attributes.getValue("", "path");               
-    if (path == null) {
-      /* Write to HTTP response: */
-      if (resp == null) {
-        throw new SAXException("No attribute \"path\" specified on fop-serializer element");
-      }             
-    } else {
-      /* Write to file: */
-      File outputFile = new File(path);
-      File parentDir = outputFile.getParentFile();
-      if (!parentDir.isDirectory()) {
-        if (!parentDir.mkdirs()) {
-          throw new SAXException("Could not create directory \"" + parentDir.getAbsolutePath() + "\"");
+    try {
+      String path = attributes.getValue("", "path");               
+      if (path == null) {
+        /* Write to HTTP response: */
+        if (resp == null) {
+          throw new SAXException("No attribute \"path\" specified on fop-serializer element");
+        }             
+      } else {
+        /* Write to file: */
+        File outputFile = new File(path);
+        File parentDir = outputFile.getParentFile();
+        if (!parentDir.isDirectory()) {
+          if (!parentDir.mkdirs()) {
+            throw new SAXException("Could not create directory \"" + parentDir.getAbsolutePath() + "\"");
+          }
         }
+        
+        if (outputFile.exists()) {
+          if (outputFile.isDirectory()) {
+            throw new SAXException("File \"" + parentDir.getAbsolutePath() + "\" already exists as directory");
+          } else if (!outputFile.delete()) {
+            throw new SAXException("Could not delete output file \"" + outputFile.getAbsolutePath() + "\"");
+          }
+        }                
+        this.os = new BufferedOutputStream(new FileOutputStream(outputFile));      
+      }    
+      String configName = attributes.getValue("config-name");
+      if (configName == null) {
+        throw new SAXException("No attribute \"config-name\" specified on fop-serializer element");
+      }        
+      FopFactory fopFactory = webApp.getFopFactory(configName);
+      FOUserAgent userAgent = fopFactory.newFOUserAgent();
+      String mode = attributes.getValue("pdf-a-mode");        
+      if (mode != null) {
+        userAgent.getRendererOptions().put("pdf-a-mode", mode);
       }
-      
-      if (outputFile.exists()) {
-        if (outputFile.isDirectory()) {
-          throw new SAXException("File \"" + parentDir.getAbsolutePath() + "\" already exists as directory");
-        } else if (!outputFile.delete()) {
-          throw new SAXException("Could not delete output file \"" + outputFile.getAbsolutePath() + "\"");
-        }
-      }                
-      this.os = new BufferedOutputStream(new FileOutputStream(outputFile));      
-    }    
-    String configName = attributes.getValue("config-name");
-    if (configName == null) {
-      throw new SAXException("No attribute \"config-name\" specified on fop-serializer element");
-    }        
-    FopFactory fopFactory = webApp.getFopFactory(configName);
-    FOUserAgent userAgent = fopFactory.newFOUserAgent();
-    String mode = attributes.getValue("pdf-a-mode");        
-    if (mode != null) {
-      userAgent.getRendererOptions().put("pdf-a-mode", mode);
+      String outputFormat = attributes.getValue("output-format");
+      boolean nonStreaming = StringUtils.equals(attributes.getValue("non-streaming"), "true"); 
+      nsos = (nonStreaming) ? new ByteArrayOutputStream() : null;
+      Fop fop = fopFactory.newFop(outputFormat == null ? MimeConstants.MIME_PDF : outputFormat, 
+          userAgent, (nsos != null) ? nsos : os);
+      this.serializingHandler = fop.getDefaultHandler();
+    } catch (Exception e) {
+      exceptionThrown = true;
+      throw e;
     }
-    String outputFormat = attributes.getValue("output-format");
-    boolean nonStreaming = StringUtils.equals(attributes.getValue("non-streaming"), "true"); 
-    nsos = (nonStreaming) ? new ByteArrayOutputStream() : null;
-    Fop fop = fopFactory.newFop(outputFormat == null ? MimeConstants.MIME_PDF : outputFormat, 
-        userAgent, (nsos != null) ? nsos : os);
-    this.serializingHandler = fop.getDefaultHandler();     
   }
   
   @Override
@@ -136,7 +143,11 @@ public class FopSerializer extends AbstractSerializer {
         processFopSerializer(uri, localName, qName, attributes);
         this.serializingHandler.startDocument();
       }
+    } catch (SAXException se) {
+      exceptionThrown = true;
+      throw se;
     } catch (Exception e) {
+      exceptionThrown = true;
       throw new SAXException(e);
     }
   }
@@ -156,7 +167,11 @@ public class FopSerializer extends AbstractSerializer {
       } else if (serializingHandler != null) {
         serializingHandler.endElement(uri, localName, qName);      
       }
+    } catch (SAXException se) {
+      exceptionThrown = true;
+      throw se;
     } catch (Exception e) {
+      exceptionThrown = true;
       throw new SAXException(e);
     }        
   }
@@ -169,44 +184,70 @@ public class FopSerializer extends AbstractSerializer {
         return;
       }
       close();
+    } catch (SAXException se) {
+      exceptionThrown = true;
+      throw se;
     } catch (IOException ioe) {
+      exceptionThrown = true;
       throw new SAXException("Could not close OutputStream", ioe);
     }
   }
   
   @Override
   public void characters(char[] ch, int start, int length) throws SAXException {
-    if (altHandler != null) {
-      altHandler.characters(ch, start, length);      
-    } else if (serializingHandler != null) {
-      serializingHandler.characters(ch, start, length);      
-    }     
+    try {
+      if (altHandler != null) {
+        altHandler.characters(ch, start, length);      
+      } else if (serializingHandler != null) {
+        serializingHandler.characters(ch, start, length);      
+      } 
+    } catch (SAXException se) {
+      exceptionThrown = true;
+      throw se;
+    }
   }
   
   @Override
   public void endPrefixMapping(String prefix) throws SAXException {
-    if (altHandler != null) {
-      altHandler.endDocument();;      
-    } else if (serializingHandler != null) {
-      serializingHandler.endPrefixMapping(prefix);
+    try { 
+      if (altHandler != null) {
+        altHandler.endDocument();;      
+      } else if (serializingHandler != null) {
+        serializingHandler.endPrefixMapping(prefix);
+      }
+    } catch (SAXException se) {
+      exceptionThrown = true;
+      throw se;
     }
+    
   }
   
   @Override
   public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {        
-    if (altHandler != null) {
-      altHandler.ignorableWhitespace(ch, start, length);      
-    } else if (serializingHandler != null) {
-      serializingHandler.ignorableWhitespace(ch, start, length);
+    try {
+      if (altHandler != null) {
+        altHandler.ignorableWhitespace(ch, start, length);      
+      } else if (serializingHandler != null) {
+        serializingHandler.ignorableWhitespace(ch, start, length);
+      }
+    } catch (SAXException se) {
+      exceptionThrown = true;
+      throw se;
     }
+    
   }
   
   @Override
   public void processingInstruction(String target, String data) throws SAXException {
-    if (altHandler != null) {
-      altHandler.processingInstruction(target, data);      
-    } else if (serializingHandler != null) {
-      serializingHandler.processingInstruction(target, data);
+    try {
+      if (altHandler != null) {
+        altHandler.processingInstruction(target, data);      
+      } else if (serializingHandler != null) {
+        serializingHandler.processingInstruction(target, data);
+      }
+    } catch (SAXException se) {
+      exceptionThrown = true;
+      throw se;
     }
   }
   
@@ -221,19 +262,29 @@ public class FopSerializer extends AbstractSerializer {
   
   @Override
   public void skippedEntity(String name) throws SAXException {
-    if (altHandler != null) {
-      altHandler.skippedEntity(name);      
-    } else if (serializingHandler != null) {
-      serializingHandler.skippedEntity(name);
-    }      
+    try {
+      if (altHandler != null) {
+        altHandler.skippedEntity(name);      
+      } else if (serializingHandler != null) {
+        serializingHandler.skippedEntity(name);
+      }
+    } catch (SAXException se) {
+      exceptionThrown = true;
+      throw se;
+    }
   }
   
   @Override
   public void startPrefixMapping(String prefix, String uri) throws SAXException {
-    if (altHandler != null) {
-      altHandler.startPrefixMapping(prefix, uri);      
-    } else if (serializingHandler != null) {
-      serializingHandler.startPrefixMapping(prefix, uri);
+    try {
+      if (altHandler != null) {
+        altHandler.startPrefixMapping(prefix, uri);      
+      } else if (serializingHandler != null) {
+        serializingHandler.startPrefixMapping(prefix, uri);
+      }
+    } catch (SAXException se) {
+      exceptionThrown = true;
+      throw se;
     }
   }
 
