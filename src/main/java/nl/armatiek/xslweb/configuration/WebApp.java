@@ -36,9 +36,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 import javax.xml.XMLConstants;
@@ -892,7 +895,10 @@ public class WebApp implements ErrorHandler {
       if (queue == null) {
         throw new XSLWebException("Queue \"" + queueName + "\" not configured in webapp.xml");        
       }
-      service = Executors.newFixedThreadPool(queue.getNumberOfThreads());
+      int numberOfThreads = queue.getNumberOfThreads();
+      int maxQueueSize = queue.getMaxQueueSize();
+      final BlockingQueue<Runnable> bq = new ArrayBlockingQueue<>(maxQueueSize);
+      service = new ThreadPoolExecutor(numberOfThreads, numberOfThreads, 0L, TimeUnit.MILLISECONDS, bq);
       executorServiceCache.put(queueName, service);
     }
     return service;

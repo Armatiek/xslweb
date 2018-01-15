@@ -97,7 +97,8 @@
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="name" type="xs:string"/>
-                    <xs:element name="number-of-threads" type="xs:integer" default="3"/>
+                    <xs:element name="number-of-threads" type="xs:integer" minOccurs="0" default="3"/>
+                    <xs:element name="max-queue-size" type="xs:integer" minOccurs="0" default="10"/>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
@@ -121,27 +122,6 @@
       </xs:all>
     </xs:complexType>
   </xs:element>
-  
-  <xs:complexType name="analyzer-type">
-    <xs:attribute name="class" type="xs:string" use="required"/>
-    <xs:anyAttribute namespace="##any" processContents="skip"/>
-  </xs:complexType>
-  
-  <xs:simpleType name="item-type">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="xs:string"/>
-      <xs:enumeration value="xs:boolean"/>
-      <xs:enumeration value="xs:float"/>
-      <xs:enumeration value="xs:double"/>
-      <xs:enumeration value="xs:long"/>
-      <xs:enumeration value="xs:int"/>
-      <xs:enumeration value="xs:short"/>
-      <xs:enumeration value="xs:byte"/>
-      <xs:enumeration value="xs:dateTime"/>
-      <xs:enumeration value="xs:date"/>
-      <xs:enumeration value="xs:time"/>
-    </xs:restriction>
-  </xs:simpleType>
   
   <xs:complexType name="property-type">
     <xs:simpleContent>

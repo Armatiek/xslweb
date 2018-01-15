@@ -2,6 +2,8 @@ package nl.armatiek.xslweb.saxon.functions.queue;
 
 import java.io.File;
 
+import org.apache.commons.lang3.StringUtils;
+
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.Sequence;
@@ -59,7 +61,9 @@ public class GetStatus extends ExtensionFunctionDefinition {
       String ticket = ((StringValue) arguments[0].head()).getStringValue();
       File queueDir = Context.getInstance().getQueueDir();
       String status = "notfound";
-      if (new File(queueDir, ticket + ".lck").isFile())
+      if (StringUtils.equals("rejected", ticket))
+        status = "rejected";
+      else if (new File(queueDir, ticket + ".lck").isFile())
         status = "processing";
       else if (new File(queueDir, ticket + ".err").isFile())
         status = "error";

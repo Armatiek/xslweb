@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -82,8 +83,14 @@ public class AddRequest extends ExtensionFunctionDefinition {
         File queueDir = Context.getInstance().getQueueDir();
         if (!queueDir.isDirectory() && !queueDir.mkdirs())
           throw new IOException("Could not create queue directory \"" + queueDir.getAbsolutePath() + "\"");
-        FileUtils.touch(new File(queueDir, ticket + ".lck"));
-        service.execute(new QueuedRequest(ticket, webApp.getPath() + "/" + path, extraInfo));
+        File lockFile = new File(queueDir, ticket + ".lck");
+        FileUtils.touch(lockFile);
+        try {
+          service.execute(new QueuedRequest(ticket, webApp.getPath() + "/" + path, extraInfo));
+        } catch (RejectedExecutionException ree) {
+          FileUtils.deleteQuietly(lockFile);
+          return StringValue.makeStringValue("rejected");
+        }
         return StringValue.makeStringValue(ticket);
       } catch (IOException e) {
         throw new XPathException("Error adding asynchronous request", e);

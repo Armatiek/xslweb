@@ -12,11 +12,13 @@ import nl.armatiek.xslweb.utils.XMLUtils;
 public class Queue {
   
   private String name; 
-  private int nThreads;
+  private int numberOfThreads;
+  private int maxQueueSize;
   
   public Queue(Element queueElem) {
     this.name = XMLUtils.getValueOfChildElementByLocalName(queueElem, "name");
-    this.nThreads = XMLUtils.getIntegerValue(XMLUtils.getValueOfChildElementByLocalName(queueElem, "number-of-threads"), 3);
+    this.numberOfThreads = XMLUtils.getIntegerValue(XMLUtils.getValueOfChildElementByLocalName(queueElem, "number-of-threads"), 3);
+    this.maxQueueSize = XMLUtils.getIntegerValue(XMLUtils.getValueOfChildElementByLocalName(queueElem, "max-queue-size"), 3);
   }
   
   public String getName() {
@@ -24,7 +26,11 @@ public class Queue {
   }
 
   public int getNumberOfThreads() {
-    return nThreads;
+    return numberOfThreads;
+  }
+  
+  public int getMaxQueueSize() {
+    return maxQueueSize;
   }
 
 }
