@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,7 +126,7 @@ public class AddRequest extends ExtensionFunctionDefinition {
             new InternalRequest().execute(path, os, false);
           } catch (Exception e) {
             exceptionThrown = true;
-            FileUtils.write(new File(queueDir, ticket + ".err"), e.getMessage(), StandardCharsets.UTF_8);
+            FileUtils.write(new File(queueDir, ticket + ".err"), ExceptionUtils.getStackTrace(e), StandardCharsets.UTF_8);
           } finally {
             os.close();
           }
