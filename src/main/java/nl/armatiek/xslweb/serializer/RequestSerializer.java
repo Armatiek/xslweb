@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.PushbackReader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -46,6 +47,8 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -70,12 +73,32 @@ public class RequestSerializer {
   
   private static final String URI = Definitions.NAMESPACEURI_XSLWEB_REQUEST;
   
+  protected static final Logger logger = LoggerFactory.getLogger(RequestSerializer.class);
+  
   private HttpServletRequest req;
   private WebApp webApp;
   private boolean developmentMode;
   private XMLStreamWriter xsw;
   private XMLReader xmlReader;  
   private File reposDir; 
+  
+  private static final Object SECURITY_MANAGER;
+  
+  static {
+    Object securityManager = null;
+    try {
+      Class<?> securityManagerClass = Class.forName("org.apache.xerces.util.SecurityManager");
+      securityManager = securityManagerClass.newInstance();
+      Method setEntityExpansionLimit = securityManagerClass.getMethod("setEntityExpansionLimit", int.class);
+      setEntityExpansionLimit.invoke(securityManager, 5000);
+    } catch (ClassNotFoundException ex) {
+      logger.error("Unable to set expansion limit; not using Xerces");
+    } catch (Exception ex) {
+      logger.error("Unable to set expansion limit for Xerces, using default settings", ex);
+      securityManager = null;
+    }
+    SECURITY_MANAGER = securityManager;
+  }
     
   public RequestSerializer(HttpServletRequest req, WebApp webApp) {
     this.req = req;         
@@ -423,20 +446,39 @@ public class RequestSerializer {
       this.xmlReader.setFeature("http://xml.org/sax/features/namespaces", true);
       this.xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", false);            
       if (Context.getInstance().getParserHardening()) {
-        this.xmlReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
-        this.xmlReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-        this.xmlReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        setXMLReaderFeature(this.xmlReader, "http://xml.org/sax/features/external-general-entities", false);
+        setXMLReaderFeature(this.xmlReader, "http://xml.org/sax/features/external-parameter-entities", false);
+        setXMLReaderFeature(this.xmlReader, "http://apache.org/xml/features/disallow-doctype-decl", true);
+        setXMLReaderFeature(this.xmlReader, "http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         this.xmlReader.setEntityResolver(new EntityResolver() {
           @Override
           public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {            
             return null;
           }         
         });
-        this.xmlReader.setProperty("http://apache.org/xml/properties/security-manager", "org.apache.xerces.util.SecurityManager");
+        if (SECURITY_MANAGER != null) {
+          setXMLReaderProperty(this.xmlReader, "http://apache.org/xml/properties/security-manager", SECURITY_MANAGER);
+        }
       }            
       this.xmlReader.setContentHandler(filter);      
     }
     return this.xmlReader;
+  }
+  
+  private void setXMLReaderFeature(XMLReader reader, String feature, boolean value) {
+    try {
+      reader.setFeature(feature, value);
+    } catch (Exception e) {
+      logger.error("Could not set XMLReader feature \"" + feature + "\" with value + \"" + value + "\"", e);
+    }
+  }
+  
+  private void setXMLReaderProperty(XMLReader reader, String feature, Object value) {
+    try {
+      reader.setProperty(feature, value);
+    } catch (Exception e) {
+      logger.error("Could not set XMLReader property \"" + feature + "\" with value + \"" + value.toString() + "\"", e);
+    }
   }
   
   private String safeString(String str) {
