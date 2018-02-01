@@ -10,6 +10,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -123,7 +125,11 @@ public class AddRequest extends ExtensionFunctionDefinition {
             FileUtils.write(new File(queueDir, ticket + ".xml"), extraInfo, StandardCharsets.UTF_8);
           OutputStream os = new BufferedOutputStream(new FileOutputStream(outputFile));
           try {
-            new InternalRequest().execute(path, os, false);
+            int status = new InternalRequest().execute(path, os, false);
+            if (status != HttpServletResponse.SC_OK) {
+              exceptionThrown = true;
+              FileUtils.write(new File(queueDir, ticket + ".err"), "HTTP status " + status, StandardCharsets.UTF_8);
+            }
           } catch (Exception e) {
             exceptionThrown = true;
             FileUtils.write(new File(queueDir, ticket + ".err"), ExceptionUtils.getStackTrace(e), StandardCharsets.UTF_8);

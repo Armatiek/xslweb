@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 public class XSLWebHttpServletResponse implements HttpServletResponse {
   
   private OutputStream os;
+  private int status;
   
   public XSLWebHttpServletResponse(OutputStream os) {
     this.os = os;  
@@ -154,14 +155,18 @@ public class XSLWebHttpServletResponse implements HttpServletResponse {
   public void addIntHeader(String name, int value) { }
 
   @Override
-  public void setStatus(int sc) {  }
+  public void setStatus(int sc) {  
+    status = sc;
+  }
 
   @Override
-  public void setStatus(int sc, String sm) { }
+  public void setStatus(int sc, String sm) { 
+    status = sc;
+  }
 
   @Override
   public int getStatus() {    
-    return 200;
+    return status;
   }
 
   @Override

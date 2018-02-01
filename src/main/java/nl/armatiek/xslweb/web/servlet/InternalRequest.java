@@ -27,6 +27,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +44,7 @@ public class InternalRequest {
   
   private static final Logger logger = LoggerFactory.getLogger(InternalRequest.class);
   
-  public void execute(String path, OutputStream os, boolean isJobRequest) throws ServletException, IOException {
+  public int execute(String path, OutputStream os, boolean isJobRequest) throws ServletException, IOException {
     try {
       ArrayList<Filter> filters = new ArrayList<Filter>();
       XSLWebFilterConfig emptyConfig = new XSLWebFilterConfig();
@@ -97,14 +98,16 @@ public class InternalRequest {
         } 
       }
       
+      return ((HttpServletResponse) response).getStatus();
+      
     } catch (Exception e) {
       logger.error("Error executing internal servlet request to \"" + path + "\"", e);
       throw e;
     }            
   }
   
-  public void execute(String path, OutputStream os) throws ServletException, IOException {
-    this.execute(path, os, false);
+  public int execute(String path, OutputStream os) throws ServletException, IOException {
+    return this.execute(path, os, false);
   }
 
 }
