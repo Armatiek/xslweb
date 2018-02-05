@@ -37,11 +37,8 @@
     <compiler.source.version>1.8</compiler.source.version>
     <compiler.target.version>1.8</compiler.target.version>
     <project.build.sourceEncoding>${file.encoding}</project.build.sourceEncoding>
-    <saxon.version>9.7.0-21</saxon.version>
+    <saxon.version>9.8.0-7</saxon.version>
     <fop.version>2.2</fop.version>
-    <!--
-    <saxon.version>9.8.0-3</saxon.version>
-    -->
     <log4j.version>1.2.17</log4j.version>
     <slf4j.version>1.7.5</slf4j.version>
   </properties>

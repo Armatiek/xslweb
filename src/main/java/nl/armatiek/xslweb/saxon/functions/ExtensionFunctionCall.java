@@ -44,6 +44,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.commons.io.IOUtils;
+import org.w3c.dom.Node;
+
 import net.sf.saxon.Configuration;
 import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.dom.DocumentWrapper;
@@ -63,10 +66,10 @@ import net.sf.saxon.type.ItemType;
 import net.sf.saxon.type.Type;
 import net.sf.saxon.value.AtomicValue;
 import net.sf.saxon.value.Base64BinaryValue;
+import net.sf.saxon.value.BigDecimalValue;
 import net.sf.saxon.value.BigIntegerValue;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.DateTimeValue;
-import net.sf.saxon.value.DecimalValue;
 import net.sf.saxon.value.DoubleValue;
 import net.sf.saxon.value.FloatValue;
 import net.sf.saxon.value.Int64Value;
@@ -76,9 +79,6 @@ import nl.armatiek.xslweb.configuration.Attribute;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.utils.Closeable;
-
-import org.apache.commons.io.IOUtils;
-import org.w3c.dom.Node;
 
 /**
  * @author Maarten Kroon
@@ -113,7 +113,7 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
       } else if (value instanceof Short) {
         atomicValue = new Int64Value(((Short) value).shortValue());
       } else if (value instanceof BigDecimal) {
-        atomicValue = new DecimalValue((BigDecimal) value);
+        atomicValue = new BigDecimalValue((BigDecimal) value);
       } else if (value instanceof BigInteger) {
         atomicValue = new BigIntegerValue((BigInteger) value);      
       } else if (value instanceof byte[]) {      

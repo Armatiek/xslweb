@@ -270,13 +270,6 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 25: XSLT 3.0 exception handling with Saxon PE/EE -->
-  <xsl:template name="saxon-xslt3-pe" match="/req:request[req:path = '/saxon-xslt3-pe.html']">    
-    <pipeline:pipeline>
-      <pipeline:transformer name="saxon-xslt3-pe" xsl-path="saxon-xslt3-pe/saxon-xslt3-pe.xsl" log="true"/>  
-    </pipeline:pipeline>
-  </xsl:template>
-  
   <!-- Example 26: XML Validation -->
   <xsl:template name="xml-validation" match="/req:request[req:path = '/xml-validation.html']">    
     <pipeline:pipeline>

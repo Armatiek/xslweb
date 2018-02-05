@@ -10,15 +10,18 @@ package org.expath.httpclient.saxon;
 
 import java.io.OutputStream;
 import java.util.Properties;
+
+import org.expath.httpclient.HttpClientException;
+import org.expath.httpclient.model.Sequence;
+
 import net.sf.saxon.Configuration;
 import net.sf.saxon.expr.XPathContext;
+import net.sf.saxon.om.FocusTrackingIterator;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.query.QueryResult;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.SingletonIterator;
-import org.expath.httpclient.HttpClientException;
-import org.expath.httpclient.model.Sequence;
 
 /**
  * Saxon implementation of {@link Sequence}, relying on {@link SequenceIterator}
@@ -28,15 +31,16 @@ import org.expath.httpclient.model.Sequence;
  * @date 2011-03-10
  */
 public class SaxonSequence implements Sequence {
+  
   public SaxonSequence(SequenceIterator it, XPathContext ctxt) {
-    myIt = it;
+    myIt = new FocusTrackingIterator(it);
     myCtxt = ctxt;
   }
 
   @Override
   public boolean isEmpty() throws HttpClientException {
     try {
-      return myIt == null || myIt.getAnother().next() == null;
+      return myIt.getLength() == 0;
     } catch (XPathException ex) {
       throw new HttpClientException("Error getting another iterator", ex);
     }
@@ -70,7 +74,7 @@ public class SaxonSequence implements Sequence {
     }
   }
 
-  private SequenceIterator myIt;
+  private FocusTrackingIterator myIt;
   private XPathContext myCtxt;
 }
 

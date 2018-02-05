@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 public class XSLWebHttpServletResponse implements HttpServletResponse {
   
   private OutputStream os;
-  private int status;
+  private int status = HttpServletResponse.SC_OK;
   
   public XSLWebHttpServletResponse(OutputStream os) {
     this.os = os;  
