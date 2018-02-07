@@ -139,7 +139,6 @@ public class Definitions {
   
   public final static String SCHEME_XSLWEB                     = "xslweb";
   
-  public final static String PROPERTYNAME_VERSION              = "xslweb.version";
   public final static String PROPERTYNAME_TRUST_ALL_CERTS      = "xslweb.trustallcerts";
   public final static String PROPERTYNAME_PARSER_HARDENING     = "xslweb.parserhardening";
   
