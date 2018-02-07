@@ -8,7 +8,7 @@
   xmlns:fop="http://www.armatiek.com/xslweb/fop-serializer"
   xmlns:fo="http://www.w3.org/1999/XSL/Format"
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:param name="config:webapp-dir" as="xs:string"/>
   

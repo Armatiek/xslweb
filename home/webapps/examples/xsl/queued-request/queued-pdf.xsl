@@ -8,7 +8,7 @@
   xmlns:res="http://www.armatiek.com/xslweb/resource-serializer"
   xmlns:xw="http://www.armatiek.com/xslweb/functions"
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:param name="config:home-dir" as="xs:string"/>
   

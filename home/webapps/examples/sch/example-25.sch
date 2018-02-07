@@ -5,7 +5,7 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema" 
   queryBinding="xslt2">
   
-  <title>Example 26: Schematron validation</title>
+  <title>Example 25: Schematron validation</title>
   
   <pattern>
     <rule context="a|b|c|d">

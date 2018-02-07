@@ -7,7 +7,7 @@
   xmlns:resp="http://www.armatiek.com/xslweb/response"
   xmlns:req="http://www.armatiek.com/xslweb/request"
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:import href="../common/example-page.xsl"/>
   

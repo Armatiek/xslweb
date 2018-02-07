@@ -6,7 +6,7 @@
   xmlns:pipeline="http://www.armatiek.com/xslweb/pipeline"
   xmlns:config="http://www.armatiek.com/xslweb/configuration"
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:param name="config:development-mode" as="xs:boolean"/>
   

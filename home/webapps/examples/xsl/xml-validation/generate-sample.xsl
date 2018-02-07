@@ -4,7 +4,7 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
   xmlns:req="http://www.armatiek.com/xslweb/request"
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:output method="xml" indent="yes"/>
   

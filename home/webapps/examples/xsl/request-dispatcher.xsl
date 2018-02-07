@@ -8,7 +8,7 @@
   xmlns:auth="http://www.armatiek.com/xslweb/auth"
   xmlns:err="http://expath.org/ns/error"
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:include href="../../../common/xsl/system/authentication/basic-authentication.xsl"/>
   
@@ -270,7 +270,7 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 26: XML Validation -->
+  <!-- Example 25: XML Validation -->
   <xsl:template name="xml-validation" match="/req:request[req:path = '/xml-validation.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="generate-sample" xsl-path="xml-validation/generate-sample.xsl" log="true"/>   
@@ -281,14 +281,14 @@
         xsl-param-namespace="http://www.armatiek.com/xslweb/validation" 
         xsl-param-name="schema-validation-report">
         <pipeline:schema-paths>
-          <pipeline:schema-path>example-26.xsd</pipeline:schema-path>  
+          <pipeline:schema-path>example-25.xsd</pipeline:schema-path>  
         </pipeline:schema-paths>
       </pipeline:schema-validator>
       
       <!-- Then validate using Schematron: -->
       <pipeline:schematron-validator 
         name="schematron-validator" 
-        schematron-path="example-26.sch" 
+        schematron-path="example-25.sch" 
         xsl-param-namespace="http://www.armatiek.com/xslweb/validation" 
         xsl-param-name="schematron-validation-report"/>
       
@@ -297,7 +297,7 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 27: Resource serialization -->
+  <!-- Example 26: Resource serialization -->
   <xsl:template name="resource-serialization" match="/req:request[req:path = '/resource-serialization.jpg']">    
     <pipeline:pipeline>
       <pipeline:transformer name="resource-serialization" xsl-path="resource/resource-serialization.xsl" log="true"/>
@@ -305,7 +305,7 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 28: XML Differencing file upload -->
+  <!-- Example 27: XML Differencing file upload -->
   <xsl:template name="differencing-fileupload" match="/req:request[req:path = '/diff-fileupload.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="differencing-fileupload" xsl-path="diff/diff.xsl" log="true"/>  
@@ -318,21 +318,21 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 29: XML Differencing sandbox -->
+  <!-- Example 28: XML Differencing sandbox -->
   <xsl:template name="differencing-sandbox" match="/req:request[req:path = '/diff-sandbox.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="differencing-sandbox" xsl-path="diff/diff-sandbox.xsl" log="true"/>  
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 30: XQuery example: Tour -->
+  <!-- Example 29: XQuery example: Tour -->
   <xsl:template name="tour" match="/req:request[req:path = '/tour.html']">    
     <pipeline:pipeline>
       <pipeline:query name="tour" xquery-path="tour/tour.xq" log="true"/>  
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 31: STX example: Huge file -->
+  <!-- Example 30: STX example: Huge file -->
   <xsl:template name="huge-file" match="/req:request[req:path = '/huge-file.html']">    
     <pipeline:pipeline>
       <pipeline:transformer-stx name="huge-file" stx-path="huge-file/huge-file.stx" log="true"/>
@@ -340,7 +340,7 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 32: Queued request -->
+  <!-- Example 31: Queued request -->
   <xsl:template name="queued-request-call" match="/req:request[req:path = '/queued-request-call']">    
     <pipeline:pipeline>
       <pipeline:transformer name="queued-request-call" xsl-path="queued-request/queued-request-call.xsl" log="false"/>

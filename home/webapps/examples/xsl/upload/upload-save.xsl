@@ -8,7 +8,7 @@
   xmlns:req="http://www.armatiek.com/xslweb/request"
   xmlns:file="http://expath.org/ns/file"  
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:import href="../common/example-page.xsl"/>
   

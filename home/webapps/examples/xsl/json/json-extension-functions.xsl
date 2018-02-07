@@ -11,7 +11,7 @@
   xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization"  
   xmlns:local="urn:local"
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:import href="../common/example-page.xsl"/>
   

@@ -6,7 +6,7 @@
   xmlns:resp="http://www.armatiek.com/xslweb/response"
   xmlns:queue="http://www.armatiek.com/xslweb/functions/queue"
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:output method="xml"/>
   

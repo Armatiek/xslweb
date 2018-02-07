@@ -7,7 +7,7 @@
   xmlns:tem="http://tempuri.org/"
   xmlns:soap-env="http://www.w3.org/2003/05/soap-envelope"
   exclude-result-prefixes="req resp tem"
-  version="2.0">
+  version="3.0">
   
   <xsl:output indent="yes" method="xml"/>
   

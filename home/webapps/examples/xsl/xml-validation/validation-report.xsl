@@ -22,7 +22,7 @@
   
   <xsl:param name="config:webapp-path" as="xs:string"/>
   
-  <xsl:template name="title" as="xs:string">Example 26: XML Validation</xsl:template>
+  <xsl:template name="title" as="xs:string">Example 25: XML Validation</xsl:template>
   
   <xsl:template name="tab-contents-1">
     

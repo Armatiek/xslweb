@@ -12,7 +12,7 @@
   xmlns:http="http://expath.org/ns/http-client"
   xmlns:err="http://expath.org/ns/error"
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   

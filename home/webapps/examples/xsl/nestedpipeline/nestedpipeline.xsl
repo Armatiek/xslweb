@@ -5,7 +5,7 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
   xmlns:xhtml="http://www.w3.org/1999/xhtml"  
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:template match="/">
     <p style="color:red">This is the output of the nested pipeline</p>

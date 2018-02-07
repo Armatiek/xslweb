@@ -8,7 +8,7 @@
   xmlns:resp="http://www.armatiek.com/xslweb/response"
   xmlns:config="http://www.armatiek.com/xslweb/configuration"
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:output method="xhtml" indent="yes" omit-xml-declaration="yes"/>
   
@@ -31,7 +31,7 @@
       </head>
       <body>        
         <h1>It works!</h1>        
-        <p>Go to the <a href="{/*/req:context-path}/documentation/XSLWeb-2_0-Quick-Start-Guide.pdf">documentation</a> (in PDF) 
+        <p>Go to the <a href="{/*/req:context-path}/documentation/XSLWeb-3_0-Quick-Start-Guide.pdf">documentation</a> (in PDF) 
           or to the <a href="{/*/req:context-path}/examples">examples</a></p>
         <br/>        
         <p><i>XSLWeb version <xsl:value-of select="$config:version"/></i></p>

@@ -9,7 +9,7 @@
   xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization"
   xmlns:local="url:local"  
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:output indent="yes"/>
   

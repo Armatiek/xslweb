@@ -7,7 +7,7 @@
   xmlns:file="http://expath.org/ns/file"
   xmlns:log="http://www.armatiek.com/xslweb/functions/log"    
   exclude-result-prefixes="#all"
-  version="2.0">
+  version="3.0">
   
   <xsl:output method="text"/>
     
