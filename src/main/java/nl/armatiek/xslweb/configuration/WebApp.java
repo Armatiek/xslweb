@@ -310,7 +310,8 @@ public class WebApp implements ErrorHandler {
     logger.info(String.format("Closing webapp \"%s\" ...", name));
 
     logger.info("Stopping file alteration monitor ...");
-    monitor.stop();
+    if (monitor != null)
+      monitor.stop();
     
     if (scheduler != null) {
       logger.info("Shutting down Quartz scheduler ...");
@@ -334,11 +335,13 @@ public class WebApp implements ErrorHandler {
     }
     
     logger.info("Closing XPath extension functions ...");
-    Iterator<ExtensionFunctionDefinition> functions = configuration.getRegisteredExtensionFunctions();
-    while (functions.hasNext()) {
-      ExtensionFunctionDefinition function = functions.next();
-      if (function instanceof Closeable) {
-        ((Closeable) function).close();
+    if (configuration != null) {
+      Iterator<ExtensionFunctionDefinition> functions = configuration.getRegisteredExtensionFunctions();
+      while (functions.hasNext()) {
+        ExtensionFunctionDefinition function = functions.next();
+        if (function instanceof Closeable) {
+          ((Closeable) function).close();
+        }
       }
     }
     

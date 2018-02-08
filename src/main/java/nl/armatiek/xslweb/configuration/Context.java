@@ -124,10 +124,12 @@ public class Context {
     isOpen = false;
     
     logger.info("Shutting down queue cleanup scheduler ...");
-    queueCleanupScheduler.shutdownNow();
+    if (queueCleanupScheduler != null)
+      queueCleanupScheduler.shutdownNow();
     
     logger.info("Stopping webapps file alteration monitor ...");    
-    monitor.stop();
+    if (monitor != null)
+      monitor.stop();
     
     logger.info("Closing webapps ...");
     for (WebApp app : webApps.values()) {
@@ -135,7 +137,8 @@ public class Context {
     }
     
     logger.info("Shutting down cache manager ...");
-    cacheManager.shutdown();
+    if (cacheManager != null)
+      cacheManager.shutdown();
     
     logger.info("Unregistering MIME detectors ...");
     MimeUtil.unregisterMimeDetector("eu.medsea.mimeutil.detector.ExtensionMimeDetector");
