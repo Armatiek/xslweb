@@ -340,7 +340,26 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 31: Queued request -->
+  <!-- Example 31: Saxon-JS example -->
+  <xsl:template name="saxon-js-file" match="/req:request[req:path = '/saxon-js.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="saxon-js" xsl-path="saxon-js/saxon-js.xsl" log="true"/>
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template name="books-sef" match="/req:request[req:path = '/books.sef.xml']">    
+    <pipeline:pipeline>
+      <pipeline:stylesheet-export-file name="books-sef" xsl-path="saxon-js/books.xsl" log="true"/>
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template name="books-xml" match="/req:request[req:path = '/books.xml']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="books-xml" xsl-path="saxon-js/books-xml.xsl" log="true"/>
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <!-- Example 32: Queued request -->
   <xsl:template name="queued-request-call" match="/req:request[req:path = '/queued-request-call']">    
     <pipeline:pipeline>
       <pipeline:transformer name="queued-request-call" xsl-path="queued-request/queued-request-call.xsl" log="false"/>
@@ -368,6 +387,8 @@
       <pipeline:resource-serializer name="pdf" log="false"/>  
     </pipeline:pipeline>
   </xsl:template>
+  
+  
   
   <!-- Authentication functions called from basic-authentication.xsl: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    

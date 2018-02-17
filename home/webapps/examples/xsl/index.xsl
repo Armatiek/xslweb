@@ -139,6 +139,9 @@
               <li>
                 <a href="{$path}/huge-file.html">STX transformation step: Huge file</a>
               </li>
+              <li>
+                <a href="{$path}/saxon-js.html">Saxon-JS integration (Saxon EE required)</a>
+              </li>
             </ol>
           </div>
         </div>
