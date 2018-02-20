@@ -128,12 +128,12 @@
       <!--
       Saxon Professional Edition (PE):
       - Purchase PE license from http://www.saxonica.com/
-      - Download PE package from http://www.saxonica.com/download/SaxonPE9-7-0-7J.zip
+      - Download PE package from http://www.saxonica.com/download/SaxonPE9-8-0-8J.zip
       - Extract and register jars in local Maven repository using the following commands:
-          mvn install:install-file -Dfile=saxon9pe.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion=9.7.0-7 -Dpackaging=jar
-          mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion=9.7.0-7 -Dpackaging=jar
-          mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion=9.7.0-7 -Dpackaging=jar
-      - Place license file saxon-license.lic in <<xslweb.home>>/config
+          mvn install:install-file -Dfile=saxon9pe.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion=9.8.0-8 -Dpackaging=jar
+          mvn install:install-file -Dfile=icu4j-59_1.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion=9.8.0-8 -Dpackaging=jar
+          mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion=9.8.0-8 -Dpackaging=jar
+      - Add saxon-config:configuration element to webapp.xml with attributes: edition="PE" and licenseFileLocation="<location of .lic>"
       - Build XSLWeb with Saxon-PE profile:
           mvn -PSaxon-PE clean install
       -->
@@ -160,12 +160,12 @@
       <!--
       Saxon Enterprise Edition (EE):
       - Purchase EE license from http://www.saxonica.com/
-      - Download EE package from http://www.saxonica.com/download/SaxonEE9-7-0-7J.zip
+      - Download EE package from http://www.saxonica.com/download/SaxonEE9-8-0-8J.zip
       - Extract and register jars in local Maven repository using the following commands:
-          mvn install:install-file -Dfile=saxon9ee.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE -Dversion=9.7.0-7 -Dpackaging=jar
-          mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion=9.7.0-7 -Dpackaging=jar
-          mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion=9.7.0-7 -Dpackaging=jar
-      - Place license file saxon-license.lic in <<xslweb.home>>/config
+          mvn install:install-file -Dfile=saxon9ee.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE -Dversion=9.8.0-8 -Dpackaging=jar
+          mvn install:install-file -Dfile=icu4j-59_1.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion=9.8.0-8 -Dpackaging=jar
+          mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion=9.8.0-8 -Dpackaging=jar
+      - Add saxon-config:configuration element to webapp.xml with attributes: edition="PE" and licenseFileLocation="<location of .lic>"
       - Build XSLWeb with Saxon-EE profile:
           mvn -PSaxon-EE clean install
       -->
