@@ -207,6 +207,14 @@ public class PipelineHandler implements ContentHandler {
           String xslParamName = getAttribute(atts, "xsl-param-name", null);
           String xslParamNamespace = getAttribute(atts, "xsl-param-namespace", null);
           pipelineSteps.add(new SchematronValidatorStep(name, schematronPath, log, xslParamNamespace, xslParamName, phase));
+        } else if (localName.equals("stylesheet-export-file")) {
+          String xslPath = getAttribute(atts, "xsl-path", null);
+          if (StringUtils.isBlank(xslPath)) {
+            throw new SAXException("stylesheet-export-file step must have an attribute \"xsl-path\"");
+          }
+          String name = getAttribute(atts, "name", "stylesheet-export-file-" + Integer.toString(pipelineSteps.size()+1));
+          boolean log = getAttribute(atts, "log", "false").equals("true");
+          pipelineSteps.add(new StylesheetExportFileStep(xslPath, name, log));
         } else if (localName.equals("schema-path")) {
         } else if (localName.equals("schema-paths")) {
         } else if (localName.equals("pipeline")) {

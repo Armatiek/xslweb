@@ -24,8 +24,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -89,6 +94,28 @@ public class XSLWebUtils {
       is.close();
     } 
     return props;
+  }
+  
+  public static Map<String, List<String>> splitQuery(String rawQuery) throws UnsupportedEncodingException {
+    final Map<String, List<String>> queryPairs = new LinkedHashMap<String, List<String>>();
+    final String[] pairs = rawQuery.split("&");
+    for (String pair : pairs) {
+      final int idx = pair.indexOf("=");
+      final String key = idx > 0 ? URLDecoder.decode(pair.substring(0, idx), "UTF-8") : pair;
+      if (!queryPairs.containsKey(key)) {
+        queryPairs.put(key, new LinkedList<String>());
+      }
+      final String value = idx > 0 && pair.length() > idx + 1 ? URLDecoder.decode(pair.substring(idx + 1), "UTF-8") : null;
+      queryPairs.get(key).add(value);
+    }
+    return queryPairs;
+  }
+  
+  public static Map<String, List<String>> splitQuery(URI uri) throws UnsupportedEncodingException {
+    String rawQuery = uri.getRawQuery();
+    if (rawQuery == null)
+      return null;
+    return splitQuery(rawQuery);
   }
   
   public static boolean hasSubDirectories(File file) {

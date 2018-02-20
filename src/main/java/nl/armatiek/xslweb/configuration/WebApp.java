@@ -21,12 +21,15 @@ import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.ProxySelector;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -112,6 +115,7 @@ import org.xml.sax.XMLReader;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
+import de.fau.cs.osr.utils.DualHashBidiMap;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.config.CacheConfiguration;
@@ -122,10 +126,12 @@ import net.sf.joost.trax.TrAXConstants;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
+import net.sf.saxon.lib.NamespaceConstant;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.XQueryCompiler;
 import net.sf.saxon.s9api.XQueryExecutable;
 import net.sf.saxon.s9api.XdmDestination;
+import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
@@ -149,6 +155,7 @@ public class WebApp implements ErrorHandler {
   private Map<String, XQueryExecutable> xqueryExecutableCache = new ConcurrentHashMap<String, XQueryExecutable>();
   private Map<String, Templates> templatesCache =  new ConcurrentHashMap<String, Templates>();
   private Map<String, Schema> schemaCache = new ConcurrentHashMap<String, Schema>();
+  private Map<String, XdmNode> stylesheetExportFileCache = new ConcurrentHashMap<String, XdmNode>();
   private Map<String, Collection<Attribute>> attributes = new ConcurrentHashMap<String, Collection<Attribute>>();
   private Map<String, ComboPooledDataSource> dataSourceCache = new ConcurrentHashMap<String, ComboPooledDataSource>();
   private Map<String, FopFactory> fopFactoryCache = new ConcurrentHashMap<String, FopFactory>();
@@ -183,9 +190,6 @@ public class WebApp implements ErrorHandler {
     this.homeDir = webAppDefinition.getParentFile();
     this.name = this.homeDir.getName();
     
-    this.configuration = new XSLWebConfiguration(this);
-    this.processor = new Processor(this.configuration.getConfiguration());
-    
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);    
     dbf.setSchema(context.getWebAppSchema());    
@@ -197,14 +201,29 @@ public class WebApp implements ErrorHandler {
     Properties vars = new Properties(System.getProperties());
     vars.setProperty("webapp-dir", webAppDefinition.getParentFile().getAbsolutePath().replace('\\', '/'));
     String resolvedDefXml = XSLWebUtils.resolveProperties(defXml, vars);
-    // Document webAppDoc = db.parse(webAppDefinition);
     InputSource src = new InputSource(new StringReader(resolvedDefXml));
     src.setSystemId(webAppDefinition.getAbsolutePath());
     Document webAppDoc = db.parse(src);
     
+    /* Use getElementsByTagNameNS (no XPath yet) to get Saxon configuration information */
+    //NodeList saxonConfigList = webAppDoc.getElementsByTagNameNS(NamespaceConstant.SAXON_CONFIGURATION, "configuration");
+    //if (saxonConfigList.getLength() > 0) {
+      
+    // }
+      
+    
+    
     XPath xpath = new XPathFactoryImpl().newXPath();
-    xpath.setNamespaceContext(XMLUtils.getNamespaceContext("webapp", Definitions.NAMESPACEURI_XSLWEB_WEBAPP));    
+    DualHashBidiMap map = new DualHashBidiMap();
+    map.put("webapp", Definitions.NAMESPACEURI_XSLWEB_WEBAPP);
+    map.put("saxon-config", NamespaceConstant.SAXON_CONFIGURATION);
+    xpath.setNamespaceContext(XMLUtils.getNamespaceContext(map));    
     Node docElem = webAppDoc.getDocumentElement();
+    
+    Node saxonConfigNode = (Node) xpath.evaluate("saxon-config:configuration", docElem, XPathConstants.NODE);
+    this.configuration = new XSLWebConfiguration(this, saxonConfigNode, webAppDefinition.getAbsolutePath());
+    this.processor = new Processor(this.configuration.getConfiguration());
+    
     this.title = (String) xpath.evaluate("webapp:title", docElem, XPathConstants.STRING);
     this.description = (String) xpath.evaluate("webapp:description", docElem, XPathConstants.STRING);
     String devModeValue = (String) xpath.evaluate("webapp:development-mode", docElem, XPathConstants.STRING);
@@ -371,6 +390,9 @@ public class WebApp implements ErrorHandler {
     
     logger.info("Clearing compiled XQuery cache ...");
     xqueryExecutableCache.clear();
+    
+    logger.info("Clearing stylesheet export file cache ...");
+    stylesheetExportFileCache.clear();
     
     logger.info("Clearing compiled XML Schema cache ...");
     schemaCache.clear();
@@ -593,6 +615,13 @@ public class WebApp implements ErrorHandler {
     return trySchematronCache(new File(getHomeDir(), "sch" + "/" + path).getAbsolutePath(), phase, errorListener);
   }
   
+  public XdmNode getStylesheetExportFile(String xslPath, ErrorListener errorListener, boolean tracing) throws Exception {
+    if (new File(xslPath).isAbsolute()) {
+      return tryStylesheetExportFile(xslPath, tracing, errorListener);
+    } 
+    return tryStylesheetExportFile(new File(getHomeDir(), "xsl" + "/" + xslPath).getAbsolutePath(), tracing, errorListener);
+  }
+  
   public File getStaticFile(String path) {    
     String relPath = (name.equals("ROOT")) ? path.substring(1) : StringUtils.substringAfter(path, this.name + "/");
     return new File(this.homeDir, "static" + "/" + relPath);    
@@ -778,6 +807,34 @@ public class WebApp implements ErrorHandler {
       }      
     }
     return templates;
+  }
+  
+  public XdmNode tryStylesheetExportFile(String xslPath, boolean tracing, ErrorListener errorListener) throws Exception {
+    String key = FilenameUtils.normalize(xslPath);
+    XdmNode sef = stylesheetExportFileCache.get(key);    
+    if (sef == null) {
+      logger.info("Generating and caching stylesheet export file for \"" + xslPath + "\" ...");                 
+      try {
+        XsltCompiler comp = processor.newXsltCompiler();
+        comp.setTargetEdition("JS");
+        comp.setCompileWithTracing(tracing);
+        comp.setErrorListener(errorListener);
+        comp.setJustInTimeCompilation(false);
+        XsltExecutable exec = comp.compile(new StreamSource(xslPath));
+        String encoding = exec.getUnderlyingCompiledStylesheet().getOutputProperties().getProperty(OutputKeys.ENCODING);
+        encoding = (encoding == null) ? StandardCharsets.UTF_8.name() : encoding;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        exec.export(baos, "JS");
+        sef = processor.newDocumentBuilder().build(new StreamSource(new ByteArrayInputStream(baos.toByteArray())));
+      } catch (Exception e) {
+        logger.error("Could not generate stylesheet export file for \"" + xslPath + "\"", e);
+        throw e;
+      }      
+      if (!developmentMode) {
+        stylesheetExportFileCache.put(key, sef);
+      }      
+    }
+    return sef;
   }
   
   public Map<String, Collection<Attribute>> getAttributes() {

@@ -98,6 +98,14 @@
             </xs:complexType>
           </xs:element>
           
+          <xs:element name="stylesheet-export-file">
+            <xs:complexType>
+              <xs:attribute name="name" type="xs:string" use="optional"/>
+              <xs:attribute name="xsl-path" type="xs:string" use="required"/>
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
+            </xs:complexType>
+          </xs:element>
+          
         </xs:choice>
         
         <xs:choice minOccurs="0">

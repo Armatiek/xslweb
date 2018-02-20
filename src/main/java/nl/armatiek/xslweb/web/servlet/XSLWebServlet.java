@@ -95,6 +95,7 @@ import nl.armatiek.xslweb.pipeline.ResponseStep;
 import nl.armatiek.xslweb.pipeline.SchemaValidatorStep;
 import nl.armatiek.xslweb.pipeline.SchematronValidatorStep;
 import nl.armatiek.xslweb.pipeline.SerializerStep;
+import nl.armatiek.xslweb.pipeline.StylesheetExportFileStep;
 import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TraceablePipelineStep;
 import nl.armatiek.xslweb.pipeline.TraceablePipelineStep.TraceType;
@@ -483,6 +484,11 @@ public class XSLWebServlet extends HttpServlet {
           source = new StreamSource(new ByteArrayInputStream(baos.toByteArray()));
         }
         errorListener.setRecoveryPolicy(recoverPolicy);
+      } else if (step instanceof StylesheetExportFileStep) {
+        String xslPath = ((StylesheetExportFileStep) step).getXslPath();
+        XdmNode sef = webApp.getStylesheetExportFile(xslPath, errorListener, !traceType.equals(TraceType.NONE)); 
+        destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep);
+        webApp.getProcessor().writeXdmValue(sef, destination);
       } else if (step instanceof SchemaValidatorStep) {
         SchemaValidatorStep svStep = (SchemaValidatorStep) step;
         List<String> schemaPaths = svStep.getSchemaPaths();

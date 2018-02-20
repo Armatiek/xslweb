@@ -46,6 +46,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
+import de.fau.cs.osr.utils.DualHashBidiMap;
 import nl.armatiek.xslweb.error.XSLWebException;
 
 /**
@@ -329,25 +330,27 @@ public class XMLUtils {
     return Integer.parseInt(value);
   }
   
-  public static NamespaceContext getNamespaceContext(final String prefix, final String uri) {
+  public static NamespaceContext getNamespaceContext(DualHashBidiMap map) {
+    
     return new NamespaceContext() {
       @Override
       public String getNamespaceURI(String prefix) {      
-        return uri;
+        return (String) map.get(prefix);
       }
 
       @Override
       public String getPrefix(String uri) {
-        return prefix;
+        return (String) map.getKey(uri);
       }
 
       @Override
-      public Iterator<String> getPrefixes(String uri) {        
-         ArrayList<String> prefixes = new ArrayList<String>();
-         prefixes.add(prefix);
-         return prefixes.iterator();
+      public Iterator<String> getPrefixes(String uri) {
+        ArrayList<String> prefixes = new ArrayList<String>();
+        prefixes.add(getPrefix(uri));
+        return prefixes.iterator();
       }      
-    };    
+    };
+    
   }
   
   public static String getNamespace(Node node, String searchPrefix) {

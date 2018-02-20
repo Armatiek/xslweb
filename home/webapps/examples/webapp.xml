@@ -3,6 +3,7 @@
   xmlns="http://www.armatiek.com/xslweb/webapp" 
   xmlns:xs="http://www.w3.org/2001/XMLSchema" 
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:saxon-config="http://saxon.sf.net/ns/configuration"
   xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
 
   <title>XSLWeb examples</title>
@@ -70,6 +71,22 @@
       <number-of-threads>3</number-of-threads>
     </queue>
   </queues>
+  
+  <saxon-config:configuration 
+    edition="EE"
+    licenseFileLocation="../../config/saxon-license.lic"
+    label="EE configuration">
+    
+  </saxon-config:configuration>
+  
+  <!--
+  <saxon-config:configuration 
+    edition="PE"
+    licenseFileLocation="../../config/saxon-license.lic"
+    label="PE configuration">
+    
+  </saxon-config:configuration>
+  -->
 
   <fop-configs>
     <fop-config name="default">
