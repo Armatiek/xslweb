@@ -29,6 +29,8 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import javax.servlet.http.Cookie;
@@ -67,6 +69,7 @@ import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.error.XSLWebException;
+import nl.armatiek.xslweb.utils.XSLWebUtils;
 import nl.armatiek.xslweb.xml.BodyFilter;
 
 public class RequestSerializer {
@@ -253,23 +256,38 @@ public class RequestSerializer {
   @SuppressWarnings("rawtypes")
   private void serializeParameters(List<FileItem> fileItems) throws Exception {
     if (fileItems != null) {
-      if (hasItems(fileItems, true)) {
+      /* Get any querystring parameters: */
+      Map<String, List<String>> queryStringParams = null;
+      String rawQuery = req.getQueryString();
+      if (rawQuery != null)
+        queryStringParams = XSLWebUtils.splitQuery(rawQuery);
+      if (hasItems(fileItems, true) || queryStringParams != null) {
+        xsw.writeStartElement(URI, "parameters");
+        /* Serialize form fields: */
         Iterator<FileItem> iter = fileItems.iterator();
-        if (iter.hasNext()) {        
-          xsw.writeStartElement(URI, "parameters");
-          while (iter.hasNext()) {
-            FileItem item = iter.next();
-            if (item.isFormField()) {
-              String paramName = item.getFieldName();
-              String value = item.getString();
-              xsw.writeStartElement(URI, "parameter");
-              xsw.writeAttribute("name", paramName);
-              dataElement(xsw, URI, "value", value);            
-              xsw.writeEndElement();
-            }
+        while (iter.hasNext()) {
+          FileItem item = iter.next();
+          if (item.isFormField()) {
+            String paramName = item.getFieldName();
+            String value = item.getString();
+            xsw.writeStartElement(URI, "parameter");
+            xsw.writeAttribute("name", paramName);
+            dataElement(xsw, URI, "value", value);            
+            xsw.writeEndElement();
           }
-          xsw.writeEndElement();
         }
+        /* Serialize querystring parameters: */
+        if (queryStringParams != null) {      
+          for (Entry<String, List<String>> param : queryStringParams.entrySet()) {
+            xsw.writeStartElement(URI, "parameter");
+            xsw.writeAttribute("name", param.getKey());
+            for (String value : param.getValue()) {
+              dataElement(xsw, URI, "value", value);                        
+            }
+            xsw.writeEndElement();
+          }
+        }
+        xsw.writeEndElement();
       }
     } else {
       Enumeration paramNames = req.getParameterNames();
