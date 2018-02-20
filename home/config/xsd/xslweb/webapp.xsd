@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema 
   xmlns:xs="http://www.w3.org/2001/XMLSchema" 
-  xmlns:xslweb="http://www.armatiek.com/xslweb/webapp" 
+  xmlns:xslweb="http://www.armatiek.com/xslweb/webapp"
+  xmlns:saxon-config="http://saxon.sf.net/ns/configuration"
   targetNamespace="http://www.armatiek.com/xslweb/webapp" 
   elementFormDefault="qualified">
 
   <xs:import schemaLocation="../fop/fop-configuration.xsd"/>
+
+  <xs:import namespace="http://saxon.sf.net/ns/configuration" schemaLocation="../saxon/config.xsd"/>
 
   <xs:element name="webapp">
     <xs:complexType>
@@ -15,7 +18,7 @@
         <xs:element name="development-mode" type="xs:boolean" default="false"/>
         <xs:element name="max-upload-size" type="xs:integer" minOccurs="0" default="10"/>
         <xs:element name="wait-for-jobs-at-close" type="xs:boolean" minOccurs="0" default="true"/>
-        <xs:element minOccurs="0" name="resources">
+        <xs:element name="resources" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
               <xs:element maxOccurs="unbounded" minOccurs="0" name="resource">
@@ -56,7 +59,7 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element minOccurs="0" name="jobs">
+        <xs:element name="jobs" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
               <xs:element maxOccurs="unbounded" minOccurs="0" name="job">
@@ -105,10 +108,11 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element minOccurs="0" name="fop-configs">
+        <xs:element ref="saxon-config:configuration" minOccurs="0"/>
+        <xs:element name="fop-configs" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
-              <xs:element maxOccurs="unbounded" minOccurs="0" name="fop-config">
+              <xs:element name="fop-config" maxOccurs="unbounded" minOccurs="0">
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element ref="fop"/>

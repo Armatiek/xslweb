@@ -1,12 +1,14 @@
 package nl.armatiek.xslweb.saxon.configuration;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
+
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOCase;
@@ -23,12 +25,14 @@ import org.clapper.util.classutil.NotClassFilter;
 import org.clapper.util.classutil.SubclassClassFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Node;
 
 import net.sf.saxon.Configuration;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.lib.FeatureKeys;
+import net.sf.saxon.trans.XPathException;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.WebApp;
+import nl.armatiek.xslweb.utils.XMLUtils;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 public class XSLWebConfiguration {
@@ -39,8 +43,8 @@ public class XSLWebConfiguration {
   private Configuration config;
   private List<ExtensionFunctionDefinition> extensionFunctions = new ArrayList<ExtensionFunctionDefinition>();
   
-  public XSLWebConfiguration(WebApp webApp) throws Exception {    
-    this.config = createConfiguration();
+  public XSLWebConfiguration(WebApp webApp, Node saxonConfigNode, String systemId) throws Exception {    
+    this.config = createConfiguration(saxonConfigNode, systemId);
     this.initializer = new XSLWebInitializer();
     this.initializer.initialize(this.config);
     addCustomExtensionFunctions(webApp);
@@ -50,25 +54,16 @@ public class XSLWebConfiguration {
     return this.config;
   }
   
-  private Configuration createConfiguration() throws IOException {
-    File licenseFile = new File(Context.getInstance().getHomeDir(), "config/saxon-license.lic");
-    String className = "net.sf.saxon.Configuration";
-    String edition = "HE";
-    if (licenseFile.isFile()) {
-      Properties props = XSLWebUtils.readProperties(licenseFile);
-      edition = props.getProperty("Edition", edition);
-      if (edition.equals("PE")) {
-        className = "com.saxonica.config.ProfessionalConfiguration";
-      } else if (edition.equals("EE")) {
-        className = "com.saxonica.config.EnterpriseConfiguration";
-      }
-      logger.info("Creating Saxon " + edition + " configuration ...");
-      this.config = Configuration.makeLicensedConfiguration(this.getClass().getClassLoader(), className);
-      config.setConfigurationProperty(FeatureKeys.LICENSE_FILE_LOCATION, licenseFile.getAbsolutePath());
-    } else {
-      logger.info("Creating Saxon " + edition + " configuration ...");
-      this.config = new Configuration();
+  private Configuration createConfiguration(Node saxonConfigNode, String systemId) throws Exception {
+    Configuration config;
+    if (saxonConfigNode == null)
+      config = new Configuration();
+    else {
+      Source configSource = new StreamSource(new StringReader(XMLUtils.nodeToString(saxonConfigNode)), systemId);
+      config = Configuration.readConfiguration(configSource);
     }
+    
+    logger.info("Creating Saxon " + config.getEditionCode() + " configuration ...");
     return config;
   }
   

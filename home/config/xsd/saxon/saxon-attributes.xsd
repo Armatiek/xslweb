@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    elementFormDefault="qualified" 
+    targetNamespace="http://saxon.sf.net/" 
+    xmlns:saxon="http://saxon.sf.net/"
+    xmlns:c="http://saxon.sf.net/ns/configuration">
+    
+  <xs:annotation>
+    <xs:documentation>
+        This schema document defines serialization parameters in the Saxon namespace,
+        that can appear in the serialization element of the configuration file.
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:import namespace="http://saxon.sf.net/ns/configuration" schemaLocation="config.xsd"/>
+  
+  <xs:attribute name="attribute-order" type="c:listOfQNameType">
+    <xs:annotation>
+      <xs:documentation>
+        Controls the order in which attributes appear within an element start tag
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="character-representation" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>
+        <p>For XML output, "hex" or "decimal" indicate whether numeric character
+          references should be in hexadecimal or decimal.</p> 
+        <p>For HTML output, two strings separated by a semicolon.  The first string 
+          defines how non-ASCII characters within the character encoding will be represented, 
+          the values being "native", "entity", "decimal", or "hex". 
+          The second string defines how characters outside the encoding will be 
+          represented, the values being "entity", "decimal", or "hex". </p>
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="double-space" type="c:listOfQNameType">
+    <xs:annotation>
+      <xs:documentation>
+        A list of element names that are to be preceded by a blank line in indented output
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="indent-spaces" type="xs:integer">
+    <xs:annotation>
+      <xs:documentation>
+        The number of spaces to be used for each level of indentation when indenting output
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute> 
+  <xs:attribute name="line-length" type="xs:integer">
+    <xs:annotation>
+      <xs:documentation>
+        Limits the line length, outputting attributes on a new line if they would otherwise 
+        extend beyond this column position (with XML, HTML, or XHTML output methods), and 
+        splitting text lines when possible (with HTML output method).
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute> 
+  <xs:attribute name="newline" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>
+        Defines the string that is used by the text output method to represent a newline. Default
+        value x10.
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute> 
+  <xs:attribute name="next-in-chain" type="xs:anyURI">
+    <xs:annotation>
+      <xs:documentation>
+        The URI of a stylesheet to be used for post-processing the output.
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="recognize-binary" type="c:yesOrNoType">
+    <xs:annotation>
+      <xs:documentation>
+        For use with method="text", indicates that processing instructions
+        may be used in the result tree to represent binary values to be inserted
+        in the output.
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="require-well-formed" type="c:yesOrNoType">
+    <xs:annotation>
+      <xs:documentation>
+        Indicates whether the output should be checked to ensure it represents
+        a well-formed document (one top-level element node)
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="supply-source-locator" type="c:yesOrNoType">
+    <xs:annotation>
+      <xs:documentation>
+        For use when output is sent to a SAX ContentHandler, requests that
+        information be passed to the ContentHandler about the input nodes that were
+        being processed when each node in the output is generated.
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+  <xs:attribute name="suppress-indentation" type="c:listOfQNameType">
+    <xs:annotation>
+      <xs:documentation> Defines a list of element names whose content should not be indented
+        even when indent='yes' is specified. 
+      </xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+
+</xs:schema>
