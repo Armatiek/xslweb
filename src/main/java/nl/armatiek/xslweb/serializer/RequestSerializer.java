@@ -95,9 +95,9 @@ public class RequestSerializer {
       Method setEntityExpansionLimit = securityManagerClass.getMethod("setEntityExpansionLimit", int.class);
       setEntityExpansionLimit.invoke(securityManager, 5000);
     } catch (ClassNotFoundException ex) {
-      logger.error("Unable to set expansion limit; not using Xerces");
+      logger.info("Unable to set expansion limit; not using Xerces");
     } catch (Exception ex) {
-      logger.error("Unable to set expansion limit for Xerces, using default settings", ex);
+      logger.info("Unable to set expansion limit for Xerces, using default settings", ex);
       securityManager = null;
     }
     SECURITY_MANAGER = securityManager;
