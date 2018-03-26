@@ -4,7 +4,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -29,6 +28,7 @@ import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
+import nl.armatiek.xslweb.utils.ClosedStatusOutputStream;
 import nl.armatiek.xslweb.web.servlet.InternalRequest;
 
 /**
@@ -123,7 +123,7 @@ public class AddRequest extends ExtensionFunctionDefinition {
         try {
           if (extraInfo != null)
             FileUtils.write(new File(queueDir, ticket + ".xml"), extraInfo, StandardCharsets.UTF_8);
-          OutputStream os = new BufferedOutputStream(new FileOutputStream(outputFile));
+          ClosedStatusOutputStream os = new ClosedStatusOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
           try {
             int status = new InternalRequest().execute(path, os, false);
             if (status != HttpServletResponse.SC_OK) {
@@ -134,7 +134,8 @@ public class AddRequest extends ExtensionFunctionDefinition {
             exceptionThrown = true;
             FileUtils.write(new File(queueDir, ticket + ".err"), ExceptionUtils.getStackTrace(e), StandardCharsets.UTF_8);
           } finally {
-            os.close();
+            if (!os.isClosed())
+              os.close();
           }
         } finally {
           if (exceptionThrown)
