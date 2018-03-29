@@ -966,7 +966,7 @@ public class WebApp implements ErrorHandler {
   
   public synchronized void incJobRequestCount() {
     jobRequestCount++;
-    logger.debug("Ïncrement jobRequestCount " + jobRequestCount);
+    logger.debug("Increment jobRequestCount " + jobRequestCount);
   }
   
   public synchronized void decJobRequestCount() {
