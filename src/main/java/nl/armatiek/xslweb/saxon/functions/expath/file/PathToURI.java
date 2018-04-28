@@ -19,6 +19,7 @@ package nl.armatiek.xslweb.saxon.functions.expath.file;
 
 import java.io.File;
 
+import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
@@ -26,6 +27,7 @@ import net.sf.saxon.om.One;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
+import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.value.AnyURIValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
@@ -66,7 +68,7 @@ public class PathToURI extends ExtensionFunctionDefinition {
   
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {    
-    return SequenceType.SINGLE_STRING;
+    return SequenceType.makeSequenceType(BuiltInAtomicType.ANY_URI, StaticProperty.ALLOWS_ONE);
   }
   
   @Override
