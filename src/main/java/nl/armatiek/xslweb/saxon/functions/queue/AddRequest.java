@@ -95,9 +95,9 @@ public class AddRequest extends ExtensionFunctionDefinition {
           return StringValue.makeStringValue("rejected");
         }
         return StringValue.makeStringValue(ticket);
-      } catch (IOException e) {
+      } catch (Exception e) {
         throw new XPathException("Error adding asynchronous request", e);
-      }
+      } 
     }
   }
   
