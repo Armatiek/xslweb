@@ -246,6 +246,7 @@ public class XSLWebInitializer implements Initializer {
     
     /* Image */
     registerEXPathFunction(new Scale(), configuration);
+    registerEXPathFunction(new Size(), configuration);
     
     /* IO */
     registerEXPathFunction(new RegisterTempFile(), configuration);
