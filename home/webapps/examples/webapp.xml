@@ -72,12 +72,14 @@
     </queue>
   </queues>
   
+  <!--
   <saxon-config:configuration 
     edition="EE"
     licenseFileLocation="../../config/saxon-license.lic"
     label="EE configuration">
     
   </saxon-config:configuration>
+  -->
   
   <!--
   <saxon-config:configuration 
