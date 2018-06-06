@@ -18,7 +18,6 @@ import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.OneOrMore;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
-import net.sf.saxon.om.ZeroOrMore;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.value.Int64Value;
@@ -58,7 +57,7 @@ public class Size extends ExtensionFunctionDefinition {
 
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
-    return SequenceType.makeSequenceType(BuiltInAtomicType.POSITIVE_INTEGER, StaticProperty.ALLOWS_ONE_OR_MORE);    
+    return SequenceType.makeSequenceType(BuiltInAtomicType.INTEGER, StaticProperty.ALLOWS_ONE_OR_MORE);    
   }
 
   @Override
@@ -89,7 +88,7 @@ public class Size extends ExtensionFunctionDefinition {
         } 
         try {                
           BufferedImage img = ImageIO.read(is);          
-          return new OneOrMore<Int64Value>(new Int64Value[]{new Int64Value(img.getWidth()), new Int64Value(img.getHeight())}); 
+          return new OneOrMore<Int64Value>(new Int64Value[]{Int64Value.makeIntegerValue(img.getWidth()), Int64Value.makeIntegerValue(img.getHeight())}); 
         } finally {
           is.close();
         }

@@ -246,7 +246,7 @@ public class XSLWebInitializer implements Initializer {
     
     /* Image */
     registerEXPathFunction(new Scale(), configuration);
-    registerEXPathFunction(new Size(), configuration);
+    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.image.Size(), configuration);
     
     /* IO */
     registerEXPathFunction(new RegisterTempFile(), configuration);
