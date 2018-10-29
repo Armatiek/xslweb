@@ -1,5 +1,7 @@
 package nl.armatiek.xslweb.saxon.functions.exec;
 
+import java.io.File;
+
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
@@ -49,7 +51,7 @@ public class ExecExternal extends ExtensionFunctionDefinition {
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 4;
+    return 5;
   }
 
   @Override
@@ -59,7 +61,8 @@ public class ExecExternal extends ExtensionFunctionDefinition {
         SequenceType.SINGLE_STRING,
         SequenceType.makeSequenceType(BuiltInAtomicType.STRING, StaticProperty.ALLOWS_ZERO_OR_MORE),
         SequenceType.OPTIONAL_INTEGER,
-        SequenceType.SINGLE_BOOLEAN};
+        SequenceType.OPTIONAL_BOOLEAN,
+        SequenceType.OPTIONAL_STRING};
   }
 
   @Override
@@ -90,6 +93,10 @@ public class ExecExternal extends ExtensionFunctionDefinition {
       if (arguments.length > 2 && (timeout = arguments[2].head()) != null) {
         ExecuteWatchdog watchdog = new ExecuteWatchdog(((Int64Value) timeout).longValue());
         executor.setWatchdog(watchdog);                        
+      }
+      Item workDir;
+      if (arguments.length > 4 && (workDir = arguments[4].head()) != null) {
+        executor.setWorkingDirectory(new File(((StringValue) workDir).getStringValue()));                        
       }
       try {
         Item async;
