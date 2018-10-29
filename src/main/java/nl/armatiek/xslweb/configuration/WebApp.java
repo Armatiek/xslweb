@@ -66,6 +66,7 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOCase;
 import org.apache.commons.io.IOUtils;
@@ -115,7 +116,6 @@ import org.xml.sax.XMLReader;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-import de.fau.cs.osr.utils.DualHashBidiMap;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.config.CacheConfiguration;
@@ -214,7 +214,7 @@ public class WebApp implements ErrorHandler {
     
     
     XPath xpath = new XPathFactoryImpl().newXPath();
-    DualHashBidiMap map = new DualHashBidiMap();
+    DualHashBidiMap<String, String> map = new DualHashBidiMap<String, String>();
     map.put("webapp", Definitions.NAMESPACEURI_XSLWEB_WEBAPP);
     map.put("saxon-config", NamespaceConstant.SAXON_CONFIGURATION);
     xpath.setNamespaceContext(XMLUtils.getNamespaceContext(map));    

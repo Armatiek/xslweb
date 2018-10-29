@@ -38,6 +38,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -46,7 +47,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
-import de.fau.cs.osr.utils.DualHashBidiMap;
 import nl.armatiek.xslweb.error.XSLWebException;
 
 /**
@@ -330,7 +330,7 @@ public class XMLUtils {
     return Integer.parseInt(value);
   }
   
-  public static NamespaceContext getNamespaceContext(DualHashBidiMap map) {
+  public static NamespaceContext getNamespaceContext(DualHashBidiMap<String, String> map) {
     
     return new NamespaceContext() {
       @Override

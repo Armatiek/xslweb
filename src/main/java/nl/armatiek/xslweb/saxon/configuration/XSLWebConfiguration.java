@@ -29,7 +29,6 @@ import org.w3c.dom.Node;
 
 import net.sf.saxon.Configuration;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.trans.XPathException;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.utils.XMLUtils;
