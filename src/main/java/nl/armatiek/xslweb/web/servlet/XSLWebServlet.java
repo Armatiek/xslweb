@@ -254,7 +254,7 @@ public class XSLWebServlet extends HttpServlet {
       }
       XMLStreamWriter xsw = new CleanupXMLStreamWriter(serializer.getXMLStreamWriter());
       dest = new XMLStreamWriterDestination(xsw);
-    } else if (nextStep instanceof TransformerStep || nextStep instanceof SchemaValidatorStep) {
+    } else if (nextStep instanceof TransformerStep || nextStep instanceof SchemaValidatorStep || nextStep instanceof SchematronValidatorStep) {
       dest = new XdmSourceDestination();
     } else if (nextStep instanceof JSONSerializerStep) {
       dest = ((JSONSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);             
