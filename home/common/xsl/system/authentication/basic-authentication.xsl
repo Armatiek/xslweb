@@ -60,7 +60,9 @@
           <xsl:value-of select="concat('Basic realm=', '&quot;', auth:get-realm(), '&quot;')"/>
         </resp:header>                   
       </resp:headers>
-      <resp:body/>                      
+      <resp:body>
+        <html><body><h2>Unauthorized (401)</h2></body></html>
+      </resp:body>                      
     </resp:response>
   </xsl:template>
   
