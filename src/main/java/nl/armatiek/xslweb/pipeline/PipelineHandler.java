@@ -150,6 +150,7 @@ public class PipelineHandler implements ContentHandler {
       serializingHandler.startElement(uri, localName, qName, atts);
     }    
     try {
+      chars.setLength(0);
       if (StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_PIPELINE)) {
         if (localName.equals("transformer")) {         
           String xslPath = getAttribute(atts, "xsl-path", null);
