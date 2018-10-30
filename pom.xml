@@ -48,19 +48,6 @@
     <repository>
       <releases>
         <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </snapshots>
-      <id>osr-public-repo</id>
-      <name>OSR Public Repository</name>
-      <url>http://mojo-maven.cs.fau.de/content/repositories/public</url>
-    </repository>
-    <repository>
-      <releases>
-        <enabled>true</enabled>
         <updatePolicy>always</updatePolicy>
         <checksumPolicy>warn</checksumPolicy>
       </releases>
