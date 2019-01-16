@@ -20,10 +20,8 @@ package nl.armatiek.xslweb.serializer;
 import java.io.File;
 import java.io.IOException;
 import java.io.PushbackReader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
@@ -36,7 +34,6 @@ import java.util.UUID;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -61,9 +58,19 @@ import org.xml.sax.helpers.XMLReaderFactory;
 import com.sun.xml.ws.util.xml.ContentHandlerToXMLStreamWriter;
 
 import javanet.staxutils.IndentingXMLStreamWriter;
+import net.sf.saxon.event.PipelineConfiguration;
+import net.sf.saxon.event.Receiver;
 import net.sf.saxon.event.StreamWriterToReceiver;
+import net.sf.saxon.expr.parser.ExplicitLocation;
+import net.sf.saxon.om.AxisInfo;
+import net.sf.saxon.om.CopyOptions;
 import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.pattern.NodeKindTest;
+import net.sf.saxon.stax.ReceiverToXMLStreamWriter;
+import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.tiny.TinyBuilder;
+import net.sf.saxon.type.Type;
+import net.sf.saxon.value.DateTimeValue;
 import nl.armatiek.xslweb.configuration.Attribute;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
@@ -403,9 +410,12 @@ public class RequestSerializer {
           Collection<Attribute> attrs = (Collection<Attribute>) attr;
           for (Attribute a: attrs) {
             xsw.writeStartElement(URI, "item");
-            if (a.isSerialized()) { 
-              xsw.writeAttribute("type", a.getType());
-              getFilteredXMLReader().parse(new InputSource(new StringReader(a.getSerializedValue())));            
+            if (a.getValue() instanceof NodeInfo) {
+              NodeInfo node = unwrapNodeInfo((NodeInfo) a.getValue());
+              Receiver receiver = new ReceiverToXMLStreamWriter(xsw);
+              PipelineConfiguration config = node.getConfiguration().makePipelineConfiguration();
+              receiver.setPipelineConfiguration(config);
+              node.copy(receiver, CopyOptions.ALL_NAMESPACES | CopyOptions.TYPE_ANNOTATIONS, ExplicitLocation.UNKNOWN_LOCATION);            
             } else {              
               xsw.writeAttribute("type", a.getType());
               xsw.writeCharacters(a.getValue().toString());
@@ -503,12 +513,16 @@ public class RequestSerializer {
     return (str == null) ? "" : str;
   }
   
-  private String getXsDateTimeString(Date date) { 
-    Calendar cal = Calendar.getInstance();
-    if (date != null) {
-      cal.setTime(date);
-    } 
-    return DatatypeConverter.printDateTime(cal);          
+  private String getXsDateTimeString(Date date) throws XPathException { 
+    DateTimeValue dtv = (date == null) ? DateTimeValue.fromJavaTime(0) : DateTimeValue.fromJavaDate(date); 
+    return dtv.getStringValue();          
+  }
+  
+  private NodeInfo unwrapNodeInfo(NodeInfo nodeInfo) {
+    if (nodeInfo != null && nodeInfo.getNodeKind() == Type.DOCUMENT) {
+      nodeInfo = nodeInfo.iterateAxis(AxisInfo.CHILD, NodeKindTest.ELEMENT).next();
+    }
+    return nodeInfo;
   }
 
 }

@@ -80,7 +80,6 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_UTIL        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/util";
   public final static String NAMESPACEURI_XSLWEB_FX_ZIP         = NAMESPACEURI_XSLWEB_FUNCTIONS + "/zip";
   public final static String NAMESPACEURI_XSLWEB_FX_EXEC        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/exec";
-  public final static String NAMESPACEURI_XSLWEB_FX_DIFF        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/diff";
   public final static String NAMESPACEURI_XSLWEB_FX_XQUERY      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/xquery";
   public final static String NAMESPACEURI_XSLWEB_FX_QUEUE       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/queue";
   public final static String NAMESPACEURI_XSLWEB_REQUEST        = NAMESPACEURI_XSLWEB + "/request";
@@ -93,19 +92,6 @@ public class Definitions {
   
   public final static String NAMESPACEURI_EXPATH_FILE           = "http://expath.org/ns/file";
   
-  public final static String ATTRNAME_DELTA                     = "delta";
-  //public final static String NAMESPACEURI_DELTAXML              = "http://www.deltaxml.com/ns/well-formed-delta-v1";
-  //public final static String NAMESPACEURI_DXA                   = "http://www.deltaxml.com/ns/non-namespaced-attribute";
-  //public final static String NAMESPACEURI_DXX                   = "http://www.deltaxml.com/ns/xml-namespaced-attribute";
-  public final static String NAMESPACEURI_DELTAXML              = NAMESPACEURI_XSLWEB + "/diff/well-formed-delta";
-  public final static String NAMESPACEURI_DXA                   = NAMESPACEURI_XSLWEB + "/diff/non-namespaced-attribute";
-  public final static String NAMESPACEURI_DXX                   = NAMESPACEURI_XSLWEB + "/diff/xml-namespaced-attribute";
-  public final static String PREFIX_DELTAXML                    = "deltaxml";
-  public final static String PREFIX_DXA                         = "dxa";
-  public final static String PREFIX_DXX                         = "dxx";
-  
-  
-    
   public final static String MIMETYPE_XML                      = "text/xml";
   public final static String MIMETYPE_HTML                     = "text/html";
   public final static String MIMETYPE_MSWORD                   = "application/msword";

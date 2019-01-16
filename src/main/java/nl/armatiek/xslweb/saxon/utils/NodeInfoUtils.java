@@ -1,5 +1,7 @@
 package nl.armatiek.xslweb.saxon.utils;
 
+import net.sf.saxon.event.PipelineConfiguration;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,10 +20,16 @@ package nl.armatiek.xslweb.saxon.utils;
  */
 
 import net.sf.saxon.expr.XPathContext;
+import net.sf.saxon.expr.parser.ExplicitLocation;
 import net.sf.saxon.om.AxisInfo;
+import net.sf.saxon.om.CopyOptions;
 import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.om.TreeModel;
 import net.sf.saxon.pattern.LocalNameTest;
 import net.sf.saxon.pattern.NodeKindTest;
+import net.sf.saxon.trans.XPathException;
+import net.sf.saxon.tree.tiny.TinyBuilder;
+import net.sf.saxon.tree.util.Navigator;
 import net.sf.saxon.type.Type;
 
 public class NodeInfoUtils {
@@ -40,6 +48,18 @@ public class NodeInfoUtils {
       return nodeInfo.getStringValue();
     }
     return null;
+  }
+  
+  public static NodeInfo cloneNodeInfo(NodeInfo node) throws XPathException {
+    PipelineConfiguration config = node.getConfiguration().makePipelineConfiguration();
+    TinyBuilder builder = (TinyBuilder) TreeModel.TINY_TREE.makeBuilder(config);
+    builder.setLineNumbering(false);
+    builder.open();
+    builder.startDocument(0);
+    Navigator.copy(node, builder, CopyOptions.ALL_NAMESPACES | CopyOptions.TYPE_ANNOTATIONS, ExplicitLocation.UNKNOWN_LOCATION);
+    builder.endDocument();
+    builder.close();
+    return builder.getCurrentRoot();
   }
   
   /*

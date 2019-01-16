@@ -78,6 +78,7 @@ import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Attribute;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
+import nl.armatiek.xslweb.saxon.utils.NodeInfoUtils;
 import nl.armatiek.xslweb.utils.Closeable;
 
 /**
@@ -227,18 +228,19 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     while ((item = iter.next()) != null) {                
       Object value;
       String type;
-      boolean isSerialized;
+      // boolean isSerialized;
       if (item instanceof NodeInfo) {
-        value = serialize((NodeInfo) item);
+        // value = serialize((NodeInfo) item);
+        value = NodeInfoUtils.cloneNodeInfo((NodeInfo) item);
         type = "node()";
-        isSerialized = true;
+        // isSerialized = true;
       } else {                             
         value = SequenceTool.convertToJava(item);
         ItemType itemType = Type.getItemType(item, null);
         type = itemType.toString();
-        isSerialized = false;
+        // isSerialized = false;
       }
-      attrs.add(new Attribute(value, type, isSerialized));
+      attrs.add(new Attribute(value, type));
     }
     return attrs;
   }
@@ -248,8 +250,9 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     if (attrs != null) {
       for (Attribute attr : attrs) {
         Object value = attr.getValue();      
-        if (value instanceof Node) {             
-          results.add(source2NodeInfo(new DOMSource((Node) value), context.getConfiguration()));                                        
+        if (value instanceof NodeInfo) {             
+          // results.add(source2NodeInfo(new DOMSource((Node) value), context.getConfiguration()));
+          results.add((NodeInfo) value);
         } else {          
           results.add(convertJavaObjectToAtomicValue(value));          
         }        

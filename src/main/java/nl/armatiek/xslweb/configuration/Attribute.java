@@ -19,8 +19,6 @@ package nl.armatiek.xslweb.configuration;
 
 import java.io.Serializable;
 
-import nl.armatiek.xslweb.utils.XMLUtils;
-
 /**
  * Attribute that is stored by XPath extension functions in the Context, 
  * a WebApp or Session object and can contain primitive types or 
@@ -34,33 +32,32 @@ public class Attribute implements Serializable {
   
   private Object value;
   private String type;
-  private boolean isSerialized;
   
-  public Attribute(Object value, String type, boolean isSerialized) {    
+  public Attribute(Object value, String type) {    
     this.value = value;
     this.type = type;
-    this.isSerialized = isSerialized;
   }
   
   public Object getValue() throws Exception {
-    if (isSerialized) {
-      return XMLUtils.stringToDocument((String) value).getDocumentElement();
-    }
     return value;
   }
   
+  /*
   public String getSerializedValue() {
     if (value instanceof String) {
       return (String) value;
     }
     return null;
   }
+  */
   
   public String getType() {
     return this.type;
   }
   
+  /*
   public boolean isSerialized() {
     return this.isSerialized;
   }
+  */
 }
