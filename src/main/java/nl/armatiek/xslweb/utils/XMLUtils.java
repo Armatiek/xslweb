@@ -23,12 +23,9 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Iterator;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -166,6 +163,7 @@ public class XMLUtils {
     return doc;
   }
   
+  /*
   public static String getDateTimeString(Date dateTime) { 
     Calendar cal = Calendar.getInstance();
     if (dateTime != null) {
@@ -177,6 +175,7 @@ public class XMLUtils {
   public static String getDateTimeString() {
     return getDateTimeString(new Date());           
   }
+  */
   
   protected static void getTextFromNode(Node node, StringBuffer buffer, boolean addSpace) {
     switch (node.getNodeType()) {
