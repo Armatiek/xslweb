@@ -79,6 +79,7 @@ import nl.armatiek.xslweb.configuration.Attribute;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.saxon.utils.NodeInfoUtils;
+import nl.armatiek.xslweb.saxon.utils.SerializableNodeInfo;
 import nl.armatiek.xslweb.utils.Closeable;
 
 /**
@@ -231,7 +232,7 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
       // boolean isSerialized;
       if (item instanceof NodeInfo) {
         // value = serialize((NodeInfo) item);
-        value = NodeInfoUtils.cloneNodeInfo((NodeInfo) item);
+        value = new SerializableNodeInfo(NodeInfoUtils.cloneNodeInfo((NodeInfo) item));
         type = "node()";
         // isSerialized = true;
       } else {                             
@@ -252,7 +253,7 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
         Object value = attr.getValue();      
         if (value instanceof NodeInfo) {             
           // results.add(source2NodeInfo(new DOMSource((Node) value), context.getConfiguration()));
-          results.add((NodeInfo) value);
+          results.add(new SerializableNodeInfo((NodeInfo) value));
         } else {          
           results.add(convertJavaObjectToAtomicValue(value));          
         }        
