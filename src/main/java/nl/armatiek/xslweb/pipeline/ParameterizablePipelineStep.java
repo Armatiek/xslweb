@@ -21,6 +21,11 @@ import java.util.Stack;
 
 import nl.armatiek.xslweb.configuration.Parameter;
 
+/**
+ * Base class for pipeline steps that can be parameterized
+ * 
+ * @author Maarten Kroon
+ */
 public abstract class ParameterizablePipelineStep extends PipelineStep {
   
   protected Stack<Parameter> params;

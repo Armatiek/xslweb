@@ -61,9 +61,10 @@ import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 /**
+ * Singleton holding all global objects such as the collection of WebApp objects, 
+ * the CacheManager, the FileMonitor, Scheduler and such.
  * 
- * 
- * @author Maarten
+ * @author Maarten Kroon
  */
 public class Context {
   

@@ -1,10 +1,5 @@
 package nl.armatiek.xslweb.pipeline;
 
-import java.io.File;
-
-import nl.armatiek.xslweb.configuration.Context;
-import nl.armatiek.xslweb.configuration.WebApp;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -22,6 +17,17 @@ import nl.armatiek.xslweb.configuration.WebApp;
  * limitations under the License.
  */
 
+import java.io.File;
+
+import nl.armatiek.xslweb.configuration.Context;
+import nl.armatiek.xslweb.configuration.WebApp;
+
+/**
+ * Pipeline step that performs an identity transformation
+ * 
+ * @author Maarten Kroon
+ *
+ */
 public class IdentityTransformerStep extends TransformerStep {
 
   public IdentityTransformerStep(WebApp webApp) {

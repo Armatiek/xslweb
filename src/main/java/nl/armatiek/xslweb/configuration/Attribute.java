@@ -22,9 +22,9 @@ import java.io.Serializable;
 /**
  * Attribute that is stored by XPath extension functions in the Context, 
  * a WebApp or Session object and can contain primitive types or 
- * serialized XML.
+ * NodeInfo objectsL.
  * 
- * @author Maarten
+ * @author Maarten Kroon
  */
 public class Attribute implements Serializable {
   
@@ -42,22 +42,8 @@ public class Attribute implements Serializable {
     return value;
   }
   
-  /*
-  public String getSerializedValue() {
-    if (value instanceof String) {
-      return (String) value;
-    }
-    return null;
-  }
-  */
-  
   public String getType() {
     return this.type;
   }
   
-  /*
-  public boolean isSerialized() {
-    return this.isSerialized;
-  }
-  */
 }

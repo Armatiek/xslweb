@@ -28,6 +28,11 @@ import org.xml.sax.Attributes;
 import net.sf.saxon.s9api.Destination;
 import nl.armatiek.xslweb.configuration.WebApp;
 
+/**
+ * Base class for all serializer pipeline classes
+ * 
+ * @author Maarten Kroon
+ */
 public abstract class SerializerStep extends PipelineStep {
   
   public SerializerStep(String name, boolean log) {

@@ -17,6 +17,11 @@ package nl.armatiek.xslweb.pipeline;
  * limitations under the License.
  */
 
+/**
+ * Base class for all pipeline steps
+ * 
+ * @author Maarten Kroon
+ */
 public abstract class PipelineStep {
   
   protected String name;

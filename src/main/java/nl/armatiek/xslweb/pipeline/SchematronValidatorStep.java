@@ -17,6 +17,11 @@ package nl.armatiek.xslweb.pipeline;
  * limitations under the License.
  */
 
+/**
+ * Pipeline step that performs a Schematron validation
+ * 
+ * @author Maarten Kroon
+ */
 public class SchematronValidatorStep extends PipelineStep {
   
   private String schematronPath;

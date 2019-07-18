@@ -210,8 +210,6 @@ public class WebApp implements ErrorHandler {
     //if (saxonConfigList.getLength() > 0) {
       
     // }
-      
-    
     
     XPath xpath = new XPathFactoryImpl().newXPath();
     DualHashBidiMap<String, String> map = new DualHashBidiMap<String, String>();

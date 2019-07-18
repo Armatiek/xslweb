@@ -29,6 +29,11 @@ import org.xml.sax.SAXException;
 
 import net.sf.joost.emitter.XmlEmitter;
 
+/**
+ * 
+ * 
+ * @author Maarten Kroon
+ */
 public class MessageEmitter extends XmlEmitter {
   
   private static final Logger logger = LoggerFactory.getLogger(MessageEmitter.class);

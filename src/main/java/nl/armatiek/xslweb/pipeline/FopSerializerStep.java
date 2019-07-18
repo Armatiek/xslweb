@@ -30,6 +30,11 @@ import net.sf.saxon.s9api.SAXDestination;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.serializer.FopSerializer;
 
+/**
+ * Pipeline step that serializes XSL-FO to e.g. PDF using the Apache FOP processor
+ * 
+ * @author Maarten Kroon
+ */
 public class FopSerializerStep extends SerializerStep {
     
   public FopSerializerStep(Attributes atts) {

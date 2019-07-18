@@ -22,6 +22,11 @@ import nl.armatiek.xslweb.saxon.trace.XSLWebTimingTraceListener;
  * limitations under the License.
  */
 
+/**
+ * Pipeline step that executes an XQuery
+ * 
+ * @author Maarten Kroon
+ */
 public class QueryStep extends TraceablePipelineStep {
   
   private String xqueryPath;  

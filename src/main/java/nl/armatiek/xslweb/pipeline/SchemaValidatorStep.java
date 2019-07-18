@@ -21,6 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * Pipeline step that performs a XML Schema validation
+ * 
+ * @author Maarten Kroon
+ */
 public class SchemaValidatorStep extends PipelineStep {
   
   private List<String> schemaPaths;

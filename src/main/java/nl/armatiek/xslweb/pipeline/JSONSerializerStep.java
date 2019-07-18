@@ -38,6 +38,11 @@ import net.sf.saxon.s9api.Destination;
 import net.sf.saxon.stax.XMLStreamWriterDestination;
 import nl.armatiek.xslweb.configuration.WebApp;
 
+/**
+ * Pipeline step that comverts XML to a JSON representation
+ * 
+ * @author Maarten Kroon
+ */
 public class JSONSerializerStep extends SerializerStep {
   
   private boolean autoArray;
