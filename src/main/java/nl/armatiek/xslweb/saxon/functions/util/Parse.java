@@ -57,11 +57,13 @@ public class Parse extends ExtensionFunctionDefinition {
   
   private static class ParseCall extends ExtensionFunctionCall {
     
+    @SuppressWarnings("unchecked")
     @Override
     public ZeroOrOne<NodeInfo> call(XPathContext context, Sequence[] arguments) throws XPathException {
       ParseXml parseXml = new ParseXml();
       parseXml.setRetainedStaticContext(new RetainedStaticContext(context.getConfiguration()));
-      return new ZeroOrOne<NodeInfo>(parseXml.call(context, arguments));
+      Object result = parseXml.call(context, arguments);
+      return (result instanceof NodeInfo) ? new ZeroOrOne<NodeInfo>((NodeInfo) result) : (ZeroOrOne<NodeInfo>) result; 
     }
   }
 }
