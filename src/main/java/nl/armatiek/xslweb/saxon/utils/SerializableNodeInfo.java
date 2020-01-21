@@ -44,8 +44,10 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
     oos.defaultWriteObject();
     try {
       Serializer serializer = processor.newSerializer();
+      serializer.setOutputProperty(Serializer.Property.ENCODING, "UTF-8");
       String xml = serializer.serializeNodeToString(new XdmNode(this));
-      oos.writeUTF(xml);
+      oos.writeObject(xml);
+      oos.flush();
     } catch (SaxonApiException e) {
       throw new IOException("Error serializing NodeInfo", e);
     }
@@ -54,12 +56,12 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
   private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
     ois.defaultReadObject();
     try {
-      String xml = ois.readUTF();
+      String xml = (String) ois.readObject();
       DocumentBuilder builder = processor.newDocumentBuilder();
       XdmNode node = builder.build(new StreamSource(new StringReader(xml)));
       nodeInfo = node.getUnderlyingNode();
     } catch (SaxonApiException e) {
-      throw new IOException("Error serializing NodeInfo", e);
+      throw new IOException("Error deserializing NodeInfo", e);
     }
   }
 
