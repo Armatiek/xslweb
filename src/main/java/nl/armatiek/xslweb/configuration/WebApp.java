@@ -80,6 +80,8 @@ import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fop.apps.FopFactory;
 import org.apache.http.HttpHost;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.routing.HttpRoute;
@@ -169,6 +171,7 @@ public class WebApp implements ErrorHandler {
   private String description;
   private boolean developmentMode;
   private boolean waitForJobsAtClose;
+  private boolean disableCookieManagement;
   private int maxUploadSize;
   private Scheduler scheduler;
   private List<Resource> resources = new ArrayList<Resource>();
@@ -204,13 +207,7 @@ public class WebApp implements ErrorHandler {
     InputSource src = new InputSource(new StringReader(resolvedDefXml));
     src.setSystemId(webAppDefinition.getAbsolutePath());
     Document webAppDoc = db.parse(src);
-    
-    /* Use getElementsByTagNameNS (no XPath yet) to get Saxon configuration information */
-    //NodeList saxonConfigList = webAppDoc.getElementsByTagNameNS(NamespaceConstant.SAXON_CONFIGURATION, "configuration");
-    //if (saxonConfigList.getLength() > 0) {
-      
-    // }
-    
+        
     XPath xpath = new XPathFactoryImpl().newXPath();
     DualHashBidiMap<String, String> map = new DualHashBidiMap<String, String>();
     map.put("webapp", Definitions.NAMESPACEURI_XSLWEB_WEBAPP);
@@ -230,6 +227,8 @@ public class WebApp implements ErrorHandler {
     this.maxUploadSize = XMLUtils.getIntegerValue(maxUploadSizeValue, 10);    
     String waitForJobsAtCloseValue = (String) xpath.evaluate("webapp:wait-for-jobs-at-close", docElem, XPathConstants.STRING);
     this.waitForJobsAtClose = XMLUtils.getBooleanValue(waitForJobsAtCloseValue, true);
+    String disableCookieManagement = (String) xpath.evaluate("webapp:disable-cookie-management", docElem, XPathConstants.STRING);
+    this.disableCookieManagement = XMLUtils.getBooleanValue(disableCookieManagement, false);
     
     NodeList resourceNodes = (NodeList) xpath.evaluate("webapp:resources/webapp:resource", docElem, XPathConstants.NODESET);
     for (int i=0; i<resourceNodes.getLength(); i++) {
@@ -561,6 +560,10 @@ public class WebApp implements ErrorHandler {
       HttpHost localhost = new HttpHost("localhost", 80);
       cm.setMaxPerRoute(new HttpRoute(localhost), 50);
       HttpClientBuilder builder = HttpClients.custom().setConnectionManager(cm);
+      if (this.disableCookieManagement) {
+        RequestConfig requestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES).build();
+        builder = builder.setDefaultRequestConfig(requestConfig).disableCookieManagement();
+      }
       builder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
       builder.setDefaultCookieStore(new BasicCookieStore());
       httpClient = builder.build();
@@ -874,7 +877,7 @@ public class WebApp implements ErrorHandler {
   
   public void setCacheValue(String cacheName, String keyName, Collection<Attribute> attrs, int tti, int ttl) {
     CacheManager manager = Context.getInstance().getCacheManager();
-    Cache cache = manager.getCache(cacheName);
+    Cache cache = manager.getCache(cacheName); 
     if (cache == null) {      
       cache = new Cache(
           new CacheConfiguration(cacheName, 1000)
