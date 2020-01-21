@@ -21,9 +21,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import net.sf.saxon.Configuration;
 import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
-import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
@@ -34,6 +34,7 @@ import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
+import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionDefinition;
 
 /**
  * XPath extension function class
@@ -45,6 +46,10 @@ public class ExecuteUpdate extends ExtensionFunctionDefinition {
   private static final StructuredQName qName = 
       new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_SQL, "execute-update");
 
+  public ExecuteUpdate(Configuration configuration) {
+    super(configuration);
+  }
+  
   @Override
   public StructuredQName getFunctionQName() {
     return qName;

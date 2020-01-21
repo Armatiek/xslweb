@@ -20,11 +20,11 @@ package nl.armatiek.xslweb.saxon.functions.sql;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 
+import net.sf.saxon.Configuration;
 import net.sf.saxon.event.SequenceOutputter;
 import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.expr.parser.ExplicitLocation;
-import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.NoNamespaceName;
 import net.sf.saxon.om.NodeName;
 import net.sf.saxon.om.Sequence;
@@ -37,6 +37,7 @@ import net.sf.saxon.value.ObjectValue;
 import net.sf.saxon.value.SequenceType;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
+import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionDefinition;
 
 /**
  * XPath extension function class
@@ -48,6 +49,10 @@ public class ResultSetToNode extends ExtensionFunctionDefinition {
   private static final StructuredQName qName = 
       new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_SQL, "resultset-to-node");
 
+  public ResultSetToNode(Configuration configuration) {
+    super(configuration);
+  }
+  
   @Override
   public StructuredQName getFunctionQName() {
     return qName;

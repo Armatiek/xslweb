@@ -222,14 +222,14 @@ public class XSLWebInitializer implements Initializer {
     registerEXPathFunction(new UnescapeJSON(), configuration);
     
     /* Sql */
-    registerEXPathFunction(new Close(), configuration);
-    registerEXPathFunction(new Commit(), configuration);
-    registerEXPathFunction(new ExecuteQuery(), configuration);
-    registerEXPathFunction(new ExecuteUpdate(), configuration);
-    registerEXPathFunction(new GetConnection(), configuration);
-    registerEXPathFunction(new GetNextRow(), configuration);
-    registerEXPathFunction(new Rollback(), configuration);
-    registerEXPathFunction(new ResultSetToNode(), configuration);
+    registerEXPathFunction(new Close(configuration), configuration);
+    registerEXPathFunction(new Commit(configuration), configuration);
+    registerEXPathFunction(new ExecuteQuery(configuration), configuration);
+    registerEXPathFunction(new ExecuteUpdate(configuration), configuration);
+    registerEXPathFunction(new GetConnection(configuration), configuration);
+    registerEXPathFunction(new GetNextRow(configuration), configuration);
+    registerEXPathFunction(new Rollback(configuration), configuration);
+    registerEXPathFunction(new ResultSetToNode(configuration), configuration);
     
     /* UUID */
     registerEXPathFunction(new UUID(), configuration);

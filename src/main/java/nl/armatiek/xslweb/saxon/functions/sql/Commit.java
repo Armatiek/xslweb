@@ -19,9 +19,9 @@ package nl.armatiek.xslweb.saxon.functions.sql;
 
 import java.sql.Connection;
 
+import net.sf.saxon.Configuration;
 import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
-import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
@@ -31,6 +31,7 @@ import net.sf.saxon.value.ObjectValue;
 import net.sf.saxon.value.SequenceType;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
+import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionDefinition;
 
 /**
  * XPath extension function class
@@ -42,6 +43,10 @@ public class Commit extends ExtensionFunctionDefinition {
   private static final StructuredQName qName = 
       new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_SQL, "commit");
 
+  public Commit(Configuration configuration) {
+    super(configuration);
+  }
+  
   @Override
   public StructuredQName getFunctionQName() {
     return qName;
