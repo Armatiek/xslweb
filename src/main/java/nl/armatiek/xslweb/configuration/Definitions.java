@@ -28,7 +28,7 @@ import java.util.Set;
 public class Definitions {
   
   public final static String PROJECT_NAME                      = "xslweb";
-  public final static String PROJECT_VERSION                   = "3.0.0";
+  public final static String PROJECT_VERSION                   = "3.0.1";
   public final static String PATHNAME_REQUESTDISPATCHER_XSL    = "xsl/request-dispatcher.xsl";
   public final static String FILENAME_PROPERTIES               = "xslweb.properties";
   public final static String FILENAME_QUARTZ                   = "xslweb-quartz.properties";
