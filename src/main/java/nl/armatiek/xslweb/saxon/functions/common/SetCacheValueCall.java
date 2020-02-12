@@ -39,7 +39,7 @@ public abstract class SetCacheValueCall extends ExtensionFunctionCall {
     String keyName = ((StringValue) arguments[1].head()).getStringValue();        
     int tti = (int) ((IntegerValue) arguments[3].head()).longValue();
     int ttl = (int) ((IntegerValue) arguments[4].head()).longValue();
-    Collection<Attribute> attrs = sequenceToAttributeCollection(arguments[2]);       
+    Collection<Attribute> attrs = sequenceToAttributeCollection(arguments[2], context);       
     setAttributes(cacheName, keyName, attrs, tti, ttl, context);
     return EmptySequence.getInstance();
   }

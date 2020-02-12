@@ -29,14 +29,16 @@ import net.sf.saxon.tree.util.FastStringBuffer;
 import net.sf.saxon.type.SchemaType;
 
 public class SerializableNodeInfo implements NodeInfo, Serializable {
-
+  
   private static final long serialVersionUID = 3233046816831468756L;
   
   private static final transient Processor processor = new Processor(false);
   
+  // private transient WebApp webApp;
   private transient NodeInfo nodeInfo;
-  
+ 
   public SerializableNodeInfo(NodeInfo nodeInfo) {
+    // this.webApp = webApp;
     this.nodeInfo = nodeInfo;
   }
   
@@ -45,7 +47,7 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
     try {
       Serializer serializer = processor.newSerializer();
       serializer.setOutputProperty(Serializer.Property.ENCODING, "UTF-8");
-      String xml = serializer.serializeNodeToString(new XdmNode(this));
+      String xml = serializer.serializeNodeToString(new XdmNode(nodeInfo));
       oos.writeObject(xml);
       oos.flush();
     } catch (SaxonApiException e) {

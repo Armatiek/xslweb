@@ -222,7 +222,7 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     return props;
   }
     
-  protected Collection<Attribute> sequenceToAttributeCollection(Sequence seq) throws XPathException {
+  protected Collection<Attribute> sequenceToAttributeCollection(Sequence seq, XPathContext context) throws XPathException {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
     Item item;
     SequenceIterator iter = seq.iterate();
@@ -252,7 +252,6 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
       for (Attribute attr : attrs) {
         Object value = attr.getValue();      
         if (value instanceof NodeInfo) {             
-          // results.add(source2NodeInfo(new DOMSource((Node) value), context.getConfiguration()));
           results.add(new SerializableNodeInfo((NodeInfo) value));
         } else {          
           results.add(convertJavaObjectToAtomicValue(value));          

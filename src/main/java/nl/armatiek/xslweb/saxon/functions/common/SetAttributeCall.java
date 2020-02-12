@@ -36,7 +36,7 @@ public abstract class SetAttributeCall extends ExtensionFunctionCall {
     String name = ((StringValue) arguments[0].head()).getStringValue();    
     Collection<Attribute> attrs = null;
     if (arguments.length > 1) {
-      attrs = sequenceToAttributeCollection(arguments[1]);
+      attrs = sequenceToAttributeCollection(arguments[1], context);
     }            
     setAttributes(name, attrs, context);
     return EmptySequence.getInstance();        

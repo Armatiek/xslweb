@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.medsea.mimeutil.MimeUtil;
 import net.sf.ehcache.CacheManager;
+import net.sf.saxon.om.NamePool;
 import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
@@ -252,10 +253,12 @@ public class Context {
       String webAppName = webAppDefFile.getParentFile().getName();             
       WebApp webApp = webApps.get(webAppName);
       Map<String, Collection<Attribute>> attributes = null;
+      NamePool namePool = null;
       if (webApp != null) {
         logger.info(String.format("Stopping existing webapp \"%s\" ...", webAppName));
         try {
           attributes = webApp.getAttributes();
+          namePool = webApp.getConfiguration().getNamePool();
           webApp.close();
           // webApps.remove(webAppName);
         } catch (Exception e) {
@@ -270,6 +273,9 @@ public class Context {
         webApp = new WebApp(webAppDefFile);
         if (attributes != null) {
           webApp.setAttributes(attributes);
+        }
+        if (namePool != null) {
+          webApp.getConfiguration().setNamePool(namePool);
         }
         webApp.open();
         webApps.put(webAppName, webApp);
