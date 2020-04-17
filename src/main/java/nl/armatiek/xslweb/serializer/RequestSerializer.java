@@ -387,7 +387,7 @@ public class RequestSerializer {
   
   @SuppressWarnings("rawtypes")
   private void serializeSession() throws Exception {
-    HttpSession session = req.getSession();
+    HttpSession session = req.getSession(false);
     if (session == null) {
       return;
     }
