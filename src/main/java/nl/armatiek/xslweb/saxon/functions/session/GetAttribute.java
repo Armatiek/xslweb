@@ -1,5 +1,7 @@
 package nl.armatiek.xslweb.saxon.functions.session;
 
+import java.util.ArrayList;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -73,7 +75,16 @@ public class GetAttribute extends ExtensionFunctionDefinition {
       @SuppressWarnings("unchecked")
       @Override
       protected Collection<Attribute> getAttributes(String name, XPathContext context) {                               
-        return (Collection<Attribute>) getSession(context).getAttribute(name);
+        Object attr = getSession(context).getAttribute(name);
+        if (attr == null) {
+          return null;
+        } else if (attr instanceof Collection<?>) {
+          return (Collection<Attribute>) attr;
+        } else {
+          ArrayList<Attribute> list = new ArrayList<Attribute>();
+          list.add(new Attribute(attr, "unknown"));
+          return list;
+        }
       }
     };    
   }
