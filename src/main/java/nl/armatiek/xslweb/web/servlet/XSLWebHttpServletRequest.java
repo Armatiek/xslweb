@@ -21,7 +21,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,8 +46,8 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
+
+import okhttp3.HttpUrl;
 
 public class XSLWebHttpServletRequest implements HttpServletRequest {
   
@@ -67,24 +66,14 @@ public class XSLWebHttpServletRequest implements HttpServletRequest {
     if (parts.length > 1) {
       this.pathInfo = parts[0];            
       this.queryString = parts[1];
-      Map<String, ArrayList<String>> paramMap = new HashMap<String, ArrayList<String>>();
-      List<NameValuePair> params = URLEncodedUtils.parse(queryString, Charset.forName("UTF-8"));
-      for (NameValuePair param : params) {
-        ArrayList<String> values = (ArrayList<String>) paramMap.get(param.getName());
-        if (values == null) {
-          values = new ArrayList<String>(); 
-        }
-        values.add(param.getValue());        
-        paramMap.put(param.getName(), values);
-      }               
-      for (Map.Entry<String, ArrayList<String>> entry : paramMap.entrySet()) {
-        ArrayList<String> values = entry.getValue();
-        parameters.put(entry.getKey(), values.toArray(new String[values.size()]));                
-      }            
+      HttpUrl url = HttpUrl.parse("http://www.dummy.com" + path);
+      for (String name : url.queryParameterNames()) {
+        List<String> values = url.queryParameterValues(name);
+        parameters.put(name, values.toArray(new String[values.size()]));
+      }          
     } else {
       this.pathInfo = path;
     }     
-    
   }
 
   @Override

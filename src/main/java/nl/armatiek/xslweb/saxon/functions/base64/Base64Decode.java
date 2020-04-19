@@ -1,5 +1,7 @@
 package nl.armatiek.xslweb.saxon.functions.base64;
 
+import java.util.Base64;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -26,8 +28,6 @@ import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
-
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * XPath extension function class for decoding base64 encoded strings
@@ -75,7 +75,7 @@ public class Base64Decode extends ExtensionFunctionDefinition {
     public StringValue call(XPathContext context, Sequence[] arguments) throws XPathException {            
       try {
         String str = ((StringValue) arguments[0].head()).getStringValue();        
-        return StringValue.makeStringValue(new String(Base64.decodeBase64(str), "UTF-8"));        
+        return StringValue.makeStringValue(new String(Base64.getDecoder().decode(str), "UTF-8"));        
       } catch (Exception e) {
         throw new XPathException("Could not base64 decode string", e);
       }

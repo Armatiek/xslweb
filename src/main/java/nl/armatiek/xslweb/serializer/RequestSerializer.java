@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.PushbackReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
@@ -38,7 +39,6 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -338,7 +338,7 @@ public class RequestSerializer {
     } else if ((contentType != null) && contentType.startsWith("text/plain")) {      
       xsw.writeCharacters(IOUtils.toString(pushbackReader));      
     } else {
-      xsw.writeCData(Base64.encodeBase64String(IOUtils.toByteArray(pushbackReader, "UTF-8")));
+      xsw.writeCData(Base64.getEncoder().encodeToString(IOUtils.toByteArray(pushbackReader, "UTF-8")));
     }
     xsw.writeEndElement();
   }

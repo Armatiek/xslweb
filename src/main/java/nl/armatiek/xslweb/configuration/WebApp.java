@@ -28,10 +28,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.net.ProxySelector;
 import java.nio.charset.StandardCharsets;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,7 +43,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.SSLContext;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -79,24 +75,6 @@ import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fop.apps.FopFactory;
-import org.apache.http.HttpHost;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContextBuilder;
-import org.apache.http.conn.ssl.SSLContexts;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerFactory;
@@ -171,7 +149,7 @@ public class WebApp implements ErrorHandler {
   private String description;
   private boolean developmentMode;
   private boolean waitForJobsAtClose;
-  private boolean disableCookieManagement;
+  // private boolean disableCookieManagement;
   private int maxUploadSize;
   private Scheduler scheduler;
   private List<Resource> resources = new ArrayList<Resource>();
@@ -182,7 +160,7 @@ public class WebApp implements ErrorHandler {
   private XSLWebConfiguration configuration;  
   private Processor processor;  
   private FileAlterationMonitor monitor;
-  private CloseableHttpClient httpClient;
+  // private CloseableHttpClient httpClient;
   private volatile int jobRequestCount = 0;
   
   public WebApp(File webAppDefinition) throws Exception {   
@@ -227,8 +205,8 @@ public class WebApp implements ErrorHandler {
     this.maxUploadSize = XMLUtils.getIntegerValue(maxUploadSizeValue, 10);    
     String waitForJobsAtCloseValue = (String) xpath.evaluate("webapp:wait-for-jobs-at-close", docElem, XPathConstants.STRING);
     this.waitForJobsAtClose = XMLUtils.getBooleanValue(waitForJobsAtCloseValue, true);
-    String disableCookieManagement = (String) xpath.evaluate("webapp:disable-cookie-management", docElem, XPathConstants.STRING);
-    this.disableCookieManagement = XMLUtils.getBooleanValue(disableCookieManagement, false);
+    // String disableCookieManagement = (String) xpath.evaluate("webapp:disable-cookie-management", docElem, XPathConstants.STRING);
+    // this.disableCookieManagement = XMLUtils.getBooleanValue(disableCookieManagement, false);
     
     NodeList resourceNodes = (NodeList) xpath.evaluate("webapp:resources/webapp:resource", docElem, XPathConstants.NODESET);
     for (int i=0; i<resourceNodes.getLength(); i++) {
@@ -361,11 +339,13 @@ public class WebApp implements ErrorHandler {
       }
     }
     
+    /*
     if (httpClient != null) {
       logger.debug("Closing HTTP client ...");
       httpClient.close();
       httpClient = null;
     }
+    */
     
     if (!dataSourceCache.isEmpty()) {
       logger.info("Closing Datasources ...");
@@ -529,6 +509,7 @@ public class WebApp implements ErrorHandler {
     return processor;
   }
   
+  /*
   public CloseableHttpClient getHttpClient() {    
     if (httpClient == null) {
       PoolingHttpClientConnectionManager cm;
@@ -570,6 +551,7 @@ public class WebApp implements ErrorHandler {
     }
     return httpClient;
   }
+  */
 
   public XsltExecutable getRequestDispatcherTemplates(ErrorListener errorListener, boolean tracing) throws Exception {
     return tryXsltExecutableCache(new File(getHomeDir(), 

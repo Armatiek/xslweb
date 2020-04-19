@@ -22,9 +22,6 @@ import java.util.Set;
 
 import javax.xml.transform.TransformerException;
 
-import org.expath.httpclient.saxon.SendRequestFunction;
-import org.expath.pkg.saxon.EXPathFunctionDefinition;
-
 import net.sf.saxon.Configuration;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.lib.FeatureKeys;
@@ -65,6 +62,7 @@ import nl.armatiek.xslweb.saxon.functions.expath.file.Write;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteBinary;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteText;
 import nl.armatiek.xslweb.saxon.functions.expath.file.WriteTextLines;
+import nl.armatiek.xslweb.saxon.functions.httpclient.SendRequest;
 import nl.armatiek.xslweb.saxon.functions.image.Scale;
 import nl.armatiek.xslweb.saxon.functions.io.RegisterTempFile;
 import nl.armatiek.xslweb.saxon.functions.json.EscapeJSON;
@@ -118,87 +116,87 @@ public class XSLWebInitializer implements Initializer {
     configuration.setURIResolver(new XSLWebURIResolver());
     
     /* Log */
-    registerEXPathFunction(new Log(), configuration);
+    registerXPathFunction(new Log(), configuration);
     
     /* Request */
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.request.GetAttribute(), configuration);
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.request.SetAttribute(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.request.GetAttribute(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.request.SetAttribute(), configuration);
     
     /* Response */
-    registerEXPathFunction(new AddCookie(), configuration);
-    registerEXPathFunction(new AddDateHeader(), configuration);
-    registerEXPathFunction(new AddHeader(), configuration);
-    registerEXPathFunction(new AddIntHeader(), configuration);    
-    registerEXPathFunction(new EncodeRedirectURL(), configuration);
-    registerEXPathFunction(new EncodeURL(), configuration);    
-    registerEXPathFunction(new IsCommitted(), configuration);    
-    registerEXPathFunction(new SetBufferSize(), configuration);
-    registerEXPathFunction(new SetStatus(), configuration);
+    registerXPathFunction(new AddCookie(), configuration);
+    registerXPathFunction(new AddDateHeader(), configuration);
+    registerXPathFunction(new AddHeader(), configuration);
+    registerXPathFunction(new AddIntHeader(), configuration);    
+    registerXPathFunction(new EncodeRedirectURL(), configuration);
+    registerXPathFunction(new EncodeURL(), configuration);    
+    registerXPathFunction(new IsCommitted(), configuration);    
+    registerXPathFunction(new SetBufferSize(), configuration);
+    registerXPathFunction(new SetStatus(), configuration);
     
     /* Base64 */
-    registerEXPathFunction(new Base64Encode(), configuration);
-    registerEXPathFunction(new Base64Decode(), configuration);
+    registerXPathFunction(new Base64Encode(), configuration);
+    registerXPathFunction(new Base64Decode(), configuration);
     
     /* Context */
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.context.GetAttribute(), configuration);
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.context.SetAttribute(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.context.GetAttribute(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.context.SetAttribute(), configuration);
     
     /* Session */
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.session.GetAttribute(), configuration);
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.session.SetAttribute(), configuration);
-    registerEXPathFunction(new Invalidate(), configuration);
-    registerEXPathFunction(new SetMaxInactiveInterval(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.session.GetAttribute(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.session.SetAttribute(), configuration);
+    registerXPathFunction(new Invalidate(), configuration);
+    registerXPathFunction(new SetMaxInactiveInterval(), configuration);
     
     /* Webapp */
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.GetAttribute(), configuration);
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.SetAttribute(), configuration);
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.GetCacheValue(), configuration);
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.SetCacheValue(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.GetAttribute(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.SetAttribute(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.GetCacheValue(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.SetCacheValue(), configuration);
     
     /* Email */
-    registerEXPathFunction(new SendMail(), configuration);
+    registerXPathFunction(new SendMail(), configuration);
     
     /* Cache */
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.cache.Remove(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.cache.Remove(), configuration);
     
     /* Serialize */
-    registerEXPathFunction(new Serialize(), configuration);   
+    registerXPathFunction(new Serialize(), configuration);   
     
     /* EXPath File: */
-    registerEXPathFunction(new Append(), configuration);
-    registerEXPathFunction(new AppendBinary(), configuration);
-    registerEXPathFunction(new AppendText(), configuration);
-    registerEXPathFunction(new AppendTextLines(), configuration);
-    registerEXPathFunction(new Children(), configuration);
-    registerEXPathFunction(new Copy(), configuration);
-    registerEXPathFunction(new CreateDir(), configuration);
-    registerEXPathFunction(new CreateTempDir(), configuration);
-    registerEXPathFunction(new CreateTempFile(), configuration);
-    registerEXPathFunction(new Delete(), configuration);
-    registerEXPathFunction(new DirName(), configuration);
-    registerEXPathFunction(new DirSeparator(), configuration);
-    registerEXPathFunction(new Exists(), configuration);
-    registerEXPathFunction(new IsDir(), configuration);
-    registerEXPathFunction(new IsFile(), configuration);
-    registerEXPathFunction(new LastModified(), configuration);
-    registerEXPathFunction(new LineSeparator(), configuration);
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.expath.file.List(), configuration);
-    registerEXPathFunction(new Move(), configuration);
-    registerEXPathFunction(new Name(), configuration);
-    registerEXPathFunction(new Parent(), configuration);
-    registerEXPathFunction(new PathSeparator(), configuration);
-    registerEXPathFunction(new PathToNative(), configuration);
-    registerEXPathFunction(new PathToURI(), configuration);
-    registerEXPathFunction(new ReadBinary(), configuration);
-    registerEXPathFunction(new ReadText(), configuration);
-    registerEXPathFunction(new ReadTextLines(), configuration);
-    registerEXPathFunction(new ResolvePath(), configuration);
-    registerEXPathFunction(new Size(), configuration);
-    registerEXPathFunction(new TempDir(), configuration);
-    registerEXPathFunction(new Write(), configuration);
-    registerEXPathFunction(new WriteBinary(), configuration);
-    registerEXPathFunction(new WriteText(), configuration);
-    registerEXPathFunction(new WriteTextLines(), configuration);
+    registerXPathFunction(new Append(), configuration);
+    registerXPathFunction(new AppendBinary(), configuration);
+    registerXPathFunction(new AppendText(), configuration);
+    registerXPathFunction(new AppendTextLines(), configuration);
+    registerXPathFunction(new Children(), configuration);
+    registerXPathFunction(new Copy(), configuration);
+    registerXPathFunction(new CreateDir(), configuration);
+    registerXPathFunction(new CreateTempDir(), configuration);
+    registerXPathFunction(new CreateTempFile(), configuration);
+    registerXPathFunction(new Delete(), configuration);
+    registerXPathFunction(new DirName(), configuration);
+    registerXPathFunction(new DirSeparator(), configuration);
+    registerXPathFunction(new Exists(), configuration);
+    registerXPathFunction(new IsDir(), configuration);
+    registerXPathFunction(new IsFile(), configuration);
+    registerXPathFunction(new LastModified(), configuration);
+    registerXPathFunction(new LineSeparator(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.expath.file.List(), configuration);
+    registerXPathFunction(new Move(), configuration);
+    registerXPathFunction(new Name(), configuration);
+    registerXPathFunction(new Parent(), configuration);
+    registerXPathFunction(new PathSeparator(), configuration);
+    registerXPathFunction(new PathToNative(), configuration);
+    registerXPathFunction(new PathToURI(), configuration);
+    registerXPathFunction(new ReadBinary(), configuration);
+    registerXPathFunction(new ReadText(), configuration);
+    registerXPathFunction(new ReadTextLines(), configuration);
+    registerXPathFunction(new ResolvePath(), configuration);
+    registerXPathFunction(new Size(), configuration);
+    registerXPathFunction(new TempDir(), configuration);
+    registerXPathFunction(new Write(), configuration);
+    registerXPathFunction(new WriteBinary(), configuration);
+    registerXPathFunction(new WriteText(), configuration);
+    registerXPathFunction(new WriteTextLines(), configuration);
 
     /* EXPath Zip: */
     // registerEXPathFunction(new EntriesFunction(), configuration);
@@ -210,59 +208,56 @@ public class XSLWebInitializer implements Initializer {
     // registerEXPathFunction(new XmlEntryFunction(), configuration);
     
     /* EXPath HttpClient: */           
-    registerEXPathFunction(new SendRequestFunction(), configuration);  
+    registerXPathFunction(new SendRequest(), configuration);  
     
     /* Script */
-    registerEXPathFunction(new Invoke(), configuration);
+    registerXPathFunction(new Invoke(), configuration);
     
     /* JSON */
-    registerEXPathFunction(new ParseJSON(), configuration);
-    registerEXPathFunction(new SerializeJSON(), configuration);
-    registerEXPathFunction(new EscapeJSON(), configuration);
-    registerEXPathFunction(new UnescapeJSON(), configuration);
+    registerXPathFunction(new ParseJSON(), configuration);
+    registerXPathFunction(new SerializeJSON(), configuration);
+    registerXPathFunction(new EscapeJSON(), configuration);
+    registerXPathFunction(new UnescapeJSON(), configuration);
     
     /* Sql */
-    registerEXPathFunction(new Close(configuration), configuration);
-    registerEXPathFunction(new Commit(configuration), configuration);
-    registerEXPathFunction(new ExecuteQuery(configuration), configuration);
-    registerEXPathFunction(new ExecuteUpdate(configuration), configuration);
-    registerEXPathFunction(new GetConnection(configuration), configuration);
-    registerEXPathFunction(new GetNextRow(configuration), configuration);
-    registerEXPathFunction(new Rollback(configuration), configuration);
-    registerEXPathFunction(new ResultSetToNode(configuration), configuration);
+    registerXPathFunction(new Close(configuration), configuration);
+    registerXPathFunction(new Commit(configuration), configuration);
+    registerXPathFunction(new ExecuteQuery(configuration), configuration);
+    registerXPathFunction(new ExecuteUpdate(configuration), configuration);
+    registerXPathFunction(new GetConnection(configuration), configuration);
+    registerXPathFunction(new GetNextRow(configuration), configuration);
+    registerXPathFunction(new Rollback(configuration), configuration);
+    registerXPathFunction(new ResultSetToNode(configuration), configuration);
     
     /* UUID */
-    registerEXPathFunction(new UUID(), configuration);
+    registerXPathFunction(new UUID(), configuration);
     
     /* Util */
-    registerEXPathFunction(new DiscardDocument(), configuration);
-    registerEXPathFunction(new Parse(), configuration);
+    registerXPathFunction(new DiscardDocument(), configuration);
+    registerXPathFunction(new Parse(), configuration);
     
     /* Zip */
-    registerEXPathFunction(new Zip(), configuration);
-    registerEXPathFunction(new Unzip(), configuration);
+    registerXPathFunction(new Zip(), configuration);
+    registerXPathFunction(new Unzip(), configuration);
     
     /* Image */
-    registerEXPathFunction(new Scale(), configuration);
-    registerEXPathFunction(new nl.armatiek.xslweb.saxon.functions.image.Size(), configuration);
+    registerXPathFunction(new Scale(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.image.Size(), configuration);
     
     /* IO */
-    registerEXPathFunction(new RegisterTempFile(), configuration);
+    registerXPathFunction(new RegisterTempFile(), configuration);
     
     /* ExecExternal */
-    registerEXPathFunction(new ExecExternal(), configuration);
+    registerXPathFunction(new ExecExternal(), configuration);
     
     /* Queue */
-    registerEXPathFunction(new AddRequest(), configuration);
-    registerEXPathFunction(new GetStatus(), configuration);
-    registerEXPathFunction(new GetInfo(), configuration);
+    registerXPathFunction(new AddRequest(), configuration);
+    registerXPathFunction(new GetStatus(), configuration);
+    registerXPathFunction(new GetInfo(), configuration);
     
   }
   
-  private void registerEXPathFunction(ExtensionFunctionDefinition function, Configuration configuration) {
-    if (function instanceof EXPathFunctionDefinition) {
-      ((EXPathFunctionDefinition) function).setConfiguration(configuration);
-    }              
+  private void registerXPathFunction(ExtensionFunctionDefinition function, Configuration configuration) {           
     configuration.registerExtensionFunction(function);
     functionClassNames.add(function.getClass().getName());
   }

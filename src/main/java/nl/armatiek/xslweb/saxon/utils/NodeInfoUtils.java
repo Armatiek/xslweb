@@ -28,18 +28,27 @@ import net.sf.saxon.om.TreeModel;
 import net.sf.saxon.pattern.LocalNameTest;
 import net.sf.saxon.pattern.NodeKindTest;
 import net.sf.saxon.trans.XPathException;
+import net.sf.saxon.tree.iter.AxisIterator;
 import net.sf.saxon.tree.tiny.TinyBuilder;
 import net.sf.saxon.tree.util.Navigator;
 import net.sf.saxon.type.Type;
 
 public class NodeInfoUtils {
   
+  public static NodeInfo getFirstChildNode(NodeInfo parentElement) {
+    return parentElement.iterateAxis(AxisInfo.CHILD).next();    
+  }
+  
+  public static NodeInfo getNextSiblingNode(NodeInfo prevNode) {
+    return prevNode.iterateAxis(AxisInfo.FOLLOWING_SIBLING).next();    
+  }
+  
   public static NodeInfo getFirstChildElement(NodeInfo parentElement) {
     return parentElement.iterateAxis(AxisInfo.CHILD, NodeKindTest.ELEMENT).next();    
   }
   
-  public static NodeInfo getNextSiblingElement(NodeInfo parentElement) {
-    return parentElement.iterateAxis(AxisInfo.FOLLOWING_SIBLING, NodeKindTest.ELEMENT).next();    
+  public static NodeInfo getNextSiblingElement(NodeInfo prevElement) {
+    return prevElement.iterateAxis(AxisInfo.FOLLOWING_SIBLING, NodeKindTest.ELEMENT).next();    
   }
   
   public static String getValueOfChildElementByLocalName(NodeInfo parentElement, String localName, XPathContext context) {
@@ -60,6 +69,14 @@ public class NodeInfoUtils {
     builder.endDocument();
     builder.close();
     return builder.getCurrentRoot();
+  }
+  
+  public static int getCount(final AxisIterator iter) {
+    int count = 0;
+    while (iter.next() != null) {
+      count++;
+    }
+    return count;
   }
   
 }
