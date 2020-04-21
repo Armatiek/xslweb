@@ -284,6 +284,9 @@ public class SendRequest extends ExtensionFunctionDefinition {
         } else {
           throw new XPathException("Call timeout exception", "HC006");
         }
+      } catch (XPathException e) {
+        e.setErrorCode("HC001");
+        throw e;
       } catch (Exception e) {
         throw new XPathException("An HTTP error occurred: " + e.getMessage(), "HC001");
       }
