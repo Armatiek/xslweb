@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import javax.xml.transform.sax.SAXSource;
 
+import org.apache.commons.io.input.BOMInputStream;
 import org.ccil.cowan.tagsoup.Parser;
 import org.xml.sax.InputSource;
 
@@ -129,7 +130,7 @@ public class ResponseUtils {
       try {
         TinyBuilder builder = new TinyBuilder(context.getConfiguration().makePipelineConfiguration());
         builder.setStatistics(Statistics.SOURCE_DOCUMENT_STATISTICS);
-        InputSource inputSource = new InputSource(body.byteStream());
+        InputSource inputSource = new InputSource(new BOMInputStream(body.byteStream()));
         inputSource.setSystemId(response.request().url().toString());
         SAXSource source = new SAXSource(inputSource);
         source.setSystemId(response.request().url().toString());
@@ -147,8 +148,9 @@ public class ResponseUtils {
         Sender.send(source, builder, parseOptions);
         builder.close();
         return builder.getCurrentRoot();
-      } catch (Exception e) {
-        throw new XPathException("Error parsing the entity content as XML or HTML", "HC002");
+      } catch (XPathException e) {
+        e.setErrorCode("HC002");
+        throw e;
       }
     default:
       return new Base64BinaryValue(body.bytes()); 
