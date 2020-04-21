@@ -93,7 +93,8 @@ public class RequestUtils {
     
     if (method.equals("xml") || method.equals("xhtml")) {
       ByteArrayOutputStream baos = new ByteArrayOutputStream(); 
-      Serializer ser = ((Processor) context.getConfiguration().getProcessor()).newSerializer(baos);
+      Processor processor = new Processor(context.getConfiguration());
+      Serializer ser = processor.newSerializer(baos);
       
       // Set serialization parameters:
       String val;
@@ -115,7 +116,7 @@ public class RequestUtils {
       try {
         ser.serializeNode(new XdmNode(nodeInfo));
       } catch (SaxonApiException sae) {
-        throw new XPathException("Error serializing body: " + sae.getMessage(), sae);
+        throw new XPathException("Error serializing request body: " + sae.getMessage(), sae);
       }
       return RequestBody.create(baos.toByteArray(), mediaType);
     } else if (method.equals("text") || method.equals("html")) {
@@ -135,7 +136,7 @@ public class RequestUtils {
       }
       return RequestBody.create(value, mediaType);
     } else {
-      throw new XPathException("Unsupported method \"" + method + "\"");
+      throw new XPathException("Unsupported method \"" + method + "\"", "HC005");
     }
   }
   
