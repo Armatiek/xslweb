@@ -264,6 +264,8 @@ public class Context {
         } catch (Exception e) {
           logger.error(String.format("Error stopping existing webapp \"%s\"", webAppName), e);
         }
+        logger.info("Executing handler for webapp-reload event ...");
+        webApp.executeEvent(Definitions.EVENTNAME_WEBAPPRELOAD);
       }
       if (!createNew) {
         return;

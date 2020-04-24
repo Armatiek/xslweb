@@ -150,9 +150,15 @@ public class XSLWebUtils {
     params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "version"), new XdmAtomicValue(Definitions.PROJECT_VERSION));
     
     /* Object parameters: */
-    params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_REQUEST, "request"),  XdmValue.wrap(new ObjectValue(req)));
-    params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "response"),  XdmValue.wrap(new ObjectValue(resp)));
-    params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_WEBAPP, "webapp"),  XdmValue.wrap(new ObjectValue(webApp)));
+    if (req != null) {
+      params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_REQUEST, "request"),  XdmValue.wrap(new ObjectValue(req)));
+    }
+    if (resp != null) {
+      params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "response"),  XdmValue.wrap(new ObjectValue(resp)));
+    }
+    if (webApp != null) {
+      params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_WEBAPP, "webapp"),  XdmValue.wrap(new ObjectValue(webApp)));
+    }
     
     /* Webapp parameters: */
     addStylesheetParameters(params, webApp.getParameters());

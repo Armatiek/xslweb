@@ -108,10 +108,13 @@ import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.lib.NamespaceConstant;
 import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XQueryCompiler;
 import net.sf.saxon.s9api.XQueryExecutable;
 import net.sf.saxon.s9api.XdmDestination;
 import net.sf.saxon.s9api.XdmNode;
+import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
@@ -280,14 +283,16 @@ public class WebApp implements ErrorHandler {
   public void open() throws Exception {
     logger.info(String.format("Opening webapp \"%s\" ...", name));
     
-    logger.debug("Starting file alteration monitor ...");
+    logger.info("Starting file alteration monitor ...");
     monitor.start();
     
     if (scheduler != null) {
-      logger.debug("Starting Quartz scheduler ...");    
+      logger.info("Starting Quartz scheduler ...");    
       scheduler.start();    
-      logger.debug("Quartz scheduler started.");
     }
+    
+    logger.info("Executing handler for webapp-open event ...");
+    executeEvent(Definitions.EVENTNAME_WEBAPPOPEN);
     
     isClosed = false;
     
@@ -302,7 +307,7 @@ public class WebApp implements ErrorHandler {
     isClosed = true;
     
     logger.info(String.format("Closing webapp \"%s\" ...", name));
-
+    
     logger.info("Stopping file alteration monitor ...");
     if (monitor != null)
       monitor.stop();
@@ -328,6 +333,9 @@ public class WebApp implements ErrorHandler {
       logger.info("Shutdown of Quartz scheduler complete.");
     }
     
+    logger.info("Executing handler for webapp-close event ...");
+    executeEvent(Definitions.EVENTNAME_WEBAPPCLOSE);
+    
     logger.info("Closing XPath extension functions ...");
     if (configuration != null) {
       Iterator<ExtensionFunctionDefinition> functions = configuration.getRegisteredExtensionFunctions();
@@ -338,14 +346,6 @@ public class WebApp implements ErrorHandler {
         }
       }
     }
-    
-    /*
-    if (httpClient != null) {
-      logger.debug("Closing HTTP client ...");
-      httpClient.close();
-      httpClient = null;
-    }
-    */
     
     if (!dataSourceCache.isEmpty()) {
       logger.info("Closing Datasources ...");
@@ -374,9 +374,30 @@ public class WebApp implements ErrorHandler {
     logger.info("Clearing compiled XML Schema cache ...");
     schemaCache.clear();
     
-    // Thread.sleep(100);
-    
     logger.info(String.format("Webapp \"%s\" closed.", name));
+  }
+  
+  public void executeEvent(final QName templateName) {
+    try {
+      File eventsXslPath = new File(getHomeDir(), "xsl/events.xsl");
+      if (!eventsXslPath.isFile()) {
+        return;
+      }
+      TransformationErrorListener errorListener = new TransformationErrorListener(null, developmentMode);  
+      XsltExecutable templates = getXsltExecutable("events.xsl", errorListener, false);
+      Xslt30Transformer transformer = templates.load30();
+      transformer.getUnderlyingController().setMessageEmitter(new MessageWarner());
+      transformer.setErrorListener(errorListener);
+      Map<QName, XdmValue> params = XSLWebUtils.getStylesheetParameters(this, null, null, getHomeDir());
+      transformer.setStylesheetParameters(params);
+      try {
+        transformer.callTemplate(templateName);
+      } catch (SaxonApiException e) {
+        // thrown when template does not exist. Any other errors are reported via ErrorListener?
+      }
+    } catch (Exception e) {
+      logger.error(String.format("Error executing event \"%s\" of webapp \"%s\"", templateName.getLocalName(), name), e);
+    }
   }
   
   private void onFileChanged(File file, String message) {

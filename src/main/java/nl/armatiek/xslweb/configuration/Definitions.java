@@ -20,6 +20,8 @@ package nl.armatiek.xslweb.configuration;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.sf.saxon.s9api.QName;
+
 /**
  * Class containing all global string identifiers as static final String fields
  * 
@@ -63,6 +65,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_WEBAPP         = NAMESPACEURI_XSLWEB + "/webapp";
   public final static String NAMESPACEURI_XSLWEB_CONFIGURATION  = NAMESPACEURI_XSLWEB + "/configuration";
   public final static String NAMESPACEURI_XSLWEB_FUNCTIONS      = NAMESPACEURI_XSLWEB + "/functions";
+  public final static String NAMESPACEURI_XSLWEB_EVENT          = NAMESPACEURI_XSLWEB + "/event";
   public final static String NAMESPACEURI_XSLWEB_FX_BASE64      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/base64";
   public final static String NAMESPACEURI_XSLWEB_FX_CONTEXT     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/context";
   public final static String NAMESPACEURI_XSLWEB_FX_IO          = NAMESPACEURI_XSLWEB_FUNCTIONS + "/io";
@@ -127,5 +130,9 @@ public class Definitions {
   
   public final static String PROPERTYNAME_TRUST_ALL_CERTS      = "xslweb.trustallcerts";
   public final static String PROPERTYNAME_PARSER_HARDENING     = "xslweb.parserhardening";
+  
+  public final static QName EVENTNAME_WEBAPPOPEN              = new QName(NAMESPACEURI_XSLWEB_EVENT, "webapp-open");
+  public final static QName EVENTNAME_WEBAPPCLOSE             = new QName(NAMESPACEURI_XSLWEB_EVENT, "webapp-close");
+  public final static QName EVENTNAME_WEBAPPRELOAD            = new QName(NAMESPACEURI_XSLWEB_EVENT, "webapp-reload");
   
 }
