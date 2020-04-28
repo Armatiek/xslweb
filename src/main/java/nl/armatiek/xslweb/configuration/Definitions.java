@@ -30,7 +30,7 @@ import net.sf.saxon.s9api.QName;
 public class Definitions {
   
   public final static String PROJECT_NAME                      = "xslweb";
-  public final static String PROJECT_VERSION                   = "3.1.0";
+  public final static String PROJECT_VERSION                   = "3.2.0";
   public final static String PATHNAME_REQUESTDISPATCHER_XSL    = "xsl/request-dispatcher.xsl";
   public final static String FILENAME_PROPERTIES               = "xslweb.properties";
   public final static String FILENAME_QUARTZ                   = "xslweb-quartz.properties";
@@ -131,8 +131,8 @@ public class Definitions {
   public final static String PROPERTYNAME_TRUST_ALL_CERTS      = "xslweb.trustallcerts";
   public final static String PROPERTYNAME_PARSER_HARDENING     = "xslweb.parserhardening";
   
-  public final static QName EVENTNAME_WEBAPPOPEN              = new QName(NAMESPACEURI_XSLWEB_EVENT, "webapp-open");
-  public final static QName EVENTNAME_WEBAPPCLOSE             = new QName(NAMESPACEURI_XSLWEB_EVENT, "webapp-close");
-  public final static QName EVENTNAME_WEBAPPRELOAD            = new QName(NAMESPACEURI_XSLWEB_EVENT, "webapp-reload");
+  public final static QName EVENTNAME_WEBAPPOPEN              = new QName("event", NAMESPACEURI_XSLWEB_EVENT, "webapp-open");
+  public final static QName EVENTNAME_WEBAPPCLOSE             = new QName("event", NAMESPACEURI_XSLWEB_EVENT, "webapp-close");
+  public final static QName EVENTNAME_WEBAPPRELOAD            = new QName("event", NAMESPACEURI_XSLWEB_EVENT, "webapp-reload");
   
 }

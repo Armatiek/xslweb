@@ -69,7 +69,7 @@ public class GetNextRow extends ExtensionFunctionDefinition {
   @Override
   public SequenceType[] getArgumentTypes() {
     return new SequenceType[] { 
-        SequenceType.makeSequenceType(new JavaExternalObjectType(ResultSet.class), StaticProperty.ALLOWS_ONE) 
+        SequenceType.makeSequenceType(new JavaExternalObjectType(configuration, ResultSet.class), StaticProperty.ALLOWS_ONE) 
     };
   }
 

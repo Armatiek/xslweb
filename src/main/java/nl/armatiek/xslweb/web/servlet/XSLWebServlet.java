@@ -285,10 +285,8 @@ public class XSLWebServlet extends HttpServlet {
     if (source instanceof NodeInfo) {
       return source;
     }
-    Xslt30Transformer identityTransformer = webApp.getXsltExecutable(
-        new File(homeDir, "common/xsl/system/identity/identity.xsl").getAbsolutePath(), errorListener, false).load30();
     XdmDestination dest = new XdmDestination();
-    identityTransformer.applyTemplates(source, dest);
+    webApp.getIdentityXsltExecutable().load30().applyTemplates(source, dest);
     return dest.getXdmNode().asSource();
   }
   
@@ -444,8 +442,10 @@ public class XSLWebServlet extends HttpServlet {
         Map<QName, XdmValue> stylesheetParameters = getStylesheetParameters((ParameterizablePipelineStep) step, 
             baseStylesheetParameters, extraStylesheetParameters);
         transformer.setStylesheetParameters(stylesheetParameters);
-        destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep); 
-        transformer.applyTemplates(source, destination);
+        destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep);
+        NodeInfo nodeInfo = (NodeInfo) makeNodeInfoSource(source, webApp, errorListener);
+        transformer.setGlobalContextItem(new XdmNode(nodeInfo));
+        transformer.applyTemplates(nodeInfo, destination);
       } else if (step instanceof QueryStep) {
         String xqueryPath = ((QueryStep) step).getXQueryPath();
         XQueryExecutable xquery = webApp.getQuery(xqueryPath, errorListener, !traceType.equals(TraceType.NONE));
@@ -555,6 +555,7 @@ public class XSLWebServlet extends HttpServlet {
         transformer.setErrorListener(errorListener);    
         XdmDestination svrlDest = new XdmDestination();
     
+        transformer.setGlobalContextItem(new XdmNode((NodeInfo) source)); 
         transformer.applyTemplates(source, svrlDest);
         
         String xslParamName = svStep.getXslParamName();

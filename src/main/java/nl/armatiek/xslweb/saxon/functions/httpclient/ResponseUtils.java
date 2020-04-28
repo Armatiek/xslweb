@@ -34,7 +34,6 @@ import net.sf.saxon.om.Item;
 import net.sf.saxon.om.NoElementsSpaceStrippingRule;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.trans.XPathException;
-import net.sf.saxon.tree.tiny.Statistics;
 import net.sf.saxon.tree.tiny.TinyBuilder;
 import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.type.Untyped;
@@ -61,7 +60,7 @@ public class ResponseUtils {
   
   public static NodeInfo buildResponseElement(final Response response, final XPathContext context) throws XPathException {
     TinyBuilder builder = new TinyBuilder(context.getConfiguration().makePipelineConfiguration());
-    builder.setStatistics(Statistics.SOURCE_DOCUMENT_STATISTICS); 
+    builder.setStatistics(context.getConfiguration().getTreeStatistics().SOURCE_DOCUMENT_STATISTICS); 
     builder.setLineNumbering(false);
     builder.open();
     builder.startDocument(0);
@@ -129,7 +128,7 @@ public class ResponseUtils {
     case HTML:
       try {
         TinyBuilder builder = new TinyBuilder(context.getConfiguration().makePipelineConfiguration());
-        builder.setStatistics(Statistics.SOURCE_DOCUMENT_STATISTICS);
+        builder.setStatistics(context.getConfiguration().getTreeStatistics().SOURCE_DOCUMENT_STATISTICS);
         InputSource inputSource = new InputSource(new BOMInputStream(body.byteStream()));
         inputSource.setSystemId(response.request().url().toString());
         SAXSource source = new SAXSource(inputSource);

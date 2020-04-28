@@ -68,7 +68,7 @@ public class ExecuteUpdate extends ExtensionFunctionDefinition {
   @Override
   public SequenceType[] getArgumentTypes() {
     return new SequenceType[] {
-        SequenceType.makeSequenceType(new JavaExternalObjectType(Connection.class), StaticProperty.ALLOWS_ONE),
+        SequenceType.makeSequenceType(new JavaExternalObjectType(configuration, Connection.class), StaticProperty.ALLOWS_ONE),
         SequenceType.SINGLE_STRING 
     };
   }

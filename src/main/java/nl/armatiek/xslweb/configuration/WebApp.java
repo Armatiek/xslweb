@@ -107,6 +107,7 @@ import net.sf.saxon.Configuration;
 import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.lib.NamespaceConstant;
+import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
@@ -160,6 +161,7 @@ public class WebApp implements ErrorHandler {
   private Map<String, DataSource> dataSources = new HashMap<String, DataSource>();
   private Map<String, String> fopConfigs = new HashMap<String, String>();
   private Map<String, Queue> queues = new HashMap<String, Queue>();
+  private XsltExecutable identityXsltExecutable;
   private XSLWebConfiguration configuration;  
   private Processor processor;  
   private FileAlterationMonitor monitor;
@@ -274,6 +276,10 @@ public class WebApp implements ErrorHandler {
       Queue queue = new Queue((Element) queueNodes.item(i));
       queues.put(queue.getName(), queue);
     }
+    
+    StreamSource source = new StreamSource(getClass().getClassLoader().getResourceAsStream("identity.xsl"));
+    XsltCompiler comp = processor.newXsltCompiler();
+    this.identityXsltExecutable = comp.compile(source); 
    
     // initClassLoader();
             
@@ -391,7 +397,7 @@ public class WebApp implements ErrorHandler {
       Map<QName, XdmValue> params = XSLWebUtils.getStylesheetParameters(this, null, null, getHomeDir());
       transformer.setStylesheetParameters(params);
       try {
-        transformer.callTemplate(templateName);
+        transformer.applyTemplates(new StreamSource(new StringReader('<' + templateName.toString() + " xmlns:event=\"" + Definitions.NAMESPACEURI_XSLWEB_EVENT + "\"/>")));
       } catch (SaxonApiException e) {
         // thrown when template does not exist. Any other errors are reported via ErrorListener?
       }
@@ -586,6 +592,10 @@ public class WebApp implements ErrorHandler {
     return tryXsltExecutableCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener, tracing);
   }
   
+  public XsltExecutable getIdentityXsltExecutable() {
+    return this.identityXsltExecutable;
+  }
+  
   public Templates getTemplates(String path, ErrorListener errorListener) throws Exception {    
     if (new File(path).isAbsolute()) {
       return tryTemplatesCache(path, errorListener);
@@ -753,6 +763,15 @@ public class WebApp implements ErrorHandler {
     return schema;
   }
   
+  private Source makeNodeInfoSource(Source source, ErrorListener errorListener) throws Exception {
+    if (source instanceof NodeInfo) {
+      return source;
+    }
+    XdmDestination dest = new XdmDestination();
+    getIdentityXsltExecutable().load30().applyTemplates(source, dest);
+    return dest.getXdmNode().asSource();
+  }
+  
   public XsltExecutable trySchematronCache(String schematronPath, String phase, 
       ErrorListener errorListener) throws Exception {
     String key = FilenameUtils.normalize(schematronPath) + (phase != null ? phase : "");
@@ -760,7 +779,8 @@ public class WebApp implements ErrorHandler {
     if (templates == null) {
       logger.info("Compiling and caching schematron schema \"" + schematronPath + "\" ...");                 
       try {
-        Source source = new StreamSource(new File(schematronPath));
+        XdmNode source1 = processor.newDocumentBuilder().build(new File(schematronPath));
+        
         File schematronDir = new File(Context.getInstance().getHomeDir(), "common/xsl/system/schematron");
         
         ErrorListener listener = new TransformationErrorListener(null, developmentMode); 
@@ -780,9 +800,14 @@ public class WebApp implements ErrorHandler {
         XdmDestination destStage2 = new XdmDestination();
         XdmDestination destStage3 = new XdmDestination();
 
-        stage1.applyTemplates(source, destStage1);
-        stage2.applyTemplates(destStage1.getXdmNode().asSource(), destStage2);
-        stage3.applyTemplates(destStage2.getXdmNode().asSource(), destStage3);
+        stage1.setGlobalContextItem(source1);
+        stage1.applyTemplates(source1, destStage1);
+        XdmNode source2 = destStage1.getXdmNode();
+        stage2.setGlobalContextItem(source2);
+        stage2.applyTemplates(source2, destStage2);
+        XdmNode source3 = destStage2.getXdmNode();
+        stage3.setGlobalContextItem(source3);
+        stage3.applyTemplates(source3, destStage3);
         
         Source generatedXsltSource = destStage3.getXdmNode().asSource();
         

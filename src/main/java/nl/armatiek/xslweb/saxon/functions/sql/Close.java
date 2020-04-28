@@ -64,7 +64,7 @@ public class Close extends ExtensionFunctionDefinition {
   @Override
   public SequenceType[] getArgumentTypes() {
     return new SequenceType[] { 
-        SequenceType.makeSequenceType(new JavaExternalObjectType(AutoCloseable.class), StaticProperty.ALLOWS_ONE) 
+        SequenceType.makeSequenceType(new JavaExternalObjectType(configuration, AutoCloseable.class), StaticProperty.ALLOWS_ONE) 
     };
   }
 

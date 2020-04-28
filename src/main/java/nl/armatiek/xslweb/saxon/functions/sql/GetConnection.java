@@ -81,7 +81,7 @@ public class GetConnection extends ExtensionFunctionDefinition {
 
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
-    return SequenceType.makeSequenceType(new JavaExternalObjectType(Connection.class), StaticProperty.ALLOWS_ONE);
+    return SequenceType.makeSequenceType(new JavaExternalObjectType(configuration, Connection.class), StaticProperty.ALLOWS_ONE);
   }
 
   @Override

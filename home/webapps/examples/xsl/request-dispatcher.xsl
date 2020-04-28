@@ -388,12 +388,10 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  
-  
   <!-- Authentication functions called from basic-authentication.xsl: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    
     <xsl:param name="request" as="document-node()"/>       
-    <xsl:value-of select="starts-with($request/*/req:path, '/authentication')"/>
+    <xsl:sequence select="starts-with($request/*/req:path, '/authentication')"/>
   </xsl:function>
   
   <xsl:function name="auth:get-realm" as="xs:string">

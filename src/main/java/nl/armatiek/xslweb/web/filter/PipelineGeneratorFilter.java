@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.s9api.Destination;
 import net.sf.saxon.s9api.SAXDestination;
+import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.serialize.MessageWarner;
@@ -81,6 +82,7 @@ public class PipelineGeneratorFilter implements Filter {
       PipelineHandler pipelineHandler = new PipelineHandler(webApp);
       NodeInfo source = (NodeInfo) req.getAttribute(Definitions.ATTRNAME_REQUESTXML);
       Destination destination = new SAXDestination(pipelineHandler);
+      transformer.setGlobalContextItem(new XdmNode(source));
       transformer.applyTemplates(source, destination);
       
       req.setAttribute(Definitions.ATTRNAME_PIPELINEHANDLER, pipelineHandler);
