@@ -33,7 +33,7 @@ public abstract class GetCacheValueCall extends ExtensionFunctionCall {
   protected abstract Collection<Attribute> getAttributes(String cacheName, String keyName, XPathContext context);
 
   @Override
-  public ZeroOrMore<Item> call(XPathContext context, Sequence[] arguments) throws XPathException {            
+  public ZeroOrMore<Item<?>> call(XPathContext context, Sequence[] arguments) throws XPathException {            
     try {
       String cacheName = ((StringValue) arguments[0].head()).getStringValue();
       String keyName = ((StringValue) arguments[1].head()).getStringValue();            

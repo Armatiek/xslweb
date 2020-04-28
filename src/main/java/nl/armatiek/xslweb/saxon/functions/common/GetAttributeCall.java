@@ -33,7 +33,7 @@ public abstract class GetAttributeCall extends ExtensionFunctionCall {
   protected abstract Collection<Attribute> getAttributes(String name, XPathContext context);
 
   @Override
-  public ZeroOrMore<Item> call(XPathContext context, Sequence[] arguments) throws XPathException {            
+  public ZeroOrMore<Item<?>> call(XPathContext context, Sequence[] arguments) throws XPathException {            
     try {
       String name = ((StringValue) arguments[0].head()).getStringValue();                                   
       Collection<Attribute> attrs = getAttributes(name, context);

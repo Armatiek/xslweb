@@ -80,7 +80,7 @@ public class Unzip extends ExtensionFunctionDefinition {
   private static class UnzipCall extends ExtensionFunctionCall {
 
     @Override
-    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {
+    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {
       String source = ((StringValue) arguments[0].head()).getStringValue();
       String target = ((StringValue) arguments[1].head()).getStringValue();
       try {              

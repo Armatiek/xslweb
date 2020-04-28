@@ -80,7 +80,7 @@ public class Exists extends ExtensionFunctionDefinition {
   private static class ExistsCall extends FileExtensionFunctionCall {
         
     @Override
-    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {      
+    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {
         File file = getFile(((StringValue) arguments[0].head()).getStringValue());                                       
         return BooleanValue.get(file.exists());        

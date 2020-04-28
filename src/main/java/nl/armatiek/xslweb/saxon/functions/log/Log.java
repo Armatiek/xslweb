@@ -90,7 +90,7 @@ public class Log extends ExtensionFunctionDefinition {
   private static class LogCall extends ExtensionFunctionCall {
 
     @Override
-    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {
+    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {
       try {
         String level = ((StringValue) arguments[0].head()).getStringValue();
         Properties props = null;

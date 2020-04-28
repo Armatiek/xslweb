@@ -114,7 +114,7 @@ public class HttpClientEntityResolver extends StandardEntityResolver {
         args[0] = NodeInfoUtils.getFirstChildElement(builder.getCurrentRoot());
         
         /* Execute request call: */
-        ZeroOrMore<Item> result = call.call(context, args);
+        ZeroOrMore<Item<?>> result = call.call(context, args);
         
         /* Check HTTP status code: */
         NodeInfo responseNode = (NodeInfo) result.itemAt(0);

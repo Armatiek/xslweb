@@ -53,7 +53,7 @@ public class RequestUtils {
       OutputKeys.DOCTYPE_SYSTEM, OutputKeys.ENCODING, SaxonOutputKeys.ESCAPE_URI_ATTRIBUTES, OutputKeys.INDENT, SaxonOutputKeys.NORMALIZATION_FORM, 
       OutputKeys.OMIT_XML_DECLARATION, OutputKeys.STANDALONE, SaxonOutputKeys.SUPPRESS_INDENTATION, SaxonOutputKeys.UNDECLARE_PREFIXES };
   
-  public static RequestBody getRequestBody(final NodeInfo bodyElem, final Sequence bodies, 
+  public static RequestBody getRequestBody(final NodeInfo bodyElem, final Sequence<?> bodies, 
       final int bodyCount, final XPathContext context) throws XPathException {
     String mediaTypeAttr = bodyElem.getAttributeValue("", "media-type");
     if (StringUtils.isBlank(mediaTypeAttr)) {

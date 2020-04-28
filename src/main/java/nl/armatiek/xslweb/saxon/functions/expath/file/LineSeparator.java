@@ -80,7 +80,7 @@ public class LineSeparator extends ExtensionFunctionDefinition {
   private static class LineSeparatorCall extends FileExtensionFunctionCall {
         
     @Override
-    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {                                                                             
+    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {                                                                             
       return new StringValue(NEWLINE);             
     } 
   }

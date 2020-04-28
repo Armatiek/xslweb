@@ -82,7 +82,7 @@ public class Copy extends ExtensionFunctionDefinition {
   private static class CopyCall extends FileExtensionFunctionCall {
         
     @Override
-    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {      
+    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {         
         File sourceFile = getFile(((StringValue) arguments[0].head()).getStringValue());
         File targetFile = getFile(((StringValue) arguments[1].head()).getStringValue());

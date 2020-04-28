@@ -73,7 +73,7 @@ public class Remove extends ExtensionFunctionDefinition {
   private static class ClearCall extends ExtensionFunctionCall {
 
     @Override
-    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
+    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {            
       try {
         String key = ((StringValue) arguments[0].head()).getStringValue(); 
         Cache cache = Context.getInstance().getCacheManager().getCache(Definitions.CACHENAME_RESPONSECACHINGFILTER);

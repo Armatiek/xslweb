@@ -46,7 +46,7 @@ public class WriteTextLinesCall extends FileExtensionFunctionCall {
   }
   
   @Override
-  public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {      
+  public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {      
     try {                      
       File file = getFile(((StringValue) arguments[0].head()).getStringValue());
       File parentFile = file.getParentFile();

@@ -32,7 +32,7 @@ public abstract class SetAttributeCall extends ExtensionFunctionCall {
   protected abstract void setAttributes(String name, Collection<Attribute> attrs, XPathContext context);
   
   @Override
-  public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
+  public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {            
     String name = ((StringValue) arguments[0].head()).getStringValue();    
     Collection<Attribute> attrs = null;
     if (arguments.length > 1) {

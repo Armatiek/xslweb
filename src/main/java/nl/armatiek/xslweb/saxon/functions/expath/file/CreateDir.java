@@ -82,7 +82,7 @@ public class CreateDir extends ExtensionFunctionDefinition {
   private static class CreateDirCall extends FileExtensionFunctionCall {
         
     @Override
-    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {      
+    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {      
       try {                
         File dir = getFile(((StringValue) arguments[0].head()).getStringValue());
         if (dir.isFile()) {

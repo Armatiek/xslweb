@@ -82,7 +82,7 @@ public class Close extends ExtensionFunctionDefinition {
     
     @SuppressWarnings("rawtypes")
     @Override
-    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
+    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {            
       try {
         AutoCloseable closeable = (AutoCloseable) ((ObjectValue) arguments[0].head()).getObject();
         closeable.close();                       

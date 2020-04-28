@@ -22,7 +22,6 @@ import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.DocumentURI;
-import net.sf.saxon.om.Item;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
@@ -89,7 +88,7 @@ public class DiscardDocument extends ExtensionFunctionDefinition {
         ((XsltController)c).removeUnavailableOutputDestination(new DocumentURI(uri));
       }
       c.getDocumentPool().discard(doc.getTreeInfo());
-      return new ZeroOrOne((Item) doc);
+      return new ZeroOrOne<NodeInfo>(doc);
     }
   }
 }

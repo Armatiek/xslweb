@@ -78,7 +78,7 @@ public class ExecExternal extends ExtensionFunctionDefinition {
   private static class ExecExternalCall extends ExtensionFunctionCall {
     
     @Override
-    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {                                  
+    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {                                  
       final CommandLine cmdLine = new CommandLine(((StringValue) arguments[0].head()).getStringValue());      
       if (arguments.length > 1) {
         SequenceIterator args = arguments[1].iterate();      

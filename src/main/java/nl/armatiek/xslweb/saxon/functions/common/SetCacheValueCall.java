@@ -34,7 +34,7 @@ public abstract class SetCacheValueCall extends ExtensionFunctionCall {
       int tti, int ttl, XPathContext context);
 
   @Override
-  public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
+  public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {            
     String cacheName = ((StringValue) arguments[0].head()).getStringValue();
     String keyName = ((StringValue) arguments[1].head()).getStringValue();        
     int tti = (int) ((IntegerValue) arguments[3].head()).longValue();

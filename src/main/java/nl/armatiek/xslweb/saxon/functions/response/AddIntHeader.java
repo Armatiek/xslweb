@@ -71,7 +71,7 @@ public class AddIntHeader extends ExtensionFunctionDefinition {
   private static class AddIntHeaderCall extends ExtensionFunctionCall {
         
     @Override
-    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
+    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {            
       String name = ((StringValue) arguments[0].head()).getStringValue();
       int value = (int) ((Int64Value) arguments[1].head()).longValue();          
       getResponse(context).setIntHeader(name, value);                                                            

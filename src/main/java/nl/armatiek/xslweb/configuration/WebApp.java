@@ -107,7 +107,6 @@ import net.sf.saxon.Configuration;
 import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.lib.NamespaceConstant;
-import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
@@ -762,16 +761,7 @@ public class WebApp implements ErrorHandler {
     }
     return schema;
   }
-  
-  private Source makeNodeInfoSource(Source source, ErrorListener errorListener) throws Exception {
-    if (source instanceof NodeInfo) {
-      return source;
-    }
-    XdmDestination dest = new XdmDestination();
-    getIdentityXsltExecutable().load30().applyTemplates(source, dest);
-    return dest.getXdmNode().asSource();
-  }
-  
+    
   public XsltExecutable trySchematronCache(String schematronPath, String phase, 
       ErrorListener errorListener) throws Exception {
     String key = FilenameUtils.normalize(schematronPath) + (phase != null ? phase : "");

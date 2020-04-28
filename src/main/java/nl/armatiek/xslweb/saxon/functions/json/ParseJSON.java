@@ -18,12 +18,14 @@ package nl.armatiek.xslweb.saxon.functions.json;
  */
 
 import java.io.StringReader;
-import java.util.Properties;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.stax.StAXSource;
 
+import org.apache.commons.lang3.StringUtils;
+
+import de.odysseus.staxon.json.JsonXMLInputFactory;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.event.NamespaceReducer;
 import net.sf.saxon.event.PipelineConfiguration;
@@ -35,6 +37,7 @@ import net.sf.saxon.lib.ParseOptions;
 import net.sf.saxon.lib.SerializerFactory;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
+import net.sf.saxon.serialize.SerializationProperties;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.tiny.TinyBuilder;
 import net.sf.saxon.value.EmptySequence;
@@ -42,10 +45,6 @@ import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
-
-import org.apache.commons.lang3.StringUtils;
-
-import de.odysseus.staxon.json.JsonXMLInputFactory;
 
 /**
  * 
@@ -89,7 +88,7 @@ public class ParseJSON extends ExtensionFunctionDefinition {
   private static class ParseJSONCall extends ExtensionFunctionCall {
     
     @Override
-    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {                     
+    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {                     
       try {
         String json = ((StringValue) arguments[0].head()).getStringValue();
         if (StringUtils.isBlank(json)) {
@@ -103,7 +102,7 @@ public class ParseJSON extends ExtensionFunctionDefinition {
         pipe.getParseOptions().getParserFeatures().remove("http://apache.org/xml/features/xinclude");        
         TinyBuilder builder = new TinyBuilder(pipe);        
         SerializerFactory sf = config.getSerializerFactory();
-        Receiver receiver = sf.getReceiver(builder, pipe, new Properties());               
+        Receiver receiver = sf.getReceiver(builder, new SerializationProperties());               
         NamespaceReducer reducer = new NamespaceReducer(receiver);
         ParseOptions options = pipe.getParseOptions();
         options.setContinueAfterValidationErrors(true);
