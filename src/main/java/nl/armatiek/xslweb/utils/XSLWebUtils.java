@@ -45,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XdmEmptySequence;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.value.ObjectValue;
 import nl.armatiek.xslweb.configuration.Context;
@@ -148,6 +149,9 @@ public class XSLWebUtils {
     params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "webapp-path"), new XdmAtomicValue(webApp.getPath()));
     params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "development-mode"), new XdmAtomicValue(webApp.getDevelopmentMode()));
     params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "version"), new XdmAtomicValue(Definitions.PROJECT_VERSION));
+    String cacheBusterId = webApp.getCacheBusterId();
+    params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION, "cache-buster-id"), 
+        (cacheBusterId != null ? new XdmAtomicValue(cacheBusterId) : XdmEmptySequence.getInstance()));
     
     /* Object parameters: */
     if (req != null) {

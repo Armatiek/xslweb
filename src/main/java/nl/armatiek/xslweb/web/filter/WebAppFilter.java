@@ -29,14 +29,15 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.datatype.Duration;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.Resource;
 import nl.armatiek.xslweb.configuration.WebApp;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 
 public class WebAppFilter implements Filter {
 
@@ -53,8 +54,8 @@ public class WebAppFilter implements Filter {
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
       throws IOException, ServletException {
     HttpServletRequest req = (HttpServletRequest) request;
-    HttpServletResponse resp = (HttpServletResponse) response;        
-    String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();      
+    HttpServletResponse resp = (HttpServletResponse) response;            
+    String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();
     WebApp webApp = getWebApp(request);    
     if (webApp == null) {
       resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -67,15 +68,35 @@ public class WebAppFilter implements Filter {
         chain.doFilter(request, response);               
       } else {
         resp.setContentType(resource.getMediaType());
+        String cacheBusterId = webApp.getCacheBusterId();
+        if (cacheBusterId != null) {
+          path = StringUtils.remove(path, cacheBusterId);
+        }
         File file = webApp.getStaticFile(path);
+        long ifModifiedSince;
         if (!file.isFile()) {
           resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+        } else if ((ifModifiedSince = req.getDateHeader("If-Modified-Since")) > -1 && (file.lastModified() < ifModifiedSince + 1000)) {
+          resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);  
         } else {
+          String cacheControl = "";
           Date currentDate = new Date();
           long now = currentDate.getTime();
-          long duration = resource.getDuration().getTimeInMillis(currentDate);
-          resp.addHeader("Cache-Control", "max-age=" + duration / 1000);
-          resp.setDateHeader("Expires", now + duration);
+          Duration duration = resource.getDuration();
+          if (duration != null) {
+            long ms = duration.getTimeInMillis(currentDate);
+            cacheControl = "max-age=" + ms / 1000;
+            resp.setDateHeader("Expires", now + ms);
+          }
+          String extraCacheControl = resource.getExtraCacheControl();
+          if (StringUtils.isNoneBlank(extraCacheControl)) {
+            cacheControl = cacheControl + StringUtils.prependIfMissing(extraCacheControl.trim(), ",");
+          }
+          if (cacheControl.length() > 0) {
+            resp.addHeader("Cache-Control", cacheControl);
+          }
+          resp.setDateHeader("Last-Modified", file.lastModified());
+          resp.setContentLength((int) file.length());
           FileUtils.copyFile(file, resp.getOutputStream());
         }
       }

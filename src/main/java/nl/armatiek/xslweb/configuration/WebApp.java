@@ -154,6 +154,7 @@ public class WebApp implements ErrorHandler {
   private boolean waitForJobsAtClose;
   // private boolean disableCookieManagement;
   private int maxUploadSize;
+  private String cacheBusterId;
   private Scheduler scheduler;
   private List<Resource> resources = new ArrayList<Resource>();
   private List<Parameter> parameters = new ArrayList<Parameter>();
@@ -209,8 +210,7 @@ public class WebApp implements ErrorHandler {
     this.maxUploadSize = XMLUtils.getIntegerValue(maxUploadSizeValue, 10);    
     String waitForJobsAtCloseValue = (String) xpath.evaluate("webapp:wait-for-jobs-at-close", docElem, XPathConstants.STRING);
     this.waitForJobsAtClose = XMLUtils.getBooleanValue(waitForJobsAtCloseValue, true);
-    // String disableCookieManagement = (String) xpath.evaluate("webapp:disable-cookie-management", docElem, XPathConstants.STRING);
-    // this.disableCookieManagement = XMLUtils.getBooleanValue(disableCookieManagement, false);
+    this.cacheBusterId = (String) xpath.evaluate("webapp:resources/webapp:cache-buster-id", docElem, XPathConstants.STRING); 
     
     NodeList resourceNodes = (NodeList) xpath.evaluate("webapp:resources/webapp:resource", docElem, XPathConstants.NODESET);
     for (int i=0; i<resourceNodes.getLength(); i++) {
@@ -513,6 +513,10 @@ public class WebApp implements ErrorHandler {
   
   public int getMaxUploadSize() {
     return maxUploadSize;
+  }
+  
+  public String getCacheBusterId() {
+    return cacheBusterId;
   }
 
   public List<Resource> getResources() {

@@ -27,11 +27,10 @@ import org.w3c.dom.Element;
 
 public class Resource {
   
-  private static String defaultDuration = "P0DT4H0M0S";
-  
   private Pattern pattern; 
   private String mediaType;
   private Duration duration;
+  private String extraCacheControl;
   
   public Resource(Element resourceElem) throws DatatypeConfigurationException {
     this.pattern = Pattern.compile(resourceElem.getAttribute("pattern"));
@@ -39,10 +38,9 @@ public class Resource {
     String duration;
     if (resourceElem.hasAttribute("duration")) {
       duration = resourceElem.getAttribute("duration");
-    } else {
-      duration = defaultDuration;
+      this.duration = DatatypeFactory.newInstance().newDuration(duration);
     }
-    this.duration = DatatypeFactory.newInstance().newDurationDayTime(duration);
+    this.extraCacheControl = resourceElem.getAttribute("extra-cache-control");
   }
   
   public Pattern getPattern() {
@@ -56,5 +54,9 @@ public class Resource {
   public Duration getDuration() {
     return duration;
   }
-
+  
+  public String getExtraCacheControl() {
+    return extraCacheControl;
+  }
+  
 }
