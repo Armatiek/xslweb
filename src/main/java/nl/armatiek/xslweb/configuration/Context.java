@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import eu.medsea.mimeutil.MimeUtil;
 import net.sf.ehcache.CacheManager;
 import net.sf.saxon.om.NamePool;
+import net.sf.saxon.tree.util.DocumentNumberAllocator;
 import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
@@ -254,11 +255,16 @@ public class Context {
       WebApp webApp = webApps.get(webAppName);
       Map<String, Collection<Attribute>> attributes = null;
       NamePool namePool = null;
+      DocumentNumberAllocator documentNumberAllocator = null;
       if (webApp != null) {
         logger.info(String.format("Stopping existing webapp \"%s\" ...", webAppName));
         try {
           attributes = webApp.getAttributes();
+          // Store the namepool and documentallocator so they can be set to the new configuration. 
+          // Otherwisethe  new and old configurations are not compatible, what could lead to problems 
+          // with cached nodes etc:
           namePool = webApp.getConfiguration().getNamePool();
+          documentNumberAllocator = webApp.getConfiguration().getDocumentNumberAllocator();
           webApp.close();
           // webApps.remove(webAppName);
         } catch (Exception e) {
@@ -278,6 +284,9 @@ public class Context {
         }
         if (namePool != null) {
           webApp.getConfiguration().setNamePool(namePool);
+        }
+        if (documentNumberAllocator != null) {
+          webApp.getConfiguration().setDocumentNumberAllocator(documentNumberAllocator);
         }
         webApp.open();
         webApps.put(webAppName, webApp);
