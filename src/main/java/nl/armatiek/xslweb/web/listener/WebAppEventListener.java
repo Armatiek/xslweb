@@ -1,5 +1,10 @@
 package nl.armatiek.xslweb.web.listener;
 
+import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -20,10 +25,12 @@ package nl.armatiek.xslweb.web.listener;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import nl.armatiek.xslweb.configuration.Context;
-
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import nl.armatiek.xslweb.configuration.Context;
 
 /**
  * 
@@ -37,8 +44,19 @@ public class WebAppEventListener implements ServletContextListener {
   public void contextInitialized(ServletContextEvent sce) {        
     try { 
       Context context = Context.getInstance();
-      context.setServletContext(sce.getServletContext());      
-      context.open();                  
+      context.setServletContext(sce.getServletContext());    
+      ClassLoader effectiveClassLoader = getClass().getClassLoader();
+      if (effectiveClassLoader instanceof URLClassLoader) {
+        URL[] classPathURLs = ((URLClassLoader) effectiveClassLoader).getURLs();
+        ArrayList<String> classPath = new ArrayList<String>();
+        for (int i=0; i<classPathURLs.length; i++) {
+          classPath.add(new File(classPathURLs[i].toURI()).getAbsolutePath());
+        }
+        String classPathSeparator = StringUtils.defaultString(System.getProperty("path.separator"), 
+          SystemUtils.IS_OS_WINDOWS ? ";" : ":");
+        context.setClassPath(String.join(classPathSeparator, classPath));
+      }
+      context.open();              
     } catch (Exception e) {
       logger.error("Could not open XSLWeb Context", e);
     }           

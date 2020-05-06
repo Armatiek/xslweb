@@ -78,6 +78,7 @@ public class Context {
   private Map<String, Collection<Attribute>> attributes = Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
   private CacheManager cacheManager;
   private ServletContext servletContext;
+  private String classPath;
   private FileAlterationMonitor monitor;
   private Schema webAppSchema;
   private Properties properties;
@@ -411,6 +412,14 @@ public class Context {
   
   public String getContextPath() {
     return this.contextPath;
+  }
+  
+  public void setClassPath(String classPath) {
+    this.classPath = classPath;
+  }
+  
+  public String getClassPath() {
+    return this.classPath;
   }
   
   public File getWebInfDir() {

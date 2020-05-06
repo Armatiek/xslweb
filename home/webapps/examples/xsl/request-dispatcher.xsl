@@ -234,6 +234,13 @@
     </pipeline:pipeline>
   </xsl:template>
   
+  <!-- Example 22: Dynamic extension functions -->
+  <xsl:template name="function" match="/req:request[req:path = '/function.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="script" xsl-path="function/function.xsl" log="true"/>       
+    </pipeline:pipeline>
+  </xsl:template>
+  
   <xsl:template match="/req:request[req:path = '/Calculator']">    
     <pipeline:pipeline>
       <xsl:choose>

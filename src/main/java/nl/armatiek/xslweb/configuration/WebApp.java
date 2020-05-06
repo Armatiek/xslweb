@@ -107,6 +107,7 @@ import net.sf.saxon.Configuration;
 import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.lib.NamespaceConstant;
+import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
@@ -143,6 +144,8 @@ public class WebApp implements ErrorHandler {
   private Map<String, ComboPooledDataSource> dataSourceCache = new ConcurrentHashMap<String, ComboPooledDataSource>();
   private Map<String, FopFactory> fopFactoryCache = new ConcurrentHashMap<String, FopFactory>();
   private Map<String, ExecutorService> executorServiceCache = new ConcurrentHashMap<String, ExecutorService>();
+  private Map<String, ExtensionFunctionDefinition> extensionFunctionDefinitions = new ConcurrentHashMap<String, ExtensionFunctionDefinition>();
+  private Map<String, ExtensionFunction> extensionFunctions = new ConcurrentHashMap<String, ExtensionFunction>();
       
   private volatile boolean isClosed = true;
   private File definition;
@@ -995,6 +998,24 @@ public class WebApp implements ErrorHandler {
   public synchronized void decJobRequestCount() {
     jobRequestCount--;
     logger.debug("Decrement jobRequestCount " + jobRequestCount);
+  }
+  
+  public void registerExtensionFunctionDefinition(String name, ExtensionFunctionDefinition funcDef) {
+    configuration.registerExtensionFunction(funcDef);
+    extensionFunctionDefinitions.put(name, funcDef);
+  }
+  
+  public ExtensionFunctionDefinition getExtensionFunctionDefinition(String name) {
+    return extensionFunctionDefinitions.get(name);
+  }
+  
+  public void registerExtensionFunction(String name, ExtensionFunction func) {
+    processor.registerExtensionFunction(func);
+    extensionFunctions.put(name, func);
+  }
+  
+  public ExtensionFunction getExtensionFunction(String name) {
+    return extensionFunctions.get(name);
   }
   
 }
