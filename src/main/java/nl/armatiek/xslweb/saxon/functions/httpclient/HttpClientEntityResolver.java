@@ -14,6 +14,7 @@ import net.sf.saxon.om.AxisInfo;
 import net.sf.saxon.om.CodedName;
 import net.sf.saxon.om.FingerprintedQName;
 import net.sf.saxon.om.Item;
+import net.sf.saxon.om.NamePool;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.NodeName;
 import net.sf.saxon.om.Sequence;
@@ -27,27 +28,22 @@ import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.type.Type;
 import net.sf.saxon.type.Untyped;
 import net.sf.saxon.value.StringValue;
+import nl.armatiek.xslweb.configuration.Fingerprints;
+import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.saxon.functions.httpclient.SendRequest.SendRequestCall;
 import nl.armatiek.xslweb.saxon.utils.NodeInfoUtils;
 
 public class HttpClientEntityResolver extends StandardEntityResolver {
   
-  private static final FingerprintedQName nameRequest = new FingerprintedQName("http", Types.EXT_NAMESPACEURI, "request");
-  private static final FingerprintedQName nameHeader = new FingerprintedQName("http", Types.EXT_NAMESPACEURI, "header");
-  private static final FingerprintedQName nameName = new FingerprintedQName("", "", "name");
-  private static final FingerprintedQName nameValue = new FingerprintedQName("", "", "value");
-  private static final FingerprintedQName nameMethod = new FingerprintedQName("", "", "method");
-  private static final FingerprintedQName nameHref = new FingerprintedQName("", "", "href");
-  private static final FingerprintedQName nameStatusOnly = new FingerprintedQName("", "", "status-only");
-  private static final FingerprintedQName nameOverrideMediaType = new FingerprintedQName("", "", "override-media-type");
-  
   private final XPathContext context;
   private final NodeInfo requestNode;
+  private final WebApp webApp;
   
-  public HttpClientEntityResolver(XPathContext context, NodeInfo requestNode) {
+  public HttpClientEntityResolver(XPathContext context, NodeInfo requestNode, WebApp webApp) {
     this.setConfiguration(context.getConfiguration());
     this.context = context;
     this.requestNode = requestNode;
+    this.webApp = webApp;
   }
 
   @Override
@@ -62,13 +58,16 @@ public class HttpClientEntityResolver extends StandardEntityResolver {
        * Lets execute this request with the same settings as the "containing" request:  
        */
       try {
+        Fingerprints fingerprints = webApp.getFingerprints();
+        NamePool namePool = context.getConfiguration().getNamePool();
+        
         /* Create a new http:request element: */
         PipelineConfiguration config = context.getConfiguration().makePipelineConfiguration();
         TinyBuilder builder = (TinyBuilder) TreeModel.TINY_TREE.makeBuilder(config);
         builder.setLineNumbering(false);
         builder.open();
         builder.startDocument(0);
-        builder.startElement(nameRequest, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+        builder.startElement(new CodedName(fingerprints.HTTPCLIENT_REQUEST, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
         
         /* Copy relevant attribute nodes: */
         AxisIterator attrs = requestNode.iterateAxis(AxisInfo.ATTRIBUTE);
@@ -88,10 +87,10 @@ public class HttpClientEntityResolver extends StandardEntityResolver {
         }
         
         /* Create new attribute nodes specific for this request */
-        builder.attribute(nameMethod, BuiltInAtomicType.UNTYPED_ATOMIC, "GET", null, 0);
-        builder.attribute(nameHref, BuiltInAtomicType.UNTYPED_ATOMIC, systemId, null, 0);
-        builder.attribute(nameStatusOnly, BuiltInAtomicType.UNTYPED_ATOMIC, "false", null, 0);
-        builder.attribute(nameOverrideMediaType, BuiltInAtomicType.UNTYPED_ATOMIC, "text/plain", null, 0);
+        builder.attribute(new CodedName(fingerprints.METHOD, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, "GET", null, 0);
+        builder.attribute(new CodedName(fingerprints.HREF, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, systemId, null, 0);
+        builder.attribute(new CodedName(fingerprints.STATUSONLY, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, "false", null, 0);
+        builder.attribute(new CodedName(fingerprints.OVERRIDEMEDIATYPE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, "text/plain", null, 0);
         
         builder.startContent();
 
@@ -99,9 +98,9 @@ public class HttpClientEntityResolver extends StandardEntityResolver {
         AxisIterator headers = requestNode.iterateAxis(AxisInfo.CHILD, new NameTest(Type.ELEMENT, Types.EXT_NAMESPACEURI, "header", context.getConfiguration().getNamePool()));
         NodeInfo header;
         while ((header = headers.next()) != null) {
-          builder.startElement(nameHeader, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
-          builder.attribute(nameName, BuiltInAtomicType.UNTYPED_ATOMIC, header.getAttributeValue("", "name"), null, 0);  
-          builder.attribute(nameValue, BuiltInAtomicType.UNTYPED_ATOMIC, header.getAttributeValue("", "value"), null, 0);  
+          builder.startElement(new CodedName(fingerprints.HTTPCLIENT_HEADER, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+          builder.attribute(new CodedName(fingerprints.NAME, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, header.getAttributeValue("", "name"), null, 0);  
+          builder.attribute(new CodedName(fingerprints.VALUE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, header.getAttributeValue("", "value"), null, 0);  
           builder.endElement();
         }    
         builder.endElement();

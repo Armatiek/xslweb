@@ -33,12 +33,16 @@ public class Call extends ExtensionFunctionDefinition {
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 2;
+    return 17;
   }
 
   @Override
   public SequenceType[] getArgumentTypes() {
-    return new SequenceType[] { SequenceType.SINGLE_QNAME, SequenceType.ANY_SEQUENCE };
+    return new SequenceType[] { SequenceType.SINGLE_QNAME, 
+        SequenceType.ANY_SEQUENCE, SequenceType.ANY_SEQUENCE, SequenceType.ANY_SEQUENCE, SequenceType.ANY_SEQUENCE, 
+        SequenceType.ANY_SEQUENCE, SequenceType.ANY_SEQUENCE, SequenceType.ANY_SEQUENCE, SequenceType.ANY_SEQUENCE, 
+        SequenceType.ANY_SEQUENCE, SequenceType.ANY_SEQUENCE, SequenceType.ANY_SEQUENCE, SequenceType.ANY_SEQUENCE,
+        SequenceType.ANY_SEQUENCE, SequenceType.ANY_SEQUENCE, SequenceType.ANY_SEQUENCE, SequenceType.ANY_SEQUENCE, };
   }
 
   @Override
@@ -60,8 +64,9 @@ public class Call extends ExtensionFunctionDefinition {
       if (funcDef == null) {
         throw new XPathException("No function with name \"" + functionName + "\" is registered");
       }
-      // return funcDef.makeCallExpression().call(context, ArrayUtils.subarray(arguments, 1, arguments.length + 1));
-      return funcDef.makeCallExpression().call(context, new Sequence[] { arguments[1] });
+      return funcDef.makeCallExpression().call(context, ArrayUtils.subarray(arguments, 1, arguments.length));
     }
+    
   }
+  
 }

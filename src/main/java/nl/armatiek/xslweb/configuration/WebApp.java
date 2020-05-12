@@ -167,6 +167,7 @@ public class WebApp implements ErrorHandler {
   private XsltExecutable identityXsltExecutable;
   private XSLWebConfiguration configuration;  
   private Processor processor;  
+  private Fingerprints fingerprints;
   private FileAlterationMonitor monitor;
   // private CloseableHttpClient httpClient;
   private volatile int jobRequestCount = 0;
@@ -204,6 +205,7 @@ public class WebApp implements ErrorHandler {
     Node saxonConfigNode = (Node) xpath.evaluate("saxon-config:configuration", docElem, XPathConstants.NODE);
     this.configuration = new XSLWebConfiguration(this, saxonConfigNode, webAppDefinition.getAbsolutePath());
     this.processor = new Processor(this.configuration.getConfiguration());
+    this.fingerprints = new Fingerprints(this.configuration.getConfiguration().getNamePool());
     
     this.title = (String) xpath.evaluate("webapp:title", docElem, XPathConstants.STRING);
     this.description = (String) xpath.evaluate("webapp:description", docElem, XPathConstants.STRING);
@@ -536,6 +538,10 @@ public class WebApp implements ErrorHandler {
   
   public Configuration getConfiguration() {
     return configuration.getConfiguration();
+  }
+  
+  public Fingerprints getFingerprints() {
+    return fingerprints;
   }
   
   public Processor getProcessor() {

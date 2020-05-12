@@ -98,7 +98,7 @@ public class Log extends ExtensionFunctionDefinition {
           props = getOutputProperties((NodeInfo) arguments[2].head());
         }
         StringWriter sw = new StringWriter();
-        serialize(arguments[1], sw, props);  
+        serialize(arguments[1], sw, props, getWebApp(context).getProcessor());  
         String message = sw.toString();
         if (level.equals("ERROR")) {
           log.error(message);

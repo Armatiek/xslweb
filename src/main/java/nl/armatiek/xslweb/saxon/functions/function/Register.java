@@ -1,13 +1,31 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package nl.armatiek.xslweb.saxon.functions.function;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
@@ -26,7 +44,8 @@ import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.expr.parser.ExplicitLocation;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.om.FingerprintedQName;
+import net.sf.saxon.om.CodedName;
+import net.sf.saxon.om.NamePool;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.SequenceIterator;
@@ -37,10 +56,13 @@ import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.tiny.TinyBuilder;
 import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.type.Untyped;
+import net.sf.saxon.value.QualifiedNameValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.configuration.Fingerprints;
+import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 import nl.armatiek.xslweb.saxon.utils.NodeInfoUtils;
 
@@ -70,7 +92,7 @@ public class Register extends ExtensionFunctionDefinition {
 
   @Override
   public SequenceType[] getArgumentTypes() {
-    return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.makeSequenceType(BuiltInAtomicType.STRING, StaticProperty.ALLOWS_ONE_OR_MORE) };
+    return new SequenceType[] { SequenceType.SINGLE_QNAME, SequenceType.makeSequenceType(BuiltInAtomicType.STRING, StaticProperty.ALLOWS_ONE_OR_MORE) };
   }
 
   @Override
@@ -85,18 +107,7 @@ public class Register extends ExtensionFunctionDefinition {
   
   private static class RegisterFunctionCall extends ExtensionFunctionCall {
     
-    private static final FingerprintedQName nameDiagnostics = new FingerprintedQName("script", Definitions.NAMESPACEURI_XSLWEB_FX_FUNCTION, "diagnostics");
-    private static final FingerprintedQName nameDiagnostic = new FingerprintedQName("script", Definitions.NAMESPACEURI_XSLWEB_FX_FUNCTION, "diagnostic");
-    private static final FingerprintedQName nameCode = new FingerprintedQName("", "", "code");
-    private static final FingerprintedQName nameLine = new FingerprintedQName("", "", "line");
-    private static final FingerprintedQName nameColumn = new FingerprintedQName("", "", "column");
-    private static final FingerprintedQName nameStart = new FingerprintedQName("", "", "start");
-    private static final FingerprintedQName nameEnd = new FingerprintedQName("", "", "end");
-    private static final FingerprintedQName nameKind = new FingerprintedQName("", "", "kind");
-    private static final FingerprintedQName nameMessage = new FingerprintedQName("", "", "message");
-    private static final FingerprintedQName namePosition = new FingerprintedQName("", "", "position");
-    
-    private String functionName;
+    private StructuredQName functionName;
     private Sequence codeUnits;
     private String className;
     
@@ -105,7 +116,7 @@ public class Register extends ExtensionFunctionDefinition {
       SequenceIterator iter = codeUnits.iterate();
       StringValue item;
       while ((item = (StringValue) iter.next()) != null) {
-        objectList.add(new JavaStringObject(className, StringUtils.replace(item.getStringValue(), "%CLASSNAME%", className)));
+        objectList.add(new JavaStringObject(className, item.getStringValue().replaceAll("(class\\s+)(\\S+)(\\s*\\{)", "$1" + className + "$3")));
       }
       return objectList;
     }
@@ -139,6 +150,7 @@ public class Register extends ExtensionFunctionDefinition {
 
       private final List<ClassJavaFileObject> outputFiles;
 
+      @SuppressWarnings("unchecked")
       protected SimpleJavaFileManager(JavaFileManager fileManager) {
         super(fileManager);
         outputFiles = new ArrayList<ClassJavaFileObject>();
@@ -191,16 +203,29 @@ public class Register extends ExtensionFunctionDefinition {
       }
     }
     
+    private Method getCallMethod(Class<?> callClass) throws XPathException {
+      Method[] methods = callClass.getDeclaredMethods();
+      Method callMethod = null;
+      for (Method method: methods) {
+        if (method.getName().equals("call")) {
+          callMethod = method;
+          break;
+        }
+      }
+      if (callMethod == null) {
+        throw new XPathException("No method \"call\" specified in the custom extension class code");
+      }
+      return callMethod;
+    }
+    
     @Override
     public ZeroOrOne<NodeInfo> call(XPathContext context, Sequence[] arguments) throws XPathException {            
       try {
-        functionName = ((StringValue) arguments[0].head()).getStringValue();        
+        functionName = ((QualifiedNameValue) arguments[0].head()).getStructuredQName();       
+        className = "Call" + UUID.randomUUID().toString().replace("-", "");
         codeUnits = arguments[1];
-        // className = "p" + UUID.randomUUID().toString().replace('-', '_');
-        className = "Test";
         
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        // JavaCompiler compiler = (JavaCompiler) Class.forName("com.sun.tools.javac.api.JavacTool", true, getClass().getClassLoader()).newInstance();
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         
         List<String> optionList = new ArrayList<String>();
@@ -213,23 +238,27 @@ public class Register extends ExtensionFunctionDefinition {
         NodeInfo diagnosticsNode = null;
         
         if (!task.call()) {
+          WebApp webApp = getWebApp(context);
+          Fingerprints fingerprints = webApp.getFingerprints();
+          NamePool namePool = context.getConfiguration().getNamePool();
+          
           PipelineConfiguration config = context.getConfiguration().makePipelineConfiguration();
           TinyBuilder builder = (TinyBuilder) TreeModel.TINY_TREE.makeBuilder(config);
           builder.setLineNumbering(false);
           builder.open();
           builder.startDocument(0);
-          builder.startElement(nameDiagnostics, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+          builder.startElement(new CodedName(fingerprints.FUNCTION_DIAGNOSTICS, "function", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
           List<Diagnostic<? extends JavaFileObject>> diags = diagnostics.getDiagnostics();
           for (Diagnostic<? extends JavaFileObject> diag : diags) {
-            builder.startElement(nameDiagnostic, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
-            builder.attribute(nameCode, BuiltInAtomicType.UNTYPED_ATOMIC, StringUtils.defaultString(diag.getCode()), null, 0); 
-            builder.attribute(nameLine, BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getLineNumber()), null, 0); 
-            builder.attribute(nameColumn, BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getColumnNumber()), null, 0);
-            builder.attribute(nameStart, BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getStartPosition()), null, 0); 
-            builder.attribute(nameEnd, BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getEndPosition()), null, 0); 
-            builder.attribute(nameKind, BuiltInAtomicType.UNTYPED_ATOMIC, diag.getKind().name(), null, 0);
-            builder.attribute(nameMessage, BuiltInAtomicType.UNTYPED_ATOMIC, StringUtils.defaultString(diag.getMessage(null)), null, 0);
-            builder.attribute(namePosition, BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getPosition()), null, 0); 
+            builder.startElement(new CodedName(fingerprints.FUNCTION_DIAGNOSTIC, "function", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+            builder.attribute(new CodedName(fingerprints.CODE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, StringUtils.defaultString(diag.getCode()), null, 0); 
+            builder.attribute(new CodedName(fingerprints.LINE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getLineNumber()), null, 0); 
+            builder.attribute(new CodedName(fingerprints.COLUMN, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getColumnNumber()), null, 0);
+            builder.attribute(new CodedName(fingerprints.START, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getStartPosition()), null, 0); 
+            builder.attribute(new CodedName(fingerprints.END, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getEndPosition()), null, 0); 
+            builder.attribute(new CodedName(fingerprints.KIND, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, diag.getKind().name(), null, 0);
+            builder.attribute(new CodedName(fingerprints.MESSAGE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, StringUtils.defaultString(diag.getMessage(null)), null, 0);
+            builder.attribute(new CodedName(fingerprints.POSITION, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getPosition()), null, 0); 
             builder.endElement();
           }
           builder.endElement();
@@ -238,12 +267,18 @@ public class Register extends ExtensionFunctionDefinition {
           diagnosticsNode = NodeInfoUtils.getFirstChildElement(builder.getCurrentRoot());
         } else {
           CompiledClassLoader classLoader = new CompiledClassLoader(getClass().getClassLoader(), fileManager.getGeneratedOutputFiles());
-          ExtensionFunctionDefinition funcDef = ((Class<ExtensionFunctionDefinition>) classLoader.loadClass(className)).newInstance();
-          getWebApp(context).registerExtensionFunctionDefinition(funcDef.getFunctionQName().getClarkName(), funcDef);
+          @SuppressWarnings("unchecked")
+          Class<DynamicExtensionFunctionCall> callClass = ((Class<DynamicExtensionFunctionCall>) classLoader.loadClass(className));
+          Method callMethod = getCallMethod(callClass);
+          Class<?> returnType = callMethod.getReturnType();
+          Class<?>[] parameterTypes = callMethod.getParameterTypes();
+          ExtensionFunctionDefinition funcDef = new DynamicExtensionFunctionDefinition(context.getConfiguration(), 
+              functionName, returnType, parameterTypes, true, callClass);
+          getWebApp(context).registerExtensionFunctionDefinition(functionName.getClarkName(), funcDef);
         }
         return new ZeroOrOne<NodeInfo>(diagnosticsNode);
       } catch (Exception e) {
-        throw new XPathException("Error compiling and registering script", e);
+        throw new XPathException("Error compiling and registering extension function", e);
       }
     }
   }

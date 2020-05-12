@@ -79,7 +79,7 @@ public class Serialize extends ExtensionFunctionDefinition {
         props = getOutputProperties((NodeInfo) arguments[1].head());
       }
       StringWriter sw = new StringWriter();
-      serialize(arguments[0], sw, props);
+      serialize(arguments[0], sw, props, getWebApp(context).getProcessor());
       return StringValue.makeStringValue(sw.toString());              
     }
   }

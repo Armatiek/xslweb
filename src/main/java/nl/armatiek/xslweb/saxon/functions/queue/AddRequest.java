@@ -79,8 +79,8 @@ public class AddRequest extends ExtensionFunctionDefinition {
       try {
         String queueName = ((StringValue) arguments[0].head()).getStringValue();
         String path = ((StringValue) arguments[1].head()).getStringValue();
-        String extraInfo = arguments.length > 2 ? serialize((NodeInfo) arguments[2].head()) : null;
         WebApp webApp = getWebApp(context);
+        String extraInfo = arguments.length > 2 ? serialize((NodeInfo) arguments[2].head(), webApp.getProcessor()) : null;
         ExecutorService service = webApp.getExecutorService(queueName);
         String ticket = UUID.randomUUID().toString();
         File queueDir = Context.getInstance().getQueueDir();

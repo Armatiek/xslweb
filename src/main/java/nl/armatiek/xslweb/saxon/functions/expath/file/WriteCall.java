@@ -63,7 +63,7 @@ public class WriteCall extends FileExtensionFunctionCall {
       }
       OutputStream os = FileUtils.openOutputStream(file, append);
       try {
-        serialize(arguments[1], os, props);
+        serialize(arguments[1], os, props, getWebApp(context).getProcessor());
       } finally {
         os.close();
       }

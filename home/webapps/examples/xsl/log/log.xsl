@@ -23,7 +23,7 @@
     </xsl:variable>
     
     <xsl:variable name="node-2" as="element()">
-      <node2>This is node 2</node2>
+      <node2><node2>This is node 2</node2></node2>
     </xsl:variable>
     
     <xsl:variable name="node-3" as="xs:string">This is a string</xsl:variable>
@@ -32,6 +32,7 @@
     <xsl:variable name="output-parameters" as="element()">
       <output:serialization-parameters>
         <output:method value="xml"/>
+        <output:indent value="yes"/>
         <output:omit-xml-declaration value="yes"/>
       </output:serialization-parameters>  
     </xsl:variable>

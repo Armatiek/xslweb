@@ -30,7 +30,7 @@ import net.sf.saxon.s9api.QName;
 public class Definitions {
   
   public final static String PROJECT_NAME                      = "xslweb";
-  public final static String PROJECT_VERSION                   = "3.2.0";
+  public final static String PROJECT_VERSION                   = "3.2.1";
   public final static String PATHNAME_REQUESTDISPATCHER_XSL    = "xsl/request-dispatcher.xsl";
   public final static String FILENAME_PROPERTIES               = "xslweb.properties";
   public final static String FILENAME_QUARTZ                   = "xslweb-quartz.properties";

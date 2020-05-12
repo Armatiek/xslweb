@@ -271,11 +271,11 @@ public class SendRequest extends ExtensionFunctionDefinition {
       try (Response response = customClient.newCall(request).execute()) {
        
         // Build the http:response element:
-        resultList.add(ResponseUtils.buildResponseElement(response, context));
+        resultList.add(ResponseUtils.buildResponseElement(response, context, getWebApp(context)));
         
         if (!statusOnly) {
           // Build the response content:
-          resultList.add(ResponseUtils.buildResponseContent(response, context, requestElem, overrideMediaType));
+          resultList.add(ResponseUtils.buildResponseContent(response, context, requestElem, overrideMediaType, getWebApp(context)));
         }
         
       } catch (InterruptedIOException e) {

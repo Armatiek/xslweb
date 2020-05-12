@@ -90,7 +90,7 @@ public class SerializeJSON extends ExtensionFunctionDefinition {
           prettyPrint(true).
           build();    
       XMLOutputFactory jFactory = new JsonXMLOutputFactory(config);                  
-      TransformerFactory tFactory = new TransformerFactoryImpl();      
+      TransformerFactory tFactory = new TransformerFactoryImpl(context.getConfiguration());      
       try {
         SequenceIterator iter = arguments[0].iterate(); 
         Item item;

@@ -37,18 +37,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
 import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Node;
 
 import net.sf.saxon.Configuration;
-import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.dom.DocumentWrapper;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.om.AxisInfo;
@@ -60,6 +55,9 @@ import net.sf.saxon.om.SequenceTool;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.om.ZeroOrMore;
 import net.sf.saxon.pattern.NodeKindTest;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.Serializer;
+import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.AxisIterator;
 import net.sf.saxon.type.ItemType;
@@ -148,26 +146,37 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     return nodeInfo;
   }
   
-  protected void serialize(NodeInfo nodeInfo, Result result, Properties outputProperties) throws XPathException {
+  protected void serialize(NodeInfo nodeInfo, OutputStream os, Properties outputProperties, Processor proc) throws XPathException {
     try {
-      TransformerFactory factory = new TransformerFactoryImpl();
-      Transformer transformer = factory.newTransformer();
+      Serializer ser = proc.newSerializer(os);
       if (outputProperties != null) {
-        transformer.setOutputProperties(outputProperties);
+        ser.setOutputProperties(outputProperties);
       }
-      transformer.transform(nodeInfo, result);
+      ser.serializeNode(new XdmNode(nodeInfo));  
     } catch (Exception e) {
       throw new XPathException(e);
     }
   }
   
-  protected void serialize(Sequence seq, Writer w, Properties outputProperties) throws XPathException {
+  protected void serialize(NodeInfo nodeInfo, Writer w, Properties outputProperties, Processor proc) throws XPathException {
+    try {
+      Serializer ser = proc.newSerializer(w);
+      if (outputProperties != null) {
+        ser.setOutputProperties(outputProperties);
+      }
+      ser.serializeNode(new XdmNode(nodeInfo));  
+    } catch (Exception e) {
+      throw new XPathException(e);
+    }
+  }
+  
+  protected void serialize(Sequence seq, Writer w, Properties outputProperties, Processor proc) throws XPathException {
     try {
       SequenceIterator iter = seq.iterate(); 
       Item item;
       while ((item = iter.next()) != null) {
         if (item instanceof NodeInfo) {
-          serialize((NodeInfo) item, new StreamResult(w), outputProperties);
+          serialize((NodeInfo) item, w, outputProperties, proc);
         } else {
           w.append(item.getStringValue());
         }
@@ -177,7 +186,7 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     }
   }
   
-  protected void serialize(Sequence seq, OutputStream os, Properties outputProperties) throws XPathException {
+  protected void serialize(Sequence seq, OutputStream os, Properties outputProperties, Processor proc) throws XPathException {
     String encoding = "UTF-8";
     if (outputProperties != null) {
       encoding = outputProperties.getProperty("encoding", encoding);
@@ -187,7 +196,7 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
       Item item;
       while ((item = iter.next()) != null) {
         if (item instanceof NodeInfo) {
-          serialize((NodeInfo) item, new StreamResult(os), outputProperties);
+          serialize((NodeInfo) item, os, outputProperties, proc);
         } else {
           new OutputStreamWriter(os, encoding).append(item.getStringValue());
         }
@@ -197,18 +206,18 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     }
   }
 
-  protected String serialize(NodeInfo nodeInfo, Properties props) throws XPathException {
+  protected String serialize(NodeInfo nodeInfo, Properties props, Processor proc) throws XPathException {
     StringWriter sw = new StringWriter();
-    serialize(nodeInfo, new StreamResult(sw), props);
+    serialize(nodeInfo, sw, props, proc);
     return sw.toString();
   }
   
-  protected String serialize(NodeInfo nodeInfo) throws XPathException {
+  protected String serialize(NodeInfo nodeInfo, Processor proc) throws XPathException {
     Properties props = new Properties();
     props.setProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
     props.setProperty(OutputKeys.METHOD, "xml");
     props.setProperty(OutputKeys.INDENT, "no");
-    return serialize(nodeInfo, props);
+    return serialize(nodeInfo, props, proc);
   }
   
   protected Properties getOutputProperties(NodeInfo paramsElem) {

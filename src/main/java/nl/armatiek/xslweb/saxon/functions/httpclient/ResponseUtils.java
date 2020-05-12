@@ -29,8 +29,9 @@ import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.expr.parser.ExplicitLocation;
 import net.sf.saxon.lib.ParseOptions;
 import net.sf.saxon.lib.Validation;
-import net.sf.saxon.om.FingerprintedQName;
+import net.sf.saxon.om.CodedName;
 import net.sf.saxon.om.Item;
+import net.sf.saxon.om.NamePool;
 import net.sf.saxon.om.NoElementsSpaceStrippingRule;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.trans.XPathException;
@@ -39,6 +40,8 @@ import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.type.Untyped;
 import net.sf.saxon.value.Base64BinaryValue;
 import net.sf.saxon.value.StringValue;
+import nl.armatiek.xslweb.configuration.Fingerprints;
+import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.saxon.functions.httpclient.Types.Type;
 import nl.armatiek.xslweb.saxon.utils.NodeInfoUtils;
 import okhttp3.Headers;
@@ -48,46 +51,39 @@ import okhttp3.ResponseBody;
 
 public class ResponseUtils {
   
-  private static final FingerprintedQName nameResponse = new FingerprintedQName("http", Types.EXT_NAMESPACEURI, "response");
-  private static final FingerprintedQName nameStatus = new FingerprintedQName("", "", "status");
-  private static final FingerprintedQName nameMessage = new FingerprintedQName("", "", "message");
-  private static final FingerprintedQName nameHeader = new FingerprintedQName("http", Types.EXT_NAMESPACEURI, "header");
-  private static final FingerprintedQName nameName = new FingerprintedQName("", "", "name");
-  private static final FingerprintedQName nameValue = new FingerprintedQName("", "", "value");
-  private static final FingerprintedQName nameBody = new FingerprintedQName("http", Types.EXT_NAMESPACEURI, "body");
-  private static final FingerprintedQName nameMediaType = new FingerprintedQName("", "", "media-type");
-  private static final FingerprintedQName nameMethod = new FingerprintedQName("", "", "method");
-  
-  public static NodeInfo buildResponseElement(final Response response, final XPathContext context) throws XPathException {
+  public static NodeInfo buildResponseElement(final Response response, final XPathContext context, final WebApp webApp) throws XPathException {
     TinyBuilder builder = new TinyBuilder(context.getConfiguration().makePipelineConfiguration());
     builder.setStatistics(context.getConfiguration().getTreeStatistics().SOURCE_DOCUMENT_STATISTICS); 
     builder.setLineNumbering(false);
     builder.open();
     builder.startDocument(0);
     
+    Fingerprints fingerprints = webApp.getFingerprints();
+    NamePool namePool = context.getConfiguration().getNamePool();
+    
     // Root element: 
-    builder.startElement(nameResponse, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
-    builder.attribute(nameStatus, BuiltInAtomicType.UNTYPED_ATOMIC, Integer.toString(response.code()), null, 0);
-    builder.attribute(nameMessage, BuiltInAtomicType.UNTYPED_ATOMIC, response.message(), null, 0);
+    builder.startElement(new CodedName(fingerprints.HTTPCLIENT_RESPONSE, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+    builder.attribute(new CodedName(fingerprints.STATUS, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Integer.toString(response.code()), null, 0);
+    builder.attribute(new CodedName(fingerprints.MESSAGE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, response.message(), null, 0);
     
     // Response headers:
     Headers responseHeaders = response.headers();
     for (int i=0; i<responseHeaders.size(); i++) {
-      builder.startElement(nameHeader, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
-      builder.attribute(nameName, BuiltInAtomicType.UNTYPED_ATOMIC, responseHeaders.name(i), null, 0);
-      builder.attribute(nameValue, BuiltInAtomicType.UNTYPED_ATOMIC, responseHeaders.value(i), null, 0);
+      builder.startElement(new CodedName(fingerprints.HTTPCLIENT_HEADER, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+      builder.attribute(new CodedName(fingerprints.NAME, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, responseHeaders.name(i), null, 0);
+      builder.attribute(new CodedName(fingerprints.VALUE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, responseHeaders.value(i), null, 0);
       builder.endElement();
     }
     
     // Response body:
     ResponseBody body = response.body();
-    builder.startElement(nameBody, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+    builder.startElement(new CodedName(fingerprints.HTTPCLIENT_BODY, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
     MediaType mediaType = body.contentType();
     if (mediaType != null) {
-      builder.attribute(nameMediaType, BuiltInAtomicType.UNTYPED_ATOMIC, mediaType.toString(), null, 0);
-      builder.attribute(nameMethod, BuiltInAtomicType.UNTYPED_ATOMIC, Types.getMethodForMediaType(mediaType), null, 0);
+      builder.attribute(new CodedName(fingerprints.MEDIATYPE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, mediaType.toString(), null, 0);
+      builder.attribute(new CodedName(fingerprints.METHOD, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Types.getMethodForMediaType(mediaType), null, 0);
     } else {
-      builder.attribute(nameMethod, BuiltInAtomicType.UNTYPED_ATOMIC, "binary", null, 0);
+      builder.attribute(new CodedName(fingerprints.METHOD, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, "binary", null, 0);
     }
  
     builder.endElement();
@@ -100,7 +96,7 @@ public class ResponseUtils {
   }
   
   public static Item buildResponseContent(final Response response, final XPathContext context, 
-      final NodeInfo requestElem, final String overrideMediaType) throws XPathException, IOException {
+      final NodeInfo requestElem, final String overrideMediaType, final WebApp webApp) throws XPathException, IOException {
     ResponseBody body = response.body();
     MediaType specifiedMediaType = body.contentType();
     MediaType mediaType = null;
@@ -137,7 +133,7 @@ public class ResponseUtils {
         parseOptions.setDTDValidationMode(Validation.STRIP);
         parseOptions.setSchemaValidationMode(Validation.STRIP);
         parseOptions.setSpaceStrippingRule(NoElementsSpaceStrippingRule.getInstance());
-        parseOptions.setEntityResolver(new HttpClientEntityResolver(context, requestElem));
+        parseOptions.setEntityResolver(new HttpClientEntityResolver(context, requestElem, webApp));
         parseOptions.setLineNumbering(false);
         if (contentType.equals(Type.HTML)) {
           parseOptions.setXMLReader(new Parser());
