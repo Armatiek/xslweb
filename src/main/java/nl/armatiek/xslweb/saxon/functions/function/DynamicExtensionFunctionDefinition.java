@@ -80,17 +80,17 @@ public class DynamicExtensionFunctionDefinition extends ExtensionFunctionDefinit
   private Class<?> returnType;
   private Class<?>[] parameterTypes;
   private boolean hasSideEffects;
-  private Class<?> callClass;
+  private Method method;
   
   public DynamicExtensionFunctionDefinition(Configuration configuration, StructuredQName funcName, 
-      Class<?> returnType, Class<?>[] parameterTypes, boolean hasSideEffects, Class<?> callClass) {
+      Class<?> returnType, Class<?>[] parameterTypes, boolean hasSideEffects, Method method) {
     super(configuration);
     this.minArguments = parameterTypes.length;
     this.maxArguments = parameterTypes.length;
     this.parameterTypes = parameterTypes;
     this.returnType = returnType;
     this.hasSideEffects = hasSideEffects;
-    this.callClass = callClass;
+    this.method = method;
   }
   
   @Override
@@ -298,7 +298,7 @@ public class DynamicExtensionFunctionDefinition extends ExtensionFunctionDefinit
       @Override
       public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {
         try { 
-          Method method = callClass.getMethod("call", parameterTypes);
+          // Method method = callClass.getMethod("call", parameterTypes);
           
           ArrayList<Object> implicitObjects = new ArrayList<Object>();
           for (Class paramType: parameterTypes) {
@@ -447,12 +447,12 @@ public class DynamicExtensionFunctionDefinition extends ExtensionFunctionDefinit
             }
             parameters[i + implicitObjects.size()] = param;
           }
-          Object callObj = callClass.newInstance();
+          Object callObj = method.getDeclaringClass().newInstance();
           Object resultObj = method.invoke(callObj, parameters);
           JPConverter conv = JPConverter.allocate(returnType, null, context.getConfiguration());
           return conv.convert(resultObj, context);
-        } catch (NoSuchMethodException e) {
-          throw new XPathException("No method \"call\" found with specified parameters");
+        //} catch (NoSuchMethodException e) {
+        //  throw new XPathException("No method \"call\" found with specified parameters");
         } catch (InvocationTargetException e) {
           throw new XPathException(e);
         } catch (IllegalAccessException e) {

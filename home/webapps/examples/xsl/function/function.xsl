@@ -16,77 +16,78 @@
   
   <xsl:variable name="function-ns-uri" as="xs:string">http://www.armatiek.com/xslweb/functions/tests</xsl:variable>
   
-  <xsl:template name="register-function">
-    <xsl:param name="function-name" as="xs:QName"/>
-    <xsl:param name="code-units" as="xs:string*"/>
-    <xsl:variable name="result" select="function:register($function-name, $code-units)" as="element(function:diagnostics)?"/>
+  <xsl:variable name="code-units" as="xs:string+">
+    <xsl:text>
+    <![CDATA[
+    import nl.armatiek.xslweb.saxon.functions.function.ExtensionFunction;
+    import net.sf.saxon.expr.XPathContext;
+    import org.apache.commons.text.similarity.LongestCommonSubsequence;
+
+    public class MyExtensionFunctions {
+
+      @ExtensionFunction(uri="http://www.armatiek.com/xslweb/functions/tests", name="lcs", hasSideEffects=false)  
+      public String lcs(String left, String right) {
+        LongestCommonSubsequence lcs = new LongestCommonSubsequence();
+        return lcs.longestCommonSubsequence(left, right).toString();
+      }
+      
+      @ExtensionFunction(uri="http://www.armatiek.com/xslweb/functions/tests", name="sort-floats", hasSideEffects=false)
+      public float[] sortFloats(float[] a, int fromIndex, int toIndex) {
+        java.util.Arrays.sort(a, fromIndex, toIndex);
+        return a;
+      }
+      
+      @ExtensionFunction(uri="http://www.armatiek.com/xslweb/functions/tests", name="implicit-objects", hasSideEffects=false)
+      public void implicitObjects(XPathContext context, String text) {
+        System.out.println(text + ", your Saxon edition is: " + context.getConfiguration().getEditionCode());
+      }
+      
+    }
+    ]]>  
+    </xsl:text>
+    <!--
+    <xsl:text>
+    <![CDATA[
+    
+    public class SecundaryClass {
+
+      public static String test() {
+        return "TEST";
+      }
+      
+    }
+    ]]>
+    </xsl:text>
+    -->
+  </xsl:variable>
+ 
+  <xsl:template name="tab-contents-1">
+    
+    <!-- Register the extension functions in the Java code: -->
+    <xsl:variable name="result" select="function:register($code-units)" as="element(function:diagnostics)?"/>
     <xsl:if test="$result/function:diagnostic/@kind = 'ERROR'">
-      <p>Error registering function <xsl:value-of select="$function-name"/>:</p>
+      <p>Error registering/compiling extension function class:</p>
       <pre class="prettyprint lang-xml linenums">
         <xsl:sequence select="serialize($result, $output-parameters)"/>
       </pre>
     </xsl:if>
-  </xsl:template>
-  
-  <xsl:template name="test-1">
-    <xsl:try>
-      <p>Calculates the longest common subsequence of two simple Strings</p>
-      <xsl:variable name="function-name" select="QName($function-ns-uri, 'lcs')" as="xs:QName"/>
-      <xsl:variable name="code-units" as="xs:string+">
-        <xsl:text>
-        <![CDATA[
-        import org.apache.commons.text.similarity.LongestCommonSubsequence;
     
-        public class LongestCommonSubsequenceFunction {
-    
-          public String call(String left, String right) {
-            LongestCommonSubsequence lcs = new LongestCommonSubsequence();
-            return lcs.longestCommonSubsequence(left, right).toString();
-          }
-          
-        }
-        ]]>  
-        </xsl:text>
-      </xsl:variable>
-      <xsl:call-template name="register-function">
-        <xsl:with-param name="function-name" select="$function-name" as="xs:QName"/>
-        <xsl:with-param name="code-units" select="$code-units" as="xs:string+"/>
-      </xsl:call-template>
-      <p>
-        <xsl:sequence select="function:call($function-name, 'ABACCD', 'ACDF')"/>
-      </p>
-      <xsl:catch>
-        <p>
-          <xsl:value-of select="$err:description || ' (' || $err:code || ' line: ' || $err:line-number || ', column: ' || $err:column-number || ')'"/>  
-        </p>
-      </xsl:catch>
-    </xsl:try>
-  </xsl:template>
-  
-  <xsl:template name="test-2">
+    <!-- Call the functions: -->
     <xsl:try>
-      <p>Sorts the specified range of a float array into ascending order.</p>
-      <xsl:variable name="function-name" select="QName($function-ns-uri, 'sort-floats')" as="xs:QName"/>
-      <xsl:variable name="code-units" as="xs:string+">
-        <xsl:text>
-        <![CDATA[
-        public class SortFloatsFunction {
-  
-          public float[] call(float[] a, int fromIndex, int toIndex) {
-            java.util.Arrays.sort(a, fromIndex, toIndex);
-            return a;
-          }
-        
-        }
-        ]]>  
-        </xsl:text>
-      </xsl:variable>
-      <xsl:call-template name="register-function">
-        <xsl:with-param name="function-name" select="$function-name" as="xs:QName"/>
-        <xsl:with-param name="code-units" select="$code-units" as="xs:string+"/>
-      </xsl:call-template>
       <p>
-        <xsl:sequence select="function:call($function-name, (1.2, 1.3, 1.5), 1, 2)"/>
+        Example 1: Calculates the longest common subsequence of two simple Strings<br/><br/>
+        <xsl:sequence select="function:call(QName($function-ns-uri, 'lcs'), 'ABACCD', 'ACDF')"/>
+        <hr/>
+      </p>
+      <p>
+        Example 2: Sorts the specified range of a float array into ascending order<br/><br/>
+        <xsl:sequence select="function:call(QName($function-ns-uri, 'sort-floats'), (1.2, 1.3, 1.5), 1, 2)"/>
+        <hr/>
+      </p>
+      <p>
+        Example 3: Void return value, use of implicit object XPathContext<br/><br/>
+        <xsl:sequence select="function:call(QName($function-ns-uri, 'implicit-objects'), 'Hello World')"/>
+        <hr/>
       </p>
       <xsl:catch>
         <p>
@@ -94,46 +95,6 @@
         </p>
       </xsl:catch>
     </xsl:try>
-  </xsl:template>
-  
-  <xsl:template name="test-3">
-    <xsl:try>
-      <p>Void return value, use of implicit object XPathContext</p>
-      <xsl:variable name="function-name" select="QName($function-ns-uri, 'void')" as="xs:QName"/>
-      <xsl:variable name="code-units" as="xs:string+">
-        <xsl:text>
-        <![CDATA[
-        import net.sf.saxon.expr.XPathContext;
-        
-        public class VoidFunction {
-  
-          public void call(XPathContext context, String text) {
-            System.out.println(text + ", your Saxon edition is: " + context.getConfiguration().getEditionCode());
-          }
-        
-        }
-        ]]>  
-        </xsl:text>
-      </xsl:variable>
-      <xsl:call-template name="register-function">
-        <xsl:with-param name="function-name" select="$function-name" as="xs:QName"/>
-        <xsl:with-param name="code-units" select="$code-units" as="xs:string+"/>
-      </xsl:call-template>
-      <p>
-        <xsl:sequence select="function:call($function-name, 'Hello World')"/>
-      </p>
-      <xsl:catch>
-        <p>
-          <xsl:value-of select="$err:description || ' (' || $err:code || ' line: ' || $err:line-number || ', column: ' || $err:column-number || ')'"/>  
-        </p>
-      </xsl:catch>
-    </xsl:try>
-  </xsl:template>
-  
-  <xsl:template name="tab-contents-1">
-    <xsl:call-template name="test-1"/>
-    <xsl:call-template name="test-2"/>
-    <xsl:call-template name="test-3"/>
   </xsl:template>
   
   <!-- These variables can be ignored: -->

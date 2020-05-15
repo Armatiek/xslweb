@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
@@ -38,6 +40,7 @@ import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
 
 import net.sf.saxon.event.PipelineConfiguration;
 import net.sf.saxon.expr.StaticProperty;
@@ -56,7 +59,6 @@ import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.tiny.TinyBuilder;
 import net.sf.saxon.type.BuiltInAtomicType;
 import net.sf.saxon.type.Untyped;
-import net.sf.saxon.value.QualifiedNameValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Context;
@@ -82,17 +84,17 @@ public class Register extends ExtensionFunctionDefinition {
 
   @Override
   public int getMinimumNumberOfArguments() {
-    return 2;
+    return 1;
   }
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 2;
+    return 1;
   }
 
   @Override
   public SequenceType[] getArgumentTypes() {
-    return new SequenceType[] { SequenceType.SINGLE_QNAME, SequenceType.makeSequenceType(BuiltInAtomicType.STRING, StaticProperty.ALLOWS_ONE_OR_MORE) };
+    return new SequenceType[] { SequenceType.makeSequenceType(BuiltInAtomicType.STRING, StaticProperty.ALLOWS_ONE_OR_MORE) };
   }
 
   @Override
@@ -107,16 +109,14 @@ public class Register extends ExtensionFunctionDefinition {
   
   private static class RegisterFunctionCall extends ExtensionFunctionCall {
     
-    private StructuredQName functionName;
-    private Sequence codeUnits;
+    // private StructuredQName functionName;
+    private ArrayList<String> codeUnits;
     private String className;
     
     private Iterable<? extends JavaFileObject> getCompilationUnits() throws XPathException {
       List<JavaFileObject> objectList = new ArrayList<JavaFileObject>();
-      SequenceIterator iter = codeUnits.iterate();
-      StringValue item;
-      while ((item = (StringValue) iter.next()) != null) {
-        objectList.add(new JavaStringObject(className, item.getStringValue().replaceAll("(class\\s+)(\\S+)(\\s*\\{)", "$1" + className + "$3")));
+      for (String codeUnit: codeUnits) {
+        objectList.add(new JavaStringObject(className, codeUnit));
       }
       return objectList;
     }
@@ -221,9 +221,20 @@ public class Register extends ExtensionFunctionDefinition {
     @Override
     public ZeroOrOne<NodeInfo> call(XPathContext context, Sequence[] arguments) throws XPathException {            
       try {
-        functionName = ((QualifiedNameValue) arguments[0].head()).getStructuredQName();       
+        // functionName = ((QualifiedNameValue) arguments[0].head()).getStructuredQName();       
         className = "Call" + UUID.randomUUID().toString().replace("-", "");
-        codeUnits = arguments[1];
+        codeUnits = new ArrayList<String>();
+        SequenceIterator iter = arguments[0].iterate();
+        StringValue item;
+        while ((item = (StringValue) iter.next()) != null) {
+          codeUnits.add(item.getStringValue().trim());
+        }
+        
+        Pattern p = Pattern.compile("(class\\s+)(\\S+)(\\s*\\{)");
+        Matcher m = p.matcher(codeUnits.get(0));
+        m.find();
+        String origClassName = m.group(2);
+        codeUnits.set(0, m.replaceFirst("$1" + className + "$3"));
         
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
@@ -257,7 +268,7 @@ public class Register extends ExtensionFunctionDefinition {
             builder.attribute(new CodedName(fingerprints.START, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getStartPosition()), null, 0); 
             builder.attribute(new CodedName(fingerprints.END, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getEndPosition()), null, 0); 
             builder.attribute(new CodedName(fingerprints.KIND, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, diag.getKind().name(), null, 0);
-            builder.attribute(new CodedName(fingerprints.MESSAGE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, StringUtils.defaultString(diag.getMessage(null)), null, 0);
+            builder.attribute(new CodedName(fingerprints.MESSAGE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, StringUtils.defaultString(diag.getMessage(null)).replaceAll(className, origClassName), null, 0);
             builder.attribute(new CodedName(fingerprints.POSITION, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getPosition()), null, 0); 
             builder.endElement();
           }
@@ -269,12 +280,28 @@ public class Register extends ExtensionFunctionDefinition {
           CompiledClassLoader classLoader = new CompiledClassLoader(getClass().getClassLoader(), fileManager.getGeneratedOutputFiles());
           @SuppressWarnings("unchecked")
           Class<DynamicExtensionFunctionCall> callClass = ((Class<DynamicExtensionFunctionCall>) classLoader.loadClass(className));
-          Method callMethod = getCallMethod(callClass);
+          // Method callMethod = getCallMethod(callClass);
+          
+          
+          Method[] methods = MethodUtils.getMethodsWithAnnotation(callClass, ExtensionFunction.class);
+          for (Method method: methods) {
+            ExtensionFunction extFunc = method.getAnnotation(ExtensionFunction.class);
+            StructuredQName functName = new StructuredQName("", extFunc.uri(), extFunc.name()); 
+            Class<?> returnType = method.getReturnType();
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            ExtensionFunctionDefinition funcDef = new DynamicExtensionFunctionDefinition(context.getConfiguration(), 
+                functName, returnType, parameterTypes, extFunc.hasSideEffects(), method);
+            getWebApp(context).registerExtensionFunctionDefinition(functName.getClarkName(), funcDef);
+            
+          }
+          
+          /*
           Class<?> returnType = callMethod.getReturnType();
           Class<?>[] parameterTypes = callMethod.getParameterTypes();
           ExtensionFunctionDefinition funcDef = new DynamicExtensionFunctionDefinition(context.getConfiguration(), 
               functionName, returnType, parameterTypes, true, callClass);
           getWebApp(context).registerExtensionFunctionDefinition(functionName.getClarkName(), funcDef);
+          */
         }
         return new ZeroOrOne<NodeInfo>(diagnosticsNode);
       } catch (Exception e) {
