@@ -119,7 +119,6 @@ import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
-import net.sf.saxon.serialize.MessageWarner;
 import net.sf.saxon.xpath.XPathFactoryImpl;
 import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.joost.MessageEmitter;
@@ -128,6 +127,7 @@ import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
 import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
 import nl.armatiek.xslweb.saxon.errrorlistener.ValidatorErrorHandler;
+import nl.armatiek.xslweb.saxon.utils.SaxonUtils;
 import nl.armatiek.xslweb.utils.XMLUtils;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
@@ -396,7 +396,7 @@ public class WebApp implements ErrorHandler {
       TransformationErrorListener errorListener = new TransformationErrorListener(null, developmentMode);  
       XsltExecutable templates = getXsltExecutable("events.xsl", errorListener, false);
       Xslt30Transformer transformer = templates.load30();
-      transformer.getUnderlyingController().setMessageEmitter(new MessageWarner());
+      SaxonUtils.setMessageEmitter(transformer.getUnderlyingController(), getConfiguration(), errorListener);
       transformer.setErrorListener(errorListener);
       Map<QName, XdmValue> params = XSLWebUtils.getStylesheetParameters(this, null, null, getHomeDir());
       transformer.setStylesheetParameters(params);
@@ -787,17 +787,16 @@ public class WebApp implements ErrorHandler {
         File schematronDir = new File(Context.getInstance().getHomeDir(), "common/xsl/system/schematron");
         
         ErrorListener listener = new TransformationErrorListener(null, developmentMode); 
-        MessageWarner messageWarner = new MessageWarner();
         
         Xslt30Transformer stage1 = tryXsltExecutableCache(new File(schematronDir, "iso_dsdl_include.xsl").getAbsolutePath(), errorListener, false).load30();
         stage1.setErrorListener(listener);
-        stage1.getUnderlyingController().setMessageEmitter(messageWarner);
+        SaxonUtils.setMessageEmitter(stage1.getUnderlyingController(), getConfiguration(), errorListener);
         Xslt30Transformer stage2 = tryXsltExecutableCache(new File(schematronDir, "iso_abstract_expand.xsl").getAbsolutePath(), errorListener, false).load30();
         stage2.setErrorListener(listener);
-        stage2.getUnderlyingController().setMessageEmitter(messageWarner);
+        SaxonUtils.setMessageEmitter(stage2.getUnderlyingController(), getConfiguration(), errorListener);
         Xslt30Transformer stage3 = tryXsltExecutableCache(new File(schematronDir, "iso_svrl_for_xslt2.xsl").getAbsolutePath(), errorListener, false).load30();
         stage3.setErrorListener(listener);
-        stage3.getUnderlyingController().setMessageEmitter(messageWarner);
+        SaxonUtils.setMessageEmitter(stage3.getUnderlyingController(), getConfiguration(), errorListener);
        
         XdmDestination destStage1 = new XdmDestination();
         XdmDestination destStage2 = new XdmDestination();

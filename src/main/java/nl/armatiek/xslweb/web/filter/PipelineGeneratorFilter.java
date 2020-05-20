@@ -42,12 +42,12 @@ import net.sf.saxon.s9api.SAXDestination;
 import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltExecutable;
-import net.sf.saxon.serialize.MessageWarner;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
+import nl.armatiek.xslweb.saxon.utils.SaxonUtils;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 public class PipelineGeneratorFilter implements Filter {
@@ -71,13 +71,12 @@ public class PipelineGeneratorFilter implements Filter {
       webApp = (WebApp) request.getAttribute(Definitions.ATTRNAME_WEBAPP);
       
       ErrorListener errorListener = new TransformationErrorListener(resp, webApp.getDevelopmentMode());      
-      MessageWarner messageWarner = new MessageWarner();
       
       XsltExecutable templates = webApp.getRequestDispatcherTemplates(errorListener, false);
       Xslt30Transformer transformer = templates.load30();
       transformer.setStylesheetParameters(XSLWebUtils.getStylesheetParameters(webApp, req, resp, homeDir));
       transformer.setErrorListener(errorListener);            
-      transformer.getUnderlyingController().setMessageEmitter(messageWarner);            
+      SaxonUtils.setMessageEmitter(transformer.getUnderlyingController(), webApp.getConfiguration(), errorListener);            
                                
       PipelineHandler pipelineHandler = new PipelineHandler(webApp);
       NodeInfo source = (NodeInfo) req.getAttribute(Definitions.ATTRNAME_REQUESTXML);

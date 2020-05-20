@@ -4,20 +4,27 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.xml.XMLConstants;
+import javax.xml.transform.ErrorListener;
 
 import org.apache.commons.lang3.StringUtils;
 
+import net.sf.saxon.Configuration;
 import net.sf.saxon.expr.StaticProperty;
+import net.sf.saxon.lib.Feature;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.SequenceTool;
 import net.sf.saxon.om.StandardNames;
 import net.sf.saxon.pattern.AnyNodeTest;
+import net.sf.saxon.serialize.MessageWarner;
 import net.sf.saxon.trans.XPathException;
+import net.sf.saxon.trans.XsltController;
 import net.sf.saxon.type.AnyItemType;
 import net.sf.saxon.type.ItemType;
 import net.sf.saxon.type.Type;
 import net.sf.saxon.value.SequenceType;
+import nl.armatiek.xslweb.saxon.errrorlistener.ErrorListenerMessageListener;
+import nl.armatiek.xslweb.saxon.errrorlistener.MessageListenerProxy;
 
 public class SaxonUtils {
   
@@ -47,25 +54,6 @@ public class SaxonUtils {
  
     return SequenceType.makeSequenceType(itemType, cardinality);
   }
-  
-  /*
-  public static SequenceType getSequenceType(Class<?> clazz) {
-    ItemType itemType;
-    int cardinality = clazz.isArray() ? StaticProperty.ALLOWS_ZERO_OR_ONE : StaticProperty.ALLOWS_ZERO_OR_ONE;
-    
-    net.sf.saxon.expr.PJConverter.getEquivalentSequenceType(javaClass)
-    
-    Class<?> componentType = clazz.isArray() ? clazz.getClass().getComponentType() : clazz;
-    if (componentType.equals(String.class) || componentType.equals(CharSequence.class)) {
-      I
-    } else if (componentType.equals(Boolean.class)) {
-      
-    }
-    
-    
-    return SequenceType.makeSequenceType(itemType, cardinality);
-  }
-  */
   
   public static Class convertToJava(SequenceType sequenceType) throws XPathException {
     ItemType itemType = sequenceType.getPrimaryType();
@@ -108,6 +96,14 @@ public class SaxonUtils {
   
   protected Object concertToJava(Item item) throws XPathException {
     return SequenceTool.convertToJava(item);
+  }
+  
+  public static void setMessageEmitter(XsltController controller, Configuration config, ErrorListener errorListener) {
+    if (config.getBooleanProperty(Feature.ALLOW_MULTITHREADING)) {
+      controller.setMessageFactory(() -> new MessageListenerProxy(new ErrorListenerMessageListener(errorListener), config.makePipelineConfiguration()));  
+    } else {
+      controller.setMessageEmitter(new MessageWarner());
+    }
   }
   
 }

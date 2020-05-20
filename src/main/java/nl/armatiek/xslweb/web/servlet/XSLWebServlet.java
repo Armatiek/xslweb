@@ -1,22 +1,5 @@
 package nl.armatiek.xslweb.web.servlet;
 
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -76,7 +59,6 @@ import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltExecutable;
-import net.sf.saxon.serialize.MessageWarner;
 import net.sf.saxon.stax.XMLStreamWriterDestination;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
@@ -109,6 +91,7 @@ import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
 import nl.armatiek.xslweb.saxon.errrorlistener.ValidatorErrorHandler;
 import nl.armatiek.xslweb.saxon.uriresolver.XSLWebURIResolver;
 import nl.armatiek.xslweb.saxon.uriresolver.XSLWebURIResolver.DefaultBehaviour;
+import nl.armatiek.xslweb.saxon.utils.SaxonUtils;
 import nl.armatiek.xslweb.utils.Closeable;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 import nl.armatiek.xslweb.xml.CleanupXMLStreamWriter;
@@ -392,7 +375,6 @@ public class XSLWebServlet extends HttpServlet {
     PipelineHandler pipelineHandler = (PipelineHandler) req.getAttribute(Definitions.ATTRNAME_PIPELINEHANDLER);
          
     TransformationErrorListener errorListener = new TransformationErrorListener(resp, developmentMode);      
-    MessageWarner messageWarner = new MessageWarner();
     
     List<PipelineStep> steps = pipelineHandler.getPipelineSteps();
     if (steps == null || steps.isEmpty()) {
@@ -435,7 +417,7 @@ public class XSLWebServlet extends HttpServlet {
         }
         XsltExecutable templates = webApp.getXsltExecutable(xslPath, errorListener, !traceType.equals(TraceType.NONE)); 
         Xslt30Transformer transformer = templates.load30();
-        transformer.getUnderlyingController().setMessageEmitter(messageWarner);
+        SaxonUtils.setMessageEmitter(transformer.getUnderlyingController(), webApp.getConfiguration(), errorListener);
         transformer.setErrorListener(errorListener);
         if (!traceType.equals(TraceType.NONE) && !(step instanceof SystemTransformerStep))
           transformer.setTraceListener(((TransformerStep) step).getTraceListener(traceType));
@@ -551,7 +533,7 @@ public class XSLWebServlet extends HttpServlet {
         /* Execute schematron validation */
         XsltExecutable templates = webApp.getSchematron(svStep.getSchematronPath(), svStep.getPhase(), errorListener); 
         Xslt30Transformer transformer = templates.load30();
-        transformer.getUnderlyingController().setMessageEmitter(messageWarner);
+        SaxonUtils.setMessageEmitter(transformer.getUnderlyingController(), webApp.getConfiguration(), errorListener);
         transformer.setErrorListener(errorListener);    
         XdmDestination svrlDest = new XdmDestination();
     
