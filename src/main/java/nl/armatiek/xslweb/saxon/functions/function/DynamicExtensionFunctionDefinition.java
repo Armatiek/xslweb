@@ -298,8 +298,6 @@ public class DynamicExtensionFunctionDefinition extends ExtensionFunctionDefinit
       @Override
       public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {
         try { 
-          // Method method = callClass.getMethod("call", parameterTypes);
-          
           ArrayList<Object> implicitObjects = new ArrayList<Object>();
           for (Class paramType: parameterTypes) {
             if (paramType.equals(XPathContext.class)) {
@@ -330,13 +328,13 @@ public class DynamicExtensionFunctionDefinition extends ExtensionFunctionDefinit
             throw new XPathException(
                 String.format(
                   "The number of supplied arguments in the call to the XPath extension function \"%s\" (%d) "
-                  + "does not match the number of declared arguments in the Java \"call\" method (%d)%s", 
+                  + "does not match the number of declared arguments in the Java method (%d)%s", 
                   funcName.getClarkName(), 
                   arguments.length,
                   parameterTypes.length,
-                  implicitObjects.isEmpty() ? "" : ", considering \"" + implicitObjects.size() + " implicit objects"
+                  implicitObjects.isEmpty() ? "" : ", considering " + implicitObjects.size() + " implicit objects"
                 ), 
-                "TODO");
+                "DF011");
           }
           
           if (!implicitObjects.isEmpty()) {
@@ -451,17 +449,11 @@ public class DynamicExtensionFunctionDefinition extends ExtensionFunctionDefinit
           Object resultObj = method.invoke(callObj, parameters);
           JPConverter conv = JPConverter.allocate(returnType, null, context.getConfiguration());
           return conv.convert(resultObj, context);
-        //} catch (NoSuchMethodException e) {
-        //  throw new XPathException("No method \"call\" found with specified parameters");
-        } catch (InvocationTargetException e) {
-          throw new XPathException(e);
-        } catch (IllegalAccessException e) {
-          throw new XPathException(e);
-        } catch (IllegalArgumentException e) {
-          throw new XPathException("Illegal arguments were passed to the custom extension function", e);
-        } catch (InstantiationException e) {
-          throw new XPathException("Error instantiating custom extension function", e);
-        }
+        } catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException | InstantiationException e) {
+          XPathException xe = new XPathException(e);
+          xe.setErrorCode("DF012");
+          throw xe;
+        } 
       }
     };
     

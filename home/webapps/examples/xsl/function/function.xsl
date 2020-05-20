@@ -39,13 +39,12 @@
       
       @ExtensionFunction(uri="http://www.armatiek.com/xslweb/functions/tests", name="implicit-objects", hasSideEffects=false)
       public void implicitObjects(XPathContext context, String text) {
-        System.out.println(text + ", your Saxon edition is: " + context.getConfiguration().getEditionCode());
+        System.out.println(text + ", your Saxon edition is: " + context.getConfiguration().getEditionCode() + " " + SecundaryClass.test());
       }
       
     }
     ]]>  
     </xsl:text>
-    <!--
     <xsl:text>
     <![CDATA[
     
@@ -58,13 +57,14 @@
     }
     ]]>
     </xsl:text>
-    -->
   </xsl:variable>
  
   <xsl:template name="tab-contents-1">
     
     <!-- Register the extension functions in the Java code: -->
     <xsl:variable name="result" select="function:register($code-units)" as="element(function:diagnostics)?"/>
+    
+    <!-- Check the registration result: -->
     <xsl:if test="$result/function:diagnostic/@kind = 'ERROR'">
       <p>Error registering/compiling extension function class:</p>
       <pre class="prettyprint lang-xml linenums">
