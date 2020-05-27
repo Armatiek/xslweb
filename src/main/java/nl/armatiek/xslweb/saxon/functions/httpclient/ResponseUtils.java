@@ -51,6 +51,19 @@ import okhttp3.ResponseBody;
 
 public class ResponseUtils {
   
+  /*
+  private static MimeType unknownMimeType = new MimeType(Definitions.MIMETYPE_BINARY);
+  
+  private static final ThreadLocal<DateFormat> DATE_HEADER_FORMAT =
+      new ThreadLocal<DateFormat>() {
+        @Override protected DateFormat initialValue() {
+          DateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.US);
+          format.setTimeZone(TimeZone.getTimeZone("GMT"));
+          return format;
+        }
+      };
+  */
+  
   public static NodeInfo buildResponseElement(final Response response, final XPathContext context, final WebApp webApp) throws XPathException {
     TinyBuilder builder = new TinyBuilder(context.getConfiguration().makePipelineConfiguration());
     builder.setStatistics(context.getConfiguration().getTreeStatistics().SOURCE_DOCUMENT_STATISTICS); 
@@ -152,5 +165,54 @@ public class ResponseUtils {
     }
     
   }
+  
+  /*
+  private static void addHeader(TinyBuilder builder, NamePool namePool, Fingerprints fingerprints, String name, String value) throws XPathException {
+    builder.startElement(new CodedName(fingerprints.HTTPCLIENT_HEADER, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+    builder.attribute(new CodedName(fingerprints.NAME, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, name, null, 0);
+    builder.attribute(new CodedName(fingerprints.VALUE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, value, null, 0);
+    builder.endElement();
+  }
+  
+  public static NodeInfo buildResponseElement(final File file, final XPathContext context, final WebApp webApp) throws XPathException {
+    String mimeType = MimeUtil.getMostSpecificMimeType(MimeUtil.getMimeTypes(file, unknownMimeType)).toString();
+    
+    TinyBuilder builder = new TinyBuilder(context.getConfiguration().makePipelineConfiguration());
+    builder.setStatistics(context.getConfiguration().getTreeStatistics().SOURCE_DOCUMENT_STATISTICS); 
+    builder.setLineNumbering(false);
+    builder.open();
+    builder.startDocument(0);
+    
+    Fingerprints fingerprints = webApp.getFingerprints();
+    NamePool namePool = context.getConfiguration().getNamePool();
+    
+    // Root element: 
+    builder.startElement(new CodedName(fingerprints.HTTPCLIENT_RESPONSE, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+    builder.attribute(new CodedName(fingerprints.STATUS, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Integer.toString((file.isFile()) ? HttpServletResponse.SC_OK : HttpServletResponse.SC_NOT_FOUND), null, 0);
+    builder.attribute(new CodedName(fingerprints.MESSAGE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, (file.isFile()) ? "" : "Not found", null, 0);
+    
+    // Response headers:
+    addHeader(builder, namePool, fingerprints, "Content-Type", mimeType);
+    addHeader(builder, namePool, fingerprints, "Content-Length", Long.toString(file.length()));
+    addHeader(builder, namePool, fingerprints, "Last-Modified", DATE_HEADER_FORMAT.get().format(new Date(file.lastModified())));
+    
+    // Response body:
+    builder.startElement(new CodedName(fingerprints.HTTPCLIENT_BODY, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+    if (mimeType != null) {
+      builder.attribute(new CodedName(fingerprints.MEDIATYPE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, mimeType, null, 0);
+      builder.attribute(new CodedName(fingerprints.METHOD, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Types.parseType(mimeType).toString().toLowerCase(), null, 0);
+    } else {
+      builder.attribute(new CodedName(fingerprints.METHOD, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, "binary", null, 0);
+    }
+ 
+    builder.endElement();
+   
+    builder.endElement();
+    
+    builder.endDocument();
+    builder.close();
+    return NodeInfoUtils.getFirstChildElement(builder.getCurrentRoot());
+  }
+  */
 
 }

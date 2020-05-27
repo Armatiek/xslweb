@@ -42,8 +42,8 @@ public class Fingerprints {
     HREF = namePool.allocateFingerprint("", "href");
     STATUSONLY = namePool.allocateFingerprint("", "status-only");
     OVERRIDEMEDIATYPE = namePool.allocateFingerprint("", "override-media-type");
-    FUNCTION_DIAGNOSTICS = namePool.allocateFingerprint(Definitions.NAMESPACEURI_XSLWEB_FX_FUNCTION, "diagnostics");
-    FUNCTION_DIAGNOSTIC = namePool.allocateFingerprint(Definitions.NAMESPACEURI_XSLWEB_FX_FUNCTION, "diagnostic");
+    FUNCTION_DIAGNOSTICS = namePool.allocateFingerprint(Definitions.NAMESPACEURI_XSLWEB_FX_DYNFUNC, "diagnostics");
+    FUNCTION_DIAGNOSTIC = namePool.allocateFingerprint(Definitions.NAMESPACEURI_XSLWEB_FX_DYNFUNC, "diagnostic");
     CODE = namePool.allocateFingerprint("", "code"); 
     LINE = namePool.allocateFingerprint("", "line");
     COLUMN = namePool.allocateFingerprint("", "column");

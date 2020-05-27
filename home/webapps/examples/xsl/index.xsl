@@ -110,7 +110,10 @@
                 <a href="{$path}/script.html">Script extension function</a>
               </li>
               <li>
-                <a href="{$path}/function.html">Dynamic/scripted extension functions</a>
+                <a href="{$path}/function.html">Dynamic/scripted extension functions, example</a>
+              </li>
+              <li>
+                <a href="{$path}/testbed.html">Dynamic/scripted extension functions, testbed</a>
               </li>
               <li>
                 <a href="{$path}/soap-client.html">SOAP client/SOAP server</a>

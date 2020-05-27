@@ -227,17 +227,17 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 21: Script extension function -->
-  <xsl:template name="script" match="/req:request[req:path = '/script.html']">    
+  <!-- Example 21: Scripted/dynamic extension functions, example -->
+  <xsl:template name="dynfunc-examples" match="/req:request[req:path = '/function.html']">    
     <pipeline:pipeline>
-      <pipeline:transformer name="script" xsl-path="script/script.xsl" log="true"/>       
+      <pipeline:transformer name="script" xsl-path="dynfunc/function.xsl" log="true"/>       
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 22: Dynamic extension functions -->
-  <xsl:template name="function" match="/req:request[req:path = '/function.html']">    
+  <!-- Example 22: Scripted/dynamic extension functions, testbed -->
+  <xsl:template name="dynfunc-testbed" match="/req:request[req:path = '/testbed.html']">    
     <pipeline:pipeline>
-      <pipeline:transformer name="script" xsl-path="function/function.xsl" log="true"/>       
+      <pipeline:transformer name="script" xsl-path="dynfunc/testbed.xsl" log="true"/>       
     </pipeline:pipeline>
   </xsl:template>
   

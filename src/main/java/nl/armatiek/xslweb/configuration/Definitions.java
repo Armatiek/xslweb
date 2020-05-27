@@ -78,7 +78,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_WEBAPP      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/webapp";
   public final static String NAMESPACEURI_XSLWEB_FX_CACHE       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/cache";
   public final static String NAMESPACEURI_XSLWEB_FX_SCRIPT      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/script";
-  public final static String NAMESPACEURI_XSLWEB_FX_FUNCTION    = NAMESPACEURI_XSLWEB_FUNCTIONS + "/function";
+  public final static String NAMESPACEURI_XSLWEB_FX_DYNFUNC     = NAMESPACEURI_XSLWEB_FUNCTIONS + "/dynfunc";
   public final static String NAMESPACEURI_XSLWEB_FX_XMLINDEX    = NAMESPACEURI_XSLWEB_FUNCTIONS + "/xmlindex";
   public final static String NAMESPACEURI_XSLWEB_FX_SQL         = NAMESPACEURI_XSLWEB_FUNCTIONS + "/sql";
   public final static String NAMESPACEURI_XSLWEB_FX_UTIL        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/util";

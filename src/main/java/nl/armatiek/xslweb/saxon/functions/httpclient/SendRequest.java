@@ -169,6 +169,12 @@ public class SendRequest extends ExtensionFunctionDefinition {
         throw new XPathException("href is not specified, not in http:request/@href and not as second function argument", "HC005");
       }
       
+      /*
+      if (href.startsWith("file:")) {
+        File file = new File(new URI(href));
+      }
+      */
+      
       Sequence bodies = null;
       if (arguments.length > 2) {
         bodies = arguments[2];  
