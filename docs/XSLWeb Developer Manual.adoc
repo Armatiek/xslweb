@@ -36,7 +36,7 @@ Authors: Maarten Kroon, Arjan Loeffen
 :docinfo: shared,shared-head
 :uri-home: https://asciidoctor.org
 
-[.small]#The latest version of this document can be found https://github.com/Armatiek/xslweb/raw/master/docs/XSLWeb%20Developer%20Manual.html[here].#
+[.small]#The latest version of this document can be found https://armatiek.github.io/xslweb/XSLWeb%20Developer%20Manual.html[here].#
 
 [#fundamentals]
 == The fundamentals of XSLWeb
