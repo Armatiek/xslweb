@@ -10,6 +10,6 @@ During transformations, data sources can be accessed using a built-in library of
 
 The result of a pipeline can be serialized to XML, (X)HTML or plain text and using specific serializer pipeline steps to JSON, ZIP files, PDF, Postscript or RTF (using XSL:FO and Apache FOP).
 
-See [Quick Start Guide](https://github.com/Armatiek/xslweb/blob/master/docs/XSLWeb_3_0_Quick_Start.pdf).
+See [Developer Manual](https://armatiek.github.io/xslweb/XSLWeb%20Developer%20Manual.html).
 
 ![XSLWeb HTTP request to response flow](https://raw.githubusercontent.com/Armatiek/xslweb/master/docs/xslweb_flow.png)
