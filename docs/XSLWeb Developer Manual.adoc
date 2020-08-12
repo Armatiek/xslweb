@@ -1,0 +1,2188 @@
+= XSLWeb version 3.2.2 Developer Manual
+Authors: Maarten Kroon, Arjan Loeffen
+:description: XSLWeb Developer Manual 
+:keywords: XSLWeb XML, XSLT, XML Schema, Schematron, Web development
+:doctype: book
+:page-layout!:
+:toc: left
+:toclevels: 3
+:sectanchors:
+:sectlinks:
+:sectnums:
+:icons: font
+:source-highlighter: highlightjs
+:highlightjs-theme: agate
+:highlightjsdir: highlight
+:source-language: asciidoc
+:experimental:
+:stem:
+:idprefix:
+:idseparator: -
+:ast: &ast;
+:dagger: pass:normal[^&dagger;^]
+:endash: &#8211;
+:y: icon:check[role="green"]
+:n: icon:times[role="red"]
+:c: icon:file-text-o[role="blue"]
+:table-caption!:
+:example-caption!:
+// :figure-caption!:
+:figure-caption: Figure
+:imagesdir: images
+:includedir: includes
+:underscore: _
+:adp: AsciiDoc Python
+:adr: Asciidoctor
+:docinfo: shared,shared-head
+:uri-home: https://asciidoctor.org
+
+[.small]#The latest version of this document can be found https://github.com/Armatiek/xslweb/raw/master/docs/XSLWeb%20Developer%20Manual.html[here].#
+
+[#fundamentals]
+== The fundamentals of XSLWeb
+
+[#introduction]
+=== Introduction
+
+XSLWeb is an open source and free to use web development framework for XSLT and XQuery developers. It is based on concepts similar to frameworks like http://cocoon.apache.org/[Cocoon] and http://servlex.net[Servlex], but aims to be more easily accessible and pragmatic.
+
+Using XSLWeb, XSLT/XQuery developers can develop both web applications (dynamic websites) and web services. In essence, an XSLWeb web application is one or more XSLT stylesheets (version 1.0, 2.0 or 3.0) or XQueries (version 1.0, 3.0 or 3.1) that transform an XML representation of the HTTP request (the _Request XML_) to an XML representation of the HTTP response (the _Response XML_). Which specific XSLT stylesheet or XQuery (or pipeline of XSLT stylesheets and XQueries) must be executed for a particular HTTP request is governed by another XSLT stylesheet, the _request dispatcher stylesheet_.
+
+After every XSLT transformation step, an optional <<validation-pipeline-steps,validation pipeline step>> (XML Schema or Schematron) can be added to validate the result of the previous transformation step.
+
+During transformations, data sources can be accessed using a link:#xpath-extension-function-library[library of built-in extension functions] that provide HTTP communication (for example to consume REST or SOAP based web services), file and directory access, relational database access and so on.
+
+The result of a transformation pipeline can be serialized to XML, (X)HTML or plain text format and using specific <<serialization-pipeline-steps,serializer pipeline steps>> to JSON, ZIP files, PDF, Postscript or RTF (using XSL:FO and Apache FOP).
+
+The configuration of an XSLWeb web application can be specified in an XML configuration document called _webapp.xml_. An XSLWeb server can contain multiple separate web applications.
+
+Diagram 1 shows the flow of a HTTP request to a HTTP response within XSLWeb:
+
+.XSLWeb request and response flow
+image:xslweb_flow.png[XSLWeb flow, 100%, align="center"]
+
+. A HTTP request is sent from a client (a web browser or webservice client).
+. The HTTP request is serialized by the Request Serializer to a Request XML document. All information of the request is preserved in the XML.
+. The Request XML is the input of the Request Dispatcher, which transform the Request XML using the webapp specific XSLT stylesheet _request-dispatcher.xsl_. The output of this transformation is a pipeline specification, in the simplest form only specifying the path to a XSLT stylesheet that will be used to transforming the Request XML to the Response XML. This specification could also contain a pipeline of multiple XSLT transformations and XML Schema or Schematron validations.
+. The pipeline specification is the input for the Pipeline Processor, which reads the Pipeline XML and executes the pipeline transformation and validation steps. The input for the first transformation in the pipeline is the same Request XML as was used as input for the Request Dispatcher.
+. The Pipeline Processor executes your pipeline of XSLT stylesheets, XQueries and validations. The last transformation in the pipeline must generate a Response XML document which conforms to the schema _«xslweb-home»/config/xsd/xslweb/response.xsd_.
+. The Response XML is then passed on to the Response Deserializer, which interprets your Response XML and converts it to a HTTP response, which is sent back to the client, a web browser of webservice client (7).
+
+[#request-xml]
+=== The Request XML
+
+The Request XML is an XML representation (or _XML serialization_) of the HTTP Request. The Request XML conforms to the XML Schema _«xslweb-home»/config/xsd/xslweb/request.xsd_, and contains the following information:
+
+* The request properties: auth-type, character-encoding, content-length, context-path, content-type, local-addr, local-name, local-port, method, path, path-info, path-translated, protocol, query-string, remote-addr, remote-host, remote-port, remote-user, requested-session-id, request-URI, request-url, scheme, server-name, server-port, servlet-path, webapp-path, is-secure, is-requested-session-id-from-cookie, is-requested-session-id-from-url and is-requested-session-id-valid.
+* HTTP headers
+* Request parameters
+* Request body
+* File uploads
+* Session information
+* Cookies
+
+See <<appendix-request-xml-example>>
+
+[#response-xml]
+=== The Response XML
+
+The Response XML is a XML representation (or _XML serialization_) of the HTTP Response. The Response XML must conform to the XML Schema _«xslweb-home»/config/xsd/xslweb/response.xsd_, and contains the following information:
+
+* HTTP headers
+* Response body
+* Session information
+* Cookies
+
+See <<appendix-response-xml-example>>
+
+[#request-dispatcher]
+=== The Request dispatcher XSLT stylesheet
+
+The task of the XSLT stylesheet _request-dispatcher.xsl_ is to dynamically generate the pipeline specification that is then used to process the Request XML and convert it to the Response XML. The input of the request dispatcher transformation is the Request XML so it has all information available to generate the correct pipeline. The output of the request dispatcher transformation is a pipeline specification that must conform to the XML Schema _«xslweb-home»/config/xsd/xslweb/pipeline.xsd_.
+
+Below is an example of a very basic request dispatcher stylesheet that generates a valid pipeline for the HTTP request _http://my-domain/my-webapp/hello-world.html_:
+
+.Basic request dispatcher stylesheet
+[source,xml]
+----
+<xsl:stylesheet
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:req="http://www.armatiek.com/xslweb/request"
+  xmlns:pipeline="http://www.armatiek.com/xslweb/pipeline"
+  version="3.0">
+  
+  <xsl:template match="/req:request[req:path = '/hello-world.html']">
+    <pipeline:pipeline>
+      <pipeline:transformer 
+        name="hello-world" 
+        xsl-path="hello-world.xsl" 
+        log="true"/>
+    </pipeline:pipeline>
+  </xsl:template>
+  
+</xsl:stylesheet>
+----
+
+The following example uses the request parameter _lang_ in the request _http://my-domain/my-webapp/hello-world.html?lang=en_ to determine the stylesheet. This _lang_ parameter is also passed to the stylesheet as a stylesheet parameter:
+
+.Extended request dispatcher stylesheet
+[source,xml]
+----
+<xsl:stylesheet
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:req="http://www.armatiek.com/xslweb/request"
+  xmlns:pipeline="http://www.armatiek.com/xslweb/pipeline"
+  version="3.0">
+  
+  <xsl:template match="/req:request[req:path = '/hello-world.html']">
+    <xsl:variable
+      name="lang"
+      select="req:parameters/req:parameter[@name='lang']/req:value[1]"/>
+    <pipeline:pipeline>
+      <pipeline:transformer
+        name="hello-world"
+        xsl-path="{concat('hello-world-', $lang, '.xsl')}">
+        <pipeline:parameter
+          name="lang" 
+          uri="http://www.armatiek.com/xslweb/my-namespace"
+          type="xs:string">
+          <pipeline:value>
+            <xsl:value-of select="$lang"/>
+          </pipeline:value>
+        </pipeline:parameter>
+      </pipeline:transformer>
+    </pipeline:pipeline>
+  </xsl:template>
+  
+</xsl:stylesheet>
+----
+
+A pipeline consists of:
+
+* One or more of the following _transformation_ pipeline steps:
+** _transformer_: transforms the input of the pipeline step using an XSLT version 1.0, 2.0 or 3.0 stylesheet.
+** _query_: processes the input of the pipeline step using an XQuery version 1.0, 3.0 or 3.1 query.
+** _transformer-stx_: transform the input of the pipeline step using a STX (Streaming Transformations for XML) version 1.0 stylesheet.
+* Zero or more of the following _validation_ pipeline steps:
+** _schema-validator_: validates the input of the step using an XML Schema version 1.0.
+** _schematron-validator_: validates the input of the step using an ISO Schematron schema.
+* Zero or one of the following _serialization_ pipeline step
+** _json-serializer_: serializes XML output to a JSON representation.
+** _zip-serializer_: serializes a XML ZIP specification to an actual ZIP file.
+** _resource-serializer_: serializes a text or binary file to the response.
+** _fop-serializer_: serializes XSL-FO generated in a previous pipeline step to PDF using the Apache FOP XSL-FO processor.
+
+See <<pipeline-steps>> for a more in depth overview of these different pipeline steps.
+
+The output of the pipeline can be cached by specifying extra attributes on the _<pipeline:pipeline/>_ element, see <<response-caching>>.
+
+In development-mode, the output of the (intermediate) transformation steps can be logged to a log file, see chapters <<development-mode>> and <<logging>>.
+
+[#pipeline]
+=== The pipeline transformation stylesheets
+
+The result of the request dispatcher stylesheet is a pipeline specification containing one or more transformation, query, validation or serialization steps. The input of the first stylesheet or query in the pipeline is the Request XML, the output of the last stylesheet in the pipeline must conform to the Response XML schema.
+
+XSLWeb extends the standard XSLT/XPath 1.0, 2.0 and 3.0 functionality in a number of ways:
+
+* XSLWeb provides a number of built-in XPath extension functions that you can use to read and write files and directories, execute HTTP requests, access the Request, Response and Context, Session and WebApp objects, log messages, send e-mails and so on, see <<xpath-extension-function-library>>.
+* Other pipelines can be called from within a stylesheet and the result of this nested pipeline can be used or embedded in the calling stylesheet by passing a URI that starts with the scheme “xslweb://” to the standard XSLT _document()_ function, see <<nested-pipelines>>.
+* URLs that are passed to XSLT’s _document()_ or XQuery’s _doc()_ function and must be proxied through a proxy server can be provided with two extra request parameters: _proxyHost_ and _proxyPort_.
+* Within every transformation a number of standard stylesheet parameters is available, see <<stylesheet-parameters>>.
+
+[#web-applications]
+=== Web applications
+
+An XSLWeb installation can contain multiple separate web applications. A web application can be added under the folder _«xslweb-home»/webapps_ and has the following minimal folder structure (bold):
+
+[.no-bullets]
+* *my-webapp/*
+** *lib/*
+** *static/*
+** *xsl/*
+*** *request-dispatcher.xsl*
+*** my-stylesheet.xsl
+** xquery/
+*** my-query.xq
+** stx/
+*** my-stylesheet.stx
+** xsd/
+*** my-xml-schema.xsd
+** sch/
+*** my-schematron.sch
+** *webapp.xml*    
+    
+This web application can be accessed by using the following uri:
+
+http://<domain>:<port>/<xslweb-context-path>/my-webapp
+
+If you use the jar distribution of XSLWeb with default parameters, this uri will be:
+
+http://localhost:8080/my-webapp
+
+Out of the box, XSLWeb contains four web applications, “documentation”, “examples”, “my-webapp” and “ROOT”. The ROOT web application is used for Uri’s that doesn’t contain a reference to a web application, for instance:
+
+http://localhost:8080
+
+The folder _my-webapp_ can have any name you like (provided it doesn’t contain spaces or other strange characters). The folder _lib_ can contain any custom XPath extension functions you have developed in Java and 3^rd^ party libraries they depend on, see <<custom-extension-functions>>. The folder _static_ contains all static files you use in your web application, like images, css stylesheets and javascript files. The folder _xsl_ contains the XSLT stylesheet _request-dispatcher.xsl_ and at least one pipeline XSLT stylesheet that transforms Request XML to Response XML. The folders _xsd_ and _sch_ can contain XML Schema or Schematron validation specifications. The file _webapp.xml_ contains further configuration of your web application.
+
+The file _webapp.xml_ contains the configuration of your web application. It must conform to the XML Schema _«xslweb-home»/config/xsd/xslweb/xslweb-webapp.xsd_, and contains the following configuration items:
+
+* _Title_: The title of your web application
+* _Description_: The description of your web application
+* _Development-mode_: see <<development-mode>>.
+* _Resources_: The definition of requests to static files that should not be processed by the request dispatcher (but should be served straight away) and the duration these resources should be cached by the browser (default 4 hours).
+* _Parameters_: The definition of webapp specific configuration parameters that are passed as stylesheet parameters to every XSLT transformation, see <<stylesheet-parameters>>.
+* _Jobs_: The definition of scheduled jobs, see <<job-scheduling>>.
+* _Data sources_: the definition of JDBC data sources.
+* _FOP configurations_: configurations for the Apache FOP serialization step, see <<fop-serializer-step>>.
+
+See <<appendix-webapp-xml-example>> for an example of a webapp.xml configuration.
+
+[#pipeline-steps]
+== Pipeline steps
+
+[#transformation-pipeline-steps]
+=== Transformation pipeline steps
+
+The following transformation pipeline steps are available:
+
+* transformer
+* query
+* transformer-stx
+
+[#transformer-step]
+==== transformer step
+
+The transformer step transforms the input of the pipeline step using an XSLT version 1.0, 2.0 or 3.0 stylesheet.
+
+Example:
+
+.Transformer pipeline step
+[source,xml]
+----
+<pipeline:pipeline>
+  <pipeline:transformer name="my-xsl-step" xsl-path="my-stylesheet.xsl"/>
+</pipeline:pipeline>
+----
+
+[#query-step]
+==== query step
+
+The query step processes the input of the pipeline step using an XQuery version 1.0, 3.0 or 3.1 query.
+
+Example:
+
+.Query pipeline step
+[source,xml]
+----
+<pipeline:pipeline>
+  <pipeline:transformer name="my-xquery-step" xquery-path="my-query.xq"/>
+</pipeline:pipeline>
+----
+
+See also example 27 of the _examples_ webapp
+
+[#transformer-stx-step]
+==== transformer-stx step
+
+The transformer-stx step transforms the input of the pipeline step using a STX (Streaming Transformations for XML) version 1.0 stylesheet.
+
+Example:
+
+.STX pipeline step
+[source,xml]
+----
+<pipeline:pipeline>
+  <pipeline:transformer-stx name="my-stx-step" stx-path="my-stylesheet.stx"/>
+</pipeline:pipeline>
+----
+
+See also example 28 of the _examples_ webapp
+
+These steps could be combined in a pipeline as follows:
+
+.Multiple pipeline steps
+[source,xml]
+----
+<pipeline:pipeline>
+  <pipeline:transformer-stx name="my-stx-step" stx-path="my-stylesheet.stx"/>
+  <pipeline:transformer name="my-xsl-step" xsl-path="my-stylesheet.xsl"/>
+  <pipeline:query name="my-xquery-step" xquery-path="my-query.xq"/>
+</pipeline:pipeline>
+----
+
+[#extensions]
+==== Extensions
+
+XSLWeb extends the standard functionality of the transformation steps in a number of ways:
+
+* XSLWeb provides a number of built-in XPath extension functions to the _transformer_ and _query_ steps (not the _transformer-stx_ step) that you can use to read and write files and directories, execute HTTP requests, access the Request, Response and Context, Session and WebApp objects, log messages, send e-mails and so on, see <<xpath-extension-function-library>>.
+* Other pipelines can be called from within a stylesheet or query and the result of this nested pipeline can be used or embedded in the calling stylesheet/query by passing a URI that starts with the scheme “xslweb://” to the standard XSLT/XQuery _document()_ function or the STX _stx:process-children_ element, see <<nested-pipelines>>.
+* Within every transformation of query a number of standard stylesheet parameters is available, see <<stylesheet-parameters>>.
+
+[#validation-pipeline-steps]
+=== Validation pipeline steps
+
+XSLWeb supports the XML validation of the output of a transformation pipeline step by adding a validation pipeline step after the transformation step.
+
+The following validation pipeline steps are available:
+
+* schema-validator
+* schematron-validator
+
+[#schema-validator-step]
+==== schema-validator step
+
+The schema-validator step validates the output of the previous step using an XML Schema version 1.0.
+
+.Schema validator pipeline step
+[source,xml]
+----
+<pipeline:pipeline>
+  <pipeline:transformer name="my-transformation " xsl-path="my-transormation.xsl"/>
+  <pipeline:schema-validator 
+    name="schema-validator" 
+    xsl-param-namespace="http://www.armatiek.com/xslweb/validation" 
+    xsl-param-name="schema-validation-report">
+    <pipeline:schema-paths>
+      <pipeline:schema-path>my-schema.xsd</pipeline:schema-path>  
+    </pipeline:schema-paths>
+  </pipeline:schema-validator>  
+</pipeline:pipeline>
+----
+
+The location(s) of the XML schemas can be specified in the subelements _schema-path_. These paths must be relative to the directory _«webapp»/xsd._
+
+Any validation warnings and errors are written to the log file. If you specify the attribute _xsl-param-name_ (and optional attribute _xsl-param-namespace_), a validation report (in XML format) is added as a stylesheet parameter of type document-node() to the next XSLT transformation step in the pipeline.
+
+Validation properties (like http://javax.xml.XMLConstants/property/accessExternalSchema) and features (like http://javax.xml.XMLConstants/feature/secure-processing) can be specified in the _features_ and _properties_ subelements (see pipeline.xsd).
+
+See also example 25 of the _examples_ webapp.
+
+[#schematron-validator-step]
+==== schematron-validator step
+
+The Schematron-validator step validates the output of the previous step using an ISO Schematron schema:
+
+.Schematron validator pipeline step
+[source,xml]
+----
+<pipeline:pipeline>
+  <pipeline:transformer name="my-transformation " xsl-path="my-transormation.xsl"/>
+  <pipeline:schematron-validator 
+    name="schematron-validator"
+    schematron-path="my-schematron.sch " 
+    xsl-param-namespace="http://www.armatiek.com/xslweb/validation" 
+    xsl-param-name="schematron-validation-report">
+  </pipeline:schematron-validator>  
+</pipeline:pipeline>
+----
+
+The location of the Schematron schema can be specified in the attribute _schematron-path_. This path must be relative to the directory _«xslweb-home»/sch._
+
+Any validation warnings and errors are written to the log file. If you specify the attribute _xsl-param-name_ (and optional attribute _xsl-param-namespace_), the validation report (in http://www.schematron.com/validators.html[SVRL format]) is added as a stylesheet parameter of type document-node() to the next XSLT transformation step in the pipeline.
+
+The Schematron phase can be specified using the optional attribute _phase_ on the element _schematron-validator_ (see pipeline.xsd).
+
+See also example 25 of the _examples_ webapp.
+
+[#serialization-pipeline-steps]
+=== Serialization pipeline steps
+
+The way the result of the transformation pipeline steps is serialized to XML, XHTML, HTML or text can be specified by the serialization attributes of the element _xsl:output_ in the last stylesheet or query of the pipeline, using the attributes _method_, _encoding_, _indent_, _omit-xml-declaration_ and so on.
+
+In case the output of the pipeline should not be XML, XHTML, HTML or text, a specific serialization pipeline step can be added at the end of the pipeline. XSLWeb provides the serialization steps:
+
+* json-serializer
+* zip-serializer
+* resource-serializer
+* fop-serializer
+
+[#json-serializer-step]
+==== json-serializer step
+
+The json-serializer step serializes XML to a http://www.json.org/[JSON] representation. This step can be added as the last step in a pipeline like this:
+
+.JSON serializer pipeline step
+[source,xml]
+----
+<pipeline:pipeline>
+  <pipeline:transformer
+    name="my-transformation "
+    xsl-path="my-transformation.xsl"/>
+  <pipeline:json-serializer
+    name="json-serialization"
+    auto-array="false"
+    pretty-print="true">
+  <pipeline:json-serializer/>  
+</pipeline:pipeline>
+----
+
+The pipeline step supports the following attributes:
+
+* auto-array
+* auto-primitive
+* multi-pi
+* namespace-declarations
+* namespace-separator
+* pretty-print
+* virtual-root-namespace
+* virtual-root-name
+* repairing-namespaces
+
+See for an explanation of these properties the documentation of https://github.com/beckchr/staxon/wiki/Getting-Started[StAXON].
+
+Namespace declarations can be specified by adding namespace-declaration elements under the namespace-declarations sub element of json-serializer (see pipeline.xsd).
+
+See also example 18 of the _examples_ webapp.
+
+[#zip-serializer-step]
+==== zip-serializer step
+
+The zip-serializer step serializes an XML representation of the contents of a ZIP file to the actual file.
+
+A ZIP serializer pipeline step can be added as the last step in a pipeline like this:
+
+.ZIP serializer pipeline step
+[source,xml]
+----
+<pipeline:pipeline>
+  <pipeline:transformer
+    name="my-zip-serialization" 
+    xsl-path="my-zip-serialization.xsl"/>
+  <pipeline:zip-serializer name="zip"/>
+</pipeline:pipeline>
+----
+
+The last transformation step in the pipeline has to generate a response like the following XML:
+
+.Specify ZIP contents
+[source,xml]
+----
+<resp:response status="200">
+  <resp:body>
+    <zip:zip-serializer 
+      xmlns:zip="http://www.armatiek.com/xslweb/zip-serializer">
+      <zip:file-entry 
+        name="file/myfile.txt"
+        src="/home/john/myfile.txt"/>        
+      <zip:inline-entry 
+        name="dir1/test.xml"
+        method="xml"
+        encoding="UTF-8"
+        omit-xml-declaration="no"
+        indent="yes">
+        <a>
+          <b>Hello World</b>
+        </a>
+      </zip:inline-entry>
+    </zip:zip-serializer>
+  </resp:body>
+</resp:response>
+----
+
+The element zip-serializer can contain two elements:
+
+* *zip:file-entry*: a representation of a disk file that must be serialized to the zip file. The attribute “src” holds the path to the file, the attribute “name” holds the name (path) of the file in the serialized zip file.
+* *zip:inline-entry*: an inline XML, HTML or text fragment that must be serialized to the ZIP file. The attribute “name” holds the name (path) of the file in the serialized zip file. Other attributes specify the serialization behavior and are the same as the attributes of xsl:output.
+
+See also example 23 of the _examples_ webapp.
+
+[#resource-serializer-step]
+==== resource-serializer step
+
+The resource serializer returns a stored text or binary file to the client. It is typically used in scenarios where a file is dynamically generated during pipeline execution (for instance by using the extension function _exec-external()_) and then must be returned to the client in the same request. Another scenario is to create download links to static files that are located on the server outside the scope of the webapp’s “static” directory.
+
+The resource serializer pipeline step can be added as the last step in a pipeline like this:
+
+.Resource serializer pipeline step
+[source,xml]
+----
+<pipeline:pipeline>
+  <pipeline:transformer
+    name="resource-serialization" 
+    xsl-path="resource-serialization.xsl"/>
+  <pipeline:resource-serializer name="resource"/>  
+</pipeline:pipeline>
+----
+
+In this example the stylesheet _resource-serialization.xsl_ must generate a XML fragment containing information that the resource serializer uses to create the desired response. The stylesheet must generate an element _resource-serializer_ in the namespace _\http://www.armatiek.com/xslweb/resource-serializer_. On this element the following attributes can be set:
+
+* *path*: the local path to the file that must be returned to the client.
+* *content-type* (optional): the content type (mime type) that must be set on the response. If this attribute is not set, XSLWeb will try to determine the content type automatically.
+* *content-disposition-filename* (optional): this attribute can be used to force the browser to display a “Save as” dialog (instead of display the file “inline”). The specified filename will be used as the default filename in de dialog.
+
+An example of the output of the XSLT stylesheet _resource-serialization.xsl_ is:
+
+.Resource 
+[source,xml]
+----
+<res:resource-serializer
+  path="webapps/examples/xsl/resource/leaves.jpg" 
+  content-type="image/jpg" 
+  content-disposition-filename="my-image.jpg"/>
+----
+
+See also example 26 of the _examples_ webapp
+
+[#fop-serializer-step]
+==== fop-serializer step
+
+The fop-serializer step serializes https://www.w3.org/TR/xsl/[XSL:FO format] generated in a previous pipeline step to document formats like PDF or RTF using the https://xmlgraphics.apache.org/fop/[Apache FOP processor] version 2.2.
+
+The FOP serializer pipeline step can be added as the last step in a pipeline like this:
+
+.FOP serializer pipeline step
+[source,xml]
+----
+<pipeline:pipeline>
+  <pipeline:transformer 
+    name="my-xsl-fo-serialization" 
+    xsl-path="my-xsl-fo-serialization.xsl"/>
+  <pipeline:fop-serializer name="fop-serialization"/>  
+</pipeline:pipeline>
+----
+
+The last transformation step in the pipeline has to generate a response like the following XML:
+
+[source,xml]
+----
+<resp:response status="200">
+  <resp:body>
+    <fop:fop-serializer 
+      xmlns:fop="http://www.armatiek.com/xslweb/fop-serializer"
+      output-format="application/pdf" 
+      config-name="default">
+      <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
+        <!-- Your further XSL:FO code -->
+      </fo:root>
+    </fop:fop-serializer>
+  </resp:body>
+</resp:response>
+----
+
+The fop:fop-serializer element supports the following attributes:
+
+* *config-name*: the name of a FOP configuration in webapp.xml.
+* *output-format* (optional): the output format of the serialization, like “application/pdf” (default), application/postscript, application/rtf (see the FOP class MimeConstants.java).
+* *pdf-a-mode* (optional): specify a https://xmlgraphics.apache.org/fop/2.1/pdfa.html[PDF/A profile]:
+** PDF/A-1a
+** PDF/A-1b
+** PDF/A-2a
+** PDF/A-2b
+** PDF/A-2u
+** PDF/A-3a
+** PDF/A-3b
+** PDF/A-3u
+
+See also example 24 of the _examples_ webapp.
+
+[#stylesheet-parameters]
+== Stylesheet parameters
+
+Every XSLT stylesheet that is executed within XSLWeb is provided with a number of stylesheet parameters:
+
+* The configuration parameters from the parameters section in the _webapp.xml_. The parameter’s local name can be given a namespace using the attribute _uri_ and the type of the values can be specified using the attribute _type_. The value itself can be a sequence of atomic values.
+* _config:home-dir_: the path to the XSLWeb home directory (config = _\http://www.armatiek.com/xslweb/configuration_)
+* _config:webapp-dir_: the path to the base directory of the webapp.
+* _config:webapp-path_: The path in de url to the web application (“/” for the webapp _ROOT_ and _“/” + webapp-name_ for other webapps).
+* _config:development-mode_: whether the webapp runs in development-mode or production-mode.
+* The Java HttpServletRequest, HttpServletResponse and WebApp objects. These are used in custom XPath extension functions.
+
+Pipeline stylesheets are also provided with any parameters that are defined within the element _pipeline:transformer_ in _request-dispatcher.xsl_. The parameter’s local name can be given a namespace using the attribute _uri_ and the type of the values can be specified using the attribute _type_. The value itself can be a sequence of atomic values.
+
+The parameters only have to be declared in the stylesheets (as _<xsl:param/>_ elements) when they are actually used. The parameters for the Java objects doesn’t have to be declared at all.
+
+[#nested-pipelines]
+== Nested pipelines
+
+It is possible to call another pipeline from a stylesheet using the standard XSLT function _document()_ providing an URL that starts with the scheme _xslweb_, for instance:
+
+.Nested pipeline
+[source,xml]
+----
+<xsl:sequence select="document('xslweb:///examples/nestedpipeline.html')"/>
+----
+
+where _examples_ is the name of the webapp of the nested pipeline. The result of the nested pipeline will be available in the calling stylesheet as a document node. The nested pipeline request will follow the flow of a normal HTTP request, including the request dispatcher stylesheet. A nested pipeline call can be seen as an “internal request”, it does not go through the HTTP stack. [#_Response_serialization_1 .anchor]##
+
+[#development-mode]
+== Development mode and production mode
+
+In webapp.xml a web application can be configured to run in _development mode_ or _production mode_. The differences between development and production mode are:
+
+* In development mode, compiled XSLT stylesheets are not cached. That means that for every request all stylesheets in the pipeline are reread from disk and recompiled and therefore changes will be visible immediately. In production mode, stylesheets are compiled and cached the first time they are used. However, in production mode, changes in stylesheets will automatically be detected by the file alteration monitor and the complete web application will be reloaded. So there is no need to restart the application server when deploying stylesheets in production mode. The file alteration monitor will also detect and pick up changes in the webapp.xml configuration file and plugin extension function library jars.
+* In development mode, the caching framework (using the cache attributes on the pipeline element) is disabled, so no caching is performed.
+* In development mode, the output of a pipeline is not streamed directly to the client (e.g. the browser) but instead buffered until the complete pipeline is executed. If an error occurs during the execution of the pipeline, the error message and stack trace are sent to the client, making it easier to debug the error. If an error occurs in production mode, only a HTTP status code 500 (internal server error) is sent to the client (that is, if the response is not already committed by the application server).
+* In development mode a pipeline step can be configured to log its (intermediate) output to the log file _«xslweb-home»/logs/pipeline.log_, by specifying _log=”true”_ on the pipeline step. In production mode all logging of the output of pipeline steps is disabled.
+* In development mode, the generated XSLT of a Schematron schema is logged to the log file (with severity INFO).
+
+[#logging]
+== Logging
+
+Log files are stored in the directory _«xslweb-home»/logs_. This directory contains two log files, _xslweb.log_ and _pipeline.log_.
+
+Regular XSLWeb specific log messages are logged to _xslweb.log_. It’s also possible to write to this log file from web application stylesheets using the XPath extension function _log:log()_, see <<logging-functions>>.
+
+In development mode a pipeline step can be configured to log its (intermediate) output to the log file _pipeline.log_, by specifying _log=”true”_ on the pipeline step.
+
+By default the log files are rotated when they reach the size of 10Mb, and a maximum of 8 backups is retained.
+
+XSLWeb makes use of the standard logging framework http://www.slf4j.org/[slf4j] with http://logback.qos.ch/[logback]. The rotation, backup and other settings can be configured in the configuration file _«xslweb-home»/config/logback.xml_.
+
+[#response-caching]
+== Response caching
+
+The output of a pipeline can be cached by providing optional caching attributes on the element _pipeline:pipeline_ in the stylesheet _request-dispatcher.xsl_. The purpose of caching the response output is to gain performance; a response that can be served from cache will be returned quicker because no transformations are necessary and also the load on the server is decreased.
+
+The following attributes are supported:
+
+* _cache_ (xs:boolean): specifies whether the output of the response must be cache. Default: false.
+* _cache-key_ (xs:string): specifies the key under which the output of the pipeline must be cached, default the concatenation of req:method, req:request-URI and req:query-string. It is only necessary to override the default mechanism if for instance the query string contains parameters that are different for every request, like with tracking software.
+* _cache-time-to-live_ (xs:integer): The number of seconds the output will be cached from the time it was first added to the cache. Default: 60 seconds.
+* _cache-time-to-idle_: (xs:integer): The number of seconds the output will be cached from the last time it was actually used. Default”: 60 seconds.
+* _cache-scope_ (xs:string): One of “webapp” or “user”. It specifies whether the output should be cached and reused by all users of the web application (“webapp”), or for a specific user (“user”). Default “webapp”.
+* _cache-headers_ (xs:boolean): Specifies whether XSLWeb should automatically provide the HTTP response cache headers: _ETag_, _Last-Modified_ and _Expires_. It supports conditional GET. Because browsers and other HTTP clients have the expiry information returned in the response headers, they do not even need to request the page again. Even once the local browser copy has expired, the browser will do a conditional GET. Default: false.
+
+XSLWeb uses the standard caching framework Ehcache to support its caching (see http://ehcache.org). More advanced configuration properties can be specified in the Ehcache specific configuration file _«xslweb-home»/config/xslweb-ehcache.xml_, like for instance how many responses should be cached in memory and how many on disk. See the http://www.ehcache.org/generated/2.9.0/html/ehc-all/index.html#page/Ehcache_Documentation_Set/co-cfgbasics_xml_configuration.html[ehcache documentation] for further details.
+
+N.B. Response caching is only enabled in production mode, see <<development-mode>>.
+
+[#job-scheduling]
+== Job scheduling
+
+When you want to execute a pipeline (repeatedly) on a certain moment without user interaction, you can use the job scheduling functionality of XSLWeb. The jobs can be defined and scheduled in the _webapp.xml_ configuration file, for example:
+
+.Job scheduling
+[source,xml]
+----
+<job>
+  <name>MyJob</name> 
+  <uri>job/my-job</uri> 
+  <!-- Execute at 10:15am on the 15th day of every month: -->
+  <cron>0 15 10 15 * ?</cron>
+  <concurrent>false</concurrent> 
+</job>
+----
+
+The elements have the following meaning:
+
+* _name_: the name of the scheduled job. Used in log files.
+* _uri_: the Uri of the request to a pipeline within the current webapp. This internal request will follow the same flow of a normal HTTP request, including the request dispatcher stylesheet. The Uri does not contain the name of the webapp.
+* _cron_: the cron expression which is a string comprising five or six fields separated by white space that represents a set of times to execute the job (see http://en.wikipedia.org/wiki/Cron#CRON_expression).
+* _concurrent_: specifies whether or not the job can run concurrently with other jobs.
+
+[#user-authentication]
+== User authentication
+
+You can implement (BASIC) user authentication by performing the following steps:
+
+* Include the stylesheet _«xslweb-home»/xsl/system/authentication/basic/basic-authentication.xsl_ in your _request-dispatcher.xsl_ stylesheet.
+* Implement the function _auth:must-authenticate($request as element(request:request))): xs:boolean_. In this function you can determine whether _$request_ must be authenticated or not.
+* Implement the function _auth:get-realm(): xs:string_. This function must return the authentication realm.
+* Implement the function _auth:login($username as xs:string, $password as xs:string): element()?_. This function must authenticate $username with $password and return an empty sequence if the authentication failed or an element() containing the user profile if authentication succeeded. This element must have the name _authentication_ and a subelement _ID_. The element _data_ can be filled with arbitrary data you will need in subsequent requests.
+* This element will be stored by XSLWeb in the user's session object under the name _xslweb-userprofile_ so it will be available in subsequent requests.
+
+N.B. DIGEST or other authentication methods are not yet supported. BASIC (and DIGEST) authentication is only secure if HTTPS is used!
+
+[#global-properties]
+== Global configuration properties
+
+In _«xslweb-home»/config/xslweb.properties_ two global properties can be set:
+
+* *xslweb.trustallcerts*: specifies if all SSL certificates must be trusted when XSLWeb connects to an external HTTPS server.
+* *xslweb.parserhardening*: specifies if the Xerces XML parser must be configured to resist https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet[XML External Entity (XXE)] attacks.
+
+[#xpath-extension-function-library]
+== XPath extension function library
+
+[#built-in-extension-functions]
+=== Built in extension functions
+
+XSLWeb contains a set of readily available XPath extension functions. To use these extension functions in your XSLT stylesheets you only have to declare the namespace they are defined in.
+
+[#response-functions]
+=== Response functions
+
+These functions can be used to set/change specific information in the HTTP response. For a large part this information can also be specified in the Response XML document, see <<appendix-response-xml-example>> for an example of a Response XML document.
+
+Namespace: _\http://www.armatiek.com/xslweb/request_
+
+Functions:
+
+[source,xquery]
+----
+function response:add-cookie($cookie as element(response:cookie)) as xs:boolean?
+----
+
+Adds the specified HTTP cookie to the response. An example of a cookie element:
+[source,xml]
+----
+<xsl:variable name="my-cookie" as="element(resp:cookie)">
+  <resp:cookie>
+    <!-- Comment describing the purpose of this cookie: -->
+    <resp:comment>Comment 1</resp:comment>
+    <!-- The domain within which this cookie should be presented: -->
+    <resp:domain>
+      <xsl:value-of select="/*/req:server-name"/>
+    </resp:domain>
+    <!-- The maximum age in seconds for this cookie: -->
+    <resp:max-age>-1</resp:max-age>
+    <!-- The name of the cookie -->
+    <resp:name>cookie-1</resp:name>
+    <!-- The path for the cookie to which the client should 
+         return the cookie: -->
+    <resp:path>
+      <xsl:value-of select="/*/req:context-path"/>
+    </resp:path>
+    <!-- Indicates to the browser whether the cookie should only 
+         be sent using a secure protocol, such as HTTPS or SSL: -->
+    <resp:is-secure>false</resp:is-secure>
+    <!-- The value of the cookie -->
+    <resp:value>cookie-1-value</resp:value>
+    <!-- The version of the cookie protocol that this Cookie 
+         complies with: -->
+    <resp:version>0</resp:version>
+  </resp:cookie>
+</xsl:variable>
+----
+
+XSLWeb makes uses of the Java Cookie mechanism. See https://docs.oracle.com/javaee/7/api/javax/servlet/http/Cookie.html[Cookie].
+
+[source,xquery]
+----
+function response:add-date-header($name as xs:string, $value as xs:dateTime) as xs:boolean?
+----
+
+Adds a HTTP response header with the given name and date-value.
+
+[source,xquery]
+----
+function response:add-int-header($name as xs:string, $value as xs:integer) as xs:boolean?
+----
+
+Adds a HTTP response header with the given name and integer value.
+
+[source,xquery]
+----
+function response:add-header($name as xs:string, $value as xs:string) as xs:boolean?
+----
+
+Adds a HTTP response header with the given name and value.
+
+[source,xquery]
+----
+function response:encode-redirect-url($url as xs:string) as xs:string
+----
+
+Encodes the specified URL for use in the send-redirect function or, if encoding is not needed, returns the URL unchanged.
+
+[source,xquery]
+----
+function response:encode-url($url as xs:string) as xs:string
+----
+
+Encodes the specified URL by including the session ID, or, if encoding is not needed, returns the URL unchanged.
+
+[source,xquery]
+----
+function response:is-committed() as xs:boolean
+----
+
+Returns a boolean indicating if the response has been committed. A committed response has already had its status code and headers written.
+
+[source,xquery]
+----
+function response:set-buffer-size($size as xs:integer) as xs:boolean?
+----
+
+Sets the preferred buffer size for the body of the response. The servlet container will use a buffer at least as large as the size requested. A larger buffer allows more content to be written before anything is actually sent, thus providing XSLWeb with more time to set appropriate status codes and headers. A smaller buffer decreases server memory load and allows the client to start receiving data more quickly. This function must be called before any response body content is written
+
+[source,xquery]
+----
+function response:set-status($status as xs:integer) as xs:boolean?
+----
+
+Sets the HTTP status code for this response.
+
+See example 5 how to use the response functions to set cookies.
+
+[#session-functions]
+=== Session functions
+
+HTTP protocol and Web Servers are stateless, what it means is that for web server every request is a new request to process and they can’t identify if it’s coming from client that has been sending request previously.
+
+But sometimes in web applications, we should know who the client is and process the request accordingly. For example, a shopping cart application should know who is sending the request to add an item and in which cart the item has to be added or who is sending checkout request so that it can charge the amount to correct client.
+
+Session is a conversional state between client and server and it can consists of multiple request and response between client and server. Since HTTP and Web Server both are stateless, the only way to maintain a session is when some unique information about the session (session id) is passed between server and client in every request and response.
+
+XSLWeb makes use of the https://www.codejava.net/java-ee/servlet/how-to-use-session-in-java-web-application[session mechanism] of the Java Application Server is runs on, see https://docs.oracle.com/javaee/7/api/javax/servlet/http/HttpSession.html[HttpSession].
+
+Namespace: _\http://www.armatiek.com/xslweb/session_
+
+Functions:
+
+[source,xquery]
+----
+function session:attribute-names() as xs:string*
+----
+
+Returns a sequence of strings containing the names of all attributes bound to this session.
+
+[source,xquery]
+----
+function session:get-attribute($name as xs:string) as item()*
+----
+
+Returns the attribute bound with the specified $name in this session, or an empty sequence if no attribute is bound under the name.
+
+[source,xquery]
+----
+function session:invalidate() as xs:boolean?
+----
+
+Invalidates this session then unbinds any attributes bound to it.
+
+[source,xquery]
+----
+function session:set-attribute($name as xs:string, attr as item()*) as xs:boolean?
+----
+
+Binds an attribute to this session, using the name specified.
+
+[source,xquery]
+----
+function session:set-max-active-interval($interval as xs:integer) as xs:boolean?
+----
+
+Specifies the time, in seconds, between client requests before the servlet container will invalidate this session automatically.
+
+See example 7 how to use the session functions to set and get session attributes.
+
+[#webapp-functions]
+=== Webapp functions
+
+These functions can be used to get and set web application specific attributes. These can be used to share session independent attribute between multiple requests within one web application.
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/webapp_
+
+Functions:
+
+[source,xquery]
+----
+function webapp:get-attribute($name as xs:string) as item()*
+----
+
+[source,xquery]
+----
+function webapp:get-cache-value($cache-name as xs:string, $key-name as xs:string) as item()*
+----
+
+[source,xquery]
+----
+function webapp:set-attribute($name as xs:string, attr as item()*) as xs:boolean?
+----
+
+[source,xquery]
+----
+function webapp:set-cache-value($cache-name as xs:string, $key-name as xs:string, $attrs as item()*, $time-to-idle as xs:integer, $time-to-live as xs:integer) as xs:boolean?
+----
+
+See example 7 how to use the webapp functions to set and get webapp attributes, and example 14 how to use the caching functions.
+
+=== Context functions
+
+These functions can be used to get and set “XSLWeb context” specific attributes. These can be used to share attributes between web applications.
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/context_
+
+Functions:
+
+[source,xquery]
+----
+function context:get-attribute($name as xs:string) as item()*
+----
+
+[source,xquery]
+----
+function context:set-attribute($name as xs:string, attr as item()*) as xs:boolean?
+----
+
+See example 7 how to use the context functions to set and get session attributes.
+
+[#expath-file-functions]
+=== EXPath File
+
+EXPath File is a standard file system API for XPath. It defines extension functions to perform file system related operations such as listing, reading, writing, copying and moving files or directories. The API is described http://expath.org/spec/file[here].
+
+Namespace: _http://expath.org/ns/file_
+
+Functions:
+
+[source,xquery]
+----
+function file:exists($path as xs:string) as xs:boolean
+----
+
+[source,xquery]
+----
+function file:is-dir($path as xs:string) as xs:boolean
+----
+
+[source,xquery]
+----
+function file:is-file($path as xs:string) as xs:boolean
+----
+
+[source,xquery]
+----
+function file:last-modified($path as xs:string) as xs:dateTime
+----
+
+[source,xquery]
+----
+function file:size($file as xs:string) as xs:integer
+----
+
+[source,xquery]
+----
+function file:append($file as xs:string, $items as item()*) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:append($file as xs:string, $items as item()*, $params as element(output:serialization-parameters)) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:append-binary($file as xs:string, $value as xs:base64Binary) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:append-text($file as xs:string, $value as xs:string) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:append-text($file as xs:string, $value as xs:string, $encoding as xs:string) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:append-text-lines($file as xs:string, $values as xs:string*) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:append-text-lines($file as xs:string, $lines as xs:string*, $encoding as xs:string) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:copy($source as xs:string, $target as xs:string) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:create-dir($dir as xs:string) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:create-temp-dir($prefix as xs:string, $suffix as xs:string) as xs:string
+----
+
+[source,xquery]
+----
+function file:create-temp-dir($prefix as xs:string, $suffix as xs:string, $dir as xs:string) as xs:string
+----
+
+[source,xquery]
+----
+function file:create-temp-file($prefix as xs:string, $suffix as xs:string) as xs:string
+----
+
+[source,xquery]
+----
+function file:create-temp-file($prefix as xs:string, $suffix as xs:string, $dir as xs:string) as xs:string
+----
+
+[source,xquery]
+----
+function file:delete($path as xs:string) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:delete($path as xs:string, $recursive as xs:boolean) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:list($dir as xs:string) as xs:string*
+----
+
+[source,xquery]
+----
+function file:list($dir as xs:string, $recursive as xs:boolean) as xs:string*
+----
+
+[source,xquery]
+----
+function file:list($dir as xs:string, $recursive as xs:boolean, $pattern as xs:string) as xs:string*
+----
+
+[source,xquery]
+----
+function file:move($source as xs:string, $target as xs:string) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:read-binary($file as xs:string) as xs:base64Binary
+----
+
+[source,xquery]
+----
+function file:read-binary($file as xs:string, $offset as xs:integer) as xs:base64Binary
+----
+
+[source,xquery]
+----
+function file:read-binary($file as xs:string, $offset as xs:integer, $length as xs:integer) as xs:base64Binary 
+----
+
+[source,xquery]
+----
+function file:read-text($file as xs:string) as xs:string
+----
+
+[source,xquery]
+----
+function file:read-text($file as xs:string, $encoding as xs:string) as xs:string
+----
+
+[source,xquery]
+----
+function file:read-text-lines($file as xs:string) as xs:string*
+----
+
+[source,xquery]
+----
+function file:read-text-lines($file as xs:string, $encoding as xs:string) as xs:string*
+----
+
+[source,xquery]
+----
+function file:write($file as xs:string, $items as item()*) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:write($file as xs:string, $items as item()*, $params as element(output:serialization-parameters)) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:write-binary($file as xs:string, $value as xs:base64Binary) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:write-binary($file as xs:string, $value as xs:base64Binary, $offset as xs:integer) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:write-text($file as xs:string, $value as xs:string) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:write-text($file as xs:string, $value as xs:string, $encoding as xs:string) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:write-text-lines($file as xs:string, $values as xs:string*) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:write-text-lines($file as xs:string, $values as xs:string*, $encoding as xs:string) as xs:boolean?
+----
+
+[source,xquery]
+----
+function file:name($path as xs:string) as xs:string
+----
+
+[source,xquery]
+----
+function file:parent($path as xs:string) as xs:string?
+----
+
+[source,xquery]
+----
+function file:path-to-native($path as xs:string) as xs:string
+----
+
+[source,xquery]
+----
+function file:path-to-uri($path as xs:string) as xs:anyURI
+----
+
+[source,xquery]
+----
+function file:resolve-path($path as xs:string) as xs:string
+----
+
+[source,xquery]
+----
+function file:dir-separator() as xs:string
+----
+
+[source,xquery]
+----
+function file:line-separator() as xs:string
+----
+
+[source,xquery]
+----
+function file:path-separator() as xs:string
+----
+
+[source,xquery]
+----
+function file:temp-dir() as xs:string
+----
+
+The structure of _element(output:serialization-parameters)_ is described in http://www.w3.org/TR/xslt-xquery-serialization-30/[XSLT and XQuery Serialization 3.0]. See example 10 how to use some of the EXPath File functions.
+
+[#expath-http-client-functions]
+=== EXPath HTTP Client
+
+These functions are an implementation of the specification: http://expath.org/spec/http-client[EXPath - HTTP Client Module] based on the Java HTTP client library https://square.github.io/okhttp/[OkHttp]. It is an XSLWeb “native” implementation. The API defines one extension function to perform HTTP requests and handle responses.
+
+EXPath HTTP Client provides a lot more functionality than XSLT’s document() function:
+
+* Execution of other HTTP methods (POST, HEAD, PUT, DELETE etc), making it possible to consume both SOAP and REST based web services.
+* Request text or even binary documents.
+* Authentication (Basic and Digest).
+* Specify HTTP headers in the request and read the HTTP headers of the response.
+* Execute requests to HTML pages and parse them as well-formed XML.
+
+Not implemented at this time:
+
+* Multipart responses (multipart requests are supported)
+* Other authentication methods than "Basic"
+
+Extensions to the specifications:
+
+* Proxy server support via the attributes "http:request/@proxy-host","http:request/@proxy-port", "http:request/@proxy-username", "http:request/@proxy-password"
+* Trust all SSL certificates via the attribute http:request/@trust-all-certs (xs:boolean, default: false())
+
+Further remarks:
+
+* The default timeout (connect/write/read/cal) is 30 seconds (can be changed via http:request/@timeout)
+* Certificate authorities of the host platform are trusted
+
+Namespace: _http://expath.org/ns/http-client_
+
+Functions:
+
+[source,xquery]
+----
+function http:send-request($request as element(http:request)) as item()
+----
+
+[source,xquery]
+----
+function http:send-request($request as element(http:request)?, $href as xs:string?) as item()+
+----
+
+[source,xquery]
+----
+function http:send-request($request as element(http:request)?, $href as xs:string?, $bodies as item()*) as item()+
+----
+
+See examples 11 and 21 how to use some of the EXPath HTTP Client function.
+
+[#base64-functions]
+=== Base64
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/base64_
+
+Functions:
+
+[source,xquery]
+----
+function base64:encode($str as xs:string) as xs:string
+----
+Encodes a string using the base64 algorithm but does not chunk the output.
+
+[source,xquery]
+----
+function base64:decode($str as xs:string) as xs:string
+----
+Decodes a Base64 string into octets which then are converted to a UTF-8 string.
+
+[#external-functions]
+=== Execute external processes
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/exec_
+
+Functions:
+
+[source,xquery]
+----
+function external:exec-external(
+  $command-line as xs:string, 
+  $args as xs:string*, 
+  $exit-value as xs:integer?, 
+  $time-out as xs:integer?, 
+  $async as xs:boolean) as xs:integer
+----
+
+Where $command-line is the path to the executable, $args a sequence of arguments to the application, $exit-value the exit code that is considered as success, $time-out the time in milliseconds after an asynchronous process is killed and $async indicates if the process must be started asynchronous or not.
+
+[#logging-functions]
+=== Logging functions
+
+Logging functionality. The logging information is written to the main XSLWeb log file, default _«xslweb-home»_/logs/xslweb.log.
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/log_
+
+Functions:
+
+[source,xquery]
+----
+function log:log($level as xs:string, $message as item()*) as xs:boolean
+----
+
+[source,xquery]
+----
+function log:log(
+  $level as xs:string, 
+  $message as item()*, 
+  $params as element(output:serialization-parameters)) as xs:boolean
+----
+
+Where $level is one of “ERROR”, “WARN”, “INFO” or “DEBUG”. The structure of _element(output:serialization-parameters)_ is described in http://www.w3.org/TR/xslt-xquery-serialization-30/[XSLT and XQuery Serialization 3.0]. See example 15 how to use some of the log functions.
+
+[#email-functions]
+=== Email
+
+Functionality for sending e-mail via SMTP.
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/email_
+
+Functions:
+
+[source,xquery]
+----
+function email:send-email($email as element(email:email)) as xs:boolean
+----
+
+See example 12 how to use the send-email example and an example of the structure of _element(email:email)_.
+
+[#serialization-functions]
+=== Serialization
+
+Functionality for serializing a node to a string.
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/serialize_
+
+Functions:
+
+[source,xquery]
+----
+function ser:serialize($nodes as node()*, $options as element(output:serialization-parameters)?) as xs:string
+----
+
+The structure of _element(output:serialization-parameters)_ is described in http://www.w3.org/TR/xslt-xquery-serialization-30/[XSLT and XQuery Serialization 3.0].
+
+WARNING: *Deprecated:* use https://www.w3.org/TR/xpath-functions-31/#func-serialize.
+
+[#caching-functions]
+=== Caching
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/cache_
+
+Functions:
+
+Remove a cache entry from the response output cache:
+
+[source,xquery]
+----
+function cache:remove($cache-key as xs:string) as xs:boolean?
+----
+
+[#image-processing-functions]
+=== Image processing
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/image_
+
+Functions:
+
+[source,xquery]
+----
+function img:scale($source as xs:string, $target as xs:string, $format-name as xs:string, $target-size as xs:integer) as xs:boolean?
+----
+Resizes an image and optionally convert it to another format. $source is the path or url to the source image, $target the path to the scaled image, $format-name the name of the target format (like png, gif, jpg) and $target-size the maximum image width or height of the scaled image.
+
+[#io-functions]
+=== Input/Output
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/io_
+
+Functions:
+
+[source,xquery]
+----
+function io:register-temp-file($path as xs:string) as xs:boolean?
+----
+Registers a temporary file or directory that will automatically be deleted after the pipeline has executed.
+
+[#util-functions]
+=== Utilities
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/util_
+
+Functions:
+
+[source,xquery]
+----
+function util:discard-document($document-node()) as document-node()
+----
+Remove supplied document from memory pool so it will be released by the Java garbage collector.
+
+[source,xquery]
+----
+function util:parse($serialized-xml as xs:string) as document-node()
+----
+Parse a XML string to a document node.
+
+WARNING: *Deprecated:* use https://www.w3.org/TR/xpath-functions-31/#func-parse-xml.
+
+[#zip-functions]
+=== Zip/Unzip
+
+(Un)zip functionality
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/zip_
+
+Functions:
+
+[source,xquery]
+----
+function zip:zip($source as xs:string, $target as xs:string) as xs:boolean?
+----
+Zip a file on path $source to a new file on path $target:
+
+[source,xquery]
+----
+function zip:unzip($source as xs:string, $target as xs:string) as xs:boolean?
+----
+Unzip a file on path or url $source to a new file on path $target:
+
+See also <<zip-serializer-step>>.
+
+[#uuid-functions]
+=== UUID
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/uuid_
+
+Functions:
+
+[source,xquery]
+----
+function uuid:uuid() as xs:string
+----
+Generate a  type 4 (pseudo randomly generated) universally unique identifier.
+
+[#json-functions]
+=== JSON
+
+(Experimental)
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/json_
+
+Functions:
+
+[source,xquery]
+----
+function json:serialize-json($items as item()*) as xs:string
+----
+Serializes a sequence of items to a JSON representation.
+
+[source,xquery]
+----
+function json:parse-json($json as xs:string) as document-node()?
+----
+Parses a JSON string to a document node.
+
+[source,xquery]
+----
+function json:escape-json($str as xs:string) as xs:string?
+----
+Escapes the characters in $str using JSON string rules.
+
+[source,xquery]
+----
+function json:unescape-json($json as xs:string) as xs:string?
+----
+Unescapes any JSON literals found in $json.
+
+See also <<json-serializer-step>>.
+
+TIP: Alternative: now you can also use the standard XPath 3.1 functions, see: https://www.w3.org/TR/xpath-functions-31/#json-functions.
+
+[#dynfunc-functions]
+=== Dynamic (scripted) extension functions
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/dynfunc_
+
+Functions:
+
+[source,xquery]
+----
+function dynfunc:register($java-classes as xs:string+) as element(function:diagnostics)?
+----
+This function registers (makes available within an XSLWeb web application) one or more extension functions that are implemented in one or more Java classes defined in *$java-classes*. Methods that implement an extension function must be annotated with the Java annotation *ExtensionFunction*, for instance:
+
+[source,java]
+----
+import nl.armatiek.xslweb.saxon.functions.dynfunc.ExtensionFunction;
+import org.apache.commons.lang3.StringUtils;
+
+public class MyExtensionFunctions {
+  
+  /* Adds two integers: */
+  @ExtensionFunction(
+      uri="http://example.com/functions/test", 
+      name="add",
+      hasSideEffects=false)
+  public int add(int x, int y) {
+    return x + y;
+  }
+
+  /* Removes diacritics from a string. The case will not be altered: */
+  @ExtensionFunction(
+      uri="http://example.com/functions/test", 
+      name="strip-accents",
+      hasSideEffects=false)
+  public String stripAccents(String text) {
+    return StringUtils.stripAccents(text);
+  }
+
+}
+----
+
+The annotation defines the namespace uri and local name of the (qualified name of the) extension function on the XPath side and whether the extension function has side effects.
+
+The Java code needs to be registered only once. After registering, the extension functions will be available in further XSLT transformations that are executed within the XSLWeb webapp in which the code was registered. Therefore the template *event:webapp-open* in *events.xsl* is a suitable location to register dynamic extension functions.
+
+The Java classes must not contain a package declaration. All Java classes are supposed to be in the same (WebApp specific) package which is automatically added to the code before compilation.
+
+The arguments and return type of the methods that implement an extension function must be of one of the following primitive types, interfaces or classes *or arrays thereof*:
+
+[cols=",",options="header",]
+|===
+|Java class |Equivalent XPath type
+|boolean |xs:boolean
+|Boolean |xs:boolean?
+|String |xs:string?
+|CharSequence |xs:string?
+|long |xs:integer
+|Long |xs:integer?
+|int |xs:integer
+|Integer |xs:integer?
+|short |xs:short
+|Short |xs:short?
+|byte |xs:byte **
+|Byte |xs:byte?
+|float |xs:float
+|Float |xs:float?
+|double |xs:double
+|Double |xs:double?
+|java.net.URI |xs:anyURI?
+|java.net.URL |xs:anyURI?
+|java.math.BigInteger |xs:integer?
+|java.math.BigDecimal |xs:decimal?
+|java.util.Date |xs:dateTime?
+|net.sf.saxon.s9api.QName |xs:QName
+|net.sf.saxon.value.StringValue |xs:string?
+|net.sf.saxon.value.BooleanValue |xs:boolean?
+|net.sf.saxon.value.DoubleValue |xs:double?
+|net.sf.saxon.value.FloatValue |xs:float?
+|net.sf.saxon.value.DecimalValue |xs:decimal?
+|net.sf.saxon.value.IntegerValue |xs:integer?
+|net.sf.saxon.value.AnyURIValue |xs:anyURI?
+|net.sf.saxon.value.QNameValue |xs:QName?
+|net.sf.saxon.value.DateValue |xs:date?
+|net.sf.saxon.value.DateTimeValue |xs:dateTime?
+|net.sf.saxon.value.TimeValue.class |xs:time?
+|net.sf.saxon.value.DurationValue |xs:duration?
+|net.sf.saxon.value.DayTimeDurationValue |xs:duration?
+|net.sf.saxon.value.YearMonthDurationValue |xs:duration?
+|net.sf.saxon.value.GYearValue |xs:gYear
+|net.sf.saxon.value.GYearMonthValue |xs:gYearMonth
+|net.sf.saxon.value.GMonthValue |xs:gMonth
+|net.sf.saxon.value.GMonthDayValue |xs:gMonthDay
+|net.sf.saxon.value.GDayValue |xs:gDay
+|net.sf.saxon.value.Base64BinaryValue |xs:base64Binary
+|net.sf.saxon.value.HexBinaryValue |xs:hexBinary
+|net.sf.saxon.om.Function |function()
+|net.sf.saxon.ma.map.MapItem |map(*)
+|net.sf.saxon.om.NodeInfo |node(), element(), attribute(), text(), comment(), processing-instruction()
+|net.sf.saxon.om.TreeInfo |document-node()
+|net.sf.saxon.expr.XPathContext |The current Saxon XPathContext object *
+|nl.armatiek.xslweb.configuration.Context |The current XSLWeb Context object *
+|nl.armatiek.xslweb.configuration.WebApp |The current XSLWeb WebApp object *
+|javax.servlet.http.HttpSession |The current JEE session object *
+|javax.servlet.http.HttpServletRequest |The current JEE request object *
+|javax.servlet.http.HttpServletResponse |The current JEE response object *
+|===
+
+(*) These objects does not have to be specified in the XPath function call, only as arguments in the Java call method. These arguments must be specified first, before arguments that are specified in the XPath function call. +
+(**) byte[] maps to xs:unsignedByte*
+
+When the extension function is called from XPath, the equivalent XPath type (from the second column) must be used.
+
+If the registration and code compilation succeeds, the function will return an empty sequence. When there are errors or warnings during code compilation, the function will return an element function:diagnostics. An example of such diagnostics element is:
+
+[source,xml]
+----
+<dynfunc:diagnostics>
+  <dynfunc:diagnostic
+    code="compiler.err.cant.resolve.location"
+    line="8"
+    column="46"
+    start="255"
+    end="280"
+    kind="ERROR"
+    message="cannot find symbol
+    symbol:   class LongestCommonSubsequenceX
+    location: class Example21"
+    position="255"/>
+</dynfunc:diagnostics>
+----
+
+Within the extension function code all Java classes from the classpath of the XSLWeb Java web application can be used or imported.
+
+The function can raise an exception with one of the following error codes:
+
+[cols=",",options="header",]
+|===
+|Code |Description
+|err:DF001 |Generic error compiling and registering extension function classes, %s
+|err:DF002 |No Java compiler could be found. Are you using a JDK version of the Java platform?
+|err:DF003 |Could not determine classname from code unit %d
+|===
+
+[source,xquery]
+----
+function dynfunc:is-registered($function-name as xs:QName) as xs:boolean
+----
+
+This function can be used to query if a function with name *$function-name* is already registered within the current XSLWeb web application. The standard XSLT functions https://www.w3.org/TR/xslt-30/#function-function-available[*fn:function-available()*] can also be used.
+
+[source,xquery]
+----
+dynfunc:call($function-name as xs:QName, $arg-1 as item()* ... $arg-n as item()*) as item()*
+----
+
+This function can be used to execute a extension function that was registered before using the function *dynfunc:register*. The first argument is the qualified name of the function, the other arguments are the function parameters.
+
+The function can raise an exception with one of the following error codes:
+
+[cols=",",options="header",]
+|===
+|Code |Description
+|err:DF010 |No function with name %s is registered
+|err:DF011 |The number of supplied arguments in the call to the XPath extension function %s (%d) does not match the number of declared arguments in the Java method (%d)[ , considering %d implicit objects]
+|err:DF012 |Conversion from %s to %s is not supported
+|err:DF013 |A wrapped Java InvocationTargetException, IllegalAccessException, IllegalArgumentException or InstantiationException
+|===
+
+A complete example:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"  
+  xmlns:dynfunc="http://www.armatiek.com/xslweb/functions/dynfunc"
+  xmlns:err="http://www.w3.org/2005/xqt-errors"
+  exclude-result-prefixes="#all"
+  version="3.0">
+  
+  <xsl:template name="my-template">
+    
+    <xsl:variable name="code-units" as="xs:string+">
+      <xsl:text>
+      <![CDATA[
+      import nl.armatiek.xslweb.saxon.functions.dynfunc.ExtensionFunction;
+      import org.apache.commons.lang3.StringUtils;
+      
+      public class MyExtensionFunctions {
+      
+        /* Removes diacritics from a string. The case will not be altered: */
+        @ExtensionFunction(
+            uri="http://example.com/functions/test", 
+            name="strip-accents",
+            hasSideEffects=false)
+        public String stripAccents(String text) {
+          return StringUtils.stripAccents(text);
+        }
+        
+      }
+      ]]>  
+      </xsl:text>
+    </xsl:variable>
+    
+    <!-- Register the extension functions in the Java code: -->
+    <xsl:variable 
+      name="result" 
+      select="dynfunc:register($code-units)" 
+      as="element(dynfunc:diagnostics)?"/>
+    
+    <xsl:choose>
+      <!-- Check the registration result: -->
+      <xsl:when test="$result/dynfunc:diagnostic/@kind = 'ERROR'">
+        <xsl:sequence select="$result"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <!-- Call the functions: -->
+        <xsl:try>
+          <xsl:variable 
+            name="function-name" 
+            select="QName('http://example.com/functions/test', 'strip-accents')" 
+            as="xs:QName"/>
+          <xsl:sequence select="dynfunc:call($function-name, 'naïve fiancé')"/>
+          <xsl:catch>
+            <xsl:value-of select="$err:description"/>    
+          </xsl:catch>
+        </xsl:try>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  
+</xsl:stylesheet>
+----
+
+[#sql-functions]
+=== SQL
+
+Functionality to query data from and store data in a relational database. These extension functions make use of the http://en.wikipedia.org/wiki/Java_Database_Connectivity[Java JDBC] framework. You can place the JDBC driver for your database in the directory _«xslweb-home»/common/lib_ (restart required). Then you can define a datasource in the _datasources_ section of the application’s _webapp.xml_, for instance for a http://www.h2database.com/html/main.html[H2] database:
+
+[source,xml]
+----
+<datasource>
+  <name>my-datasource</name>
+  <driver-class>org.h2.Driver</driver-class>
+  <jdbc-url>jdbc:h2:file://${webapp-dir}/database/my-database.mv</jdbc-url>
+  <property name="user">sa</property>
+</datasource>
+----
+
+With the extension function _sql:get-connection(“my-datasource”)_ a database connection can be retrieved from the connection pool. This connection then can be used to execute one or more queries.
+
+The connection pool is implemented using the Java connection pool framework http://www.mchange.com/projects/c3p0/[c3p0]. The c3p0 specific properties that can be used in the datasource definition in _webapp.xml_ are described http://www.mchange.com/projects/c3p0/#configuration_properties[here]. De default c3p0 properties can be configured in the configuration file _«xslweb-home»/config/c3p0-config.xml_.
+
+Connections and resultsets can be explicitly closed by using the extension function _sql:close()_. The _sql:close()_ function on a connection will also return the connection to the connection pool. Connections and resultsets that are not closed that way will be implicitly closed at the end of the pipeline, and connections will be returned to the connection pool automatically.
+
+JDBC drivers are available for most relational database systems (like MySQL, Oracle, PostgreSQL, MSSQL Server, Sybase, Cloudscape and Firebird), but also for non-relational database datasources like CSV files and LDAP directory services (untested).
+
+Namespace: _\http://www.armatiek.com/xslweb/functions/sql_
+
+Functions:
+
+[source,xquery]
+----
+function sql:close($connection as java.sql.Connection) as xs:boolean?
+----
+Closes a database connection.
+
+[source,xquery]
+----
+function sql:close($resultset as java.sql.ResultSet) as xs:boolean?
+----
+Closes a result set.
+
+[source,xquery]
+----
+function sql:commit($connection as java.sql.Connection) as xs:boolean?
+----
+Makes all changes made since the previous commit/rollback permanent and releases any database locks currently held by this Connection object.
+
+[source,xquery]
+----
+function sql:execute-query($connection as java.sql.Connection, $sql as xs:string) as java.sql.ResultSet
+----
+Executes query $sql and returns the result of the query as a Java ResultSet object. This ResultSet can then be passed to the function _sql:get-next-row()_ to iterate through the records of the resultset, or _sql:resultset-to-node()_ to get an XML representation of the complete resultset.
+
+[source,xquery]
+----
+function sql:get-connection(
+  $name as xs:string, 
+  $username as xs:string?, 
+  $password as xs:string?, 
+  $readonly as xs:boolean?, 
+  $autocommit as xs:boolean?) as java.sql.Connection
+----
+Creates or gets a database connection. XSLWeb uses a connection pool for fast creation and reuse of database connections. This function returns a Java Connection object that can be passed as a parameter to other sql functions. $name is the name of a datasource specification in the webapp.xml of the web application.
+
+[source,xquery]
+----
+function sql:get-next-row($resultset as java.sql.ResultSet) as xs:anyAtomicType*
+----
+Returns the next row in a Java ResultSet represented as a sequence of atomic types.
+
+[source,xquery]
+----
+function sql:rollback($connection as java.sql.Connection) as xs:boolean?
+----
+Undoes all changes made in the current transaction and releases any database locks currently held by this Connection.
+
+[source,xquery]
+----
+function sql:resultset-to-node($resultset as java.sql.ResultSet) as element()
+----
+Returns an XML representation of the complete ResultSet.
+
+See example 22 how to use some of the sql extension functions.
+
+[#custom-extension-functions]
+=== Custom extension functions
+
+It is also possible to write your own custom XPath extension functions in Java and add them to an XSLWeb web application. These extension functions must be http://www.saxonica.com/html/documentation/extensibility/integratedfunctions/ext-full-J.html[integrated extension functions] that use the full interface of Saxon version 9.9.
+
+The compiled jar of a custom extension function together with any libraries that the function depend on can be placed in the folder _«web-app»/lib_. There is no need to restart the application server, XSLWeb will detect the jars and will load and register the extension function automatically.
+
+[#side-effects]
+=== Extension functions with side effects
+
+A number of the extension functions described in previous sections perform a certain task and thereby change the state of something outside the stylesheet, like write or log to a file, send an e-mail etc. These functions don’t have any return information and should have an empty sequence as their return type. In XSLWeb, the return type of these functions is actually declared as _xs:boolean?_ The reason is that in that case the Saxon XSLT optimizer cannot ignore these functions, because they could add something to the result tree (a boolean value). In reality, these functions never return this boolean value and always return an empty sequence. Therefore it is safe to do something like:
+
+[source,xml]
+----
+<xsl:sequence select="log:log('INFO', 'Hello World!')"/>
+----
+
+without having to worry that something is written to the result tree.
+
+[#install]
+== Download, install and run XSLWeb
+
+The sources of XSLWeb can be found on https://github.com/Armatiek/xslweb[GitHub]. XSLWeb is licensed under the Apache License version 2.0.
+
+Compiled binaries of XSLWeb 3.0.1 can be downloaded in two distributions:
+
+[arabic]
+. As a .zip (Windows) or .tgz (Linux/macOS) archive, containing a single executable java library (.jar) with embedded application server (Apache Tomcat 7).
+. As a web application archive (.war)
+
+[#install-jar]
+=== The single executable jar distribution
+
+This distribution contains the XSLWeb home directory and a single executable java library (xslweb.jar) with embedded application server (Tomcat 7). This distribution is the easiest to install and run and is most suitable to try out and develop applications in XSLWeb.
+
+==== Download
+
+You can download the archives from the following locations:
+
+* https://github.com/Armatiek/xslweb/releases/download/v3.0.1/xslweb-3.0.1-jar.zip (Windows)
+* https://github.com/Armatiek/xslweb/releases/download/v3.0.1/xslweb-3.0.1-jar.tgz (Linux/macOS).
+
+==== Install
+
+Extract the archive to a directory of your choice. You will need the Java Runtime Environment (JRE) version 1.8 or higher. At a command line, check your Java version like this:
+
+[source,bash]
+----
+$ java -version
+openjdk version "13.0.2" 2020-01-14
+OpenJDK Runtime Environment (build 13.0.2+8)
+OpenJDK 64-Bit Server VM (build 13.0.2+8, mixed mode, sharing)
+----
+
+The output will vary, but you need to make sure you have version 1.8 or higher. If no JRE/JDK is installed yet or you have an older version, download or install an https://www.oracle.com/technetwork/java/javase/downloads/index.html[Oracle JDK] or an https://jdk.java.net/14/[OpenJDK download] / https://openjdk.java.net/install/[OpenJDK install]. https://blog.joda.org/2018/09/do-not-fall-into-oracles-java-11-trap.html[This article] will help you decide which to choose (TL;DR : Do not download or use the Oracle JDK unless you intend to pay for it).
+
+==== Run
+
+The embedded jar version of XSLWeb can be started from the directory where the archive was extracted using the following command (one line):
+
+[source,bash]
+----
+java -Dxslweb.home=./home -cp xslweb.jar;home/config org.apache.tomcat.maven.runner.Tomcat7RunnerCli
+----
+
+The following additional arguments are supported:
+
+[source,text]
+----
+-ajpPort <ajpPort> ajp port to use
+-clientAuth enable client authentication for https
+-D <arg> key=value
+-extractDirectory <extractDirectory> path to extract war content, default value: .extract
+-h,--help help
+-httpPort <httpPort> http port to use
+-httpProtocol <httpProtocol> http protocol to use: HTTP/1.1 or org.apache.coyote.http11.Http11Nio Protocol
+-httpsPort <httpsPort> https port to use
+-maxPostSize <maxPostSize> max post size in bytes to use
+-keyAlias <keyAlias> alias from keystore for ssl
+-loggerName <loggerName> logger to use: slf4j to use slf4j bridge on top of jul
+-obfuscate <password> obfuscate the password and exit
+-resetExtract clean previous extract directory
+-serverXmlPath <serverXmlPath> server.xml to use, optional
+-X,--debug debug
+----
+
+Now you can open a browser and go to the address http://localhost:8080. A web page with the text “It works!” should appear. From here you can go to the examples and the documentation.
+
+[#install-war]
+=== The Web Application Archive (.war) distribution
+
+This distribution contains the XSLWeb home directory and a web application archive (.war) and is most suitable to run XSLWeb in a production setting. The web application archive is a standard J2EE web application that can be installed on any Java application server that supports Servlet Spec 3.0 (Tomcat 7+, TomEE 1.6+, WebLogic, Jetty 8+, Glassfish 3+, JBoss AS 6.x/7.x etc.).
+
+==== Download
+
+You can download the archives from the following locations:
+
+* https://github.com/Armatiek/xslweb/releases/download/v3.0.1/xslweb-3.0.1-war.zip (Windows)
+* https://github.com/Armatiek/xslweb/releases/download/v3.0.1/xslweb-3.0.1-war.tgz (Linux/macOS)
+
+==== Install
+
+Extract the archive to a directory of your choice. This directory will contain the directory xslweb-3.0.1 containing a directory called _home_ and a file called _xslweb.war_. The installation of a war is application server specific, so please consult the manual of your server for that. Regardless of which application server is used, two settings are essential:
+
+[arabic]
+. The home directory of XSLWeb must be specified using a Java System Property called _xslweb.home_.
+. The path _«xslweb-home»/config_ must be added to the Java classpath.
+
+==== Run
+
+Start your application server. Open a web browser and go to the address:
+
+http://localhost:<port>/xslweb
+
+where port is the port your application server runs on. A web page with the text “It works!” should appear. From here you can go to the examples and the documentation.
+
+=== Install XSLWeb as a Windows service or Linux/macOS daemon
+
+One way to install XSLWeb as a Windows service or Linux/macOS daemon is to use http://yajsw.sourceforge.net/[YAJSW (Yet Another Java Service Wrapper)]. This installation involves the following steps:
+
+[arabic]
+. Execute the steps described in sections 12.1.1 and 12.1.2.
+. Download YAJSW version 12.11+ from https://sourceforge.net/projects/yajsw/files/ and extract the archive in the directory created in step 1.
+. Create YAJSW wrapper config file _wrapper.xslweb.conf_ and place it in YAJSW's _conf_ folder. You can use the example below. You may need to modify this example to:
+* Specify the location of java (wrapper.java.command)
+* Specify the installation directory of XSLWeb (wrapper.working.dir)
+* Change the amount of memory available to XSLWeb from 1024m (for example, 512m or 2048m)
+
+[source,properties]
+----
+# YAJSW configuration for XSLWeb
+
+wrapper.java.command=C:/ProgramData/Oracle/Java/javapath/java.exe
+wrapper.working.dir=D:\\xslweb-3.0.1
+wrapper.java.app.mainclass=org.apache.tomcat.maven.runner.Tomcat7RunnerCli
+wrapper.java.classpath.1 = xslweb.jar
+wrapper.java.classpath.2 = home/config
+
+wrapper.java.additional.1 = -Xmx1024m
+wrapper.java.additional.2 = -Dfile.encoding=utf-8
+wrapper.java.additional.3 = -Dxslweb.home=./home
+wrapper.java.additional.4 = -Dorg.terracotta.quartz.skipUpdateCheck=true
+
+wrapper.ntservice.name= XSLWEB_3_0
+wrapper.ntservice.displayname= XSLWeb 3.0.1
+wrapper.ntservice.description= XSLWeb 3.0.1
+wrapper.ntservice.starttype=DELAYED_AUTO_START
+
+wrapper.console.loglevel=INFO
+wrapper.logfile=$\{wrapper.working.dir}/home/logs/wrapper-xslweb.log
+wrapper.logfile.maxsize=10m
+wrapper.logfile.maxfiles=10
+
+wrapper.on_exit.0=SHUTDOWN
+wrapper.on_exit.default=RESTART
+----
+
+You can add any optional arguments mentioned in section 12.1.3 as _wrapper.app.parameter.NN._ 
+
+After you have created the wrapper configuration file:
+
+[arabic]
+. Open a command prompt as administrator (Windows) or shell (Linux/macOS)
+. Navigate to the YAJSW folder
+. Install the service: +
+java -jar wrapper.jar --install conf\wrapper.xslweb.conf
+. Start the service: +
+java -jar wrapper.jar --start conf\wrapper.xslweb.conf
+
+XSLWeb is now running as a service/daemon, and will start automatically when the operating system starts. Open a web browser and go to the address:
+
+http://localhost:8080
+
+A web page with the text “It works!” should appear. From here you can go to the examples and the documentation.
+
+If you make changes to the configuration you can follow this sequence:
+
+[arabic]
+. Stop the service: +
+java -jar wrapper.jar --stop conf\wrapper.xslweb.conf
+. Remove the service: +
+java -jar wrapper.jar --remove conf\wrapper.xslweb.conf
+. Make your changes to the wrapper or application configuration.
+. Install the service: +
+java -jar wrapper.jar --install conf\wrapper.xslweb.conf
+. Start the service: +
+java -jar wrapper.jar --start conf\wrapper.xslweb.conf
+
+== Support for Saxon PE (Professional) and EE (Enterprise Edition)
+
+The downloadable binaries of XSLWeb contain the open source Home Edition (HE) of the Saxon XSLT processor. You can build a version of XSLWeb that contains Saxon PE or EE by following these steps:
+
+* Install Java 1.8+, maven 2.2.1+ and make a clone of the git repository https://github.com/Armatiek/xslweb.git.
+* Purchase a PE or EE license from http://www.saxonica.com/.
+* Download the PE of EE package from https://www.saxonica.com/download/SaxonPE9-9-1-7J.zip or https://www.saxonica.com/download/SaxonEE9-9-1-7J.zip
+* Extract and register the jars in your local Maven repository using the following commands:
+** PE:
+*** mvn install:install-file -Dfile=saxon9pe.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion=9.9.1-7 -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion=9.9.1-7 -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion=9.9.1-7 -Dpackaging=jar
+** EE:
+*** mvn install:install-file -Dfile=saxon9ee.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE -Dversion=9.9.1-7 -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion=9.9.1-7 -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion=9.9.1-7 -Dpackaging=jar
+* Place your purchased license file _saxon-license.lic_ in <<xslweb.home>>/config
+* Build XSLWeb with the maven profile “Saxon-PE” or “Saxon-EE”:
+** mvn -PSaxon-PE clean install +
+or
+** mvn -PSaxon-EE clean install
+
+[#appendix-request-xml-example]
+== Appendix A: Request XML example
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<request xmlns="http://www.armatiek.com/xslweb/request">
+  <character-encoding>UTF-8</character-encoding>
+  <content-length>-1</content-length>
+  <context-path>/xslweb</context-path>
+  <local-addr>127.0.0.1</local-addr>
+  <local-name>127.0.0.1</local-name>
+  <local-port>8080</local-port>
+  <method>GET</method>
+  <path>/log/log.html</path>
+  <path-info>/examples/log/log.html</path-info>
+  <path-translated>D:\webapps\xslweb\examples\log\log.html</path-translated>
+  <protocol>HTTP/1.1</protocol>
+  <remote-addr>127.0.0.1</remote-addr>
+  <remote-host>127.0.0.1</remote-host>
+  <remote-port>55451</remote-port>
+  <requested-session-id>D5984A4C38D09BE74C04F1D89022AE90</requested-session-id>
+  <request-URI>/xslweb/examples/log/log.html</request-URI>
+  <request-url>http://localhost:8080/xslweb/examples/log/log.html</request-url>
+  <scheme>http</scheme>
+  <server-name>localhost</server-name>
+  <server-port>8080</server-port>
+  <servlet-path/>
+  <webapp-path>/examples</webapp-path>
+  <is-secure>false</is-secure>
+  <is-requested-session-id-from-cookie>true</is-requested-session-id-from-cookie>
+  <is-requested-session-id-from-url>false</is-requested-session-id-from-url>
+  <is-requested-session-id-valid>true</is-requested-session-id-valid>
+  <headers>
+    <header name="host">localhost:8080</header>
+    <header name="connection">keep-alive</header>
+    <header name="accept">text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</header>
+    <header name="user-agent">Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36</header>
+    <header name="referer">http://localhost:8080/xslweb/examples</header>
+    <header name="accept-encoding">gzip, deflate, sdch</header>
+    <header name="accept-language">nl-NL,nl;q=0.8,en-US;q=0.6,en;q=0.4</header>
+    <header name="cookie">JSESSIONID=D5984A4C38D09BE74C04F1D89022AE90</header>
+  </headers>
+  <parameters>
+    <parameter name="country">
+      <value>US</value>
+    </parameter>
+    <parameter name="states">
+      <value>AZ</value>
+      <value>CA</value>
+    </parameter>
+  </parameters>
+  <!-- If this request was a file upload POST request:
+  <file-uploads>
+    <file-upload>
+      <file-path>C:\Users\John\AppData\Local\Temp\48226ce5-7bba-4986-8d1f-c4a8f34638cf\MyDocument1.docx</file-path>
+      <field-name>file1</field-name>
+      <file-name>MyDocument1.docx</file-name>
+      <content-type>application/vnd.openxmlformats-officedocument.wordprocessingml.document</content-type>
+      <size>177032</size>
+    </file-upload>
+  </file-uploads>
+  -->
+  <session>
+    <creation-time>2015-01-06T13:06:04.925+01:00</creation-time>
+    <id>D5984A4C38D09BE74C04F1D89022AE90</id>
+    <last-accessed-time>2015-01-06T14:36:04.909+01:00</last-accessed-time>
+    <max-inactive-interval>1800</max-inactive-interval>
+    <is-new>false</is-new>
+  </session>
+  <cookies>
+    <cookie>
+      <max-age>-1</max-age>
+      <name>JSESSIONID</name>
+      <is-secure>false</is-secure>
+      <value>D5984A4C38D09BE74C04F1D89022AE90</value>
+      <version>0</version>
+    </cookie>
+  </cookies>
+</request>
+----
+
+[#appendix-response-xml-example]
+== Appendix B: Response XML example
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<resp:response 
+  xmlns:resp="http://www.armatiek.com/xslweb/response" 
+  status="200">
+  <resp:headers>                              
+    <resp:header name="Pragma">no-cache</resp:header>        
+    <resp:int-header name="Expires">0</resp:int-header>
+    <resp:date-header 
+      name="Last-Modified">2006-04-10T13:40:23.83-05:00</resp:date-header>
+  </resp:headers>
+  <resp:session max-active-interval="1800">
+    <resp:attributes>
+      <resp:attribute name="msg">
+        <item type="xs:string">Hello World</item>
+        <item type="node()">
+          <msg>Hello World!</msg>
+        </item>
+      </resp:attribute>
+    </resp:attributes>    
+  </resp:session>
+  <resp:cookies>            
+    <resp:cookie>
+      <resp:comment>Comment 1</resp:comment>
+      <resp:domain>localhost.com</resp:domain>        
+      <resp:max-age>-1</resp:max-age>
+      <resp:name>cookie-1</resp:name>
+      <resp:path>/examples</resp:path>
+      <resp:is-secure>false</resp:is-secure>
+      <resp:value>cookie-1-value</resp:value>
+      <resp:version>0</resp:version>
+    </resp:cookie>                 
+  </resp:cookies>
+  <resp:body>    
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <head>
+        <title>Hello World!</title>
+      </head>
+      <body>
+        <h1>Hello World</h1>        
+      </body>
+    </html>
+  </resp:body>
+</resp:response>
+----
+
+[#appendix-webapp-xml-example]
+== Appendix C: Webapp XML example
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<webapp 
+  xmlns="http://www.armatiek.com/xslweb/webapp"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp
+../../config/xsd/xslweb/webapp.xsd">
+  
+  <title>XSLWeb examples</title>
+  <description>XSLWeb examples</description>
+  <development-mode>true</development-mode>
+  
+  <!-- Resources to serve straight away: -->
+  <resources>
+    <resource pattern="/favicon.ico" media-type="image/x-icon"/>    
+    <resource 
+      pattern="/(styles|images)/.+\.png" 
+      media-type="image/png"
+      duration="P7DT0H0M0S"/>
+    <resource pattern="/(styles|images)/.+\.gif" media-type="image/gif"/>
+    <resource pattern="/(styles|images)/.+\.(jpg|jpeg)" media-type="image/jpg"/>
+    <resource pattern="/scripts/.+\.js" media-type="text/javascript"/>
+    <resource pattern="/styles/.+\.css" media-type="text/css"/>    
+    <resource pattern="/downloads/.+\.docx?" media-type="application/msword"/>    
+  </resources>
+  
+  <!-- Stylesheet parameters: -->
+  <parameters>        
+    <parameter
+      name="hostname"
+      uri="http://www.armatiek.com/xslweb/functions/email"
+      type="xs:string">
+      <value>smtp.googlemail.com</value>
+    </parameter>
+    <parameter
+      name="port"
+      uri="http://www.armatiek.com/xslweb/functions/email"
+      type="xs:integer">
+      <value>465</value>
+    </parameter>
+    <parameter
+      name="username"
+      uri="http://www.armatiek.com/xslweb/functions/email"
+      type="xs:string">
+      <value>MYUSERNAME</value>
+    </parameter>
+    <parameter
+      name="password"
+      uri="http://www.armatiek.com/xslweb/functions/email"
+      type="xs:string">
+      <value>MYPASSWORD</value>
+    </parameter>
+    <parameter
+      name="use-ssl"
+      uri="http://www.armatiek.com/xslweb/functions/email"
+      type="xs:boolean">
+      <value>true</value>
+    </parameter>
+  </parameters>
+  
+  <!-- Scheduled job definitions: -->
+  <jobs> 
+    <job>
+      <name>WriteTimeJob</name>
+      <uri>execute-writetime-job.html</uri>
+      <!-- Execute every 60 seconds: --> 
+      <cron>0/60 * * * * ?</cron>
+      <concurrent>true</concurrent>
+    </job>   
+  </jobs>
+  <datasources>
+    <datasource>
+      <name>datasource-worldcup</name>
+      <driver-class>org.h2.Driver</driver-class>
+      <jdbc-url>jdbc:h2:file://${webapp-dir}/xsl/relational-database/worldcup.mv</jdbc-url>
+      <property name="user">sa</property>
+    </datasource>
+  </datasources>
+
+</webapp>
+----
