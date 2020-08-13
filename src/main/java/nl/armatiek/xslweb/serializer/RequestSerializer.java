@@ -20,6 +20,7 @@ package nl.armatiek.xslweb.serializer;
 import java.io.File;
 import java.io.IOException;
 import java.io.PushbackReader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.Base64;
@@ -472,7 +473,7 @@ public class RequestSerializer {
       this.xmlReader = XMLReaderFactory.createXMLReader();              
       this.xmlReader.setFeature("http://xml.org/sax/features/validation", false);
       this.xmlReader.setFeature("http://xml.org/sax/features/namespaces", true);
-      this.xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", false);            
+      this.xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", false); 
       if (Context.getInstance().getParserHardening()) {
         setXMLReaderFeature(this.xmlReader, "http://xml.org/sax/features/external-general-entities", false);
         setXMLReaderFeature(this.xmlReader, "http://xml.org/sax/features/external-parameter-entities", false);
@@ -481,7 +482,7 @@ public class RequestSerializer {
         this.xmlReader.setEntityResolver(new EntityResolver() {
           @Override
           public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {            
-            return null;
+            return new InputSource(new StringReader(""));
           }         
         });
         if (SECURITY_MANAGER != null) {

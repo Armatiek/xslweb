@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.serializer;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,6 +14,7 @@ package nl.armatiek.xslweb.serializer;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.serializer;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -74,6 +73,7 @@ public class ZipSerializer extends AbstractSerializer {
     this(webApp, null, null, null);    
   }
   
+  @SuppressWarnings("deprecation")
   @Override
   public void close() throws IOException {
     IOUtils.closeQuietly(zos);      
@@ -108,6 +108,7 @@ public class ZipSerializer extends AbstractSerializer {
     }
   }
   
+  @SuppressWarnings("deprecation")
   private void processFileEntry(String uri, String localName, String qName, Attributes attributes) throws Exception {
     String name = attributes.getValue("", "name");
     if (name == null) {
