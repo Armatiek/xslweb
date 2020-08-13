@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.web.filter;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,10 +14,9 @@ package nl.armatiek.xslweb.web.filter;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.web.filter;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Date;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -29,14 +26,11 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.datatype.Duration;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
-import nl.armatiek.xslweb.configuration.Resource;
 import nl.armatiek.xslweb.configuration.WebApp;
 
 public class WebAppFilter implements Filter {
@@ -55,7 +49,6 @@ public class WebAppFilter implements Filter {
       throws IOException, ServletException {
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse resp = (HttpServletResponse) response;            
-    String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();
     WebApp webApp = getWebApp(request);    
     if (webApp == null) {
       resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -63,43 +56,7 @@ public class WebAppFilter implements Filter {
       resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
     } else {
       req.setAttribute(Definitions.ATTRNAME_WEBAPP, webApp);
-      Resource resource = webApp.matchesResource(webApp.getRelativePath(path));
-      if (resource == null) {                                
-        chain.doFilter(request, response);               
-      } else {
-        resp.setContentType(resource.getMediaType());
-        String cacheBusterId = webApp.getCacheBusterId();
-        if (cacheBusterId != null) {
-          path = StringUtils.remove(path, cacheBusterId);
-        }
-        File file = webApp.getStaticFile(path);
-        long ifModifiedSince;
-        if (!file.isFile()) {
-          resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-        } else if ((ifModifiedSince = req.getDateHeader("If-Modified-Since")) > -1 && (file.lastModified() < ifModifiedSince + 1000)) {
-          resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);  
-        } else {
-          String cacheControl = "";
-          Date currentDate = new Date();
-          long now = currentDate.getTime();
-          Duration duration = resource.getDuration();
-          if (duration != null) {
-            long ms = duration.getTimeInMillis(currentDate);
-            cacheControl = "max-age=" + ms / 1000;
-            resp.setDateHeader("Expires", now + ms);
-          }
-          String extraCacheControl = resource.getExtraCacheControl();
-          if (StringUtils.isNoneBlank(extraCacheControl)) {
-            cacheControl = cacheControl + StringUtils.prependIfMissing(extraCacheControl.trim(), ",");
-          }
-          if (cacheControl.length() > 0) {
-            resp.addHeader("Cache-Control", cacheControl);
-          }
-          resp.setDateHeader("Last-Modified", file.lastModified());
-          resp.setContentLength((int) file.length());
-          FileUtils.copyFile(file, resp.getOutputStream());
-        }
-      }
+      chain.doFilter(request, response);
     }        
   }
 

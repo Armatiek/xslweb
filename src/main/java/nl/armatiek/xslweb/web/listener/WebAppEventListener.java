@@ -25,12 +25,11 @@ import java.util.ArrayList;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import nl.armatiek.xslweb.configuration.Context;
+import nl.armatiek.xslweb.configuration.Definitions;
 
 /**
  * 
@@ -42,7 +41,7 @@ public class WebAppEventListener implements ServletContextListener {
   private final static Logger logger = LoggerFactory.getLogger(WebAppEventListener.class);
 
   public void contextInitialized(ServletContextEvent sce) {        
-    try { 
+    try {
       Context context = Context.getInstance();
       context.setServletContext(sce.getServletContext());    
       ClassLoader effectiveClassLoader = getClass().getClassLoader();
@@ -52,9 +51,7 @@ public class WebAppEventListener implements ServletContextListener {
         for (int i=0; i<classPathURLs.length; i++) {
           classPath.add(new File(classPathURLs[i].toURI()).getAbsolutePath());
         }
-        String classPathSeparator = StringUtils.defaultString(System.getProperty("path.separator"), 
-          SystemUtils.IS_OS_WINDOWS ? ";" : ":");
-        context.setClassPath(String.join(classPathSeparator, classPath));
+        context.setClassPath(String.join(Definitions.CLASSPATH_SEPARATOR, classPath));
       }
       context.open();              
     } catch (Exception e) {
