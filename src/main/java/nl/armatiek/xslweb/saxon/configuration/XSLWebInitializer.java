@@ -87,6 +87,12 @@ import nl.armatiek.xslweb.saxon.functions.response.IsCommitted;
 import nl.armatiek.xslweb.saxon.functions.response.SetBufferSize;
 import nl.armatiek.xslweb.saxon.functions.response.SetStatus;
 import nl.armatiek.xslweb.saxon.functions.script.Invoke;
+import nl.armatiek.xslweb.saxon.functions.security.HasPermission;
+import nl.armatiek.xslweb.saxon.functions.security.HasRole;
+import nl.armatiek.xslweb.saxon.functions.security.IsAuthenticated;
+import nl.armatiek.xslweb.saxon.functions.security.IsGuest;
+import nl.armatiek.xslweb.saxon.functions.security.IsUser;
+import nl.armatiek.xslweb.saxon.functions.security.Principal;
 import nl.armatiek.xslweb.saxon.functions.serialize.Serialize;
 import nl.armatiek.xslweb.saxon.functions.session.Invalidate;
 import nl.armatiek.xslweb.saxon.functions.session.SetMaxInactiveInterval;
@@ -261,6 +267,13 @@ public class XSLWebInitializer implements Initializer {
     registerXPathFunction(new GetStatus(), configuration);
     registerXPathFunction(new GetInfo(), configuration);
     
+    /* Security */
+    registerXPathFunction(new HasPermission(), configuration);
+    registerXPathFunction(new HasRole(), configuration);
+    registerXPathFunction(new IsAuthenticated(), configuration);
+    registerXPathFunction(new IsGuest(), configuration);
+    registerXPathFunction(new IsUser(), configuration);
+    registerXPathFunction(new Principal(), configuration);
   }
   
   private void registerXPathFunction(ExtensionFunctionDefinition function, Configuration configuration) {           
