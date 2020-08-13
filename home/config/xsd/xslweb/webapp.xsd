@@ -14,8 +14,9 @@
     <xs:complexType>
       <xs:all>
         <xs:element name="title" type="xs:string"/>
-        <xs:element name="description" type="xs:string"/>
-        <xs:element name="development-mode" type="xs:boolean" default="false"/>
+        <xs:element name="description" minOccurs="0" type="xs:string"/>
+        <xs:element name="active" type="xs:boolean" minOccurs="0" default="true"/>
+        <xs:element name="development-mode" type="xs:boolean" minOccurs="0" default="false"/>
         <xs:element name="max-upload-size" type="xs:integer" minOccurs="0" default="10"/>
         <xs:element name="wait-for-jobs-at-close" type="xs:boolean" minOccurs="0" default="true"/>
         <xs:element name="disable-cookie-management" type="xs:boolean" minOccurs="0" default="false"/>
@@ -59,6 +60,24 @@
                   </xs:attribute>
                 </xs:complexType>
               </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="webdav" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="enabled" type="xs:boolean" minOccurs="0" default="false"/>
+              <xs:element name="index-file" type="xs:string" minOccurs="0"/>
+              <xs:element name="instead-of-404" type="xs:string" minOccurs="0"/>  
+              <xs:element name="no-contentlength-headers" type="xs:integer" minOccurs="0"/>
+              <xs:element name="lazy-folder-creation-on-put" type="xs:boolean" minOccurs="0" default="false"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="security" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="shiro-ini" minOccurs="0" maxOccurs="1" type="xs:string"/>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
