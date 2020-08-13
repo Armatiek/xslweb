@@ -75,6 +75,9 @@ import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fop.apps.FopFactory;
+import org.apache.shiro.config.Ini;
+import org.apache.shiro.web.env.IniWebEnvironment;
+import org.apache.shiro.web.env.WebEnvironment;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerFactory;
@@ -120,6 +123,8 @@ import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.xpath.XPathFactoryImpl;
+import net.sf.webdav.LocalFileSystemStore;
+import net.sf.webdav.WebDavServletBean;
 import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.joost.MessageEmitter;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
@@ -169,6 +174,8 @@ public class WebApp implements ErrorHandler {
   private Processor processor;  
   private Fingerprints fingerprints;
   private FileAlterationMonitor monitor;
+  private WebEnvironment shiroWebEnvironment;
+  private WebDavServletBean webDavServletBean;
   // private CloseableHttpClient httpClient;
   private volatile int jobRequestCount = 0;
   
@@ -190,6 +197,7 @@ public class WebApp implements ErrorHandler {
     String defXml = IOUtils.toString(new XmlStreamReader(webAppDefinition));
     Properties vars = new Properties(System.getProperties());
     vars.setProperty("webapp-dir", webAppDefinition.getParentFile().getAbsolutePath().replace('\\', '/'));
+    vars.setProperty("webapp-name", this.name);
     String resolvedDefXml = XSLWebUtils.resolveProperties(defXml, vars);
     InputSource src = new InputSource(new StringReader(resolvedDefXml));
     src.setSystemId(webAppDefinition.getAbsolutePath());
@@ -285,6 +293,26 @@ public class WebApp implements ErrorHandler {
     XsltCompiler comp = processor.newXsltCompiler();
     this.identityXsltExecutable = comp.compile(source); 
    
+    String shiroIniStr = (String) xpath.evaluate("webapp:security/webapp:shiro-ini", docElem, XPathConstants.STRING);
+    if (StringUtils.isNoneBlank(shiroIniStr)) {
+      Ini shiroIni = new Ini();
+      shiroIni.load(shiroIniStr);
+      shiroWebEnvironment = new IniWebEnvironment();
+      ((IniWebEnvironment) shiroWebEnvironment).setIni(shiroIni);
+      ((IniWebEnvironment) shiroWebEnvironment).init();
+    }
+    
+    boolean webdavEnabled = XMLUtils.getBooleanValue((String) xpath.evaluate("webapp:webdav/webapp:enabled", docElem, XPathConstants.STRING), false);
+    if (webdavEnabled) {
+      webDavServletBean = new WebDavServletBean();
+      webDavServletBean.init(
+          new LocalFileSystemStore(this.homeDir, "/" + this.name + "/webdav"), 
+          StringUtils.trimToNull((String) xpath.evaluate("webapp:webdav/webapp:index-file", docElem, XPathConstants.STRING)), 
+          StringUtils.trimToNull((String) xpath.evaluate("webapp:webdav/webapp:instead-of-404", docElem, XPathConstants.STRING)), 
+          Integer.parseInt(StringUtils.defaultString(StringUtils.trimToNull((String) xpath.evaluate("webapp:webdav/no-contentlength-headers", docElem, XPathConstants.STRING)), "0")), 
+          XMLUtils.getBooleanValue((String) xpath.evaluate("webapp:webdav/webapp:lazy-folder-creation-on-put", docElem, XPathConstants.STRING), false));
+    }
+    
     // initClassLoader();
             
     initFileAlterationObservers();    
@@ -536,6 +564,14 @@ public class WebApp implements ErrorHandler {
     return dataSources;
   }
   
+  public WebDavServletBean getWebDavServletBean() {
+    return webDavServletBean;
+  }
+  
+  public WebEnvironment getShiroWebEnvironment() {
+    return shiroWebEnvironment;
+  }
+  
   public Configuration getConfiguration() {
     return configuration.getConfiguration();
   }
@@ -548,50 +584,6 @@ public class WebApp implements ErrorHandler {
     return processor;
   }
   
-  /*
-  public CloseableHttpClient getHttpClient() {    
-    if (httpClient == null) {
-      PoolingHttpClientConnectionManager cm;
-      if (Context.getInstance().getTrustAllCerts()) {
-        try {
-          SSLContextBuilder scb = SSLContexts.custom();
-          scb.loadTrustMaterial(null, new TrustStrategy() {
-            @Override
-            public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-              return true;
-            }
-          });
-          SSLContext sslContext = scb.build();
-          SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-          Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create()
-              .register("https", sslsf)
-              .register("http", new PlainConnectionSocketFactory())
-              .build();
-          cm = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-        } catch (Exception e) {
-          logger.warn("Could not set HttpClient to trust all SSL certificates", e);
-          cm = new PoolingHttpClientConnectionManager();
-        }
-      } else {
-        cm = new PoolingHttpClientConnectionManager();
-      }
-      cm.setMaxTotal(200);
-      cm.setDefaultMaxPerRoute(20);
-      HttpHost localhost = new HttpHost("localhost", 80);
-      cm.setMaxPerRoute(new HttpRoute(localhost), 50);
-      HttpClientBuilder builder = HttpClients.custom().setConnectionManager(cm);
-      if (this.disableCookieManagement) {
-        RequestConfig requestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES).build();
-        builder = builder.setDefaultRequestConfig(requestConfig).disableCookieManagement();
-      }
-      builder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
-      builder.setDefaultCookieStore(new BasicCookieStore());
-      httpClient = builder.build();
-    }
-    return httpClient;
-  }
-  */
-
   public XsltExecutable getRequestDispatcherTemplates(ErrorListener errorListener, boolean tracing) throws Exception {
     return tryXsltExecutableCache(new File(getHomeDir(), 
         Definitions.PATHNAME_REQUESTDISPATCHER_XSL).getAbsolutePath(), errorListener, tracing);
