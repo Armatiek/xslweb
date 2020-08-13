@@ -20,6 +20,9 @@ package nl.armatiek.xslweb.configuration;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
+
 import net.sf.saxon.s9api.QName;
 
 /**
@@ -30,7 +33,7 @@ import net.sf.saxon.s9api.QName;
 public class Definitions {
   
   public final static String PROJECT_NAME                      = "xslweb";
-  public final static String PROJECT_VERSION                   = "3.2.2";
+  public final static String PROJECT_VERSION                   = "3.3.0";
   public final static String PATHNAME_REQUESTDISPATCHER_XSL    = "xsl/request-dispatcher.xsl";
   public final static String FILENAME_PROPERTIES               = "xslweb.properties";
   public final static String FILENAME_QUARTZ                   = "xslweb-quartz.properties";
@@ -73,6 +76,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_LOG         = NAMESPACEURI_XSLWEB_FUNCTIONS + "/log";
   public final static String NAMESPACEURI_XSLWEB_FX_EMAIL       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/email";  
   public final static String NAMESPACEURI_XSLWEB_FX_SERIALIZE   = NAMESPACEURI_XSLWEB_FUNCTIONS + "/serialize";
+  public final static String NAMESPACEURI_XSLWEB_FX_SECURITY    = NAMESPACEURI_XSLWEB_FUNCTIONS + "/security";
   public final static String NAMESPACEURI_XSLWEB_FX_JSON        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/json";
   public final static String NAMESPACEURI_XSLWEB_FX_UUID        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/uuid";
   public final static String NAMESPACEURI_XSLWEB_FX_WEBAPP      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/webapp";
@@ -131,9 +135,13 @@ public class Definitions {
   
   public final static String PROPERTYNAME_TRUST_ALL_CERTS      = "xslweb.trustallcerts";
   public final static String PROPERTYNAME_PARSER_HARDENING     = "xslweb.parserhardening";
+  public final static String PROPERTYNAME_WABDAV_ENABLE        = "xslweb.webdav.enable";
+  public final static String PROPERTYNAME_WEBDAV_ROOT          = "xslweb.webdav.root";
   
   public final static QName EVENTNAME_WEBAPPOPEN              = new QName("event", NAMESPACEURI_XSLWEB_EVENT, "webapp-open");
   public final static QName EVENTNAME_WEBAPPCLOSE             = new QName("event", NAMESPACEURI_XSLWEB_EVENT, "webapp-close");
   public final static QName EVENTNAME_WEBAPPRELOAD            = new QName("event", NAMESPACEURI_XSLWEB_EVENT, "webapp-reload");
+  
+  public final static String CLASSPATH_SEPARATOR              = StringUtils.defaultString(System.getProperty("path.separator"), SystemUtils.IS_OS_WINDOWS ? ";" : ":");
   
 }

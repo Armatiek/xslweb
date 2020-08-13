@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -84,14 +85,19 @@ public class Context {
   private Properties properties;
   private boolean parserHardening;
   private boolean trustAllCerts;
+  private boolean webDAVEnable;
+  private File webDAVRoot;
   private String contextPath;
   private File webInfDir; 
   private File homeDir;
   private File queueDir;
   private ScheduledExecutorService queueCleanupScheduler;
   private volatile boolean isOpen = false;
+  private Date startTime;
   
-  private Context() { }
+  private Context() {
+    startTime = new Date();
+  }
   
   /**
    * Returns the singleton Config instance.
@@ -226,6 +232,11 @@ public class Context {
       HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
     }
     this.parserHardening = new Boolean(this.properties.getProperty(Definitions.PROPERTYNAME_PARSER_HARDENING, "false"));
+    this.webDAVEnable = new Boolean(this.properties.getProperty(Definitions.PROPERTYNAME_WABDAV_ENABLE, "false"));
+    this.webDAVRoot = new File(this.properties.getProperty(Definitions.PROPERTYNAME_WEBDAV_ROOT, this.getHomeDir().getAbsolutePath()));
+    if (this.webDAVEnable && !this.webDAVRoot.isDirectory()) {
+      logger.error("WebDAV root directory {} not found or is not a directory", this.webDAVRoot.getAbsolutePath());
+    }
   }
   
   private void initMimeUtil() {
@@ -382,8 +393,20 @@ public class Context {
     return this.parserHardening;    
   }
   
+  public Date getStartTime() {
+    return startTime;
+  }
+  
   public boolean getTrustAllCerts() {     
     return this.trustAllCerts;    
+  }
+  
+  public boolean getWebDAVEnable() {
+    return this.webDAVEnable;
+  }
+  
+  public File getWebDAVRoot() {
+    return this.webDAVRoot;
   }
   
   public Schema getWebAppSchema() {
@@ -402,6 +425,10 @@ public class Context {
       webApp = webApps.get("ROOT");
     }
     return webApp;    
+  }
+  
+  public Collection<WebApp> getWebApps() {
+    return webApps.values();
   }
   
   public void setServletContext(ServletContext servletContext) {
