@@ -17,12 +17,14 @@
 package nl.armatiek.xslweb.saxon.functions.dynfunc;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -39,8 +41,10 @@ import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
+import org.clapper.util.classutil.ClassLoaderBuilder;
 
 import net.sf.saxon.event.PipelineConfiguration;
 import net.sf.saxon.expr.StaticProperty;
@@ -246,7 +250,22 @@ public class Register extends ExtensionFunctionDefinition {
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         
         List<String> optionList = new ArrayList<String>();
-        optionList.addAll(Arrays.asList("-classpath", Context.getInstance().getClassPath()));
+        
+        // Add webapp specific classpath:
+        String webAppClassPath = null;
+        File libDir = new File(getWebApp(context).getHomeDir(), "lib");
+        Collection<File> libClassFiles = null;
+        if (libDir.isDirectory()) {
+          ArrayList<String> classFilePaths = new ArrayList<String>();
+          libClassFiles = FileUtils.listFiles(libDir, new String[] {"jar", "class"}, false);
+          libClassFiles.add(libDir);
+          for (File file: libClassFiles) {
+            classFilePaths.add(file.getAbsolutePath());
+          }
+          webAppClassPath = String.join(Definitions.CLASSPATH_SEPARATOR, classFilePaths);
+        }
+        
+        optionList.addAll(Arrays.asList("-classpath", Context.getInstance().getClassPath() + ((webAppClassPath != null) ? Definitions.CLASSPATH_SEPARATOR + webAppClassPath : "")));
         
         SimpleJavaFileManager fileManager = new SimpleJavaFileManager(compiler.getStandardFileManager(null, null, null));
         
@@ -283,9 +302,18 @@ public class Register extends ExtensionFunctionDefinition {
           builder.close();
           diagnosticsNode = NodeInfoUtils.getFirstChildElement(builder.getCurrentRoot());
         } else {
-          CompiledClassLoader classLoader = new CompiledClassLoader(getClass().getClassLoader(), fileManager.getGeneratedOutputFiles());  
+          ClassLoader classLoader;
+          if (libClassFiles == null) {
+            classLoader = getClass().getClassLoader();
+          } else {
+            ClassLoaderBuilder builder = new ClassLoaderBuilder();    
+            builder.add(libClassFiles);
+            classLoader = builder.createClassLoader();
+          }
+          
+          CompiledClassLoader compiledClassLoader = new CompiledClassLoader(classLoader, fileManager.getGeneratedOutputFiles());  
           for (String className : qualifiedClassNames) {
-            Class<?> callClass = ((Class<?>) classLoader.loadClass(className));
+            Class<?> callClass = ((Class<?>) compiledClassLoader.loadClass(className));
             Method[] methods = MethodUtils.getMethodsWithAnnotation(callClass, ExtensionFunction.class);          
             for (Method method: methods) {
               ExtensionFunction extFunc = method.getAnnotation(ExtensionFunction.class);

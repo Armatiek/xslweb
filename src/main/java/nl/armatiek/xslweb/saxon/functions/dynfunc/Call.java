@@ -44,7 +44,7 @@ public class Call extends ExtensionFunctionDefinition {
 
   @Override
   public int getMinimumNumberOfArguments() {
-    return 2;
+    return 1;
   }
 
   @Override
