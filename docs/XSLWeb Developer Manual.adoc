@@ -38,6 +38,8 @@ Authors: Maarten Kroon, Arjan Loeffen
 
 [.small]#The latest version of this document can be found https://armatiek.github.io/xslweb/XSLWeb%20Developer%20Manual.html[here].#
 
+NOTE: If you have comments, remarks or questions about this manual, please use the https://web.hypothes.is/[hypothes.is,window=_blank] panel on the right side of this page. Use https://hypothes.is/groups/392W26a8/xslweb[this invite link] to get access to the XSLWeb group. To add annotations to selected text, please use your right mouse button.   
+
 [#fundamentals]
 == The fundamentals of XSLWeb
 
@@ -674,7 +676,11 @@ The elements have the following meaning:
 * _concurrent_: specifies whether or not the job can run concurrently with other jobs.
 
 [#user-authentication]
-== User authentication
+== Authentication and authorization
+
+For authentication and authorization XSLWeb makes use of the Java security framework https://shiro.apache.org/[Apache Shiro,windows=_blank]. Apache Shiro is a powerful, easy-to-use and "battle-tested" Java security framework that performs authentication (LDAP, JDBC, ActiveDirectory, etc), authorization (subject/role/permission based), cryptography, and session management.  
+
+=== Basic user authentication (deprecated)
 
 You can implement (BASIC) user authentication by performing the following steps:
 
@@ -684,7 +690,6 @@ You can implement (BASIC) user authentication by performing the following steps:
 * Implement the function _auth:login($username as xs:string, $password as xs:string): element()?_. This function must authenticate $username with $password and return an empty sequence if the authentication failed or an element() containing the user profile if authentication succeeded. This element must have the name _authentication_ and a subelement _ID_. The element _data_ can be filled with arbitrary data you will need in subsequent requests.
 * This element will be stored by XSLWeb in the user's session object under the name _xslweb-userprofile_ so it will be available in subsequent requests.
 
-N.B. DIGEST or other authentication methods are not yet supported. BASIC (and DIGEST) authentication is only secure if HTTPS is used!
 
 [#global-properties]
 == Global configuration properties
