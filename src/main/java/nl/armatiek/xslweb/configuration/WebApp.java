@@ -309,7 +309,7 @@ public class WebApp implements ErrorHandler {
           new LocalFileSystemStore(this.homeDir, "/" + this.name + "/webdav"), 
           StringUtils.trimToNull((String) xpath.evaluate("webapp:webdav/webapp:index-file", docElem, XPathConstants.STRING)), 
           StringUtils.trimToNull((String) xpath.evaluate("webapp:webdav/webapp:instead-of-404", docElem, XPathConstants.STRING)), 
-          Integer.parseInt(StringUtils.defaultString(StringUtils.trimToNull((String) xpath.evaluate("webapp:webdav/no-contentlength-headers", docElem, XPathConstants.STRING)), "0")), 
+          Integer.parseInt(StringUtils.defaultString(StringUtils.trimToNull((String) xpath.evaluate("webapp:webdav/no-contentlength-header", docElem, XPathConstants.STRING)), "0")), 
           XMLUtils.getBooleanValue((String) xpath.evaluate("webapp:webdav/webapp:lazy-folder-creation-on-put", docElem, XPathConstants.STRING), false));
     }
     

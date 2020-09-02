@@ -69,7 +69,7 @@
               <xs:element name="enabled" type="xs:boolean" minOccurs="0" default="false"/>
               <xs:element name="index-file" type="xs:string" minOccurs="0"/>
               <xs:element name="instead-of-404" type="xs:string" minOccurs="0"/>  
-              <xs:element name="no-contentlength-headers" type="xs:integer" minOccurs="0"/>
+              <xs:element name="no-contentlength-header" type="xs:integer" minOccurs="0"/>
               <xs:element name="lazy-folder-creation-on-put" type="xs:boolean" minOccurs="0" default="false"/>
             </xs:sequence>
           </xs:complexType>
