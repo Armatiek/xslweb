@@ -81,7 +81,7 @@
       </p>
       <p>
         Example 2: Sorts the specified range of a float array into ascending order<br/><br/>
-        <xsl:sequence select="dynfunc:call(QName($function-ns-uri, 'sort-floats'), (1.2, 1.3, 1.5), 1, 2)"/>
+        <xsl:sequence select="dynfunc:call(QName($function-ns-uri, 'sort-floats'), (1.5, 1.3, 1.2), 0, 2)"/>
         <hr/>
       </p>
       <p>

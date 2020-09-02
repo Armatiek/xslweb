@@ -142,6 +142,12 @@
               <li>
                 <a href="{$path}/saxon-js.html">Saxon-JS integration (Saxon EE required)</a>
               </li>
+              <li>
+                <a href="{$path}/security/secured-for-admin-role.html">Security: secured for admin role</a>
+              </li>
+              <li>
+                <a href="{$path}/security/secured-for-read-permission.html">Security: secured for read permission</a>
+              </li>
             </ol>
           </div>
         </div>

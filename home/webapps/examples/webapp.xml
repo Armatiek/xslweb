@@ -65,6 +65,52 @@
     </datasource>
   </datasources>
   
+  <webdav>
+    <enabled>true</enabled>
+    <index-file/>
+    <instead-of-404/>
+    <!-- Overriding RFC 2518, the folders of resources being created, can be created too if they do not exist. -->
+    <lazy-folder-creation-on-put>true</lazy-folder-creation-on-put>
+  </webdav>
+  
+  <security>
+    <shiro-ini><![CDATA[
+[main]
+shiro.loginUrl = /${webapp-name}/security/login.html
+shiro.postOnlyLogout = true
+
+authcBasic.enabled = true
+
+sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
+
+securityManager.sessionManager = $sessionManager
+securityManager.sessionManager.sessionIdUrlRewritingEnabled = false
+
+# We need to set the cipherKey, if you want the rememberMe cookie to work after restarting or on multiple nodes.
+# YOU MUST SET THIS TO A UNIQUE STRING
+securityManager.rememberMeManager.cipherKey = kPH+bIxk5D2deZiIxcaaaA==
+
+[users]
+# format: username = password, role1, role2, ..., roleN
+root = secret,admin,user,webdav
+guest = guest,guest
+jdoe = test123,user
+
+[roles]
+# format: roleName = permission1, permission2, ..., permissionN
+admin = *
+user = portal:read,portal:write
+webdav = *
+
+[urls]
+/${webapp-name}/security/login.html = authc
+/${webapp-name}/security/logout.html = logout
+/${webapp-name}/security/secured-for-admin-role.html = authc, roles[admin]
+/${webapp-name}/security/secured-for-read-permission.html = authc, perms["portal:read"]
+/${webapp-name}/webdav/** = authcBasic]]>
+    </shiro-ini>
+  </security>
+  
   <queues>
     <queue>
       <name>queue-test</name>

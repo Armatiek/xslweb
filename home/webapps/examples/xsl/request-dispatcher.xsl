@@ -395,6 +395,31 @@
     </pipeline:pipeline>
   </xsl:template>
   
+  <!-- Example 33: Security -->
+  <xsl:template name="security-login" match="/req:request[req:path = '/security/login.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="security-login" xsl-path="security/login.xsl" log="false"/>
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template name="security-secured-for-admin-role" match="/req:request[req:path = '/security/secured-for-admin-role.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="security-secured-for-admin-role" xsl-path="security/secured-for-admin-role.xsl" log="false"/>
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template name="security-secured-for-read-permission" match="/req:request[req:path = '/security/secured-for-read-permission.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="security-secured-for-read-permission" xsl-path="security/secured-for-read-permission.xsl" log="false"/>
+    </pipeline:pipeline>
+  </xsl:template>
+  
+  <xsl:template name="security-logout" match="/req:request[req:path = '/security/logout.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="security-logout" xsl-path="security/logout.xsl" log="false"/>
+    </pipeline:pipeline>
+  </xsl:template>
+  
   <!-- Authentication functions called from basic-authentication.xsl: -->
   <xsl:function name="auth:must-authenticate" as="xs:boolean">    
     <xsl:param name="request" as="document-node()"/>       
