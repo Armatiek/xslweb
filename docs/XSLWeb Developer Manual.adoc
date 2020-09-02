@@ -1,4 +1,4 @@
-= XSLWeb version 3.2.2 Developer Manual
+= XSLWeb version 3.3.0 Developer Manual
 Authors: Maarten Kroon, Arjan Loeffen
 :description: XSLWeb Developer Manual 
 :keywords: XSLWeb XML, XSLT, XML Schema, Schematron, Web development
@@ -35,10 +35,11 @@ Authors: Maarten Kroon, Arjan Loeffen
 :adr: Asciidoctor
 :docinfo: shared,shared-head
 :uri-home: https://asciidoctor.org
+:window-blank: _blank
 
 [.small]#The latest version of this document can be found https://armatiek.github.io/xslweb/XSLWeb%20Developer%20Manual.html[here].#
 
-NOTE: If you have comments, remarks or questions about this manual, please use the https://web.hypothes.is/[hypothes.is,window=_blank] panel on the right side of this page. Use https://hypothes.is/groups/392W26a8/xslweb[this invite link] to get access to the XSLWeb group. To add annotations to selected text, please use your right mouse button.   
+NOTE: If you have comments, remarks or questions about this manual, please use the https://web.hypothes.is/[hypothes.is,window={window-blank}] panel on the right side of this page. Use https://hypothes.is/groups/392W26a8/xslweb[this invite link] to get access to the XSLWeb group. To add annotations to selected text, please use your right mouse button.   
 
 [#fundamentals]
 == The fundamentals of XSLWeb
@@ -651,6 +652,87 @@ XSLWeb uses the standard caching framework Ehcache to support its caching (see h
 
 N.B. Response caching is only enabled in production mode, see <<development-mode>>.
 
+[#cache-busting]
+== Cache busting
+
+When a static file gets cached it can be stored for very long periods of time before it ends up expiring. This can be an annoyance in the event that you make an update to a site however, since the cached version of the file is stored in your visitors' browsers, they may be unable to see the changes made. This is due to the fact that a visitor's browser will locally store a cached copy of your static assets given that your website is configured to leverage browser caching.
+
+Cache busting solves the browser caching issue by using a unique file version identifier to tell the browser that a new version of the file is available. Therefore the browser doesn't retrieve the old file from cache but rather makes a request to the origin server for the new file.
+
+When you want to use this approach in XSLWeb, you can define an element _cache-buster-id_ in your webapp.xml:
+
+[source,xml]
+----
+<webapp 
+  xmlns="http://www.armatiek.com/xslweb/webapp"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
+  
+  <title>My website</title>
+  
+  <!-- Resources to serve straight away: -->
+  <resources>
+    <cache-buster-id>.v1</cache-buster-id> # <1>   
+    <resource pattern=".+\.png$" media-type="image/png" duration="P1Y"/>
+  </resources>
+  
+  <!-- ... parts removed ... -->
+  
+</webapp>
+----
+<1> cache-buster-id element
+
+The _cache-buster-id_ is then passed by XSLWeb as a stylesheet parameter to every transformation within a request dispatcher pipeline. You can use the id as part of references to static files like this:
+
+[source,xml]
+----
+<xsl:stylesheet 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"  
+  xmlns:resp="http://www.armatiek.com/xslweb/response"
+  xmlns:config="http://www.armatiek.com/xslweb/configuration"
+  exclude-result-prefixes="#all"
+  version="3.0">
+  
+  <xsl:output method="html" version="5.0" indent="no"/>
+  
+  <xsl:param name="config:cache-buster-id" as="xs:string?"/>
+  
+  <xsl:variable 
+    name="base-path" 
+    select="/*/req:context-path || /*/req:webapp-path" 
+    as="xs:string"/>
+    
+  <xsl:template name="/">
+    <resp:response status="200">
+      <resp:headers>
+        <resp:header name="Content-Type">text/html; charset=utf-8</resp:header>
+      </resp:headers>
+      <resp:body>
+        <html>
+          <head>
+            <title>My website</title>
+            <link 
+              rel="stylesheet" 
+              href="{$base-path}/static/css/main{$config:cache-buster-id}.css"/> # <1>   
+          </head>
+          <body>
+            <p class="hello">Hello World!</p>
+          </body>
+        </html>
+      </resp:body>
+    </resp:response> 
+  </xsl:template>  
+         
+</xsl:stylesheet>
+----
+<1> Use of the cache-buster-id stylesheet parameter
+
+The _cache-buster-id_ *does not have to be part of the filename of the physical static file*, XSLWeb will ignore the _cache-buster-id_ part of the request and will serve the file without the id in the name. Therefore you can change the value of the _cache-buster-id_ in your webapp.xml (and bust the clients caches), without touching your static resources.
+
+WARNING: Do not use the value of _cache-buster-id_ as part of the filenames of your physical files.  
+
 [#job-scheduling]
 == Job scheduling
 
@@ -675,10 +757,76 @@ The elements have the following meaning:
 * _cron_: the cron expression which is a string comprising five or six fields separated by white space that represents a set of times to execute the job (see http://en.wikipedia.org/wiki/Cron#CRON_expression).
 * _concurrent_: specifies whether or not the job can run concurrently with other jobs.
 
-[#user-authentication]
-== Authentication and authorization
+[#security]
+== Security: authentication and authorization
 
-For authentication and authorization XSLWeb makes use of the Java security framework https://shiro.apache.org/[Apache Shiro,windows=_blank]. Apache Shiro is a powerful, easy-to-use and "battle-tested" Java security framework that performs authentication (LDAP, JDBC, ActiveDirectory, etc), authorization (subject/role/permission based), cryptography, and session management.  
+For authentication and authorization XSLWeb makes use of the Java security framework https://shiro.apache.org/[Apache Shiro,window={window-blank}]. Apache Shiro is a powerful, easy-to-use and "battle-tested" Java security framework that performs authentication (Basic, Token based, LDAP, JDBC, ActiveDirectory, etc), authorization (subject/role/permission based), cryptography, and session management.
+
+All of the Apache Shiro documentation on https://shiro.apache.org/documentation.html[window={window-blank}] and https://shiro.apache.org/web.html[window={window-blank}] is relevant to the integration of Shiro in XSLWeb except for the following points:
+ 
+* https://shiro.apache.org/web.html[window={window-blank}] describes how to configure Shiro in a Java webapplication using a single WebEnvironment/SecurityManager that is configured in a single INI file in /WEB-INF/shiro.ini or at the root of the class path. In XSLWeb, every webapp has it's own WebEnvironment/SecurityManager that is configured within the security/shiro-ini section of it's webapp.xml configuration file, for example:
+
+.Security configuration example
+[source,xml]
+----
+<?xml version="1.0"?>
+<webapp 
+  xmlns="http://www.armatiek.com/xslweb/webapp" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:saxon-config="http://saxon.sf.net/ns/configuration"
+  xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
+
+  <title>Apache Shiro configuration example</title>
+  
+  <!-- ... parts removed ... -->
+  
+  <security>
+    <shiro-ini><![CDATA[
+[main]
+shiro.loginUrl = /${webapp-name}/security/login.html
+shiro.postOnlyLogout = true
+
+authcBasic.enabled = true
+
+sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
+sessionManager.sessionIdCookie.sameSite = NONE
+
+securityManager.sessionManager = $sessionManager
+securityManager.sessionManager.sessionIdUrlRewritingEnabled = false
+
+# We need to set the cipherKey, if you want the rememberMe cookie to work after restarting or on multiple nodes.
+# YOU MUST SET THIS TO A UNIQUE STRING
+securityManager.rememberMeManager.cipherKey = kPH+bIxk5D2deZiIxcaaaA==
+
+[users]
+# format: username = password, role1, role2, ..., roleN
+root = secret,admin,user,webdav
+guest = guest,guest
+jdoe = test123,user
+
+[roles]
+# format: roleName = permission1, permission2, ..., permissionN
+admin = *
+user = portal:read,portal:write
+webdav = *
+
+[urls]
+/${webapp-name}/security/login.html = authc
+/${webapp-name}/security/secured-for-admin-role.html = authc, roles[admin]
+/${webapp-name}/security/secured-for-read-permission.html = authc, perms["portal:read"]
+/${webapp-name}/security/logout.html = logout
+/${webapp-name}/webdav/** = authcBasic]]>
+    </shiro-ini>
+  </security>
+  
+  <!-- ... parts removed ... -->
+
+</webapp>
+----
+* There is no need to make changes to the web.xml of XSLWeb itself, like adding a Shiro servlet filter or listener.
+* Because in the Shiro configuration all urls must be relative to the contextpath of the Java servlet, all urls must be prepended with the webapp's name. For this you can use the variable ${webapp-name} (see the example above).
+* The Shiro web support contains a https://shiro.apache.org/web.html#Web-JSP%2FGSPTagLibrary[JSP/GSP tag Library,window={window-blank}]. Comparable functionality of this tag library is available in XSLWeb as a set of XPath extension functions (see <<security-functions>>).
 
 === Basic user authentication (deprecated)
 
@@ -712,7 +860,7 @@ XSLWeb contains a set of readily available XPath extension functions. To use the
 
 These functions can be used to set/change specific information in the HTTP response. For a large part this information can also be specified in the Response XML document, see <<appendix-response-xml-example>> for an example of a Response XML document.
 
-Namespace: _\http://www.armatiek.com/xslweb/request_
+Namespace uri: _\http://www.armatiek.com/xslweb/request_. In the function signatures below this namespace uri is bound to the prefix _resp_.
 
 Functions:
 
@@ -824,7 +972,7 @@ Session is a conversional state between client and server and it can consists of
 
 XSLWeb makes use of the https://www.codejava.net/java-ee/servlet/how-to-use-session-in-java-web-application[session mechanism] of the Java Application Server is runs on, see https://docs.oracle.com/javaee/7/api/javax/servlet/http/HttpSession.html[HttpSession].
 
-Namespace: _\http://www.armatiek.com/xslweb/session_
+Namespace uri: _\http://www.armatiek.com/xslweb/session_. In the function signatures below this namespace uri is bound to the prefix _session_.
 
 Functions:
 
@@ -870,7 +1018,7 @@ See example 7 how to use the session functions to set and get session attributes
 
 These functions can be used to get and set web application specific attributes. These can be used to share session independent attribute between multiple requests within one web application.
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/webapp_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/webapp_. In the function signatures below this namespace uri is bound to the prefix _webapp_.
 
 Functions:
 
@@ -900,7 +1048,7 @@ See example 7 how to use the webapp functions to set and get webapp attributes, 
 
 These functions can be used to get and set “XSLWeb context” specific attributes. These can be used to share attributes between web applications.
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/context_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/context_. In the function signatures below this namespace uri is bound to the prefix _context_.
 
 Functions:
 
@@ -916,39 +1064,151 @@ function context:set-attribute($name as xs:string, attr as item()*) as xs:boolea
 
 See example 7 how to use the context functions to set and get session attributes.
 
-[#expath-file-functions]
-=== EXPath File
+[#security-functions]
+=== Security (authentication/authorzation)
 
-EXPath File is a standard file system API for XPath. It defines extension functions to perform file system related operations such as listing, reading, writing, copying and moving files or directories. The API is described http://expath.org/spec/file[here].
+These functions can be used to get information about the identity and authorization state of the current subject/user making te request.  
 
-Namespace: _http://expath.org/ns/file_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/security_. In the function signatures below this namespace uri is bound to the prefix _sec_.
 
 Functions:
 
 [source,xquery]
 ----
+function sec:is-guest() as xs:boolean
+----
+This function returns true() if the current Subject is considered a 'guest'. A 'guest' is any Subject that does not have an identity. That is, we don't know who the user is because they have not logged in and they are not remembered (from 'RememberMe' services) from a previous site visit.
+
+[source,xquery]
+----
+function sec:is-user() as xs:boolean
+----
+This function returns true() if the current Subject is considered a 'user'. A 'user' in this context is defined as a Subject with a known identity, either from a successful authentication or from 'RememberMe' services. Note that this function is semantically different from the _is-authenticated()_ function, which is more restrictive.
+
+[source,xquery]
+----
+function sec:is-authenticated() as xs:boolean
+----
+This function returns true() if the current Subject has successfully authenticated during their current session. It is more restrictive than the _is-user()_ function. The _is-authenticated()_ function will return true() only if the current Subject has successfully authenticated during their current session. It is a more restrictive function than the _is-user()_ function, which is used to guarantee identity in sensitive workflows.
+
+[source,xquery]
+----
+function sec:principal() as xs:string?
+----
+This function will return the Subject’s principal (identifying attribute, like a username). Without any parameters, this function will render the toString() value of the principal.
+
+The Java equivalent of this function is:
+
+[source,java]
+----
+SecurityUtils.getSubject().getPrincipal().toString()
+---- 
+
+[source,xquery]
+----
+function sec:principal($type as xs:string?) as xs:string?
+----
+The _principal()_ function assumes by default that the principal to return is the subject.getPrincipal() value. But if you wanted to obtain a value that is not the primary principal, but another value in the Subject's https://shiro.apache.org/static/1.5.3/apidocs/org/apache/shiro/subject/Subject.html#getPrincipals--[principal collection,window={window-blank}], you can acquire that principal by type. The type is a qualified Java class name, like "java.lang.Integer".
+
+The Java equivalent of this function is:
+
+[source,java]
+----
+SecurityUtils.getSubject().getPrincipals().oneByType(Integer.class).toString()
+----
+
+[source,xquery]
+----
+function sec:principal($type as xs:string?, $property as xs:string) as xs:string?
+----
+But what if the principal (either the default primary principal or 'typed' principal above) is a complex object and not a simple string, and you wanted to reference a property on that principal? You can use the _$property_ parameter to indicate the name of the property to obtain (must be accessible via a JavaBeans-compatible getter method). For example (assuming the primary principal is a User object), the Java equivalent of:
+
+[source,xquery]
+----
+sec:principal('com.foo.User', 'firstName')
+----
+
+is:
+
+[source,java]
+----
+SecurityUtils.getSubject().getPrincipals().oneByType(com.foo.User.class).getFirstName().toString()
+----
+
+[source,xquery]
+----
+function sec:has-role($name as xs:string+) as xs:boolean
+----
+This function will return true() if the current Subject is assigned any of the specified roles names.
+
+[source,xquery]
+----
+function sec:has-permission($name as xs:string) as xs:boolean
+----
+This function returns true() if the current Subject 'has' (implies) the specified permission. That is, the user has the specified ability.
+
+[#expath-file-functions]
+=== EXPath File
+
+EXPath File is a standard file system API for XPath. It defines extension functions to perform file system related operations such as listing, reading, writing, copying and moving files or directories. The API is described http://expath.org/spec/file[here].
+
+Namespace uri: _\http://expath.org/ns/file_. In the function signatures below this namespace uri is bound to the prefix _file_.
+
+Functions:
+
+==== File properties
+
+[source,xquery]
+----
 function file:exists($path as xs:string) as xs:boolean
 ----
+Tests if the file or directory pointed by _$path_ exists.
+
+This function is nondeterministic.
 
 [source,xquery]
 ----
-function file:is-dir($path as xs:string) as xs:boolean
+function file:is-dir($path as xs:string) as xs:boolean 
 ----
+Tests if _$path_ points to a directory. On UNIX-based systems the root and the volume roots are considered directories.
+
+This function is nondeterministic.
 
 [source,xquery]
 ----
-function file:is-file($path as xs:string) as xs:boolean
+function file:is-file($path as xs:string) as xs:boolean                                                              
 ----
+Tests if _$path_ points to a file.
+
+This function is nondeterministic.
 
 [source,xquery]
 ----
 function file:last-modified($path as xs:string) as xs:dateTime
 ----
+Returns the last modification time of a file or directory.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:not-found>>] is raised if the _$path_ path does not exist.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
 
 [source,xquery]
 ----
 function file:size($file as xs:string) as xs:integer
 ----
+Returns the byte size of a file, or the value 0 for directories.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:not-found>>] is raised if the _$path_ path does not exist.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
+
+==== Input/output
 
 [source,xquery]
 ----
@@ -959,11 +1219,35 @@ function file:append($file as xs:string, $items as item()*) as xs:boolean?
 ----
 function file:append($file as xs:string, $items as item()*, $params as element(output:serialization-parameters)) as xs:boolean?
 ----
+Appends a sequence of items to a file. If the file pointed by _$file_ does not exist, a new file will be created. 
+
+_$params_ controls the way the _$items_ items are serialized. The semantics of _$params_ is the same as for the _fn:serialize()_ function in [XQuery and XPath Functions and Operators 3.0]. This consists of an _output:serialization-parameters_ element whose format is defined in https://www.w3.org/TR/xslt-xquery-serialization-30/[XSLT and XQuery Serialization 3.0,window={window-blank}]. In contrast to _fn:serialize()_, the encoding stage will not be skipped by this function.
+
+The function returns the empty sequence if the operation is successful.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:no-dir>>] is raised if the parent directory of _$file_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$file_ points to a directory.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
 
 [source,xquery]
 ----
 function file:append-binary($file as xs:string, $value as xs:base64Binary) as xs:boolean?
 ----
+Appends a Base64 item as binary to a file. If the file pointed by _$file_ does not exist, a new file will be created.
+
+The function returns the empty sequence if the operation is successful.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:no-dir>>] is raised if the parent directory of _$file_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$file_ points to a directory.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
 
 [source,xquery]
 ----
@@ -975,6 +1259,21 @@ function file:append-text($file as xs:string, $value as xs:string) as xs:boolean
 function file:append-text($file as xs:string, $value as xs:string, $encoding as xs:string) as xs:boolean?
 ----
 
+Appends a string to a file. If the file pointed by _$file_ does not exist, a new file will be created.
+
+The optional parameter _$encoding_, if not provided, is considered to be UTF-8.
+
+The function returns the empty sequence if the operation is successful.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:no-dir>>] is raised if the parent directory of _$file_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$file_ points to a directory.
+* [<<expath-file-errors,file:unknown-encoding>>] is raised if _$encoding_ is invalid or not supported by the implementation.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
+
 [source,xquery]
 ----
 function file:append-text-lines($file as xs:string, $values as xs:string*) as xs:boolean?
@@ -985,15 +1284,68 @@ function file:append-text-lines($file as xs:string, $values as xs:string*) as xs
 function file:append-text-lines($file as xs:string, $lines as xs:string*, $encoding as xs:string) as xs:boolean?
 ----
 
+Appends a sequence of strings to a file, each followed by the system-dependent newline character. If the file pointed by _$file_ does not exist, a new file will be created.
+
+The optional parameter _$encoding_, if not provided, is considered to be UTF-8.
+
+The function returns the empty sequence if the operation is successful.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:no-dir>>] is raised if the parent directory of _$file_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$file_ points to a directory.
+* [<<expath-file-errors,file:unknown-encoding>>] is raised if _$encoding_ is invalid or not supported by the implementation.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
+
 [source,xquery]
 ----
 function file:copy($source as xs:string, $target as xs:string) as xs:boolean?
 ----
 
+Copies a file or a directory given a source and a target path/URI. The following cases may occur if $source points to a file:
+
+[loweralpha]
+. if _$target_ does not exist, it will be created.
+. if _$target_ is a file, it will be overwritten.
+. if _$target_ is a directory, the file will be created in that directory with the name of the source file. If a file already exists, it will be overwritten.
+
+The following cases may occur if _$source_ points to a directory:
+
+[loweralpha]
+. if _$target_ does not exist, it will be created as directory, and all files of the source directory are copied to this directory with their existing local names.
+. if _$target_ is a directory, the source directory with all its files will be copied into the target directory. At each level, if a file already exists in the target with the same name as in the source, it is overwritten. If a directory already exists in the target with the same name as in the source, it is not removed, it is recursed in place (if it does not exist, it is created before recursing).
+
+Other cases will raise one of the errors listed below.
+
+The function returns the empty sequence if the operation is successful. If an error occurs during the operation, no rollback to the original state will be possible
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:not-found>>] is raised if the _$source_ path does not exist.
+* [<<expath-file-errors,file:exists>>] is raised if _$source_ points to a directory and _$target_ points to an existing file.
+* [<<expath-file-errors,file:no-dir>>] is raised if the parent directory of $source does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$source_ points to a file and $target points to a directory, in which a subdirectory exists with the name of the source file.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
+
 [source,xquery]
 ----
 function file:create-dir($dir as xs:string) as xs:boolean?
 ----
+
+Creates a directory, or does nothing if the directory already exists. The operation will create all non-existing parent directories.
+
+The function returns the empty sequence if the operation is successful.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:exists>>] is raised if the specified path, or any of its parent directories, points to an existing file.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
 
 [source,xquery]
 ----
@@ -1005,6 +1357,19 @@ function file:create-temp-dir($prefix as xs:string, $suffix as xs:string) as xs:
 function file:create-temp-dir($prefix as xs:string, $suffix as xs:string, $dir as xs:string) as xs:string
 ----
 
+Creates a temporary directory and all non-existing parent directories and returns the full path to the created directory.
+
+The temporary directory will not be automatically deleted after query execution. It is guaranteed to not already exist when the function is called.
+
+If _$dir_ is not given, the directory will be created inside the system-dependent default temporary-file directory.
+
+This function is ·nondeterministic·.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:no-dir>>] is raised if the specified directory does not exist or points to a file.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
+
 [source,xquery]
 ----
 function file:create-temp-file($prefix as xs:string, $suffix as xs:string) as xs:string
@@ -1015,6 +1380,19 @@ function file:create-temp-file($prefix as xs:string, $suffix as xs:string) as xs
 function file:create-temp-file($prefix as xs:string, $suffix as xs:string, $dir as xs:string) as xs:string
 ----
 
+Creates a temporary file and all non-existing parent directories and returns the full path to the created file.
+
+The temporary file will not be automatically deleted after query execution. It is guaranteed to not already exist when the function is called.
+
+If _$dir_ is not given, the directory will be created inside the system-dependent default temporary-file directory.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:no-dir>>] is raised if the specified directory does not exist or points to a file.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
+
 [source,xquery]
 ----
 function file:delete($path as xs:string) as xs:boolean?
@@ -1024,6 +1402,20 @@ function file:delete($path as xs:string) as xs:boolean?
 ----
 function file:delete($path as xs:string, $recursive as xs:boolean) as xs:boolean?
 ----
+
+Deletes a file or a directory from the file system.
+
+If the optional parameter _$recursive_ is set to true(), sub-directories will be deleted as well.
+
+The function returns the empty sequence if the operation is successful.
+
+This function is ·nondeterministic·.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:not-found>>] is raised if _$path_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$file_ points to a non-empty directory.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
 
 [source,xquery]
 ----
@@ -1040,10 +1432,55 @@ function file:list($dir as xs:string, $recursive as xs:boolean) as xs:string*
 function file:list($dir as xs:string, $recursive as xs:boolean, $pattern as xs:string) as xs:string*
 ----
 
+Lists all files and directories in a given directory. The order of the items in the resulting sequence is not defined. The "." and ".." items are never returned. The returned paths are relative to the provided directory _$dir_.
+
+If the optional parameter _$recursive_ is set to true(), all directories and files will be returned that are found while recursively traversing the given directory.
+
+The optional _$pattern_ parameter defines a name pattern in the glob syntax. If this is provided, only the paths of the files and directories whose names are matching the pattern will be returned.
+
+An implementation must support at least the following glob syntax for the pattern:
+
+* * for matching any number of unknown characters and
+* ? for matching one unknown character.
+
+A related function is file:children.
+
+This function is nondeterministic.
+
+* [<<expath-file-errors,file:no-dir>>] is raised if _$dir_ does not point to an existing directory.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
+
 [source,xquery]
 ----
 function file:move($source as xs:string, $target as xs:string) as xs:boolean?
 ----
+
+Moves a file or a directory given a source and a target path/URI. The following cases may occur if $source points to a file:
+
+[loweralpha]
+. if _$target_ does not exist, it will be created.
+. if _$target_ is a file, it will be overwritten.
+. if _$target_ is a directory, the file will be created in that directory with the name of the source file. If a file already exists, it will be overwritten.
+
+The following cases may occur if $source points to a directory:
+
+[loweralpha]
+. if _$target_ does not exist, it will be created as directory, and all files of the source directory are moved to this directory with their existing local names.
+. if _$target_ is a directory, the source directory with all its files will be moved into the target directory. If the target directory contains a directory with the same name as the source, the error [file:is-dir] is raised.
+
+Other cases will raise one of the errors listed below.
+
+The function returns the empty sequence if the operation is successful. If an error occurs during the operation, no rollback to the original state will be possible
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:not-found>>] is raised if the _$source_ path does not exist.
+* [<<expath-file-errors,file:exists>>] is raised if_$source_ points to a directory and _$target_ points to an existing file.
+* [<<expath-file-errors,file:no-dir>>] is raised if the parent directory of _$source_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$target_ points to a directory, in which a subdirectory exists with the name of the source.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
 
 [source,xquery]
 ----
@@ -1060,6 +1497,19 @@ function file:read-binary($file as xs:string, $offset as xs:integer) as xs:base6
 function file:read-binary($file as xs:string, $offset as xs:integer, $length as xs:integer) as xs:base64Binary 
 ----
 
+Returns the content of a file in its Base64 representation.
+
+The optional parameters _$offset_ and _$length_ can be used to read chunks of a file.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:not-found>>] is raised if _$file_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$file_ points to a directory.
+* [<<expath-file-errors,file:out-of-range>>] is raised if _$offset_ or _$length_ is negative, or if the chosen values would exceed the file bounds.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
+
 [source,xquery]
 ----
 function file:read-text($file as xs:string) as xs:string
@@ -1069,6 +1519,19 @@ function file:read-text($file as xs:string) as xs:string
 ----
 function file:read-text($file as xs:string, $encoding as xs:string) as xs:string
 ----
+
+Returns the content of a file in its string representation.
+
+The optional parameter _$encoding_, if not provided, is considered to be UTF-8.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:not-found>>] is raised if _$file_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$file_ points to a directory.
+* [<<expath-file-errors,file:unknown-encoding>>] is raised if $encoding is invalid or not supported by the implementation.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
 
 [source,xquery]
 ----
@@ -1080,6 +1543,21 @@ function file:read-text-lines($file as xs:string) as xs:string*
 function file:read-text-lines($file as xs:string, $encoding as xs:string) as xs:string*
 ----
 
+Returns the contents of a file as a sequence of strings, separated at newline boundaries.
+
+The optional parameter _$encoding_, if not provided, is considered to be UTF-8.
+
+The newline handling is the same as for the fn:unparsed-text-lines function in [XQuery and XPath Functions and Operators 3.0].
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:not-found>>] is raised if _$file_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$file_ points to a directory.
+* [<<expath-file-errors,file:unknown-encoding>>] is raised if $encoding is invalid or not supported by the implementation.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
+
 [source,xquery]
 ----
 function file:write($file as xs:string, $items as item()*) as xs:boolean?
@@ -1089,6 +1567,20 @@ function file:write($file as xs:string, $items as item()*) as xs:boolean?
 ----
 function file:write($file as xs:string, $items as item()*, $params as element(output:serialization-parameters)) as xs:boolean?
 ----
+
+Writes a sequence of items to a file. If _$file_ already exists, it will be overwritten; otherwise, it will be created.
+
+_$params_ controls the way the _$items_ items are serialized. The semantics of _$params_ is the same as for the _fn:serialize_ function in [XQuery and XPath Functions and Operators 3.0]. This consists of an _output:serialization-parameters_ element whose format is defined in http://www.w3.org/TR/xslt-xquery-serialization-30/[XSLT and XQuery Serialization 3.0]. In contrast to _fn:serialize_, the encoding stage will not be skipped by this function.
+
+The function returns the empty sequence if the operation is successful.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:no-dir>>] is raised if the parent directory of _$file_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$file_ points to a directory.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
 
 [source,xquery]
 ----
@@ -1100,6 +1592,19 @@ function file:write-binary($file as xs:string, $value as xs:base64Binary) as xs:
 function file:write-binary($file as xs:string, $value as xs:base64Binary, $offset as xs:integer) as xs:boolean?
 ----
 
+Writes a Base64 item as binary to a file. If _$file_ already exists, it will be overwritten; otherwise, it will be created.
+
+If the optional parameter _$offset_ is specified, data will be written to this file position. An existing file may be resized by that operation.
+
+The function returns the empty sequence if the operation is successful.
+
+This function is nondeterministic.
+
+* [<<expath-file-errors,file:no-dir>>] is raised if the parent directory of _$file_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$file_ points to a directory.
+* [<<expath-file-errors,file:out-of-range>>]is raised if $offset is negative, or if it exceeds the current file size.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
+
 [source,xquery]
 ----
 function file:write-text($file as xs:string, $value as xs:string) as xs:boolean?
@@ -1109,6 +1614,21 @@ function file:write-text($file as xs:string, $value as xs:string) as xs:boolean?
 ----
 function file:write-text($file as xs:string, $value as xs:string, $encoding as xs:string) as xs:boolean?
 ----
+
+Writes a string to a file. If _$file_ already exists, it will be overwritten.
+
+The optional parameter _$encoding_, if not provided, is considered to be UTF-8.
+
+The function returns the empty sequence if the operation is successful.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:no-dir>>] is raised if the parent directory of _$file_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$file_ points to a directory.
+* [<<expath-file-errors,file:unknown-encoding>>] is raised if _$encoding_ is invalid or not supported by the implementation.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
 
 [source,xquery]
 ----
@@ -1120,52 +1640,167 @@ function file:write-text-lines($file as xs:string, $values as xs:string*) as xs:
 function file:write-text-lines($file as xs:string, $values as xs:string*, $encoding as xs:string) as xs:boolean?
 ----
 
+Writes a sequence of strings to a file, each followed by the system-dependent newline character. If _$file_ already exists, it will be overwritten; otherwise, it will be created.
+
+The optional parameter _$encoding_, if not provided, is considered to be UTF-8.
+
+The function returns the empty sequence if the operation is successful.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:no-dir>>] is raised if the parent directory of _$file_ does not exist.
+* [<<expath-file-errors,file:is-dir>>] is raised if _$file_ points to a directory.
+* [<<expath-file-errors,file:unknown-encoding>>] is raised if _$encoding_ is invalid or not supported by the implementation.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
+
+==== Paths
+
 [source,xquery]
 ----
 function file:name($path as xs:string) as xs:string
 ----
+
+Returns the name of a file or directory.
+
+An empty string is returned if _$path_ points to the root directory, or if it contains no directory separators.
+
+This function is deterministic (no path existence check is made).
 
 [source,xquery]
 ----
 function file:parent($path as xs:string) as xs:string?
 ----
 
+Transforms the given _$path_ into an absolute path, as specified by _file:resolve-path_, and returns the parent directory.
+
+The inverse function is _file:children_.
+
+An empty sequence is returned if the path points to a root directory.
+
+This function is nondeterministic.
+
+[source,xquery]
+----
+function file:children($path as xs:string) as xs:string*
+----
+
+Returns the paths of all files and directories that are located in the given directory. The order of the items in the resulting sequence is not defined. The "." and ".." items are never returned.
+
+The inverse function is _file:parent_; a related function is _file:list_.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:no-dir>>] is raised if _$path_ does not point to an existing directory.
+* [<<expath-file-errors,file:io-error>>] is raised if any other error occurs.
+
 [source,xquery]
 ----
 function file:path-to-native($path as xs:string) as xs:string
 ----
+
+Transforms a URI, an absolute path, or relative path to a canonical, system-dependent path representation. A canonical path is both absolute and unique and thus contains no redirections such as references to parent directories or symbolic links.
+
+If the resulting path points to a directory, it will be suffixed with the system-specific directory separator.
+
+This function is nondeterministic.
+
+*Error Conditions*
+
+* [<<expath-file-errors,file:not-found>>] is raised if $path does not exist.
+* [<<expath-file-errors,file:io-error>>] is raised if an error occurs while trying to obtain the native path.
 
 [source,xquery]
 ----
 function file:path-to-uri($path as xs:string) as xs:anyURI
 ----
 
+Transforms a file system path into a URI with the file:// scheme. If the path is relative, it is first resolved against the current working directory.
+
+This function is deterministic (no path existence check is made).
+
 [source,xquery]
 ----
 function file:resolve-path($path as xs:string) as xs:string
 ----
+
+Transforms a relative path into an absolute operating system path by resolving it against the current working directory.
+
+If the resulting path points to a directory, it will be suffixed with the system-specific directory separator.
+
+This function is nondeterministic.
+
+==== System properties
 
 [source,xquery]
 ----
 function file:dir-separator() as xs:string
 ----
 
+Returns the value of the operating system-specific directory separator, which usually is / on UNIX-based systems and \ on Windows systems.
+
+This function is nondeterministic.
+
 [source,xquery]
 ----
 function file:line-separator() as xs:string
 ----
+
+Returns the value of the operating system-specific line separator, which usually is &#10; on UNIX-based systems, &#13;&#10; on Windows systems and &#13; on Mac systems.
+
+This function is nondeterministic.
 
 [source,xquery]
 ----
 function file:path-separator() as xs:string
 ----
 
+Returns the value of the operating system-specific path separator, which usually is : on UNIX-based systems and ; on Windows systems.
+
+This function is nondeterministic.
+
 [source,xquery]
 ----
 function file:temp-dir() as xs:string
 ----
 
-The structure of _element(output:serialization-parameters)_ is described in http://www.w3.org/TR/xslt-xquery-serialization-30/[XSLT and XQuery Serialization 3.0]. See example 10 how to use some of the EXPath File functions.
+Returns the path to the default temporary-file directory of an operating system.
+
+This function is nondeterministic.
+
+[source,xquery]
+----
+function file:base-dir() as xs:string
+----
+
+Returns the parent directory of the static base URI. If the Base URI property is undefined, the empty sequence is returned. - If a static base URI exists, and if points to a local file path, this function returns the same result as the expression _file:parent(static-base-uri())_.
+
+*Summary of Error Conditions*
+
+[#expath-file-errors]
+* *file:not-found* +
+The specified path does not exist.
+* *file:invalid-path* +
+The specified path is invalid.
+* *file:exists* +
+The specified path already exists.
+* *file:no-dir* +
+The specified path does not point to a directory.
+* *file:is-dir* +
+The specified path points to a directory.
+* *file:unknown-encoding* +
+The specified encoding is not supported.
+* *file:out-of-range* +
+The specified offset or length is negative, or the chosen values would exceed the file bounds.
+* *file:io-error* +
+A generic file system error occurred.
+
+The structure of _element(output:serialization-parameters)_ is described in http://www.w3.org/TR/xslt-xquery-serialization-30/[XSLT and XQuery Serialization 3.0]. 
+
+See example 10 how to use some of the EXPath File functions.
 
 [#expath-http-client-functions]
 === EXPath HTTP Client
@@ -1195,14 +1830,22 @@ Further remarks:
 * The default timeout (connect/write/read/cal) is 30 seconds (can be changed via http:request/@timeout)
 * Certificate authorities of the host platform are trusted
 
-Namespace: _http://expath.org/ns/http-client_
+Namespace uri: _\http://expath.org/ns/http-client_. In the function signatures below this namespace uri is bound to the prefix _http_.
 
 Functions:
 
 [source,xquery]
 ----
-function http:send-request($request as element(http:request)) as item()
+function http:send-request($request as element(http:request)?, $href as xs:string?, $bodies as item()*) as item()+
 ----
+
+* _$request_ contains the various parameters of the request, for instance the HTTP method to use or the HTTP headers. Among other things, it can also contain the other param's values: the URI and the bodies. If they are not set as parameter to the function, their value in _$request_, if any, is used instead. See http://expath.org/spec/http-client#d2e178[Sending a request,window={window-blank}] for the detailed definition of the _http:request_ element. If the parameter does not follow the grammar defined in this spec, this is an error [<<expath-http-client-errors,err:HC005>>].
+
+* _$href_ is the HTTP or HTTPS URI to send the request to. It is an xs:anyURI, but is declared as a string to be able to pass literal strings (without requiring to explicitly cast it to an xs:anyURI).
+
+* _$bodies_ is the request body content, for HTTP methods that can contain a body in the request (e.g. POST). This is an error if this param is not the empty sequence for methods that must be empty (e.g. DELETE). The details of the methods are defined in their respective specs (e.g. http://www.ietf.org/rfc/rfc2616.txt[RFC 2616,window={window-blank}] or http://www.ietf.org/rfc/rfc4918.txt[RFC 4918,window={window-blank}]). In case of a multipart request, it can be a sequence of several items, each one is the body of the corresponding body descriptor in _$request_. See below for details.
+
+Besides the 3-params signature above, there are 2 other signatures that are convenient shortcuts (corresponding to the full version in which corresponding params have been set to the empty sequence). They are:
 
 [source,xquery]
 ----
@@ -1211,15 +1854,31 @@ function http:send-request($request as element(http:request)?, $href as xs:strin
 
 [source,xquery]
 ----
-function http:send-request($request as element(http:request)?, $href as xs:string?, $bodies as item()*) as item()+
+function http:send-request($request as element(http:request)) as item()
 ----
+
+*Summary of Error Conditions*
+
+[#expath-http-client-errors]
+* *err:HC001* +
+An HTTP error occurred.
+* *err:HC002* +
+Error parsing the entity content as XML or HTML.
+* *err:HC003* +
+With a multipart response, the override-media-type must be either a multipart media type or application/octet-stream.
+* *err:HC004* +
+The src attribute on the body element is mutually exclusive with all other attribute (except the media-type).
+* *err:HC005* +
+The request element is not valid.
+* *err:HC006* +
+A timeout occurred waiting for the response.
 
 See examples 11 and 21 how to use some of the EXPath HTTP Client function.
 
 [#base64-functions]
 === Base64
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/base64_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/base64_. In the function signatures below this namespace uri is bound to the prefix _base64_.
 
 Functions:
 
@@ -1238,7 +1897,7 @@ Decodes a Base64 string into octets which then are converted to a UTF-8 string.
 [#external-functions]
 === Execute external processes
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/exec_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/exec_. In the function signatures below this namespace uri is bound to the prefix _external_.
 
 Functions:
 
@@ -1259,7 +1918,7 @@ Where $command-line is the path to the executable, $args a sequence of arguments
 
 Logging functionality. The logging information is written to the main XSLWeb log file, default _«xslweb-home»_/logs/xslweb.log.
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/log_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/log_. In the function signatures below this namespace uri is bound to the prefix _log_.
 
 Functions:
 
@@ -1283,7 +1942,7 @@ Where $level is one of “ERROR”, “WARN”, “INFO” or “DEBUG”. The s
 
 Functionality for sending e-mail via SMTP.
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/email_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/email_. In the function signatures below this namespace uri is bound to the prefix _email_.
 
 Functions:
 
@@ -1299,7 +1958,7 @@ See example 12 how to use the send-email example and an example of the structure
 
 Functionality for serializing a node to a string.
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/serialize_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/serialize_. In the function signatures below this namespace uri is bound to the prefix _ser_.
 
 Functions:
 
@@ -1315,7 +1974,7 @@ WARNING: *Deprecated:* use https://www.w3.org/TR/xpath-functions-31/#func-serial
 [#caching-functions]
 === Caching
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/cache_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/cache_. In the function signatures below this namespace uri is bound to the prefix _cache_.
 
 Functions:
 
@@ -1329,7 +1988,7 @@ function cache:remove($cache-key as xs:string) as xs:boolean?
 [#image-processing-functions]
 === Image processing
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/image_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/image_. In the function signatures below this namespace uri is bound to the prefix _img_.
 
 Functions:
 
@@ -1342,7 +2001,7 @@ Resizes an image and optionally convert it to another format. $source is the pat
 [#io-functions]
 === Input/Output
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/io_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/io_. In the function signatures below this namespace uri is bound to the prefix _io_.
 
 Functions:
 
@@ -1355,7 +2014,7 @@ Registers a temporary file or directory that will automatically be deleted after
 [#util-functions]
 === Utilities
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/util_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/util_. In the function signatures below this namespace uri is bound to the prefix _util_.
 
 Functions:
 
@@ -1378,7 +2037,7 @@ WARNING: *Deprecated:* use https://www.w3.org/TR/xpath-functions-31/#func-parse-
 
 (Un)zip functionality
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/zip_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/zip_. In the function signatures below this namespace uri is bound to the prefix _zip_.
 
 Functions:
 
@@ -1399,7 +2058,7 @@ See also <<zip-serializer-step>>.
 [#uuid-functions]
 === UUID
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/uuid_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/uuid_. In the function signatures below this namespace uri is bound to the prefix _uuid_.
 
 Functions:
 
@@ -1414,7 +2073,7 @@ Generate a  type 4 (pseudo randomly generated) universally unique identifier.
 
 (Experimental)
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/json_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/json_. In the function signatures below this namespace uri is bound to the prefix _json_.
 
 Functions:
 
@@ -1449,7 +2108,7 @@ TIP: Alternative: now you can also use the standard XPath 3.1 functions, see: ht
 [#dynfunc-functions]
 === Dynamic (scripted) extension functions
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/dynfunc_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/dynfunc_. In the function signatures below this namespace uri is bound to the prefix _dynfunc_.
 
 Functions:
 
@@ -1704,7 +2363,7 @@ Connections and resultsets can be explicitly closed by using the extension funct
 
 JDBC drivers are available for most relational database systems (like MySQL, Oracle, PostgreSQL, MSSQL Server, Sybase, Cloudscape and Firebird), but also for non-relational database datasources like CSV files and LDAP directory services (untested).
 
-Namespace: _\http://www.armatiek.com/xslweb/functions/sql_
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/sql_. In the function signatures below this namespace uri is bound to the prefix _sql_.
 
 Functions:
 
@@ -1781,6 +2440,95 @@ A number of the extension functions described in previous sections perform a cer
 ----
 
 without having to worry that something is written to the result tree.
+
+[#webdav-access]
+== WebDAV access
+
+XSLWeb provides Web Distributed Authoring and Versioning (WebDAV) access to the webapp resources, like the XSLT stylesheets, the webapp.xml and the static resources like css and javascript files. WebDAV is an extension of the https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol[Hypertext Transfer Protocol (HTTP),window={window-blank}] that allows clients to perform remote Web content authoring operations. WebDAV is defined in https://tools.ietf.org/html/rfc4918[RFC 4918,window={window-blank}] by a working group of the Internet Engineering Task Force. See also https://en.wikipedia.org/wiki/WebDAV[WebDAV on Wikipedia,window={window-blank}].
+
+To use the WebDAV protocol you need a WebDAV client like http://rei.to/carotdav_en.html[CarotDAV (Windows - Free),window={window-blank}], http://www.bitkinex.com/[Bitkinex (Windows),window={window-blank}], https://www.netdrive.net/[Netdrive (Windows;macOS),window={window-blank}], http://www.webdav.org/cadaver/[cadaver (Linux - Free),window={window-blank}] or the WebDAV data source within the https://www.oxygenxml.com/xml_editor.html[<oXygen/> XML Editor (Linux;macOS;Windows),window={window-blank}].
+
+Every XSLWeb webapp has it's own WebDAV configuration. WebDAV access is disabled by default. You can enable WebDAV access in the webapp.xml within the element <webdav>:
+
+[source,xml]
+----
+<?xml version="1.0"?>
+<webapp 
+  xmlns="http://www.armatiek.com/xslweb/webapp" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:saxon-config="http://saxon.sf.net/ns/configuration"
+  xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
+
+  <title>WebDAV access example</title>
+  
+  <!-- ... parts removed ... -->
+  
+  <webdav>
+    <enabled>true</enabled>
+    <lazy-folder-creation-on-put>true</lazy-folder-creation-on-put> # <1> 
+  </webdav>
+  
+  <!-- ... parts removed ... -->
+
+</webapp>
+----
+
+<1> Overriding RFC 2518, the folders of resources being created, can be created too if they do not exist.
+
+You can access the top-level WebDAV folder using the url http://my-domain:my-port/my-webapp/webdav/, for instance http://localhost:8080/examples/webdav/. 
+
+When you enable WebDAV access you probably want to authenticate users before accessing the resources, see <<security>>. By default there is no authentication.
+
+Example how to configure authentication for WebDAV requests:
+
+[source,xml]
+----
+<?xml version="1.0"?>
+<webapp 
+  xmlns="http://www.armatiek.com/xslweb/webapp" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:saxon-config="http://saxon.sf.net/ns/configuration"
+  xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
+
+  <title>WebDAV access example</title>
+  
+  <!-- ... parts removed ... -->
+  
+  <webdav>
+    <enabled>true</enabled>
+    <lazy-folder-creation-on-put>true</lazy-folder-creation-on-put> # <1> 
+  </webdav>
+  
+  <security>
+    <shiro-ini><![CDATA[
+[main]
+authcBasic.enabled = true
+
+sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
+sessionManager.sessionIdCookie.sameSite = NONE
+
+securityManager.sessionManager = $sessionManager
+securityManager.sessionManager.sessionIdUrlRewritingEnabled = false
+
+[users]
+# format: username = password, role1, role2, ..., roleN
+webdavuser = secret,webdav
+
+[roles]
+# format: roleName = permission1, permission2, ..., permissionN
+webdav = *
+
+[urls]
+/${webapp-name}/webdav/** = authcBasic]]>
+    </shiro-ini>
+  </security>
+  
+  <!-- ... parts removed ... -->
+
+</webapp>
+----
 
 [#install]
 == Download, install and run XSLWeb
