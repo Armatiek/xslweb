@@ -1,5 +1,3 @@
-= XSLWeb version 3.3.0 Developer Manual
-Authors: Maarten Kroon, Arjan Loeffen
 :description: XSLWeb Developer Manual 
 :keywords: XSLWeb XML, XSLT, XML Schema, Schematron, Web development
 :doctype: book
@@ -31,11 +29,15 @@ Authors: Maarten Kroon, Arjan Loeffen
 :imagesdir: images
 :includedir: includes
 :underscore: _
-:adp: AsciiDoc Python
-:adr: Asciidoctor
 :docinfo: shared,shared-head
-:uri-home: https://asciidoctor.org
 :window-blank: _blank
+:xslweb-version: 4.0.0-RC1
+:xslweb-version-download: 4-0-0-RC1 
+:saxon-version: 9.9.1-7
+:saxon-version-download: 9-9-1-7J 
+
+= XSLWeb version {xslweb-version} Developer Manual
+Authors: Maarten Kroon, Arjan Loeffen
 
 [.small]#The latest version of this document can be found https://armatiek.github.io/xslweb/XSLWeb%20Developer%20Manual.html[here].#
 
@@ -2530,80 +2532,247 @@ webdav = *
 </webapp>
 ----
 
-[#install]
-== Download, install and run XSLWeb
+[#installation]
+== Installation
 
 The sources of XSLWeb can be found on https://github.com/Armatiek/xslweb[GitHub]. XSLWeb is licensed under the Apache License version 2.0.
 
-Compiled binaries of XSLWeb 3.0.1 can be downloaded in two distributions:
+Compiled binaries of XSLWeb {xslweb-version} can be downloaded in two distributions:
 
 [arabic]
-. As a .zip (Windows) or .tgz (Linux/macOS) archive, containing a single executable java library (.jar) with embedded application server (Apache Tomcat 7).
-. As a web application archive (.war)
+. As a .zip (Windows) or .tar.gz (Linux/macOS) archive, containing a ready-to-run installation of XSLWeb.
+. As a standard web application archive (.war) which can be installed on your favorite Java Application Server.
 
-[#install-jar]
-=== The single executable jar distribution
+[#installation-ready-to-run]
+=== Installation of the ready-to-run distribution
 
-This distribution contains the XSLWeb home directory and a single executable java library (xslweb.jar) with embedded application server (Tomcat 7). This distribution is the easiest to install and run and is most suitable to try out and develop applications in XSLWeb.
-
+[#download-ready-to-run]
 ==== Download
 
-You can download the archives from the following locations:
+The ready-to-run distribution can be downloaded from:
 
-* https://github.com/Armatiek/xslweb/releases/download/v3.0.1/xslweb-3.0.1-jar.zip (Windows)
-* https://github.com/Armatiek/xslweb/releases/download/v3.0.1/xslweb-3.0.1-jar.tgz (Linux/macOS).
+* https://github.com/Armatiek/xslweb/releases/download/v{xslweb-version}/xslweb-v{xslweb-version}-linux-x64.tar.gz (for Linux 64-bits machines)
+* https://github.com/Armatiek/xslweb/releases/download/v{xslweb-version}/xslweb-v{xslweb-version}-osx-x64.tar.gz (for macOS 64-bits machines)
+* https://github.com/Armatiek/xslweb/releases/download/v{xslweb-version}/xslweb-v{xslweb-version}-windows-x64.zip (for Windows 64-bits machines)
 
-==== Install
+Apart from the .war file, each distribution file contains a platform specific custom OpenJDK version 13 JRE, the Jetty Java application server and several platform specific batch files or shell scripts.
 
-Extract the archive to a directory of your choice. You will need the Java Runtime Environment (JRE) version 1.8 or higher. At a command line, check your Java version like this:
+[#unpack-ready-to-run]
+==== Unpack
 
-[source,bash]
-----
-$ java -version
-openjdk version "13.0.2" 2020-01-14
-OpenJDK Runtime Environment (build 13.0.2+8)
-OpenJDK 64-Bit Server VM (build 13.0.2+8, mixed mode, sharing)
-----
+After downloading, the distribution file may be unzipped/untarred in a directory of your choice, under Windows and macOS by double clicking on the file and under Linux and macOS by running the following command in a shell:
 
-The output will vary, but you need to make sure you have version 1.8 or higher. If no JRE/JDK is installed yet or you have an older version, download or install an https://www.oracle.com/technetwork/java/javase/downloads/index.html[Oracle JDK] or an https://jdk.java.net/14/[OpenJDK download] / https://openjdk.java.net/install/[OpenJDK install]. https://blog.joda.org/2018/09/do-not-fall-into-oracles-java-11-trap.html[This article] will help you decide which to choose (TL;DR : Do not download or use the Oracle JDK unless you intend to pay for it).
-
-==== Run
-
-The embedded jar version of XSLWeb can be started from the directory where the archive was extracted using the following command (one line):
+.Unpacking the zipped tar file on Linux
 
 [source,bash]
 ----
-java -Dxslweb.home=./home -cp xslweb.jar;home/config org.apache.tomcat.maven.runner.Tomcat7RunnerCli
+tar -xzvf xslweb-v{xslweb-version}-linux-x64.tar.gz
 ----
 
-The following additional arguments are supported:
+.Unpacking the zipped tar file on macOS
 
-[source,text]
+[source,bash]
 ----
--ajpPort <ajpPort> ajp port to use
--clientAuth enable client authentication for https
--D <arg> key=value
--extractDirectory <extractDirectory> path to extract war content, default value: .extract
--h,--help help
--httpPort <httpPort> http port to use
--httpProtocol <httpProtocol> http protocol to use: HTTP/1.1 or org.apache.coyote.http11.Http11Nio Protocol
--httpsPort <httpsPort> https port to use
--maxPostSize <maxPostSize> max post size in bytes to use
--keyAlias <keyAlias> alias from keystore for ssl
--loggerName <loggerName> logger to use: slf4j to use slf4j bridge on top of jul
--obfuscate <password> obfuscate the password and exit
--resetExtract clean previous extract directory
--serverXmlPath <serverXmlPath> server.xml to use, optional
--X,--debug debug
+tar -xzvf xslweb-v{xslweb-version}-osx-x64.tar.gz
 ----
 
-Now you can open a browser and go to the address http://localhost:8080. A web page with the text “It works!” should appear. From here you can go to the examples and the documentation.
+In case the browser already zipped the file during the download process, the commands are:
 
-[#install-war]
-=== The Web Application Archive (.war) distribution
+.Unpacking the tar file on Linux
+
+[source,bash]
+----
+tar -xvf xslweb-v{xslweb-version}-linux-x64.tar
+----
+
+.Unpacking the tar file on macOS
+
+[source,bash]
+----
+tar -xvf xslweb-v{xslweb-version}-osx-x64.tar
+----
+  
+[#run-and-install-ready-to-run]
+==== Run and install
+
+XSLWeb can be started by running the batch file `<install-dir>\bin\run-service.bat` (Windows) or `<install-dir>/bin/run-service.sh` (*nix). After the service is started, the correct installation can be tested by opening a browser and going to the url http://localhost:8152. XSLWeb can be stopped by running the corresponding batch file `stop-service.bat` or shell script `stop-service.sh` from another command prompt or shell. 
+
+IMPORTANT: To increase or decrease the Java heap memory size that is available to the XSLWeb process please alter the variable `MAXMEM` in the file `<install-dir>\bin\service\config.cmd` (Windows) or `<install-dir>/bin/run-service.sh` (Linux and macOS). The default is 256m (megabytes). 
+
+=== Optional: install XSLWeb as a Windows service or Linux/macOS daemon
+
+The following sections explain how XSLWeb can be installed as an "always-on" Windows service or Linux/macOS daemon.
+
+==== Linux
+
+The way XSLWeb can be installed as a daemon on Linux is dependent on the (version of) the Linux distribution and in particular the init system that it uses. The three most common init systems are:
+
+* System V, for instance on:
+** Debian 6 and earlier
+** Ubuntu 9.04 and earlier
+** CentOS 5 and earlier
+* Upstart, for instance on:
+** Ubuntu 9.10 to Ubuntu 14.10, including Ubuntu 14.04
+** CentOS 6
+* systemd is the init system for the most recent distributions:
+** Debian 7 and Debian 8
+** Ubuntu 15.04 and newer
+** CentOS 7
+
+Only the installation for the systemd init system is discussed in this manual. When your distribution uses another init system than systemd, please consult the documentation for that particular distribution and init system.  
+
+Execute the following steps:
+
+* Give the script file execute permissions by executing the following command (replace `<install-dir>`):
+
+[source,bash]
+----
+chmod +x <install-dir>/bin/run-service.sh
+----
+
+* Create a unit file `/etc/systemd/system/xslweb.service` as root with the content below (replace <install-dir>):
+
+[source,properties]
+----
+[Unit]
+Description=XSLWeb
+
+[Service]
+ExecStart=/bin/bash <install-dir>/bin/run-service.sh
+ExecStop=/bin/bash <install-dir>/bin/stop-service.sh
+WorkingDirectory=<install-dir>/bin
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+----
+
+* Change the access permissions of the unit file : 
+
+[source,bash]
+----
+sudo chmod 644 /etc/systemd/system/xslweb.service
+----
+
+* Use the 'enable' command to ensure that the service starts whenever the system boots:
+
+[source,bash]
+----
+sudo systemctl enable xslweb
+----
+
+* Reload the unit file:
+
+[source,bash]
+----
+sudo systemctl daemon-reload
+----
+
+Now the daemon is installed.
+
+You can start, stop and restart the service using the following commands: 
+
+[source,bash]
+----
+sudo systemctl start xslweb
+----
+
+[source,bash]
+----
+sudo systemctl stop xslweb
+----
+
+[source,bash]
+----
+sudo systemctl restart xslweb
+----
+
+==== macOS
+
+XSLWeb can be installed as a daemon under macOS by adding the script `run-service.sh` to the Launch Daemon process of macOS. Execute the following steps:
+
+* Give the script file execute permissions by executing the following command (replace `<install-dir>`):
+
+[source,bash]
+----
+sudo chmod +x <install-dir>/bin/run-service.sh
+---- 
+* Create the daemon property list file `/Library/LaunchDaemons/com.xslweb.plist` as root user, and give it the XML configuration below. Replace [install-dir] and [root-user] with values appropriate for your system. See https://www.launchd.info for more information on all possible configuration properties.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>PATH</key>
+      <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:</string>
+    </dict>
+    <key>Label</key>
+    <string>com.xslweb</string>
+    <key>Program</key>
+    <string>[install-dir]/bin/run-service.sh</string>
+    <key>WorkingDirectory</key>
+    <string>[install-dir]/bin</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+    <key>LaunchOnlyOnce</key>        
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/startup.stdout</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/startup.stderr</string>
+    <key>UserName</key>
+    <string>[root-user]</string>
+    <key>GroupName</key>
+    <string>admin</string>
+    <key>InitGroups</key>
+    <true/>
+  </dict>
+</plist>
+----
+
+* After you add the property list file onto the launchctl using the command below, the daemon is installed permanently:
+
+[source,bash]
+----
+sudo launchctl load -w /Library/LaunchDaemons/com.xslweb.plist
+----
+* You can permanently remove the plist from the Launch Daemon by executing:
+
+[source,bash]
+----
+sudo launchctl load -w /Library/LaunchDaemons/com.xslweb.plist
+----
+* and to stop the launchctl process:
+
+[source,bash]
+----
+sudo launchctl stop /Library/LaunchDaemons/com.xslweb.plist
+----
+* and to start the launchctl process:
+
+[source,bash]
+----
+sudo launchctl start /Library/LaunchDaemons/com.xslweb.plist
+----
+
+==== Windows
+
+The XSLWeb ready-to-run distribution is shipped with a copy of the Windows service manager https://nssm.cc/[NSSM] that can be used to install, start, stop, restart and remove XSLWeb  as a Window service using the corresponding batch files in the directory `<install-dir>\bin`. Once the service is installed it can also be managed from the standard Windows Services Manager application.
+
+IMPORTANT: After a change to the variable `MAXMEM` in the file `<install-dir>\bin\config.cmd` the service must be removed and reinstalled. 
+
+[#installation-war]
+=== Installation of the Web Application Archive (.war) distribution
 
 This distribution contains the XSLWeb home directory and a web application archive (.war) and is most suitable to run XSLWeb in a production setting. The web application archive is a standard J2EE web application that can be installed on any Java application server that supports Servlet Spec 3.0 (Tomcat 7+, TomEE 1.6+, WebLogic, Jetty 8+, Glassfish 3+, JBoss AS 6.x/7.x etc.).
 
+[#download-war]
 ==== Download
 
 You can download the archives from the following locations:
@@ -2627,94 +2796,22 @@ http://localhost:<port>/xslweb
 
 where port is the port your application server runs on. A web page with the text “It works!” should appear. From here you can go to the examples and the documentation.
 
-=== Install XSLWeb as a Windows service or Linux/macOS daemon
-
-One way to install XSLWeb as a Windows service or Linux/macOS daemon is to use http://yajsw.sourceforge.net/[YAJSW (Yet Another Java Service Wrapper)]. This installation involves the following steps:
-
-[arabic]
-. Execute the steps described in sections 12.1.1 and 12.1.2.
-. Download YAJSW version 12.11+ from https://sourceforge.net/projects/yajsw/files/ and extract the archive in the directory created in step 1.
-. Create YAJSW wrapper config file _wrapper.xslweb.conf_ and place it in YAJSW's _conf_ folder. You can use the example below. You may need to modify this example to:
-* Specify the location of java (wrapper.java.command)
-* Specify the installation directory of XSLWeb (wrapper.working.dir)
-* Change the amount of memory available to XSLWeb from 1024m (for example, 512m or 2048m)
-
-[source,properties]
-----
-# YAJSW configuration for XSLWeb
-
-wrapper.java.command=C:/ProgramData/Oracle/Java/javapath/java.exe
-wrapper.working.dir=D:\\xslweb-3.0.1
-wrapper.java.app.mainclass=org.apache.tomcat.maven.runner.Tomcat7RunnerCli
-wrapper.java.classpath.1 = xslweb.jar
-wrapper.java.classpath.2 = home/config
-
-wrapper.java.additional.1 = -Xmx1024m
-wrapper.java.additional.2 = -Dfile.encoding=utf-8
-wrapper.java.additional.3 = -Dxslweb.home=./home
-wrapper.java.additional.4 = -Dorg.terracotta.quartz.skipUpdateCheck=true
-
-wrapper.ntservice.name= XSLWEB_3_0
-wrapper.ntservice.displayname= XSLWeb 3.0.1
-wrapper.ntservice.description= XSLWeb 3.0.1
-wrapper.ntservice.starttype=DELAYED_AUTO_START
-
-wrapper.console.loglevel=INFO
-wrapper.logfile=$\{wrapper.working.dir}/home/logs/wrapper-xslweb.log
-wrapper.logfile.maxsize=10m
-wrapper.logfile.maxfiles=10
-
-wrapper.on_exit.0=SHUTDOWN
-wrapper.on_exit.default=RESTART
-----
-
-You can add any optional arguments mentioned in section 12.1.3 as _wrapper.app.parameter.NN._ 
-
-After you have created the wrapper configuration file:
-
-[arabic]
-. Open a command prompt as administrator (Windows) or shell (Linux/macOS)
-. Navigate to the YAJSW folder
-. Install the service: +
-java -jar wrapper.jar --install conf\wrapper.xslweb.conf
-. Start the service: +
-java -jar wrapper.jar --start conf\wrapper.xslweb.conf
-
-XSLWeb is now running as a service/daemon, and will start automatically when the operating system starts. Open a web browser and go to the address:
-
-http://localhost:8080
-
-A web page with the text “It works!” should appear. From here you can go to the examples and the documentation.
-
-If you make changes to the configuration you can follow this sequence:
-
-[arabic]
-. Stop the service: +
-java -jar wrapper.jar --stop conf\wrapper.xslweb.conf
-. Remove the service: +
-java -jar wrapper.jar --remove conf\wrapper.xslweb.conf
-. Make your changes to the wrapper or application configuration.
-. Install the service: +
-java -jar wrapper.jar --install conf\wrapper.xslweb.conf
-. Start the service: +
-java -jar wrapper.jar --start conf\wrapper.xslweb.conf
-
 == Support for Saxon PE (Professional) and EE (Enterprise Edition)
 
 The downloadable binaries of XSLWeb contain the open source Home Edition (HE) of the Saxon XSLT processor. You can build a version of XSLWeb that contains Saxon PE or EE by following these steps:
 
 * Install Java 1.8+, maven 2.2.1+ and make a clone of the git repository https://github.com/Armatiek/xslweb.git.
 * Purchase a PE or EE license from http://www.saxonica.com/.
-* Download the PE of EE package from https://www.saxonica.com/download/SaxonPE9-9-1-7J.zip or https://www.saxonica.com/download/SaxonEE9-9-1-7J.zip
+* Download the PE of EE package from https://www.saxonica.com/download/SaxonPE{saxon-version-download}.zip or https://www.saxonica.com/download/SaxonEE{saxon-version-download}.zip
 * Extract and register the jars in your local Maven repository using the following commands:
 ** PE:
-*** mvn install:install-file -Dfile=saxon9pe.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion=9.9.1-7 -Dpackaging=jar
-*** mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion=9.9.1-7 -Dpackaging=jar
-*** mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion=9.9.1-7 -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon9pe.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion={saxon-version} -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion={saxon-version} -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion={saxon-version} -Dpackaging=jar
 ** EE:
-*** mvn install:install-file -Dfile=saxon9ee.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE -Dversion=9.9.1-7 -Dpackaging=jar
-*** mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion=9.9.1-7 -Dpackaging=jar
-*** mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion=9.9.1-7 -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon9ee.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE -Dversion={saxon-version} -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion={saxon-version} -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion={saxon-version} -Dpackaging=jar
 * Place your purchased license file _saxon-license.lic_ in <<xslweb.home>>/config
 * Build XSLWeb with the maven profile “Saxon-PE” or “Saxon-EE”:
 ** mvn -PSaxon-PE clean install +
