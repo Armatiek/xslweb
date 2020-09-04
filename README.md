@@ -12,4 +12,4 @@ The result of a pipeline can be serialized to XML, (X)HTML or plain text and usi
 
 See [Developer Manual](https://armatiek.github.io/xslweb/XSLWeb%20Developer%20Manual.html).
 
-![XSLWeb HTTP request to response flow](https://raw.githubusercontent.com/Armatiek/xslweb/master/docs/xslweb_flow.png)
+![XSLWeb HTTP request to response flow](https://armatiek.github.io/xslweb/images/xslweb_flow.png)
