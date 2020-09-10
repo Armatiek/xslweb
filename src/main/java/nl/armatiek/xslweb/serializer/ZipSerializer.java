@@ -142,26 +142,6 @@ public class ZipSerializer extends AbstractSerializer {
     }
   }
   
-  /*
-  private void processInlineEntry(String uri, String localName, String qName, Attributes attributes) throws Exception {
-    String name = attributes.getValue("", "name");
-    if (name == null) {
-      throw new SAXException("No attribute \"name\" specified on inline-entry element");
-    }    
-    Properties props = new Properties();
-    for (int i=0; i<attributes.getLength(); i++) {
-      String n = attributes.getLocalName(i);
-      if (!n.equals("name")) {
-        props.put(n, attributes.getValue(i));
-      }
-    }
-    ZipEntry entry = new ZipEntry(name);
-    zos.putNextEntry(entry);
-    this.xsw = serializerFactory.getXMLStreamWriter(new StreamResult(this.zos), props);    
-    this.serializingHandler = new ContentHandlerToXMLStreamWriter(xsw);
-  }
-  */
-  
   private void processInlineEntry(String uri, String localName, String qName, Attributes attributes) throws Exception {
     String name = attributes.getValue("", "name");
     if (name == null) {

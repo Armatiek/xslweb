@@ -70,7 +70,7 @@ public class SetStatus extends ExtensionFunctionDefinition {
   private static class ResponseStatusCall extends ExtensionFunctionCall {
         
     @Override
-    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {                      
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {                      
       long status = ((IntegerValue) arguments[0].head()).longValue();                                     
       getResponse(context).setStatus((int) status);                
       return EmptySequence.getInstance();              

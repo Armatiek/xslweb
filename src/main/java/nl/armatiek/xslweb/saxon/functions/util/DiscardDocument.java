@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.saxon.functions.util;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,12 +14,13 @@ package nl.armatiek.xslweb.saxon.functions.util;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.saxon.functions.util;
 
 import net.sf.saxon.Controller;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
-import net.sf.saxon.om.DocumentURI;
+import net.sf.saxon.om.DocumentKey;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
@@ -85,10 +84,12 @@ public class DiscardDocument extends ExtensionFunctionDefinition {
       Controller c = context.getController();
       String uri = c.getDocumentPool().getDocumentURI(doc);
       if (uri != null && c instanceof XsltController) {
-        ((XsltController)c).removeUnavailableOutputDestination(new DocumentURI(uri));
+        ((XsltController)c).removeUnavailableOutputDestination(new DocumentKey(uri));
       }
       c.getDocumentPool().discard(doc.getTreeInfo());
       return new ZeroOrOne<NodeInfo>(doc);
     }
+    
   }
+  
 }

@@ -28,6 +28,7 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.transform.ErrorListener;
 
 import org.xml.sax.Attributes;
 
@@ -78,8 +79,8 @@ public class JSONSerializerStep extends SerializerStep {
   }
   
   @Override
-  public Destination getDestination(WebApp webApp, HttpServletRequest req, 
-      HttpServletResponse resp, OutputStream os, Properties outputProperties) throws XMLStreamException {
+  public Destination getDestination(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
+      OutputStream os, Properties outputProperties, ErrorListener errorListener) throws XMLStreamException {
     JsonXMLConfig config = new JsonXMLConfigBuilder()
         .autoArray(autoArray)
         .autoPrimitive(autoPrimitive)

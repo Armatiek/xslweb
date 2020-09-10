@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.saxon.functions.sql;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,18 +14,23 @@ package nl.armatiek.xslweb.saxon.functions.sql;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.saxon.functions.sql;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 
 import net.sf.saxon.Configuration;
-import net.sf.saxon.event.SequenceOutputter;
+import net.sf.saxon.event.SequenceCollector;
 import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
-import net.sf.saxon.expr.parser.ExplicitLocation;
+import net.sf.saxon.expr.parser.Loc;
+import net.sf.saxon.om.AttributeInfo;
+import net.sf.saxon.om.EmptyAttributeMap;
+import net.sf.saxon.om.NamespaceMap;
 import net.sf.saxon.om.NoNamespaceName;
 import net.sf.saxon.om.NodeName;
 import net.sf.saxon.om.Sequence;
+import net.sf.saxon.om.SingletonAttributeMap;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.type.BuiltInAtomicType;
@@ -46,8 +49,7 @@ import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionDefinition;
  */
 public class ResultSetToNode extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = 
-      new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_SQL, "resultset-to-node");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_SQL, "resultset-to-node");
 
   public ResultSetToNode(Configuration configuration) {
     super(configuration);
@@ -101,13 +103,14 @@ public class ResultSetToNode extends ExtensionFunctionDefinition {
         NodeName colName = new NoNamespaceName("col");
         NodeName nameName = new NoNamespaceName("name");
         
-        SequenceOutputter out = context.getController().allocateSequenceOutputter(50);
-        out.startElement(resultSetName, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0); // 9.7: null for third argument?
+        SequenceCollector out = context.getController().allocateSequenceOutputter(50);
+     
+        out.startElement(resultSetName, Untyped.getInstance(), EmptyAttributeMap.getInstance(), NamespaceMap.emptyMap(), Loc.NONE, 0); // 9.7: null for third argument?
         while (rset.next()) {          
-          out.startElement(rowName, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+          out.startElement(rowName, Untyped.getInstance(), EmptyAttributeMap.getInstance(), NamespaceMap.emptyMap(), Loc.NONE, 0);
           for (int col = 1; col <= columnCount; col++) {            
-            out.startElement(colName, Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
-            out.attribute(nameName, BuiltInAtomicType.UNTYPED_ATOMIC, metaData.getColumnName(col), null, 0);            
+            AttributeInfo colAttr = new AttributeInfo(nameName, BuiltInAtomicType.UNTYPED_ATOMIC, metaData.getColumnName(col), Loc.NONE, 0);
+            out.startElement(colName, Untyped.getInstance(), SingletonAttributeMap.of(colAttr), NamespaceMap.emptyMap(), Loc.NONE, 0);           
             String value = rset.getString(col);
             if (value != null) {            
               out.characters(value, null, 0);

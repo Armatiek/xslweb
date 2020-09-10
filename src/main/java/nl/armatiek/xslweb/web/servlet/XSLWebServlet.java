@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package nl.armatiek.xslweb.web.servlet;
 
 import java.io.ByteArrayInputStream;
@@ -10,7 +26,6 @@ import java.io.PrintStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -39,11 +54,9 @@ import javax.xml.validation.Validator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ProxyWriter;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.sf.saxon.Configuration;
 import net.sf.saxon.dom.NodeOverNodeInfo;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.s9api.Destination;
@@ -79,8 +92,6 @@ import nl.armatiek.xslweb.pipeline.SchematronValidatorStep;
 import nl.armatiek.xslweb.pipeline.SerializerStep;
 import nl.armatiek.xslweb.pipeline.StylesheetExportFileStep;
 import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
-import nl.armatiek.xslweb.pipeline.TraceablePipelineStep;
-import nl.armatiek.xslweb.pipeline.TraceablePipelineStep.TraceType;
 import nl.armatiek.xslweb.pipeline.TransformerSTXStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
 import nl.armatiek.xslweb.pipeline.ZipSerializerStep;
@@ -201,7 +212,7 @@ public class XSLWebServlet extends HttpServlet {
       PipelineStep step = steps.get(i);
       if (step instanceof TransformerStep) {
         String xslPath = ((TransformerStep) step).getXslPath();
-        XsltExecutable executable = webApp.getXsltExecutable(xslPath, errorListener, false);
+        XsltExecutable executable = webApp.getXsltExecutable(xslPath, errorListener);
         return executable.getUnderlyingCompiledStylesheet().getOutputProperties();
       }
     }
@@ -209,7 +220,7 @@ public class XSLWebServlet extends HttpServlet {
   }
   
   private void addResponseTransformationStep(WebApp webApp, List<PipelineStep> steps) {
-    SystemTransformerStep step = new SystemTransformerStep(webApp, "system/response/response.xsl", "client-response", false);
+    SystemTransformerStep step = new SystemTransformerStep("system/response/response.xsl", "client-response", false);
     if (steps.get(steps.size()-1) instanceof SerializerStep) {
       steps.add(steps.size()-1, step);
     } else {
@@ -218,7 +229,8 @@ public class XSLWebServlet extends HttpServlet {
   }
   
   private Destination getDestination(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
-      OutputStream os, Properties outputProperties, PipelineStep currentStep, PipelineStep nextStep) throws Exception {
+      OutputStream os, Properties outputProperties, PipelineStep currentStep, PipelineStep nextStep, 
+      ErrorListener errorListener) throws Exception {
     Destination dest;
     if (nextStep == null) {      
       Serializer serializer = webApp.getProcessor().newSerializer(os);
@@ -240,13 +252,15 @@ public class XSLWebServlet extends HttpServlet {
     } else if (nextStep instanceof TransformerStep || nextStep instanceof SchemaValidatorStep || nextStep instanceof SchematronValidatorStep) {
       dest = new XdmSourceDestination();
     } else if (nextStep instanceof JSONSerializerStep) {
-      dest = ((JSONSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);             
+      dest = ((JSONSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties, errorListener);             
     } else if (nextStep instanceof ZipSerializerStep) {
-      dest = ((ZipSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);
+      dest = ((ZipSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties, errorListener);
     } else if (nextStep instanceof ResourceSerializerStep) {
-      dest = ((ResourceSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);
+      dest = ((ResourceSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties, errorListener);
     } else if (nextStep instanceof FopSerializerStep) {
-      dest = ((FopSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties);
+      dest = ((FopSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties, errorListener);
+    } else if (nextStep instanceof StylesheetExportFileStep) {
+      dest = ((StylesheetExportFileStep) nextStep).getDestination(webApp, req, resp, os, outputProperties, errorListener);
     } else {
       throw new XSLWebException("Could not determine destination");
     }
@@ -315,55 +329,9 @@ public class XSLWebServlet extends HttpServlet {
       if (step instanceof TransformerSTXStep && i<steps.size()) {
         /* Add extra identity tranformation after STX transformation that is not the 
          * last transformation in the pipeline: */
-        steps.add(i+1, new IdentityTransformerStep(webApp));
+        steps.add(i+1, new IdentityTransformerStep());
       }
     } 
-  }
-  
-  private ByteArrayOutputStream getTraceOutput(TraceType traceType, List<PipelineStep> steps, HttpServletResponse resp) throws IOException {
-    resp.resetBuffer();
-    resp.setStatus(HttpServletResponse.SC_OK);
-    
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    OutputStreamWriter osw = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
-    
-    if (traceType.equals(TraceType.BASIC)) {
-      osw.write("<pipeline>");
-      for (PipelineStep step : steps) {
-        if (step instanceof SystemTransformerStep) 
-          continue;
-        if (step instanceof TraceablePipelineStep) {
-          String tracing = ((TraceablePipelineStep) step).getTracing();
-          if (tracing != null) {
-            osw.write("<step name=\"" + step.getName() + "\">" );
-            osw.write(tracing);
-            osw.write("</step>" );
-          }
-        }
-      }
-      osw.write("</pipeline>");
-      resp.setContentType(Definitions.MIMETYPE_XML + "; charset=UTF-8");
-    } else if (traceType.equals(TraceType.TIMING)) {
-      osw.write("<html><body>");
-      for (PipelineStep step : steps) {
-        if (step instanceof TraceablePipelineStep) {
-          if (step instanceof SystemTransformerStep) 
-            continue;
-          String tracing = ((TraceablePipelineStep) step).getTracing();
-          if (tracing != null) {
-            osw.write("<h2>Step: " + step.getName() + "</h2>");
-            osw.write(tracing);
-          }
-        }
-      }
-      osw.write("</body></html>");
-      resp.setContentType(Definitions.MIMETYPE_HTML + "; charset=UTF-8");
-    }
-    
-    osw.flush();
-    osw.close();
-    
-    return baos;
   }
   
   private void executeRequest(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
@@ -384,14 +352,6 @@ public class XSLWebServlet extends HttpServlet {
     preprocessPipelines(webApp, steps);
     
     OutputStream os = (developmentMode) ? new ByteArrayOutputStream() : respOs;
-    
-    TraceType traceType = TraceType.NONE;
-    if (developmentMode) {
-      if (StringUtils.equals(req.getParameter(Definitions.PARAMNAME_TRACE_BASIC), "true"))
-        traceType = TraceType.BASIC;
-      else if (StringUtils.equals(req.getParameter(Definitions.PARAMNAME_TRACE_TIME), "true")) 
-        traceType = TraceType.TIMING;
-    }
     
     Properties outputProperties = getOutputProperties(webApp, errorListener, steps);
     
@@ -415,39 +375,33 @@ public class XSLWebServlet extends HttpServlet {
         } else {          
           xslPath = ((TransformerStep) step).getXslPath();
         }
-        XsltExecutable templates = webApp.getXsltExecutable(xslPath, errorListener, !traceType.equals(TraceType.NONE)); 
+        XsltExecutable templates = webApp.getXsltExecutable(xslPath, errorListener); 
         Xslt30Transformer transformer = templates.load30();
         SaxonUtils.setMessageEmitter(transformer.getUnderlyingController(), webApp.getConfiguration(), errorListener);
         transformer.setErrorListener(errorListener);
-        if (!traceType.equals(TraceType.NONE) && !(step instanceof SystemTransformerStep))
-          transformer.setTraceListener(((TransformerStep) step).getTraceListener(traceType));
         Map<QName, XdmValue> stylesheetParameters = getStylesheetParameters((ParameterizablePipelineStep) step, 
             baseStylesheetParameters, extraStylesheetParameters);
         transformer.setStylesheetParameters(stylesheetParameters);
-        destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep);
+        destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep, errorListener);
         NodeInfo nodeInfo = (NodeInfo) makeNodeInfoSource(source, webApp, errorListener);
         transformer.setGlobalContextItem(new XdmNode(nodeInfo));
         transformer.applyTemplates(nodeInfo, destination);
       } else if (step instanceof QueryStep) {
         String xqueryPath = ((QueryStep) step).getXQueryPath();
-        XQueryExecutable xquery = webApp.getQuery(xqueryPath, errorListener, !traceType.equals(TraceType.NONE));
+        XQueryExecutable xquery = webApp.getQuery(xqueryPath, errorListener);
         XQueryEvaluator eval = xquery.load();
         eval.setErrorListener(errorListener);
-        if (!traceType.equals(TraceType.NONE))
-          eval.setTraceListener(((QueryStep) step).getTraceListener(traceType));
         Map<QName, XdmValue> stylesheetParameters = getStylesheetParameters((ParameterizablePipelineStep) step, 
             baseStylesheetParameters, extraStylesheetParameters);
         for (Map.Entry<QName, XdmValue> entry : stylesheetParameters.entrySet()) {
           eval.setExternalVariable(entry.getKey(), entry.getValue());
         }
-        destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep);
+        destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep, errorListener);
         NodeInfo nodeInfo = (NodeInfo) makeNodeInfoSource(source, webApp, errorListener);
         eval.setContextItem(new XdmNode(nodeInfo));
         eval.run(destination);
       } else if (step instanceof TransformerSTXStep) {
         String stxPath = ((TransformerSTXStep) step).getStxPath();
-        int recoverPolicy = errorListener.getRecoveryPolicy();
-        errorListener.setRecoveryPolicy(Configuration.DO_NOT_RECOVER);
         Templates templates = webApp.getTemplates(stxPath, errorListener);
         Transformer transformer = templates.newTransformer();
         transformer.setErrorListener(errorListener);
@@ -465,12 +419,13 @@ public class XSLWebServlet extends HttpServlet {
           ByteArrayOutputStream baos = (ByteArrayOutputStream) ((StreamResult) result).getOutputStream();
           source = new StreamSource(new ByteArrayInputStream(baos.toByteArray()));
         }
-        errorListener.setRecoveryPolicy(recoverPolicy);
       } else if (step instanceof StylesheetExportFileStep) {
         String xslPath = ((StylesheetExportFileStep) step).getXslPath();
-        XdmNode sef = webApp.getStylesheetExportFile(xslPath, errorListener, !traceType.equals(TraceType.NONE)); 
-        destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep);
-        webApp.getProcessor().writeXdmValue(sef, destination);
+        byte[] sef = webApp.getStylesheetExportFile(xslPath, errorListener); 
+        
+        
+        
+        os.write(sef);
       } else if (step instanceof SchemaValidatorStep) {
         SchemaValidatorStep svStep = (SchemaValidatorStep) step;
         List<String> schemaPaths = svStep.getSchemaPaths();
@@ -560,13 +515,7 @@ public class XSLWebServlet extends HttpServlet {
     }
     
     if (developmentMode) {
-      OutputStream baos;
-      if (!traceType.equals(TraceType.NONE)) {
-        baos = getTraceOutput(traceType, steps, resp);
-      } else {
-        baos = os;
-      }
-      byte[] body = ((ByteArrayOutputStream) baos).toByteArray();                         
+      byte[] body = ((ByteArrayOutputStream) os).toByteArray();                         
       IOUtils.copy(new ByteArrayInputStream(body), respOs);
     }
     

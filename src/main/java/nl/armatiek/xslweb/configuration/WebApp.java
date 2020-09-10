@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.configuration;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,19 +14,18 @@ package nl.armatiek.xslweb.configuration;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.configuration;
 
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -114,6 +111,7 @@ import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.UnprefixedElementMatchingPolicy;
 import net.sf.saxon.s9api.XQueryCompiler;
 import net.sf.saxon.s9api.XQueryExecutable;
 import net.sf.saxon.s9api.XdmDestination;
@@ -144,7 +142,7 @@ public class WebApp implements ErrorHandler {
   private Map<String, XQueryExecutable> xqueryExecutableCache = new ConcurrentHashMap<String, XQueryExecutable>();
   private Map<String, Templates> templatesCache =  new ConcurrentHashMap<String, Templates>();
   private Map<String, Schema> schemaCache = new ConcurrentHashMap<String, Schema>();
-  private Map<String, XdmNode> stylesheetExportFileCache = new ConcurrentHashMap<String, XdmNode>();
+  private Map<String, byte[]> stylesheetExportFileCache = new ConcurrentHashMap<String, byte[]>();
   private Map<String, Collection<Attribute>> attributes = new ConcurrentHashMap<String, Collection<Attribute>>();
   private Map<String, ComboPooledDataSource> dataSourceCache = new ConcurrentHashMap<String, ComboPooledDataSource>();
   private Map<String, FopFactory> fopFactoryCache = new ConcurrentHashMap<String, FopFactory>();
@@ -422,7 +420,7 @@ public class WebApp implements ErrorHandler {
         return;
       }
       TransformationErrorListener errorListener = new TransformationErrorListener(null, developmentMode);  
-      XsltExecutable templates = getXsltExecutable("events.xsl", errorListener, false);
+      XsltExecutable templates = getXsltExecutable("events.xsl", errorListener);
       Xslt30Transformer transformer = templates.load30();
       SaxonUtils.setMessageEmitter(transformer.getUnderlyingController(), getConfiguration(), errorListener);
       transformer.setErrorListener(errorListener);
@@ -584,16 +582,16 @@ public class WebApp implements ErrorHandler {
     return processor;
   }
   
-  public XsltExecutable getRequestDispatcherTemplates(ErrorListener errorListener, boolean tracing) throws Exception {
+  public XsltExecutable getRequestDispatcherTemplates(ErrorListener errorListener) throws Exception {
     return tryXsltExecutableCache(new File(getHomeDir(), 
-        Definitions.PATHNAME_REQUESTDISPATCHER_XSL).getAbsolutePath(), errorListener, tracing);
+        Definitions.PATHNAME_REQUESTDISPATCHER_XSL).getAbsolutePath(), errorListener);
   }
   
-  public XsltExecutable getXsltExecutable(String path, ErrorListener errorListener, boolean tracing) throws Exception {    
+  public XsltExecutable getXsltExecutable(String path, ErrorListener errorListener) throws Exception {    
     if (new File(path).isAbsolute()) {
-      return tryXsltExecutableCache(path, errorListener, tracing);
+      return tryXsltExecutableCache(path, errorListener);
     }    
-    return tryXsltExecutableCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener, tracing);
+    return tryXsltExecutableCache(new File(getHomeDir(), "xsl" + "/" + path).getAbsolutePath(), errorListener);
   }
   
   public XsltExecutable getIdentityXsltExecutable() {
@@ -607,11 +605,11 @@ public class WebApp implements ErrorHandler {
     return tryTemplatesCache(new File(getHomeDir(), "stx" + "/" + path).getAbsolutePath(), errorListener);
   }
   
-  public XQueryExecutable getQuery(String path, ErrorListener errorListener, boolean tracing) throws Exception {    
+  public XQueryExecutable getQuery(String path, ErrorListener errorListener) throws Exception {    
     if (new File(path).isAbsolute()) {
-      return tryQueryCache(path, errorListener, tracing);
+      return tryQueryCache(path, errorListener);
     }    
-    return tryQueryCache(new File(getHomeDir(), "xquery" + "/" + path).getAbsolutePath(), errorListener, tracing);
+    return tryQueryCache(new File(getHomeDir(), "xquery" + "/" + path).getAbsolutePath(), errorListener);
   }
   
   public Schema getSchema(Collection<String> schemaPaths, ErrorListener errorListener) throws Exception {    
@@ -633,11 +631,11 @@ public class WebApp implements ErrorHandler {
     return trySchematronCache(new File(getHomeDir(), "sch" + "/" + path).getAbsolutePath(), phase, errorListener);
   }
   
-  public XdmNode getStylesheetExportFile(String xslPath, ErrorListener errorListener, boolean tracing) throws Exception {
+  public byte[] getStylesheetExportFile(String xslPath, ErrorListener errorListener) throws Exception {
     if (new File(xslPath).isAbsolute()) {
-      return tryStylesheetExportFile(xslPath, tracing, errorListener);
+      return tryStylesheetExportFile(xslPath, errorListener);
     } 
-    return tryStylesheetExportFile(new File(getHomeDir(), "xsl" + "/" + xslPath).getAbsolutePath(), tracing, errorListener);
+    return tryStylesheetExportFile(new File(getHomeDir(), "xsl" + "/" + xslPath).getAbsolutePath(), errorListener);
   }
   
   public File getStaticFile(String path) {    
@@ -658,8 +656,7 @@ public class WebApp implements ErrorHandler {
     return null;
   }
   
-  public XsltExecutable tryXsltExecutableCache(String transformationPath,  
-      ErrorListener errorListener, boolean tracing) throws Exception {
+  public XsltExecutable tryXsltExecutableCache(String transformationPath, ErrorListener errorListener) throws Exception {
     String key = FilenameUtils.normalize(transformationPath);
     XsltExecutable xsltExecutable = xsltExecutableCache.get(key);    
     if (xsltExecutable == null) {
@@ -673,7 +670,6 @@ public class WebApp implements ErrorHandler {
         XMLReader reader = parser.getXMLReader();        
         Source source = new SAXSource(reader, new InputSource(transformationPath));         
         XsltCompiler comp = processor.newXsltCompiler();
-        comp.setCompileWithTracing(tracing);
         comp.setErrorListener(errorListener);
         xsltExecutable = comp.compile(source);        
       } catch (Exception e) {
@@ -716,8 +712,7 @@ public class WebApp implements ErrorHandler {
     return templates;
   }
   
-  public XQueryExecutable tryQueryCache(String xqueryPath,  
-      ErrorListener errorListener, boolean tracing) throws Exception {
+  public XQueryExecutable tryQueryCache(String xqueryPath, ErrorListener errorListener) throws Exception {
     String key = FilenameUtils.normalize(xqueryPath);
     XQueryExecutable xquery = xqueryExecutableCache.get(key);    
     if (xquery == null) {
@@ -725,7 +720,6 @@ public class WebApp implements ErrorHandler {
       try {
         XQueryCompiler comp = processor.newXQueryCompiler();
         comp.setErrorListener(errorListener);
-        comp.setCompileWithTracing(tracing);
         xquery = comp.compile(new File(xqueryPath));     
       } catch (Exception e) {
         logger.error("Could not compile XQuery \"" + xqueryPath + "\"", e);
@@ -780,13 +774,13 @@ public class WebApp implements ErrorHandler {
         
         ErrorListener listener = new TransformationErrorListener(null, developmentMode); 
         
-        Xslt30Transformer stage1 = tryXsltExecutableCache(new File(schematronDir, "iso_dsdl_include.xsl").getAbsolutePath(), errorListener, false).load30();
+        Xslt30Transformer stage1 = tryXsltExecutableCache(new File(schematronDir, "iso_dsdl_include.xsl").getAbsolutePath(), errorListener).load30();
         stage1.setErrorListener(listener);
         SaxonUtils.setMessageEmitter(stage1.getUnderlyingController(), getConfiguration(), errorListener);
-        Xslt30Transformer stage2 = tryXsltExecutableCache(new File(schematronDir, "iso_abstract_expand.xsl").getAbsolutePath(), errorListener, false).load30();
+        Xslt30Transformer stage2 = tryXsltExecutableCache(new File(schematronDir, "iso_abstract_expand.xsl").getAbsolutePath(), errorListener).load30();
         stage2.setErrorListener(listener);
         SaxonUtils.setMessageEmitter(stage2.getUnderlyingController(), getConfiguration(), errorListener);
-        Xslt30Transformer stage3 = tryXsltExecutableCache(new File(schematronDir, "iso_svrl_for_xslt2.xsl").getAbsolutePath(), errorListener, false).load30();
+        Xslt30Transformer stage3 = tryXsltExecutableCache(new File(schematronDir, "iso_svrl_for_xslt2.xsl").getAbsolutePath(), errorListener).load30();
         stage3.setErrorListener(listener);
         SaxonUtils.setMessageEmitter(stage3.getUnderlyingController(), getConfiguration(), errorListener);
        
@@ -832,23 +826,22 @@ public class WebApp implements ErrorHandler {
     return templates;
   }
   
-  public XdmNode tryStylesheetExportFile(String xslPath, boolean tracing, ErrorListener errorListener) throws Exception {
+  public byte[] tryStylesheetExportFile(String xslPath, ErrorListener errorListener) throws Exception {
     String key = FilenameUtils.normalize(xslPath);
-    XdmNode sef = stylesheetExportFileCache.get(key);    
+    byte[] sef = stylesheetExportFileCache.get(key);    
     if (sef == null) {
       logger.info("Generating and caching stylesheet export file for \"" + xslPath + "\" ...");                 
       try {
         XsltCompiler comp = processor.newXsltCompiler();
         comp.setTargetEdition("JS");
-        comp.setCompileWithTracing(tracing);
         comp.setErrorListener(errorListener);
         comp.setJustInTimeCompilation(false);
+        comp.setDefaultElementNamespace(Definitions.NAMESPACEURI_XHTML);
+        comp.setUnprefixedElementMatchingPolicy(UnprefixedElementMatchingPolicy.DEFAULT_NAMESPACE_OR_NONE);
         XsltExecutable exec = comp.compile(new StreamSource(xslPath));
-        String encoding = exec.getUnderlyingCompiledStylesheet().getOutputProperties().getProperty(OutputKeys.ENCODING);
-        encoding = (encoding == null) ? StandardCharsets.UTF_8.name() : encoding;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         exec.export(baos, "JS");
-        sef = processor.newDocumentBuilder().build(new StreamSource(new ByteArrayInputStream(baos.toByteArray())));
+        sef = baos.toByteArray();
       } catch (Exception e) {
         logger.error("Could not generate stylesheet export file for \"" + xslPath + "\"", e);
         throw e;

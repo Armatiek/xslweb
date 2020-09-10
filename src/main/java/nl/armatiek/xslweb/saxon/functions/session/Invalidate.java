@@ -74,7 +74,7 @@ public class Invalidate extends ExtensionFunctionDefinition {
   private static class InvalidateCall extends ExtensionFunctionCall {
 
     @Override
-    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {            
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
       getSession(context).invalidate();
       return EmptySequence.getInstance();
     }

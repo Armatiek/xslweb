@@ -17,6 +17,7 @@
 package nl.armatiek.xslweb.saxon.functions.httpclient;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.xml.transform.sax.SAXSource;
 
@@ -26,14 +27,19 @@ import org.xml.sax.InputSource;
 
 import net.sf.saxon.event.Sender;
 import net.sf.saxon.expr.XPathContext;
-import net.sf.saxon.expr.parser.ExplicitLocation;
+import net.sf.saxon.expr.parser.Loc;
 import net.sf.saxon.lib.ParseOptions;
 import net.sf.saxon.lib.Validation;
+import net.sf.saxon.om.AttributeInfo;
+import net.sf.saxon.om.AttributeMap;
 import net.sf.saxon.om.CodedName;
 import net.sf.saxon.om.Item;
+import net.sf.saxon.om.LargeAttributeMap;
 import net.sf.saxon.om.NamePool;
+import net.sf.saxon.om.NamespaceMap;
 import net.sf.saxon.om.NoElementsSpaceStrippingRule;
 import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.om.SmallAttributeMap;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.tiny.TinyBuilder;
 import net.sf.saxon.type.BuiltInAtomicType;
@@ -51,19 +57,6 @@ import okhttp3.ResponseBody;
 
 public class ResponseUtils {
   
-  /*
-  private static MimeType unknownMimeType = new MimeType(Definitions.MIMETYPE_BINARY);
-  
-  private static final ThreadLocal<DateFormat> DATE_HEADER_FORMAT =
-      new ThreadLocal<DateFormat>() {
-        @Override protected DateFormat initialValue() {
-          DateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.US);
-          format.setTimeZone(TimeZone.getTimeZone("GMT"));
-          return format;
-        }
-      };
-  */
-  
   public static NodeInfo buildResponseElement(final Response response, final XPathContext context, final WebApp webApp) throws XPathException {
     TinyBuilder builder = new TinyBuilder(context.getConfiguration().makePipelineConfiguration());
     builder.setStatistics(context.getConfiguration().getTreeStatistics().SOURCE_DOCUMENT_STATISTICS); 
@@ -74,33 +67,40 @@ public class ResponseUtils {
     Fingerprints fingerprints = webApp.getFingerprints();
     NamePool namePool = context.getConfiguration().getNamePool();
     
+    NamespaceMap nsMap = NamespaceMap.of("http", Types.EXT_NAMESPACEURI);
+    
     // Root element: 
-    builder.startElement(new CodedName(fingerprints.HTTPCLIENT_RESPONSE, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
-    builder.attribute(new CodedName(fingerprints.STATUS, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Integer.toString(response.code()), null, 0);
-    builder.attribute(new CodedName(fingerprints.MESSAGE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, response.message(), null, 0);
+    ArrayList<AttributeInfo> attrList = new ArrayList<AttributeInfo>();
+    attrList.add(new AttributeInfo(new CodedName(fingerprints.STATUS, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Integer.toString(response.code()), Loc.NONE, 0));
+    attrList.add(new AttributeInfo(new CodedName(fingerprints.MESSAGE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, response.message(), Loc.NONE, 0));
+    AttributeMap attrMap = new SmallAttributeMap(attrList);
+    builder.startElement(new CodedName(fingerprints.HTTPCLIENT_RESPONSE, "http", namePool), Untyped.getInstance(), attrMap, nsMap, Loc.NONE, 0);
     
     // Response headers:
     Headers responseHeaders = response.headers();
     for (int i=0; i<responseHeaders.size(); i++) {
-      builder.startElement(new CodedName(fingerprints.HTTPCLIENT_HEADER, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
-      builder.attribute(new CodedName(fingerprints.NAME, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, responseHeaders.name(i), null, 0);
-      builder.attribute(new CodedName(fingerprints.VALUE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, responseHeaders.value(i), null, 0);
+      ArrayList<AttributeInfo> hAttrList = new ArrayList<AttributeInfo>();
+      hAttrList.add(new AttributeInfo(new CodedName(fingerprints.NAME, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, responseHeaders.name(i), Loc.NONE, 0));
+      hAttrList.add(new AttributeInfo(new CodedName(fingerprints.VALUE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, responseHeaders.value(i), Loc.NONE, 0));
+      AttributeMap hAttrMap = new LargeAttributeMap(hAttrList);
+      builder.startElement(new CodedName(fingerprints.HTTPCLIENT_HEADER, "http", namePool), Untyped.getInstance(), hAttrMap, nsMap, Loc.NONE, 0);
       builder.endElement();
     }
     
     // Response body:
-    ResponseBody body = response.body();
-    builder.startElement(new CodedName(fingerprints.HTTPCLIENT_BODY, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+    ResponseBody body = response.body();    
     MediaType mediaType = body.contentType();
+    ArrayList<AttributeInfo> bAttrList = new ArrayList<AttributeInfo>();
     if (mediaType != null) {
-      builder.attribute(new CodedName(fingerprints.MEDIATYPE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, mediaType.toString(), null, 0);
-      builder.attribute(new CodedName(fingerprints.METHOD, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Types.getMethodForMediaType(mediaType), null, 0);
+      bAttrList.add(new AttributeInfo(new CodedName(fingerprints.MEDIATYPE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, mediaType.toString(), Loc.NONE, 0));
+      bAttrList.add(new AttributeInfo(new CodedName(fingerprints.METHOD, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Types.getMethodForMediaType(mediaType), Loc.NONE, 0));
     } else {
-      builder.attribute(new CodedName(fingerprints.METHOD, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, "binary", null, 0);
+      bAttrList.add(new AttributeInfo(new CodedName(fingerprints.METHOD, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, "binary", Loc.NONE, 0));
     }
- 
+    AttributeMap bAttrMap = new SmallAttributeMap(bAttrList);
+    builder.startElement(new CodedName(fingerprints.HTTPCLIENT_BODY, "http", namePool), Untyped.getInstance(), bAttrMap, nsMap, Loc.NONE, 0);
     builder.endElement();
-   
+    
     builder.endElement();
     
     builder.endDocument();
@@ -166,53 +166,4 @@ public class ResponseUtils {
     
   }
   
-  /*
-  private static void addHeader(TinyBuilder builder, NamePool namePool, Fingerprints fingerprints, String name, String value) throws XPathException {
-    builder.startElement(new CodedName(fingerprints.HTTPCLIENT_HEADER, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
-    builder.attribute(new CodedName(fingerprints.NAME, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, name, null, 0);
-    builder.attribute(new CodedName(fingerprints.VALUE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, value, null, 0);
-    builder.endElement();
-  }
-  
-  public static NodeInfo buildResponseElement(final File file, final XPathContext context, final WebApp webApp) throws XPathException {
-    String mimeType = MimeUtil.getMostSpecificMimeType(MimeUtil.getMimeTypes(file, unknownMimeType)).toString();
-    
-    TinyBuilder builder = new TinyBuilder(context.getConfiguration().makePipelineConfiguration());
-    builder.setStatistics(context.getConfiguration().getTreeStatistics().SOURCE_DOCUMENT_STATISTICS); 
-    builder.setLineNumbering(false);
-    builder.open();
-    builder.startDocument(0);
-    
-    Fingerprints fingerprints = webApp.getFingerprints();
-    NamePool namePool = context.getConfiguration().getNamePool();
-    
-    // Root element: 
-    builder.startElement(new CodedName(fingerprints.HTTPCLIENT_RESPONSE, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
-    builder.attribute(new CodedName(fingerprints.STATUS, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Integer.toString((file.isFile()) ? HttpServletResponse.SC_OK : HttpServletResponse.SC_NOT_FOUND), null, 0);
-    builder.attribute(new CodedName(fingerprints.MESSAGE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, (file.isFile()) ? "" : "Not found", null, 0);
-    
-    // Response headers:
-    addHeader(builder, namePool, fingerprints, "Content-Type", mimeType);
-    addHeader(builder, namePool, fingerprints, "Content-Length", Long.toString(file.length()));
-    addHeader(builder, namePool, fingerprints, "Last-Modified", DATE_HEADER_FORMAT.get().format(new Date(file.lastModified())));
-    
-    // Response body:
-    builder.startElement(new CodedName(fingerprints.HTTPCLIENT_BODY, "http", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
-    if (mimeType != null) {
-      builder.attribute(new CodedName(fingerprints.MEDIATYPE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, mimeType, null, 0);
-      builder.attribute(new CodedName(fingerprints.METHOD, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Types.parseType(mimeType).toString().toLowerCase(), null, 0);
-    } else {
-      builder.attribute(new CodedName(fingerprints.METHOD, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, "binary", null, 0);
-    }
- 
-    builder.endElement();
-   
-    builder.endElement();
-    
-    builder.endDocument();
-    builder.close();
-    return NodeInfoUtils.getFirstChildElement(builder.getCurrentRoot());
-  }
-  */
-
 }

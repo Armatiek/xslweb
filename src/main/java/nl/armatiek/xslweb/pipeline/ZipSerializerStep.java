@@ -23,6 +23,7 @@ import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.transform.ErrorListener;
 
 import org.xml.sax.Attributes;
 
@@ -38,8 +39,8 @@ public class ZipSerializerStep extends SerializerStep {
   }
   
   @Override
-  public Destination getDestination(WebApp webApp, HttpServletRequest req, 
-      HttpServletResponse resp, OutputStream os, Properties outputProperties) throws XMLStreamException {      
+  public Destination getDestination(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
+      OutputStream os, Properties outputProperties, ErrorListener errorListener) throws XMLStreamException {      
     return new SAXDestination(new ZipSerializer(webApp, req, resp, os));            
   }
   

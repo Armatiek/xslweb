@@ -326,7 +326,7 @@ public class DynamicExtensionFunctionDefinition extends ExtensionFunctionDefinit
     return new ExtensionFunctionCall() {
       @SuppressWarnings("unchecked")
       @Override
-      public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {
+      public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {
         try { 
           ArrayList<Object> implicitObjects = new ArrayList<Object>();
           for (Class paramType: parameterTypes) {
@@ -372,15 +372,15 @@ public class DynamicExtensionFunctionDefinition extends ExtensionFunctionDefinit
           }
           
           for (int i=0; i<arguments.length; i++) {
-            Sequence<Item<?>> argument = arguments[i];
+            Sequence argument = arguments[i];
             Class paramType = parameterTypes[i + implicitObjects.size()];
             boolean isArray = paramType.isArray();
             Object param;
             if (isArray) {
               Class componentType = paramType.getComponentType();
               ArrayList<Object> list = new ArrayList<Object>();
-              SequenceIterator<Item<?>> si = argument.iterate();
-              Item<?> item;
+              SequenceIterator si = argument.iterate();
+              Item item;
               while ((item = si.next()) != null) {
                 list.add(convertToJava(item, componentType));
               }

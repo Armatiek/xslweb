@@ -1,10 +1,3 @@
-package nl.armatiek.xslweb.pipeline;
-
-import net.sf.saxon.lib.TraceListener;
-import net.sf.saxon.trace.XQueryTraceListener;
-import nl.armatiek.xslweb.configuration.WebApp;
-import nl.armatiek.xslweb.saxon.trace.XSLWebTimingTraceListener;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -21,32 +14,24 @@ import nl.armatiek.xslweb.saxon.trace.XSLWebTimingTraceListener;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.pipeline;
 
 /**
  * Pipeline step that executes an XQuery
  * 
  * @author Maarten Kroon
  */
-public class QueryStep extends TraceablePipelineStep {
+public class QueryStep extends ParameterizablePipelineStep {
   
   private String xqueryPath;  
   
-  public QueryStep(WebApp webApp, String xqueryPath, String name, boolean log) {
-    super(webApp, name, log);
+  public QueryStep(String xqueryPath, String name, boolean log) {
+    super(name, log);
     this.xqueryPath = xqueryPath;    
   }
   
   public String getXQueryPath() {
     return this.xqueryPath;
-  }
-  
-  @Override
-  protected TraceListener getTraceListenerInternal(TraceType traceType) {
-    if (traceType.equals(TraceType.BASIC))
-      return new XQueryTraceListener();
-    else if (traceType.equals(TraceType.TIMING))
-      return new XSLWebTimingTraceListener(webApp);
-    return null;
   }
   
 }

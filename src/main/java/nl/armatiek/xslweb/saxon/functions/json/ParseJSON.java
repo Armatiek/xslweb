@@ -88,7 +88,7 @@ public class ParseJSON extends ExtensionFunctionDefinition {
   private static class ParseJSONCall extends ExtensionFunctionCall {
     
     @Override
-    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {                     
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {                     
       try {
         String json = ((StringValue) arguments[0].head()).getStringValue();
         if (StringUtils.isBlank(json)) {

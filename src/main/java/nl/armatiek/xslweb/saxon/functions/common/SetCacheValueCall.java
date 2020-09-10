@@ -1,4 +1,3 @@
-package nl.armatiek.xslweb.saxon.functions.common;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,6 +15,7 @@ package nl.armatiek.xslweb.saxon.functions.common;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.saxon.functions.common;
 
 import java.util.Collection;
 
@@ -34,7 +34,7 @@ public abstract class SetCacheValueCall extends ExtensionFunctionCall {
       int tti, int ttl, XPathContext context);
 
   @Override
-  public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {            
+  public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
     String cacheName = ((StringValue) arguments[0].head()).getStringValue();
     String keyName = ((StringValue) arguments[1].head()).getStringValue();        
     int tti = (int) ((IntegerValue) arguments[3].head()).longValue();

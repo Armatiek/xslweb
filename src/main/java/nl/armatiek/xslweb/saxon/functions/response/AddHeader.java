@@ -70,7 +70,7 @@ public class AddHeader extends ExtensionFunctionDefinition {
   private static class AddHeaderCall extends ExtensionFunctionCall {
         
     @Override
-    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {            
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
       String name = ((StringValue) arguments[0].head()).getStringValue();
       String value = ((StringValue) arguments[1].head()).getStringValue();          
       getResponse(context).setHeader(name, value);                                                            

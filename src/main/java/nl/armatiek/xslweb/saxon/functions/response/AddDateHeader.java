@@ -74,7 +74,7 @@ public class AddDateHeader extends ExtensionFunctionDefinition {
   private static class AddDateHeaderCall extends ExtensionFunctionCall {
         
     @Override
-    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {            
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
       String name = ((StringValue) arguments[0].head()).getStringValue();      
       long date = ((DateTimeValue) arguments[1].head()).getCalendar().getTime().getTime();      
       getResponse(context).setDateHeader(name, date);                                                            

@@ -130,7 +130,7 @@ public class SendRequest extends ExtensionFunctionDefinition {
     }
     
     @Override
-    public ZeroOrMore<Item<?>> call(XPathContext context, Sequence[] arguments) throws XPathException {
+    public ZeroOrMore<Item> call(XPathContext context, Sequence[] arguments) throws XPathException {
       NodeInfo requestElem =  unwrapNodeInfo((NodeInfo) arguments[0].head()); 
       String method = requestElem.getAttributeValue("", "method");
       if (StringUtils.isBlank(method)) {
@@ -297,7 +297,7 @@ public class SendRequest extends ExtensionFunctionDefinition {
         throw new XPathException("An HTTP error occurred: " + e.getMessage(), "HC001");
       }
       
-      return new ZeroOrMore<Item<?>>(resultList.toArray(new Item[resultList.size()]));
+      return new ZeroOrMore<Item>(resultList.toArray(new Item[resultList.size()]));
       
     }
     

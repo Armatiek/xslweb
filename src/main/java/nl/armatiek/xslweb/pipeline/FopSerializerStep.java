@@ -22,6 +22,7 @@ import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.transform.ErrorListener;
 
 import org.xml.sax.Attributes;
 
@@ -42,8 +43,8 @@ public class FopSerializerStep extends SerializerStep {
   }
     
   @Override
-  public Destination getDestination(WebApp webApp, HttpServletRequest req, 
-      HttpServletResponse resp, OutputStream os, Properties outputProperties) throws Exception {
+  public Destination getDestination(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
+      OutputStream os, Properties outputProperties, ErrorListener errorListener) throws Exception {
     return new SAXDestination(new FopSerializer(webApp, req, resp, os));                   
   }
   

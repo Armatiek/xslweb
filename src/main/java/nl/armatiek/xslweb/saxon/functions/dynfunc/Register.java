@@ -49,10 +49,15 @@ import org.clapper.util.classutil.ClassLoaderBuilder;
 import net.sf.saxon.event.PipelineConfiguration;
 import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
-import net.sf.saxon.expr.parser.ExplicitLocation;
+import net.sf.saxon.expr.parser.Loc;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
+import net.sf.saxon.om.AttributeInfo;
+import net.sf.saxon.om.AttributeMap;
 import net.sf.saxon.om.CodedName;
+import net.sf.saxon.om.EmptyAttributeMap;
+import net.sf.saxon.om.LargeAttributeMap;
 import net.sf.saxon.om.NamePool;
+import net.sf.saxon.om.NamespaceMap;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.SequenceIterator;
@@ -277,24 +282,27 @@ public class Register extends ExtensionFunctionDefinition {
           WebApp webApp = getWebApp(context);
           Fingerprints fingerprints = webApp.getFingerprints();
           NamePool namePool = context.getConfiguration().getNamePool();
-          
           PipelineConfiguration config = context.getConfiguration().makePipelineConfiguration();
           TinyBuilder builder = (TinyBuilder) TreeModel.TINY_TREE.makeBuilder(config);
           builder.setLineNumbering(false);
           builder.open();
           builder.startDocument(0);
-          builder.startElement(new CodedName(fingerprints.FUNCTION_DIAGNOSTICS, "dynfunc", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
+          NamespaceMap nsMap = NamespaceMap.of("dynfunc", Definitions.NAMESPACEURI_XSLWEB_FX_DYNFUNC);
+          builder.startElement(new CodedName(fingerprints.FUNCTION_DIAGNOSTICS, "dynfunc", namePool), Untyped.getInstance(), 
+              EmptyAttributeMap.getInstance(), nsMap, Loc.NONE, 0);
           List<Diagnostic<? extends JavaFileObject>> diags = diagnostics.getDiagnostics();
           for (Diagnostic<? extends JavaFileObject> diag : diags) {
-            builder.startElement(new CodedName(fingerprints.FUNCTION_DIAGNOSTIC, "dynfunc", namePool), Untyped.getInstance(), ExplicitLocation.UNKNOWN_LOCATION, 0);
-            builder.attribute(new CodedName(fingerprints.CODE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, StringUtils.defaultString(diag.getCode()), null, 0); 
-            builder.attribute(new CodedName(fingerprints.LINE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getLineNumber()), null, 0); 
-            builder.attribute(new CodedName(fingerprints.COLUMN, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getColumnNumber()), null, 0);
-            builder.attribute(new CodedName(fingerprints.START, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getStartPosition()), null, 0); 
-            builder.attribute(new CodedName(fingerprints.END, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getEndPosition()), null, 0); 
-            builder.attribute(new CodedName(fingerprints.KIND, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, diag.getKind().name(), null, 0);
-            builder.attribute(new CodedName(fingerprints.MESSAGE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, StringUtils.defaultString(diag.getMessage(null)), null, 0);
-            builder.attribute(new CodedName(fingerprints.POSITION, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getPosition()), null, 0); 
+            ArrayList<AttributeInfo> attrList = new ArrayList<AttributeInfo>(); 
+            attrList.add(new AttributeInfo(new CodedName(fingerprints.CODE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, StringUtils.defaultString(diag.getCode()), Loc.NONE, 0)); 
+            attrList.add(new AttributeInfo(new CodedName(fingerprints.LINE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getLineNumber()), Loc.NONE, 0)); 
+            attrList.add(new AttributeInfo(new CodedName(fingerprints.COLUMN, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getColumnNumber()), Loc.NONE, 0));
+            attrList.add(new AttributeInfo(new CodedName(fingerprints.START, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getStartPosition()), Loc.NONE, 0)); 
+            attrList.add(new AttributeInfo(new CodedName(fingerprints.END, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getEndPosition()), Loc.NONE, 0)); 
+            attrList.add(new AttributeInfo(new CodedName(fingerprints.KIND, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, diag.getKind().name(), Loc.NONE, 0));
+            attrList.add(new AttributeInfo(new CodedName(fingerprints.MESSAGE, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, StringUtils.defaultString(diag.getMessage(null)), Loc.NONE, 0));
+            attrList.add(new AttributeInfo(new CodedName(fingerprints.POSITION, "", namePool), BuiltInAtomicType.UNTYPED_ATOMIC, Long.toString(diag.getPosition()), Loc.NONE, 0)); 
+            AttributeMap attrMap = new LargeAttributeMap(attrList);
+            builder.startElement(new CodedName(fingerprints.FUNCTION_DIAGNOSTIC, "dynfunc", namePool), Untyped.getInstance(), attrMap, nsMap, Loc.NONE, 0);
             builder.endElement();
           }
           builder.endElement();

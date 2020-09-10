@@ -70,7 +70,7 @@ public class SetBufferSize extends ExtensionFunctionDefinition {
   private static class SetBufferSizeCall extends ExtensionFunctionCall {
         
     @Override
-    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {                  
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {                  
       int size = (int) ((Int64Value) arguments[0].head()).longValue();          
       getResponse(context).setBufferSize(size);                                                            
       return EmptySequence.getInstance();

@@ -20,13 +20,15 @@
       <head>
         <title>Book Catalogue</title>
         <link href="styles/saxon-js/books.css" rel="stylesheet" type="text/css"/>
-        <script src="scripts/saxon-js/SaxonJS.min.js" type="text/javascript"></script>
+        <script src="scripts/saxon-js/SaxonJS2.rt.js" type="text/javascript"></script>
         <script>
           window.onload = function() {
             SaxonJS.transform({
-              stylesheetLocation: "books.sef.xml",
-              sourceLocation: "books.xml"
-            });
+              stylesheetLocation: "books.sef.json",
+              sourceLocation: "books.xml",
+              logLevel: 2
+            },
+            "async");
           }     
         </script>
       </head>

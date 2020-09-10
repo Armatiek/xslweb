@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.pipeline;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,12 +14,14 @@ package nl.armatiek.xslweb.pipeline;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.pipeline;
 
 import java.io.OutputStream;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.transform.ErrorListener;
 
 import org.xml.sax.Attributes;
 
@@ -46,8 +46,12 @@ public abstract class SerializerStep extends PipelineStep {
     );         
   }
   
-  public abstract Destination getDestination(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, 
-      OutputStream os, Properties outputProperties) throws Exception;
+  public abstract Destination getDestination(WebApp webApp, HttpServletRequest req, 
+      HttpServletResponse resp, OutputStream os, Properties outputProperties, ErrorListener errorListener) throws Exception;
+  
+  public boolean hasSourceDocument() {
+    return true;
+  }
   
   protected static String getAttribute(Attributes attr, String name, String defaultValue) {
     int index = -1;

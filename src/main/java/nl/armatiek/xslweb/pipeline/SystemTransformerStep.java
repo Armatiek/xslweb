@@ -1,7 +1,3 @@
-package nl.armatiek.xslweb.pipeline;
-
-import nl.armatiek.xslweb.configuration.WebApp;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,11 +14,12 @@ import nl.armatiek.xslweb.configuration.WebApp;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.pipeline;
 
 public class SystemTransformerStep extends TransformerStep {
 
-  public SystemTransformerStep(WebApp webApp, String xslPath, String name, boolean log) {
-    super(webApp, xslPath, name, log);    
+  public SystemTransformerStep(String xslPath, String name, boolean log) {
+    super(xslPath, name, log);    
   }
 
 }

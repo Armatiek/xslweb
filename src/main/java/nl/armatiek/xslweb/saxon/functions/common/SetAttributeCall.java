@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.saxon.functions.common;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,6 +14,7 @@ package nl.armatiek.xslweb.saxon.functions.common;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.saxon.functions.common;
 
 import java.util.Collection;
 
@@ -32,7 +31,7 @@ public abstract class SetAttributeCall extends ExtensionFunctionCall {
   protected abstract void setAttributes(String name, Collection<Attribute> attrs, XPathContext context);
   
   @Override
-  public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {            
+  public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
     String name = ((StringValue) arguments[0].head()).getStringValue();    
     Collection<Attribute> attrs = null;
     if (arguments.length > 1) {

@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.saxon.functions.common;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,6 +14,7 @@ package nl.armatiek.xslweb.saxon.functions.common;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.saxon.functions.common;
 
 import java.util.Collection;
 
@@ -33,7 +32,7 @@ public abstract class GetCacheValueCall extends ExtensionFunctionCall {
   protected abstract Collection<Attribute> getAttributes(String cacheName, String keyName, XPathContext context);
 
   @Override
-  public ZeroOrMore<Item<?>> call(XPathContext context, Sequence[] arguments) throws XPathException {            
+  public ZeroOrMore<Item> call(XPathContext context, Sequence[] arguments) throws XPathException {            
     try {
       String cacheName = ((StringValue) arguments[0].head()).getStringValue();
       String keyName = ((StringValue) arguments[1].head()).getStringValue();            

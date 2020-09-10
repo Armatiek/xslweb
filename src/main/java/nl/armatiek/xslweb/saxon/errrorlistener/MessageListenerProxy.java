@@ -1,14 +1,16 @@
 package nl.armatiek.xslweb.saxon.errrorlistener;
 
 import net.sf.saxon.event.PipelineConfiguration;
-import net.sf.saxon.event.ReceiverOptions;
+import net.sf.saxon.event.ReceiverOption;
 import net.sf.saxon.event.SequenceWriter;
-import net.sf.saxon.expr.parser.ExplicitLocation;
-import net.sf.saxon.expr.parser.Location;
+import net.sf.saxon.expr.parser.Loc;
+import net.sf.saxon.om.AttributeMap;
 import net.sf.saxon.om.Item;
+import net.sf.saxon.om.NamespaceMap;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.NodeName;
 import net.sf.saxon.om.TreeModel;
+import net.sf.saxon.s9api.Location;
 import net.sf.saxon.s9api.MessageListener;
 import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.trans.XPathException;
@@ -50,10 +52,12 @@ public class MessageListenerProxy extends SequenceWriter {
 
   /**
    * Start of a document node.
+   * 
+   * @param properties
    */
 
   public void startDocument(int properties) throws XPathException {
-    terminate = (properties & ReceiverOptions.TERMINATE) != 0;
+    terminate = ReceiverOption.contains(properties, ReceiverOption.TERMINATE);
     locationId = null;
     errorCode = null;
     super.startDocument(properties);
@@ -61,22 +65,13 @@ public class MessageListenerProxy extends SequenceWriter {
 
   /**
    * Output an element start tag.
-   * 
-   * @param nameCode
-   *          The element name code - a code held in the Name Pool
-   * @param typeCode
-   *          Integer code identifying the type of this element. Zero identifies
-   *          the default type, that is xs:anyType
-   * @param location
-   * @param properties
-   *          bit-significant flags indicating any special information
    */
 
-  public void startElement(NodeName nameCode, SchemaType typeCode, Location location, int properties) throws XPathException {
+  public void startElement(NodeName elemName, SchemaType type, AttributeMap attributes, NamespaceMap namespaces, Location location, int properties) throws XPathException {
     if (this.locationId == null) {
       this.locationId = location;
     }
-    super.startElement(nameCode, typeCode, location, properties);
+    super.startElement(elemName, type, attributes, namespaces, location, properties);
   }
 
   @Override
@@ -91,7 +86,7 @@ public class MessageListenerProxy extends SequenceWriter {
 
   /**
    * Produce text content output.
-   *
+   * 
    * @param s
    *          The String to be output
    * @param locationId
@@ -100,7 +95,6 @@ public class MessageListenerProxy extends SequenceWriter {
    * @param properties
    *          bit-significant flags for extra information, e.g.
    *          disable-output-escaping @throws net.sf.saxon.trans.XPathException
-   *          for any failure
    */
 
   public void characters(CharSequence s, Location locationId, int properties) throws XPathException {
@@ -133,7 +127,7 @@ public class MessageListenerProxy extends SequenceWriter {
   public void write(Item item) throws XPathException {
     Location loc;
     if (locationId == null) {
-      loc = ExplicitLocation.UNKNOWN_LOCATION;
+      loc = Loc.NONE;
     } else {
       loc = locationId.saveLocation();
     }

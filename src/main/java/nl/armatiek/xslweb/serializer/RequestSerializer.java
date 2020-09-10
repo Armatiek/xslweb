@@ -62,7 +62,7 @@ import javanet.staxutils.IndentingXMLStreamWriter;
 import net.sf.saxon.event.PipelineConfiguration;
 import net.sf.saxon.event.Receiver;
 import net.sf.saxon.event.StreamWriterToReceiver;
-import net.sf.saxon.expr.parser.ExplicitLocation;
+import net.sf.saxon.expr.parser.Loc;
 import net.sf.saxon.om.AxisInfo;
 import net.sf.saxon.om.CopyOptions;
 import net.sf.saxon.om.NodeInfo;
@@ -416,7 +416,7 @@ public class RequestSerializer {
               Receiver receiver = new ReceiverToXMLStreamWriter(xsw);
               PipelineConfiguration config = node.getConfiguration().makePipelineConfiguration();
               receiver.setPipelineConfiguration(config);
-              node.copy(receiver, CopyOptions.ALL_NAMESPACES | CopyOptions.TYPE_ANNOTATIONS, ExplicitLocation.UNKNOWN_LOCATION);            
+              node.copy(receiver, CopyOptions.ALL_NAMESPACES | CopyOptions.TYPE_ANNOTATIONS, Loc.NONE);            
             } else {              
               xsw.writeAttribute("type", a.getType());
               xsw.writeCharacters(a.getValue().toString());

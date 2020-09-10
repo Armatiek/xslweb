@@ -255,8 +255,8 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     return attrs;
   }
   
-  protected ZeroOrMore<Item<?>> attributeCollectionToSequence(Collection<Attribute> attrs, XPathContext context) throws Exception {                    
-    ArrayList<Item<?>> results = new ArrayList<Item<?>>();
+  protected ZeroOrMore<Item> attributeCollectionToSequence(Collection<Attribute> attrs, XPathContext context) throws Exception {                    
+    ArrayList<Item> results = new ArrayList<Item>();
     if (attrs != null) {
       for (Attribute attr : attrs) {
         Object value = attr.getValue();      
@@ -267,7 +267,7 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
         }        
       }
     }
-    return new ZeroOrMore<Item<?>>(results);
+    return new ZeroOrMore<Item>(results);
   }
   
   protected NodeInfo source2NodeInfo(Source source, Configuration configuration) {        

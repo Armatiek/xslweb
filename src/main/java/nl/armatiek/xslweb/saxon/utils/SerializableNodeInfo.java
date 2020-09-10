@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package nl.armatiek.xslweb.saxon.utils;
 
 import java.io.IOException;
@@ -5,19 +21,21 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.StringReader;
+import java.util.function.Predicate;
 
 import javax.xml.transform.stream.StreamSource;
 
 import net.sf.saxon.Configuration;
 import net.sf.saxon.event.Receiver;
-import net.sf.saxon.expr.parser.Location;
 import net.sf.saxon.om.AtomicSequence;
 import net.sf.saxon.om.Genre;
+import net.sf.saxon.om.Item;
 import net.sf.saxon.om.NamespaceBinding;
+import net.sf.saxon.om.NamespaceMap;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.TreeInfo;
-import net.sf.saxon.pattern.NodeTest;
 import net.sf.saxon.s9api.DocumentBuilder;
+import net.sf.saxon.s9api.Location;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.Serializer;
@@ -37,7 +55,6 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
   private transient NodeInfo nodeInfo;
  
   public SerializableNodeInfo(NodeInfo nodeInfo) {
-    // this.webApp = webApp;
     this.nodeInfo = nodeInfo;
   }
   
@@ -72,16 +89,10 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
   }
 
   @Override
-  public NodeInfo head() {
+  public Item head() {
     return nodeInfo.head();
   }
   
-  /*
-  public SequenceIterator iterate() throws XPathException {
-    return nodeInfo.iterate();
-  }
-  */
-
   @Override
   public Location saveLocation() {
     return nodeInfo.saveLocation();
@@ -203,12 +214,7 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
   }
 
   @Override
-  public AxisIterator iterateAxis(byte axisNumber) {
-    return nodeInfo.iterateAxis(axisNumber);
-  }
-
-  @Override
-  public AxisIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
+  public AxisIterator iterateAxis(int axisNumber, Predicate<? super NodeInfo> nodeTest) {
     return nodeInfo.iterateAxis(axisNumber, nodeTest);
   }
 
@@ -272,4 +278,9 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
     return nodeInfo.getGenre();
   }
 
+  @Override
+  public NamespaceMap getAllNamespaces() {
+    return nodeInfo.getAllNamespaces();
+  }
+  
 }

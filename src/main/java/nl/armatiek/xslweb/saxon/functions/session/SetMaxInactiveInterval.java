@@ -75,7 +75,7 @@ public class SetMaxInactiveInterval extends ExtensionFunctionDefinition {
   private static class SetMaxInactiveIntervalCall extends ExtensionFunctionCall {
 
     @Override
-    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {      
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {      
       int interval = (int) ((Int64Value) arguments[0].head()).longValue();
       getSession(context).setMaxInactiveInterval(interval);
       return EmptySequence.getInstance();

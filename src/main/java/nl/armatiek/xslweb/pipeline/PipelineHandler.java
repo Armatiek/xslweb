@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.pipeline;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,6 +14,7 @@ package nl.armatiek.xslweb.pipeline;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.pipeline;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -53,10 +52,8 @@ public class PipelineHandler implements ContentHandler {
   private StringBuilder chars = new StringBuilder();
   private Processor processor;
   private Configuration conf;
-  private WebApp webApp;
   
   public PipelineHandler(WebApp webApp) {
-    this.webApp = webApp;
     this.processor = webApp.getProcessor();
     this.conf = webApp.getConfiguration();
   }
@@ -159,7 +156,7 @@ public class PipelineHandler implements ContentHandler {
           }
           String name = getAttribute(atts, "name", "transformer-" + Integer.toString(pipelineSteps.size()+1));
           boolean log = getAttribute(atts, "log", "false").equals("true");
-          pipelineSteps.add(new TransformerStep(webApp, xslPath, name, log));
+          pipelineSteps.add(new TransformerStep(xslPath, name, log));
         } else if (localName.equals("query")) {         
           String xqueryPath = getAttribute(atts, "xquery-path", null);
           if (StringUtils.isBlank(xqueryPath)) {
@@ -167,7 +164,7 @@ public class PipelineHandler implements ContentHandler {
           }
           String name = getAttribute(atts, "name", "query-" + Integer.toString(pipelineSteps.size()+1));
           boolean log = getAttribute(atts, "log", "false").equals("true");
-          pipelineSteps.add(new QueryStep(webApp, xqueryPath, name, log));
+          pipelineSteps.add(new QueryStep(xqueryPath, name, log));
         } else if (localName.equals("transformer-stx")) {         
           String stxPath = getAttribute(atts, "stx-path", null);
           if (StringUtils.isBlank(stxPath)) {

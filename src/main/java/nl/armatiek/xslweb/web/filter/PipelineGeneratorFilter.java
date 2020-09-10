@@ -72,7 +72,7 @@ public class PipelineGeneratorFilter implements Filter {
       
       ErrorListener errorListener = new TransformationErrorListener(resp, webApp.getDevelopmentMode());      
       
-      XsltExecutable templates = webApp.getRequestDispatcherTemplates(errorListener, false);
+      XsltExecutable templates = webApp.getRequestDispatcherTemplates(errorListener);
       Xslt30Transformer transformer = templates.load30();
       transformer.setStylesheetParameters(XSLWebUtils.getStylesheetParameters(webApp, req, resp, homeDir));
       transformer.setErrorListener(errorListener);            

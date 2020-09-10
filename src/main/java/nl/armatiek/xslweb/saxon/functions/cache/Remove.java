@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.saxon.functions.cache;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,6 +14,7 @@ package nl.armatiek.xslweb.saxon.functions.cache;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.saxon.functions.cache;
 
 import net.sf.ehcache.Cache;
 import net.sf.saxon.expr.XPathContext;
@@ -73,7 +72,7 @@ public class Remove extends ExtensionFunctionDefinition {
   private static class ClearCall extends ExtensionFunctionCall {
 
     @Override
-    public Sequence<?> call(XPathContext context, Sequence[] arguments) throws XPathException {            
+    public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
       try {
         String key = ((StringValue) arguments[0].head()).getStringValue(); 
         Cache cache = Context.getInstance().getCacheManager().getCache(Definitions.CACHENAME_RESPONSECACHINGFILTER);

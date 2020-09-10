@@ -354,7 +354,7 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <xsl:template name="books-sef" match="/req:request[req:path = '/books.sef.xml']">    
+  <xsl:template name="books-sef" match="/req:request[req:path = '/books.sef.json']">    
     <pipeline:pipeline>
       <pipeline:stylesheet-export-file name="books-sef" xsl-path="saxon-js/books.xsl" log="true"/>
     </pipeline:pipeline>
