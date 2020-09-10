@@ -37,7 +37,7 @@
     <compiler.source.version>1.8</compiler.source.version>
     <compiler.target.version>1.8</compiler.target.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <saxon.version>9.9.1-7</saxon.version>
+    <saxon.version>10.2</saxon.version>
     <shiro.version>1.6.0</shiro.version>
     <fop.version>2.5</fop.version>
     <log4j.version>1.2.17</log4j.version>
@@ -112,11 +112,11 @@
       <!--
       Saxon Professional Edition (PE):
       - Purchase PE license from http://www.saxonica.com/
-      - Download PE package from http://www.saxonica.com/download/SaxonPE9.9.1-7J.zip
+      - Download PE package from http://www.saxonica.com/download/SaxonPE10-2J.zip
       - Extract and register jars in local Maven repository using the following commands:
-          mvn install:install-file -Dfile=saxon9pe.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion=9.9.1-7 -Dpackaging=jar
-          mvn install:install-file -Dfile=icu4j-59_1.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion=9.9.1-7 -Dpackaging=jar
-          mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion=9.9.1-7 -Dpackaging=jar
+          mvn install:install-file -Dfile=saxon-pe-10.2.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion=10.2 -Dpackaging=jar
+          mvn install:install-file -Dfile=icu4j-59.1.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion=10.2 -Dpackaging=jar
+          mvn install:install-file -Dfile=saxon-sql-10.2.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion=10.2 -Dpackaging=jar
       - Add saxon-config:configuration element to webapp.xml with attributes: edition="PE" and licenseFileLocation="<location of .lic>"
       - Build XSLWeb with Saxon-PE profile:
           mvn -PSaxon-PE clean install
@@ -138,17 +138,22 @@
           <artifactId>Saxon-PE-sql</artifactId>            
           <version>${saxon.version}</version>
         </dependency>
+        <dependency>
+          <groupId>jline</groupId>
+          <artifactId>jline</artifactId>
+          <version>2.9</version>
+        </dependency>
       </dependencies>
     </profile>
     <profile>
       <!--
       Saxon Enterprise Edition (EE):
       - Purchase EE license from http://www.saxonica.com/
-      - Download EE package from http://www.saxonica.com/download/SaxonEE9.9.1-7J.zip
+      - Download EE package from http://www.saxonica.com/download/SaxonEE10-2J.zip
       - Extract and register jars in local Maven repository using the following commands:
-          mvn install:install-file -Dfile=saxon9ee.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE -Dversion=9.9.1-7 -Dpackaging=jar
-          mvn install:install-file -Dfile=icu4j-59_1.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion=9.9.1-7 -Dpackaging=jar
-          mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion=9.9.1-7 -Dpackaging=jar
+          mvn install:install-file -Dfile=saxon-ee-10.2.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE -Dversion=10.2 -Dpackaging=jar
+          mvn install:install-file -Dfile=icu4j-59.1.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion=10.2 -Dpackaging=jar
+          mvn install:install-file -Dfile=saxon-sql-10.2.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion=10.2 -Dpackaging=jar
       - Add saxon-config:configuration element to webapp.xml with attributes: edition="PE" and licenseFileLocation="<location of .lic>"
       - Build XSLWeb with Saxon-EE profile:
           mvn -PSaxon-EE clean install
@@ -169,6 +174,11 @@
           <groupId>net.sf.saxon</groupId>
           <artifactId>Saxon-EE-sql</artifactId>            
           <version>${saxon.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>jline</groupId>
+          <artifactId>jline</artifactId>
+          <version>2.9</version>
         </dependency>
       </dependencies>
     </profile>
@@ -359,21 +369,43 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
+        <version>3.8.1</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
         </configuration>
       </plugin>
       <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.3.1</version>
+        <!--
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+            </manifest>
+          </archive>
+        </configuration>
+        -->
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.2.0</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>2.5.2</version>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.7</version>
+        <version>3.2</version>
         <configuration>
           <outputDirectory>docs</outputDirectory>
           <show>public</show>
         </configuration>
       </plugin>
+      <!-- 
       <plugin>
         <groupId>org.apache.tomcat.maven</groupId>
         <artifactId>tomcat7-maven-plugin</artifactId>
@@ -395,6 +427,7 @@
           </execution>
         </executions>
       </plugin>
+      -->
     </plugins>
   </build>
   
