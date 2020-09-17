@@ -33,8 +33,8 @@
 :window-blank: _blank
 :xslweb-version: 4.0.0-RC1
 :xslweb-version-download: 4-0-0-RC1 
-:saxon-version: 9.9.1-7
-:saxon-version-download: 9-9-1-7J 
+:saxon-version: 10.2
+:saxon-version-download: 10-2J 
 
 = XSLWeb version {xslweb-version} Developer Manual
 Authors: Maarten Kroon, Arjan Loeffen
@@ -2427,7 +2427,7 @@ See example 22 how to use some of the sql extension functions.
 [#custom-extension-functions]
 === Custom extension functions
 
-It is also possible to write your own custom XPath extension functions in Java and add them to an XSLWeb web application. These extension functions must be http://www.saxonica.com/html/documentation/extensibility/integratedfunctions/ext-full-J.html[integrated extension functions] that use the full interface of Saxon version 9.9.
+It is also possible to write your own custom XPath extension functions in Java and add them to an XSLWeb web application. These extension functions must be http://www.saxonica.com/html/documentation/extensibility/integratedfunctions/ext-full-J.html[integrated extension functions] that use the full interface of Saxon version {saxon-version}.
 
 The compiled jar of a custom extension function together with any libraries that the function depend on can be placed in the folder _«web-app»/lib_. There is no need to restart the application server, XSLWeb will detect the jars and will load and register the extension function automatically.
 
@@ -2535,7 +2535,7 @@ webdav = *
 [#installation]
 == Installation
 
-The sources of XSLWeb can be found on https://github.com/Armatiek/xslweb[GitHub]. XSLWeb is licensed under the Apache License version 2.0.
+The sources of XSLWeb can be found on https://github.com/Armatiek/xslweb[GitHub]. XSLWeb is licensed under the https://www.apache.org/licenses/LICENSE-2.0[Apache License version 2.0].
 
 Compiled binaries of XSLWeb {xslweb-version} can be downloaded in two distributions:
 
@@ -2782,7 +2782,7 @@ You can download the archives from the following locations:
 
 ==== Install
 
-Extract the archive to a directory of your choice. This directory will contain the directory xslweb-3.0.1 containing a directory called _home_ and a file called _xslweb.war_. The installation of a war is application server specific, so please consult the manual of your server for that. Regardless of which application server is used, two settings are essential:
+Extract the archive to a directory of your choice. This directory will contain the file _xslweb.war_ , a directory _docs_ and a directory _home_. The installation of a war is application server specific, so please consult the manual of your server for that. Regardless of which application server is used, two settings are essential:
 
 [arabic]
 . The home directory of XSLWeb must be specified using a Java System Property called _xslweb.home_.
@@ -2805,13 +2805,13 @@ The downloadable binaries of XSLWeb contain the open source Home Edition (HE) of
 * Download the PE of EE package from https://www.saxonica.com/download/SaxonPE{saxon-version-download}.zip or https://www.saxonica.com/download/SaxonEE{saxon-version-download}.zip
 * Extract and register the jars in your local Maven repository using the following commands:
 ** PE:
-*** mvn install:install-file -Dfile=saxon9pe.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion={saxon-version} -Dpackaging=jar
-*** mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion={saxon-version} -Dpackaging=jar
-*** mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion={saxon-version} -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon-pe-{saxon-version}.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion={saxon-version} -Dpackaging=jar
+*** mvn install:install-file -Dfile=icu4j-59.1.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion={saxon-version} -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon-sql-{saxon-version}.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion={saxon-version} -Dpackaging=jar
 ** EE:
-*** mvn install:install-file -Dfile=saxon9ee.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE -Dversion={saxon-version} -Dpackaging=jar
-*** mvn install:install-file -Dfile=saxon9-icu.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion={saxon-version} -Dpackaging=jar
-*** mvn install:install-file -Dfile=saxon9-sql.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion={saxon-version} -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon-ee-{saxon-version}.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE -Dversion={saxon-version} -Dpackaging=jar
+*** mvn install:install-file -Dfile=icu4j-59.1.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion={saxon-version} -Dpackaging=jar
+*** mvn install:install-file -Dfile=saxon-sql-{saxon-version}.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion={saxon-version} -Dpackaging=jar
 * Place your purchased license file _saxon-license.lic_ in <<xslweb.home>>/config
 * Build XSLWeb with the maven profile “Saxon-PE” or “Saxon-EE”:
 ** mvn -PSaxon-PE clean install +
