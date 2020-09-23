@@ -419,13 +419,6 @@ public class XSLWebServlet extends HttpServlet {
           ByteArrayOutputStream baos = (ByteArrayOutputStream) ((StreamResult) result).getOutputStream();
           source = new StreamSource(new ByteArrayInputStream(baos.toByteArray()));
         }
-      } else if (step instanceof StylesheetExportFileStep) {
-        String xslPath = ((StylesheetExportFileStep) step).getXslPath();
-        byte[] sef = webApp.getStylesheetExportFile(xslPath, errorListener); 
-        
-        
-        
-        os.write(sef);
       } else if (step instanceof SchemaValidatorStep) {
         SchemaValidatorStep svStep = (SchemaValidatorStep) step;
         List<String> schemaPaths = svStep.getSchemaPaths();

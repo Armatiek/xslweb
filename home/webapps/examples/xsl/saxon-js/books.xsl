@@ -9,7 +9,6 @@
   
   <!-- This style sheet displays the books.xml file.  -->
   
-  
   <xsl:template match="/">
         
     <xsl:result-document href="#title" method="ixsl:replace-content">

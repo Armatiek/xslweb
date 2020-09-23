@@ -18,6 +18,7 @@ package nl.armatiek.xslweb.pipeline;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,6 +28,7 @@ import javax.xml.transform.ErrorListener;
 
 import net.sf.saxon.s9api.Destination;
 import net.sf.saxon.s9api.NullDestination;
+import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 
 public class StylesheetExportFileStep extends SerializerStep {
@@ -52,6 +54,8 @@ public class StylesheetExportFileStep extends SerializerStep {
       } else {
         sef = webApp.tryStylesheetExportFile(new File(webApp.getHomeDir(), "xsl" + "/" + xslPath).getAbsolutePath(), errorListener);
       }
+      resp.setContentType(Definitions.MIMETYPE_JSON);
+      resp.setCharacterEncoding(StandardCharsets.UTF_8.toString());
       os.write(sef);
     } catch (Exception e) {
       throw new XMLStreamException(e);

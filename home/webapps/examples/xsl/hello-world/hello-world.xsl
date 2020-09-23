@@ -13,6 +13,9 @@
   
   <xsl:template match="/">
     <resp:response status="200">
+      <resp:headers>                              
+        <resp:header name="Content-Type">text/html;charset=UTF-8</resp:header>    
+      </resp:headers>
       <resp:body>
         <html>
           <head>

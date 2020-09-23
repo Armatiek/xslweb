@@ -119,7 +119,8 @@ public class Definitions {
   public final static String MIMETYPE_JPEG                     = "image/jpeg";
   public final static String MIMETYPE_GIF                      = "image/gif";
   public final static String MIMETYPE_PNG                      = "image/png";
-  public final static String MIMETYPE_TEXTPLAIN                = "text/plain";  
+  public final static String MIMETYPE_TEXTPLAIN                = "text/plain";
+  public final static String MIMETYPE_JSON                     = "application/json";
   
   public final static String ATTRNAME_WEBAPP                   = "xslweb.webapp";
   public final static String ATTRNAME_REQUESTXML               = "xslweb.requestxml";
