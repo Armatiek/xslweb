@@ -106,6 +106,7 @@ public class Move extends ExtensionFunctionDefinition {
         }        
         if (sourceFile.isFile()) {          
           if (!targetFile.exists() || targetFile.isFile()) {            
+            if (targetFile.isFile()) targetFile.delete();
             FileUtils.moveFile(sourceFile, targetFile);
           } else if (targetFile.isDirectory()) {
         	  if (targetDir.isFile()) targetDir.delete();
