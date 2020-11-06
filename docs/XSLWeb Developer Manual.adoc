@@ -857,12 +857,35 @@ In _«xslweb-home»/config/xslweb.properties_ two global properties can be set:
 
 XSLWeb contains a set of readily available XPath extension functions. To use these extension functions in your XSLT stylesheets you only have to declare the namespace they are defined in.
 
+[#request-functions]
+=== Request functions
+
+These functions can be used to set/read information in the HTTP request.
+
+Namespace uri: _\http://www.armatiek.com/xslweb/request_. In the function signatures below this namespace uri is bound to the prefix _req_.
+
+Functions:
+
+[source,xquery]
+----
+function req:set-attribute($name as xs:string, attr as item()*) as xs:boolean?
+----
+
+Binds an attribute to this request, using the name specified.
+
+[source,xquery]
+----
+function req:get-attribute($name as xs:string) as item()*
+----
+
+Returns the attribute bound with the specified $name in this request, or an empty sequence if no attribute is bound under the name.
+
 [#response-functions]
 === Response functions
 
 These functions can be used to set/change specific information in the HTTP response. For a large part this information can also be specified in the Response XML document, see <<appendix-response-xml-example>> for an example of a Response XML document.
 
-Namespace uri: _\http://www.armatiek.com/xslweb/request_. In the function signatures below this namespace uri is bound to the prefix _resp_.
+Namespace uri: _\http://www.armatiek.com/xslweb/response_. In the function signatures below this namespace uri is bound to the prefix _resp_.
 
 Functions:
 
@@ -1067,7 +1090,7 @@ function context:set-attribute($name as xs:string, attr as item()*) as xs:boolea
 See example 7 how to use the context functions to set and get session attributes.
 
 [#security-functions]
-=== Security (authentication/authorzation)
+=== Security (authentication/authorization)
 
 These functions can be used to get information about the identity and authorization state of the current subject/user making te request.  
 
@@ -2591,6 +2614,8 @@ tar -xvf xslweb-v{xslweb-version}-linux-x64.tar
 ----
 tar -xvf xslweb-v{xslweb-version}-osx-x64.tar
 ----
+
+IMPORTANT: Do not install the XSLWeb distribution in a directory that contains spaces.
   
 [#run-and-install-ready-to-run]
 ==== Run and install
