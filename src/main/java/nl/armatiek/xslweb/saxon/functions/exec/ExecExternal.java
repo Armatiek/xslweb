@@ -67,7 +67,7 @@ public class ExecExternal extends ExtensionFunctionDefinition {
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 5;
+    return 6;
   }
 
   @Override
@@ -78,7 +78,8 @@ public class ExecExternal extends ExtensionFunctionDefinition {
         SequenceType.makeSequenceType(BuiltInAtomicType.STRING, StaticProperty.ALLOWS_ZERO_OR_MORE),
         SequenceType.OPTIONAL_INTEGER,
         SequenceType.OPTIONAL_BOOLEAN,
-        SequenceType.OPTIONAL_STRING};
+        SequenceType.OPTIONAL_STRING,
+        SequenceType.OPTIONAL_BOOLEAN};
   }
 
   @Override
@@ -97,10 +98,14 @@ public class ExecExternal extends ExtensionFunctionDefinition {
     public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {                                  
       final CommandLine cmdLine = new CommandLine(((StringValue) arguments[0].head()).getStringValue());      
       if (arguments.length > 1) {
+        boolean handleQuoting = true;
+        if (arguments.length > 5 && arguments[5].head() != null) {
+          handleQuoting = ((BooleanValue) arguments[5].head()).getBooleanValue();
+        }
         SequenceIterator args = arguments[1].iterate();      
         Item arg;
         while ((arg = args.next()) != null) {
-          cmdLine.addArgument(((StringValue) arg).getStringValue());
+          cmdLine.addArgument(((StringValue) arg).getStringValue(), handleQuoting);
         }
       }
       Executor executor = new DefaultExecutor();
@@ -125,7 +130,7 @@ public class ExecExternal extends ExtensionFunctionDefinition {
 
             @Override
             public void onProcessFailed(ExecuteException e) {
-              logger.error("External process \"" + cmdLine.toString() + "\" failed with exit value \"" + e.getExitValue() + "\"", e);
+              logger.debug("External process \"" + cmdLine.toString() + "\" completed with exit value \"" + e.getExitValue() + "\"");
             }           
           });                
           return EmptySequence.getInstance();          
