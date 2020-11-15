@@ -18,6 +18,8 @@ package nl.armatiek.xslweb.saxon.functions.httpclient;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -25,6 +27,9 @@ import java.nio.file.Paths;
 
 import javax.xml.transform.OutputKeys;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 
 import net.sf.saxon.expr.XPathContext;
@@ -41,6 +46,7 @@ import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.value.Base64BinaryValue;
 import net.sf.saxon.value.StringValue;
+import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.utils.NodeInfoUtils;
 import okhttp3.Headers;
 import okhttp3.MediaType;
@@ -79,7 +85,16 @@ public class RequestUtils {
         if (!file.isFile()) {
           throw new XPathException("File not found (src: \"" + src + "\", resolved to: \"" + file.getAbsolutePath() + "\")", "HC005");
         }
-        return RequestBody.create(file, mediaType);
+        if (Types.isXmlType(mediaTypeAttr)) {
+          /* Remove any BOM's: */
+          try (InputStream is = new BOMInputStream(FileUtils.openInputStream(file))) {
+            return RequestBody.create(IOUtils.toByteArray(is), mediaType);
+          } catch (IOException ioe) {
+            throw new XPathException("Error creating request body", ioe);
+          }  
+        } else {
+          return RequestBody.create(file, mediaType);
+        }
       } catch (URISyntaxException | MalformedURLException e) {
         throw new XPathException("Syntax error in uri in http:body/@src (\"" + src + "\")", "HC005");
       }

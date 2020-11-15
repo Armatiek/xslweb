@@ -65,5 +65,9 @@ public class Types {
       return Type.BINARY;
     }
   }
+  
+  public static boolean isXmlType(final String type) {
+    return type != null && (type.endsWith("+xml") || XML_TYPES.contains(type));
+  }
 
 }
