@@ -1931,12 +1931,20 @@ Functions:
 function external:exec-external(
   $command-line as xs:string, 
   $args as xs:string*, 
-  $exit-value as xs:integer?, 
   $time-out as xs:integer?, 
-  $async as xs:boolean) as xs:integer
+  $async as xs:boolean?,
+  $work-dir as xs:string?,
+  $handle-quoting as xs:boolean?) as xs:integer
 ----
 
-Where $command-line is the path to the executable, $args a sequence of arguments to the application, $exit-value the exit code that is considered as success, $time-out the time in milliseconds after an asynchronous process is killed and $async indicates if the process must be started asynchronous or not.
+* $command-line: the path to the executable.
+* $args: a sequence of arguments to the application.
+* $time-out: the time in milliseconds after an asynchronous process is killed.
+* $async: indicates if the process must be started asynchronous or not.
+* $work-dir: the working directory for the subprocess.
+* $handle-quoting: indicates if the function should automatically handle the quoting (the default) or not.
+
+The return value is an empty sequence in case of an asynchronous process. In case of a synchronous process the return value is the exit value returned by the process.
 
 [#logging-functions]
 === Logging functions
