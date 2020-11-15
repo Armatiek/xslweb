@@ -94,6 +94,7 @@ import nl.armatiek.xslweb.saxon.functions.security.IsGuest;
 import nl.armatiek.xslweb.saxon.functions.security.IsUser;
 import nl.armatiek.xslweb.saxon.functions.security.Principal;
 import nl.armatiek.xslweb.saxon.functions.serialize.Serialize;
+import nl.armatiek.xslweb.saxon.functions.session.AttributeNames;
 import nl.armatiek.xslweb.saxon.functions.session.Invalidate;
 import nl.armatiek.xslweb.saxon.functions.session.SetMaxInactiveInterval;
 import nl.armatiek.xslweb.saxon.functions.sql.Close;
@@ -155,6 +156,7 @@ public class XSLWebInitializer implements Initializer {
     registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.session.SetAttribute(), configuration);
     registerXPathFunction(new Invalidate(), configuration);
     registerXPathFunction(new SetMaxInactiveInterval(), configuration);
+    registerXPathFunction(new AttributeNames(), configuration);
     
     /* Webapp */
     registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.GetAttribute(), configuration);
