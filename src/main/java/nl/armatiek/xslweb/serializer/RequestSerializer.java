@@ -19,7 +19,8 @@ package nl.armatiek.xslweb.serializer;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PushbackReader;
+import java.io.PushbackInputStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
@@ -46,6 +47,7 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +79,7 @@ import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.error.XSLWebException;
+import nl.armatiek.xslweb.saxon.functions.httpclient.Types;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 import nl.armatiek.xslweb.xml.BodyFilter;
 
@@ -320,26 +323,27 @@ public class RequestSerializer {
     String method = req.getMethod().toUpperCase();
     if (!(method.equals("POST") || method.equals("PUT")) || fileItems != null) {
       return;
-    }    
-    PushbackReader pushbackReader = new PushbackReader(req.getReader());    
-    int b = pushbackReader.read();
+    } 
+    
+    PushbackInputStream pbis = new PushbackInputStream(req.getInputStream());
+    int b = pbis.read();
     if (b == -1) {
+      pbis.close();
       return;
     }
-    pushbackReader.unread(b);                
+    pbis.unread(b);
+    
     xsw.writeStartElement(URI, "body");
     String contentType = req.getContentType();
     if (contentType != null && contentType.contains(";")) {
       contentType = contentType.split(";")[0].trim();
     }
-    if ((contentType != null) && 
-        (contentType.startsWith("text/xml") || contentType.startsWith("application/xml") ||
-        contentType.endsWith("+xml"))) {
-      getFilteredXMLReader().parse(new InputSource(pushbackReader));
+    if (Types.isXmlType(contentType)) {
+      getFilteredXMLReader().parse(new InputSource(new BOMInputStream(pbis)));
     } else if ((contentType != null) && contentType.startsWith("text/plain")) {      
-      xsw.writeCharacters(IOUtils.toString(pushbackReader));      
+      xsw.writeCharacters(IOUtils.toString(pbis, StringUtils.defaultString(req.getCharacterEncoding(), "UTF-8")));      
     } else {
-      xsw.writeCData(Base64.getEncoder().encodeToString(IOUtils.toByteArray(pushbackReader, "UTF-8")));
+      xsw.writeCData(Base64.getEncoder().encodeToString(IOUtils.toByteArray(pbis)));
     }
     xsw.writeEndElement();
   }
