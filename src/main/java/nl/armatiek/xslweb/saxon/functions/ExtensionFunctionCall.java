@@ -76,7 +76,6 @@ import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Attribute;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
-import nl.armatiek.xslweb.saxon.utils.NodeInfoUtils;
 import nl.armatiek.xslweb.saxon.utils.SerializableNodeInfo;
 import nl.armatiek.xslweb.utils.Closeable;
 
@@ -241,7 +240,8 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
       // boolean isSerialized;
       if (item instanceof NodeInfo) {
         // value = serialize((NodeInfo) item);
-        value = new SerializableNodeInfo(NodeInfoUtils.cloneNodeInfo((NodeInfo) item));
+        // value = new SerializableNodeInfo(NodeInfoUtils.cloneNodeInfo((NodeInfo) item));
+        value = new SerializableNodeInfo((NodeInfo) item);
         type = "node()";
         // isSerialized = true;
       } else {                             
