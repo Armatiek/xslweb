@@ -37,7 +37,7 @@
     <compiler.source.version>1.8</compiler.source.version>
     <compiler.target.version>1.8</compiler.target.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <saxon.version>10.2</saxon.version>
+    <saxon.version>10.3</saxon.version>
     <shiro.version>1.6.0</shiro.version>
     <fop.version>2.5</fop.version>
     <log4j.version>1.2.17</log4j.version>
@@ -361,6 +361,18 @@
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-web</artifactId>
       <version>${shiro.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.owasp.encoder</groupId>
+      <artifactId>encoder</artifactId>
+      <version>1.2.3</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.github.rwitzel.streamflyer</groupId>
+      <artifactId>streamflyer-core</artifactId>
+      <version>1.2.0</version>
     </dependency>
     
   </dependencies>

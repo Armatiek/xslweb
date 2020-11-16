@@ -36,6 +36,7 @@ import net.sf.saxon.s9api.Processor;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.Parameter;
 import nl.armatiek.xslweb.configuration.WebApp;
+import nl.armatiek.xslweb.web.filter.XSSEncodingFilter;
 import nl.armatiek.xslweb.xml.SerializingContentHandler;
 
 public class PipelineHandler implements ContentHandler {
@@ -47,6 +48,7 @@ public class PipelineHandler implements ContentHandler {
   private int cacheTimeToIdle = 60;
   private String cacheScope;
   private boolean cacheHeaders;
+  private int xssFilterFlags = 0;
   private SerializingContentHandler serializingHandler;
   private OutputStream os;
   private StringBuilder chars = new StringBuilder();
@@ -239,6 +241,37 @@ public class PipelineHandler implements ContentHandler {
         } else if (localName.equals("fop-serializer")) {
           FopSerializerStep step = new FopSerializerStep(atts);
           pipelineSteps.add(step);
+        } else if (localName.equals("xss-filter")) {
+          String methodsValue = getAttribute(atts, "methods", "ht");
+          String methods[] = StringUtils.split(methodsValue);
+          for (String method: methods) {
+            switch (method) {
+            case "ht" :
+              xssFilterFlags = xssFilterFlags | XSSEncodingFilter.XSSFILTER_HTML; 
+              break;
+            case "cs" :
+              xssFilterFlags = xssFilterFlags | XSSEncodingFilter.XSSFILTER_CSS_STRING; 
+              break;
+            case "cu" :
+              xssFilterFlags = xssFilterFlags | XSSEncodingFilter.XSSFILTER_CSS_URL; 
+              break;
+            case "js" :
+              xssFilterFlags = xssFilterFlags | XSSEncodingFilter.XSSFILTER_JAVASCRIPT; 
+              break;
+            case "ur" :
+              xssFilterFlags = xssFilterFlags | XSSEncodingFilter.XSSFILTER_URI; 
+              break;
+            case "uc" :
+              xssFilterFlags = xssFilterFlags | XSSEncodingFilter.XSSFILTER_URI_COMPONENT; 
+              break;
+            case "xm" :
+              xssFilterFlags = xssFilterFlags | XSSEncodingFilter.XSSFILTER_XML; 
+              break;
+            case "cd" :
+              xssFilterFlags = xssFilterFlags | XSSEncodingFilter.XSSFILTER_CDATA; 
+              break;
+            }
+          }
         } else if (localName.equals("value")) {          
         } else {
           throw new SAXException(String.format("Pipeline element \"%s\" not supported", localName));
@@ -292,6 +325,10 @@ public class PipelineHandler implements ContentHandler {
   
   public boolean getCacheHeaders() {
     return cacheHeaders;
+  }
+  
+  public int getXSSFilterFlags() {
+    return xssFilterFlags;
   }
   
   private String getAttribute(Attributes attr, String name, String defaultValue) {

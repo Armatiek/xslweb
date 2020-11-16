@@ -106,6 +106,14 @@
             </xs:complexType>
           </xs:element>
           
+          <xs:element name="xss-filter">
+            <xs:complexType>
+              <xs:attribute name="name" type="xs:string" use="optional"/>
+              <xs:attribute name="methods" type="xs:string" use="optional"/>
+              <xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
+            </xs:complexType>
+          </xs:element>
+          
         </xs:choice>
         
         <xs:choice minOccurs="0">
