@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
@@ -38,6 +39,8 @@ import nl.armatiek.xslweb.pipeline.PipelineHandler;
 import nl.armatiek.xslweb.web.servlet.DelegatingServletOutputStream;
 
 public class XSSEncodingFilter implements Filter {
+  
+  private final static Pattern PATTERN_QUERYSTRING = Pattern.compile("^(.*?)\\?(.*?)(#.*)?$", Pattern.DOTALL);
   
   public static final int XSSFILTER_HTML             = 0x01;
   public static final int XSSFILTER_CSS_STRING       = 0x02;
@@ -94,7 +97,6 @@ public class XSSEncodingFilter implements Filter {
       chain.doFilter(request, response);
       return;
     }
-    
     boolean xssFiltering = getXssFiltering(request, xssFilterFlags);
     ArrayList<Attribute> seq = new ArrayList<Attribute>();
     seq.add(new Attribute(new Boolean(xssFiltering), "xs:boolean"));  
@@ -160,7 +162,7 @@ public class XSSEncodingFilter implements Filter {
       String encodedText;
       switch (method) {
       case "ht" :
-        textToEncode = StringEscapeUtils.unescapeXml(textToEncode);
+        textToEncode = StringEscapeUtils.unescapeHtml4(textToEncode);
         encodedText = Encode.forHtml(textToEncode);
         break;
       case "cs" :
@@ -173,15 +175,15 @@ public class XSSEncodingFilter implements Filter {
         encodedText = Encode.forJavaScript(textToEncode);
         break;
       case "ur" :
-        textToEncode = StringEscapeUtils.unescapeXml(textToEncode);
+        textToEncode = StringEscapeUtils.unescapeHtml4(textToEncode);
         String queryString;
         try {
           queryString = new URI(textToEncode).getQuery();
         } catch (URISyntaxException e) {
           queryString = null;
         }
-        ArrayList<String> components = new ArrayList<String>();
         if (queryString != null) {
+          ArrayList<String> components = new ArrayList<String>();
           for (String param : queryString.split("&")) {
             int idx = param.indexOf('=');
             String component;
@@ -192,8 +194,13 @@ public class XSSEncodingFilter implements Filter {
             } 
             components.add(component);
           }
-          String newQueryString = StringUtils.join(components, "&"); 
-          encodedText = textToEncode.replaceFirst("\\?(.*?)(#.*)?$", newQueryString);
+          String newQueryString = "?" + StringUtils.join(components, "&");
+          Matcher matcher = PATTERN_QUERYSTRING.matcher(textToEncode);
+          if (matcher.find()) {
+            encodedText = matcher.replaceFirst("$1" + newQueryString + "$3");  
+          } else {
+            encodedText = textToEncode;
+          }
         } else {
           encodedText = textToEncode;
         }  
