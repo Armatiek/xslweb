@@ -107,6 +107,7 @@ import nl.armatiek.xslweb.saxon.functions.sql.ResultSetToNode;
 import nl.armatiek.xslweb.saxon.functions.sql.Rollback;
 import nl.armatiek.xslweb.saxon.functions.util.DiscardDocument;
 import nl.armatiek.xslweb.saxon.functions.util.Parse;
+import nl.armatiek.xslweb.saxon.functions.util.ParseHtml;
 import nl.armatiek.xslweb.saxon.functions.uuid.UUID;
 import nl.armatiek.xslweb.saxon.functions.zip.Unzip;
 import nl.armatiek.xslweb.saxon.functions.zip.Zip;
@@ -249,6 +250,7 @@ public class XSLWebInitializer implements Initializer {
     /* Util */
     registerXPathFunction(new DiscardDocument(), configuration);
     registerXPathFunction(new Parse(), configuration);
+    registerXPathFunction(new ParseHtml(), configuration);
     
     /* Zip */
     registerXPathFunction(new Zip(), configuration);
