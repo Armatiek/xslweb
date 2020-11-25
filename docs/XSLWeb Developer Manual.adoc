@@ -33,7 +33,7 @@
 :window-blank: _blank
 :xslweb-version: 4.0.0-RC1
 :xslweb-version-download: 4-0-0-RC1 
-:saxon-version: 10.2
+:saxon-version: 10.3
 :saxon-version-download: 10-2J 
 
 = XSLWeb version {xslweb-version} Developer Manual
