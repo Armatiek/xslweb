@@ -31,10 +31,10 @@
 :underscore: _
 :docinfo: shared,shared-head
 :window-blank: _blank
-:xslweb-version: 4.0.0-RC1
-:xslweb-version-download: 4-0-0-RC1 
+:xslweb-version: 4.0.0-RC2
+:xslweb-version-download: 4-0-0-RC2 
 :saxon-version: 10.3
-:saxon-version-download: 10-2J 
+:saxon-version-download: 10-3J 
 
 = XSLWeb version {xslweb-version} Developer Manual
 Authors: Maarten Kroon, Arjan Loeffen
