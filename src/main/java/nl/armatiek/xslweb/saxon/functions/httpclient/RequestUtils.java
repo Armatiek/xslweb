@@ -46,7 +46,6 @@ import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.value.Base64BinaryValue;
 import net.sf.saxon.value.StringValue;
-import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.utils.NodeInfoUtils;
 import okhttp3.Headers;
 import okhttp3.MediaType;
