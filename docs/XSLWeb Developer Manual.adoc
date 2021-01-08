@@ -1087,7 +1087,7 @@ function context:get-attribute($name as xs:string) as item()*
 function context:set-attribute($name as xs:string, attr as item()*) as xs:boolean?
 ----
 
-See example 7 how to use the context functions to set and get session attributes.
+See example 7 how to use the context functions to set and get context attributes.
 
 [#security-functions]
 === Security (authentication/authorization)
@@ -1970,6 +1970,36 @@ function log:log(
 
 Where $level is one of “ERROR”, “WARN”, “INFO” or “DEBUG”. The structure of _element(output:serialization-parameters)_ is described in http://www.w3.org/TR/xslt-xquery-serialization-30/[XSLT and XQuery Serialization 3.0]. See example 15 how to use some of the log functions.
 
+The next set of logging functions can be used in cases wher
+
+[source,xquery]
+----
+function log:trace(
+  $output as item()*, 
+  $message as item()*, 
+  $params as element(output:serialization-parameters)) as item()*
+
+function log:debug(
+  $output as item()*, 
+  $message as item()*, 
+  $params as element(output:serialization-parameters)) as item()*
+
+function log:info(
+  $output as item()*, 
+  $message as item()*, 
+  $params as element(output:serialization-parameters)) as item()*
+
+function log:warn(
+  $output as item()*, 
+  $message as item()*, 
+  $params as element(output:serialization-parameters)) as item()*
+
+function log:error(
+  $output as item()*, 
+  $message as item()*, 
+  $params as element(output:serialization-parameters)) as item()*
+----
+
 [#email-functions]
 === Email
 
@@ -2056,6 +2086,12 @@ Functions:
 function util:discard-document($document-node()) as document-node()
 ----
 Remove supplied document from memory pool so it will be released by the Java garbage collector.
+
+[source,xquery]
+----
+function util:parse-html($html as xs:string) as document-node()
+----
+This function takes a single argument, a string containing the source text of an HTML document. It returns the document node (root node) that results from parsing this text using the TagSoup HTML parser.
 
 [source,xquery]
 ----
