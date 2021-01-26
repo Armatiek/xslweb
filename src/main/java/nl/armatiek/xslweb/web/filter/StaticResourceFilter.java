@@ -30,12 +30,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.datatype.Duration;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.Resource;
 import nl.armatiek.xslweb.configuration.WebApp;
+import nl.armatiek.xslweb.web.servlet.FileServlet;
 
 public class StaticResourceFilter implements Filter {
 
@@ -47,45 +47,59 @@ public class StaticResourceFilter implements Filter {
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse resp = (HttpServletResponse) response;
     WebApp webApp = (WebApp) req.getAttribute(Definitions.ATTRNAME_WEBAPP);
-    String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();
+    final String path = StringUtils.defaultString(req.getPathInfo()) + req.getServletPath();
     Resource resource = webApp.matchesResource(webApp.getRelativePath(path));
     if (resource == null) {
       // Request must result in an XSLT transformation:
       chain.doFilter(request, response);
     } else {
+      String method = req.getMethod().toUpperCase();
+      if (!method.equals("HEAD") && !method.equals("GET")) {
+        resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Method \"" + method + "\" not supported");
+        return;
+      } 
+      
       // Request must return a static resource:
-      resp.setContentType(resource.getMediaType());
-      String cacheBusterId = webApp.getCacheBusterId();
-      if (cacheBusterId != null) {
-        path = StringUtils.remove(path, cacheBusterId);
+      FileServlet fileServlet = new FileServlet() {
+
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        protected File getFile(HttpServletRequest request) {
+          String finalPath = path;
+          String cacheBusterId = webApp.getCacheBusterId();
+          if (cacheBusterId != null) {
+            finalPath = StringUtils.remove(finalPath, cacheBusterId);
+          }
+          return webApp.getStaticFile(finalPath);
+        }
+        
+        @Override
+        protected long getExpireTime(HttpServletRequest request, File file) {
+          Duration duration = resource.getDuration();
+          if (duration != null) {
+            return duration.getTimeInMillis(new Date()) / 1000;
+          };
+          return super.getExpireTime(request, file);
+        }
+        
+        @Override
+        protected String getContentType(HttpServletRequest request, File file) {
+          String contentType = resource.getMediaType();
+          if (contentType == null || contentType.equals("")) {
+            return super.getContentType(request, file);
+          }
+          return contentType;
+        }
+        
+      };
+      
+      if (method.equals("GET")) {
+        fileServlet.doGet((HttpServletRequest) request, (HttpServletResponse) response);
+      } else if (method.equals("HEAD")) {
+        fileServlet.doHead((HttpServletRequest) request, (HttpServletResponse) response);
       }
-      File file = webApp.getStaticFile(path);
-      long ifModifiedSince;
-      if (!file.isFile()) {
-        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-      } else if ((ifModifiedSince = req.getDateHeader("If-Modified-Since")) > -1 && (file.lastModified() < ifModifiedSince + 1000)) {
-        resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-      } else {
-        String cacheControl = "";
-        Date currentDate = new Date();
-        long now = currentDate.getTime();
-        Duration duration = resource.getDuration();
-        if (duration != null) {
-          long ms = duration.getTimeInMillis(currentDate);
-          cacheControl = "max-age=" + ms / 1000;
-          resp.setDateHeader("Expires", now + ms);
-        }
-        String extraCacheControl = resource.getExtraCacheControl();
-        if (StringUtils.isNoneBlank(extraCacheControl)) {
-          cacheControl = cacheControl + StringUtils.prependIfMissing(extraCacheControl.trim(), ",");
-        }
-        if (cacheControl.length() > 0) {
-          resp.addHeader("Cache-Control", cacheControl);
-        }
-        resp.setDateHeader("Last-Modified", file.lastModified());
-        resp.setContentLength((int) file.length());
-        FileUtils.copyFile(file, resp.getOutputStream());
-      }
+    
     }
   }
 

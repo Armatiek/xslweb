@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +19,7 @@ import eu.medsea.mimeutil.MimeUtil;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
+import nl.armatiek.xslweb.web.servlet.FileServlet;
 
 /**
  * 
@@ -43,38 +43,60 @@ public class ResourceSerializer extends AbstractSerializer {
   public void close() throws IOException { }
   
   private void processResourceSerializer(String uri, String localName, String qName, Attributes attributes) throws Exception {    
-    String path = attributes.getValue("", "path");   
-    String contentType = attributes.getValue("", "content-type");
-    String contentDispositionFilename = attributes.getValue("", "content-disposition-filename");
-    File file = null;
-    if (path != null) {
-      file = new File(path);
-      if (!file.isAbsolute()) {
-        file = new File(Context.getInstance().getHomeDir(), path);
-      }
-    }
-    if (file == null || !file.isFile()) {
-      resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-      resp.flushBuffer();
-      return;
-    }
     String method = req.getMethod().toUpperCase();
     if (!method.equals("HEAD") && !method.equals("GET")) {
-      resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-      resp.flushBuffer();
+      resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Method \"" + method + "\" not supported");
+      return;
     }
-    resp.setContentLength((int) file.length());
-    resp.setDateHeader("Last-Modified", file.lastModified());
-    if (contentDispositionFilename != null) {
-      resp.setHeader("Content-Disposition","attachment; filename=" + contentDispositionFilename);
-    }
-    if (contentType == null) {
-      contentType = MimeUtil.getMostSpecificMimeType(MimeUtil.getMimeTypes(file, unknownMimeType)).toString();
-    }
-    resp.setContentType(contentType);
+    
+    final String contentDispositionFilename = attributes.getValue("", "content-disposition-filename");
+    
+    FileServlet fileServlet = new FileServlet() {
+
+      private static final long serialVersionUID = 1L;
+
+      @Override
+      protected File getFile(HttpServletRequest request) {
+        String path = attributes.getValue("", "path");
+        if (StringUtils.isEmpty(path)) {
+          return null;
+        }
+        File file = new File(path);
+        if (!file.isAbsolute()) {
+          file = new File(Context.getInstance().getHomeDir(), path);
+        }
+        return file;
+      }
+      
+      @Override
+      protected String getContentType(HttpServletRequest request, File file) {
+        String contentType = attributes.getValue("", "content-type");
+        if (StringUtils.isEmpty(contentType)) {
+          contentType = MimeUtil.getMostSpecificMimeType(MimeUtil.getMimeTypes(file, unknownMimeType)).toString();
+        }
+        return contentType;
+      }
+      
+      @Override
+      protected boolean isAttachment(HttpServletRequest request, String contentType) {
+        return StringUtils.isNoneEmpty(contentDispositionFilename); 
+      }
+      
+      @Override
+      protected String getAttachmentName(HttpServletRequest request, File file) {
+        return contentDispositionFilename;
+      }
+      
+    };
+    
     if (method.equals("GET")) {
-      FileUtils.copyFile(file, this.os);
+      fileServlet.doGet(req, resp);
+    } else if (method.equals("HEAD")) {
+      fileServlet.doHead(req, resp);
+    } else {
+      resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Method \"" + method + "\" not supported");
     }
+    
   }
   
   @Override
