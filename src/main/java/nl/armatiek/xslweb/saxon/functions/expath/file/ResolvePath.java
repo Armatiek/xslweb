@@ -18,6 +18,7 @@ package nl.armatiek.xslweb.saxon.functions.expath.file;
  */
 
 import java.io.File;
+import java.nio.file.Paths;
 
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionCall;
@@ -80,9 +81,13 @@ public class ResolvePath extends ExtensionFunctionDefinition {
         
     @Override
     public StringValue call(XPathContext context, Sequence[] arguments) throws XPathException {                  
-      String relPath = ((StringValue) arguments[0].head()).getStringValue();                        
-      String fullPath = new File(System.getProperty("user.dir"), relPath).toString();                           
-      return new StringValue(fullPath);     
+      String relPath = ((StringValue) arguments[0].head()).getStringValue();
+      if (Paths.get(relPath).isAbsolute()) {
+        return new StringValue(relPath);
+      } else {
+        String fullPath = new File(System.getProperty("user.dir"), relPath).toString();
+        return new StringValue(fullPath);
+      }   
     } 
   }
 }
