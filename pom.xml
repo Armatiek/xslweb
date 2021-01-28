@@ -46,16 +46,10 @@
   
   <repositories>
     <repository>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </releases>
-      <id>armatiek-repo</id>
-      <name>Armatiek Maven Repository</name>
-      <url>http://www.armatiek.nl/maven-repository</url>
-      <layout>default</layout>
-    </repository> 
+      <id>repos-saxonica</id>
+      <name>Saxonica Repository</name>
+      <url>https://dev.saxonica.com/maven</url>
+    </repository>
     <repository>
       <releases>
         <enabled>true</enabled>
@@ -112,11 +106,6 @@
       <!--
       Saxon Professional Edition (PE):
       - Purchase PE license from http://www.saxonica.com/
-      - Download PE package from http://www.saxonica.com/download/SaxonPE10-2J.zip
-      - Extract and register jars in local Maven repository using the following commands:
-          mvn install:install-file -Dfile=saxon-pe-10.2.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion=10.2 -Dpackaging=jar
-          mvn install:install-file -Dfile=icu4j-59.1.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion=10.2 -Dpackaging=jar
-          mvn install:install-file -Dfile=saxon-sql-10.2.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion=10.2 -Dpackaging=jar
       - Add saxon-config:configuration element to webapp.xml with attributes: edition="PE" and licenseFileLocation="<location of .lic>"
       - Build XSLWeb with Saxon-PE profile:
           mvn -PSaxon-PE clean install
@@ -124,24 +113,14 @@
       <id>Saxon-PE</id>
       <dependencies>
         <dependency>
-          <groupId>net.sf.saxon</groupId>
+          <groupId>com.saxonica</groupId>
           <artifactId>Saxon-PE</artifactId>            
           <version>${saxon.version}</version>
         </dependency>
         <dependency>
-          <groupId>net.sf.saxon</groupId>
-          <artifactId>Saxon-PE-icu</artifactId>            
-          <version>${saxon.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>net.sf.saxon</groupId>
-          <artifactId>Saxon-PE-sql</artifactId>            
-          <version>${saxon.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>jline</groupId>
-          <artifactId>jline</artifactId>
-          <version>2.9</version>
+          <groupId>com.ibm.icu</groupId>
+          <artifactId>icu4j</artifactId>
+          <version>63.1</version>
         </dependency>
       </dependencies>
     </profile>
@@ -149,11 +128,6 @@
       <!--
       Saxon Enterprise Edition (EE):
       - Purchase EE license from http://www.saxonica.com/
-      - Download EE package from http://www.saxonica.com/download/SaxonEE10-2J.zip
-      - Extract and register jars in local Maven repository using the following commands:
-          mvn install:install-file -Dfile=saxon-ee-10.2.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE -Dversion=10.2 -Dpackaging=jar
-          mvn install:install-file -Dfile=icu4j-59.1.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion=10.2 -Dpackaging=jar
-          mvn install:install-file -Dfile=saxon-sql-10.2.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion=10.2 -Dpackaging=jar
       - Add saxon-config:configuration element to webapp.xml with attributes: edition="PE" and licenseFileLocation="<location of .lic>"
       - Build XSLWeb with Saxon-EE profile:
           mvn -PSaxon-EE clean install
@@ -161,24 +135,14 @@
       <id>Saxon-EE</id>
       <dependencies>
         <dependency>
-          <groupId>net.sf.saxon</groupId>
+          <groupId>com.saxonica</groupId>
           <artifactId>Saxon-EE</artifactId>            
           <version>${saxon.version}</version>
         </dependency>
         <dependency>
-          <groupId>net.sf.saxon</groupId>
-          <artifactId>Saxon-EE-icu</artifactId>            
-          <version>${saxon.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>net.sf.saxon</groupId>
-          <artifactId>Saxon-EE-sql</artifactId>            
-          <version>${saxon.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>jline</groupId>
-          <artifactId>jline</artifactId>
-          <version>2.9</version>
+          <groupId>com.ibm.icu</groupId>
+          <artifactId>icu4j</artifactId>
+          <version>63.1</version>
         </dependency>
       </dependencies>
     </profile>
@@ -246,7 +210,12 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>3.11</version>
-    </dependency>                                        
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.15</version>
+    </dependency>
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
@@ -381,6 +350,18 @@
       <version>1.2.0</version>
     </dependency>
     
+    <dependency>
+      <groupId>info.macias</groupId>
+      <artifactId>jeasse-common</artifactId>
+      <version>0.11.3</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>info.macias</groupId>
+      <artifactId>jeasse-servlet3</artifactId>
+      <version>0.11.3</version>
+    </dependency>
+    
   </dependencies>
   
   <build>
@@ -423,29 +404,6 @@
           <show>public</show>
         </configuration>
       </plugin>
-      <!-- 
-      <plugin>
-        <groupId>org.apache.tomcat.maven</groupId>
-        <artifactId>tomcat7-maven-plugin</artifactId>
-        <version>2.3-SNAPSHOT</version>
-        <executions>
-          <execution>
-            <id>tomcat-run</id>
-            <goals>
-              <goal>exec-war-only</goal>
-            </goals>
-            <phase>package</phase>
-            <configuration>
-              <path>/</path>
-              <finalName>xslweb.jar</finalName>
-              <enableNaming>false</enableNaming>              
-              <charset>utf-8</charset>
-              <uriEncoding>utf-8</uriEncoding>              
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      -->
     </plugins>
   </build>
   
