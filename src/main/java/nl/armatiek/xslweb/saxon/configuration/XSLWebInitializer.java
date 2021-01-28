@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.saxon.configuration;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,6 +14,7 @@ package nl.armatiek.xslweb.saxon.configuration;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.saxon.configuration;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -72,7 +71,11 @@ import nl.armatiek.xslweb.saxon.functions.json.EscapeJSON;
 import nl.armatiek.xslweb.saxon.functions.json.ParseJSON;
 import nl.armatiek.xslweb.saxon.functions.json.SerializeJSON;
 import nl.armatiek.xslweb.saxon.functions.json.UnescapeJSON;
+import nl.armatiek.xslweb.saxon.functions.log.Debug;
+import nl.armatiek.xslweb.saxon.functions.log.Info;
 import nl.armatiek.xslweb.saxon.functions.log.Log;
+import nl.armatiek.xslweb.saxon.functions.log.Trace;
+import nl.armatiek.xslweb.saxon.functions.log.Warn;
 import nl.armatiek.xslweb.saxon.functions.mail.SendMail;
 import nl.armatiek.xslweb.saxon.functions.queue.AddRequest;
 import nl.armatiek.xslweb.saxon.functions.queue.GetInfo;
@@ -105,6 +108,7 @@ import nl.armatiek.xslweb.saxon.functions.sql.GetConnection;
 import nl.armatiek.xslweb.saxon.functions.sql.GetNextRow;
 import nl.armatiek.xslweb.saxon.functions.sql.ResultSetToNode;
 import nl.armatiek.xslweb.saxon.functions.sql.Rollback;
+import nl.armatiek.xslweb.saxon.functions.transform.Transform;
 import nl.armatiek.xslweb.saxon.functions.util.DiscardDocument;
 import nl.armatiek.xslweb.saxon.functions.util.Parse;
 import nl.armatiek.xslweb.saxon.functions.util.ParseHtml;
@@ -128,6 +132,12 @@ public class XSLWebInitializer implements Initializer {
     
     /* Log */
     registerXPathFunction(new Log(), configuration);
+    registerXPathFunction(new Trace(), configuration);
+    registerXPathFunction(new Debug(), configuration);
+    registerXPathFunction(new Info(), configuration);
+    registerXPathFunction(new Warn(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.log.Error(), configuration);
+    
     
     /* Request */
     registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.request.GetAttribute(), configuration);
@@ -278,6 +288,9 @@ public class XSLWebInitializer implements Initializer {
     registerXPathFunction(new IsGuest(), configuration);
     registerXPathFunction(new IsUser(), configuration);
     registerXPathFunction(new Principal(), configuration);
+    
+    /* Transform */
+    registerXPathFunction(new Transform(), configuration);
   }
   
   private void registerXPathFunction(ExtensionFunctionDefinition function, Configuration configuration) {           
