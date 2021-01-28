@@ -20,7 +20,6 @@ package nl.armatiek.xslweb.serializer;
 import java.io.File;
 import java.io.IOException;
 import java.io.PushbackInputStream;
-import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
