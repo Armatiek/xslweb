@@ -86,6 +86,7 @@ public class Context {
   private boolean parserHardening;
   private boolean trustAllCerts;
   private boolean webDAVEnable;
+  private boolean debugEnable;
   private File webDAVRoot;
   private String contextPath;
   private File webInfDir; 
@@ -232,6 +233,7 @@ public class Context {
       HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
     }
     this.parserHardening = new Boolean(this.properties.getProperty(Definitions.PROPERTYNAME_PARSER_HARDENING, "false"));
+    this.debugEnable = new Boolean(this.properties.getProperty(Definitions.PROPERTYNAME_DEBUG_ENABLE, "false"));
     this.webDAVEnable = new Boolean(this.properties.getProperty(Definitions.PROPERTYNAME_WABDAV_ENABLE, "false"));
     this.webDAVRoot = new File(this.properties.getProperty(Definitions.PROPERTYNAME_WEBDAV_ROOT, this.getHomeDir().getAbsolutePath()));
     if (this.webDAVEnable && !this.webDAVRoot.isDirectory()) {
@@ -398,7 +400,11 @@ public class Context {
   }
   
   public boolean getTrustAllCerts() {     
-    return this.trustAllCerts;    
+    return this.trustAllCerts; 
+  }
+  
+  public boolean getDebugEnable() {
+    return this.debugEnable;
   }
   
   public boolean getWebDAVEnable() {

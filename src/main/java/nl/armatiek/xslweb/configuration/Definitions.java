@@ -86,6 +86,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_XMLINDEX    = NAMESPACEURI_XSLWEB_FUNCTIONS + "/xmlindex";
   public final static String NAMESPACEURI_XSLWEB_FX_SQL         = NAMESPACEURI_XSLWEB_FUNCTIONS + "/sql";
   public final static String NAMESPACEURI_XSLWEB_FX_UTIL        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/util";
+  public final static String NAMESPACEURI_XSLWEB_FX_TRANSFORM   = NAMESPACEURI_XSLWEB_FUNCTIONS + "/transform";
   public final static String NAMESPACEURI_XSLWEB_FX_ZIP         = NAMESPACEURI_XSLWEB_FUNCTIONS + "/zip";
   public final static String NAMESPACEURI_XSLWEB_FX_EXEC        = NAMESPACEURI_XSLWEB_FUNCTIONS + "/exec";
   public final static String NAMESPACEURI_XSLWEB_FX_XQUERY      = NAMESPACEURI_XSLWEB_FUNCTIONS + "/xquery";
@@ -127,6 +128,7 @@ public class Definitions {
   public final static String ATTRNAME_PIPELINEHANDLER          = "xslweb.pipelinehandler";
   public final static String ATTRNAME_XSSFILTERING             = "xslweb.xssfiltering";
   public final static String ATTRNAME_TEMPFILES                = "xslweb.tempfiles";
+  public final static String ATTRNAME_DEBUGCLIENT              = "xslweb.debugclient";
   
   public final static String PARAMNAME_TRACE_BASIC             = "xslweb.trace.basic";
   public final static String PARAMNAME_TRACE_TIME              = "xslweb.trace.time";
@@ -137,6 +139,7 @@ public class Definitions {
   
   public final static String PROPERTYNAME_TRUST_ALL_CERTS      = "xslweb.trustallcerts";
   public final static String PROPERTYNAME_PARSER_HARDENING     = "xslweb.parserhardening";
+  public final static String PROPERTYNAME_DEBUG_ENABLE         = "xslweb.debug.enable";
   public final static String PROPERTYNAME_WABDAV_ENABLE        = "xslweb.webdav.enable";
   public final static String PROPERTYNAME_WEBDAV_ROOT          = "xslweb.webdav.root";
   

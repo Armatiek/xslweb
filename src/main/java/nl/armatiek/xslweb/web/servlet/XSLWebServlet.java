@@ -95,6 +95,7 @@ import nl.armatiek.xslweb.pipeline.SystemTransformerStep;
 import nl.armatiek.xslweb.pipeline.TransformerSTXStep;
 import nl.armatiek.xslweb.pipeline.TransformerStep;
 import nl.armatiek.xslweb.pipeline.ZipSerializerStep;
+import nl.armatiek.xslweb.saxon.debug.DebugUtils;
 import nl.armatiek.xslweb.saxon.destination.SourceDestination;
 import nl.armatiek.xslweb.saxon.destination.TeeSourceDestination;
 import nl.armatiek.xslweb.saxon.destination.XdmSourceDestination;
@@ -379,6 +380,7 @@ public class XSLWebServlet extends HttpServlet {
         Xslt30Transformer transformer = templates.load30();
         SaxonUtils.setMessageEmitter(transformer.getUnderlyingController(), webApp.getConfiguration(), errorListener);
         transformer.setErrorListener(errorListener);
+        DebugUtils.setDebugTraceListener(webApp, req, transformer);
         Map<QName, XdmValue> stylesheetParameters = getStylesheetParameters((ParameterizablePipelineStep) step, 
             baseStylesheetParameters, extraStylesheetParameters);
         transformer.setStylesheetParameters(stylesheetParameters);
@@ -391,6 +393,7 @@ public class XSLWebServlet extends HttpServlet {
         XQueryExecutable xquery = webApp.getQuery(xqueryPath, errorListener);
         XQueryEvaluator eval = xquery.load();
         eval.setErrorListener(errorListener);
+        DebugUtils.setDebugTraceListener(webApp,  req, eval);
         Map<QName, XdmValue> stylesheetParameters = getStylesheetParameters((ParameterizablePipelineStep) step, 
             baseStylesheetParameters, extraStylesheetParameters);
         for (Map.Entry<QName, XdmValue> entry : stylesheetParameters.entrySet()) {

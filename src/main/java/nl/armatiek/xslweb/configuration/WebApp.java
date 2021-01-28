@@ -106,6 +106,7 @@ import net.sf.joost.trax.TrAXConstants;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.TransformerFactoryImpl;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
+import net.sf.saxon.lib.Feature;
 import net.sf.saxon.lib.NamespaceConstant;
 import net.sf.saxon.s9api.ExtensionFunction;
 import net.sf.saxon.s9api.Processor;
@@ -120,6 +121,7 @@ import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
+import net.sf.saxon.trace.TraceCodeInjector;
 import net.sf.saxon.xpath.XPathFactoryImpl;
 import net.sf.webdav.LocalFileSystemStore;
 import net.sf.webdav.WebDavServletBean;
@@ -128,6 +130,8 @@ import nl.armatiek.xslweb.joost.MessageEmitter;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
 import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
+import nl.armatiek.xslweb.saxon.debug.DebugTraceCodeInjector;
+import nl.armatiek.xslweb.saxon.debug.DebugXMLFilter;
 import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
 import nl.armatiek.xslweb.saxon.errrorlistener.ValidatorErrorHandler;
 import nl.armatiek.xslweb.saxon.utils.SaxonUtils;
@@ -157,6 +161,7 @@ public class WebApp implements ErrorHandler {
   private String title;
   private String description;
   private boolean developmentMode;
+  private boolean debugMode;
   private boolean waitForJobsAtClose;
   // private boolean disableCookieManagement;
   private int maxUploadSize;
@@ -217,6 +222,24 @@ public class WebApp implements ErrorHandler {
     this.description = (String) xpath.evaluate("webapp:description", docElem, XPathConstants.STRING);
     String devModeValue = (String) xpath.evaluate("webapp:development-mode", docElem, XPathConstants.STRING);
     this.developmentMode = XMLUtils.getBooleanValue(devModeValue, false); 
+    String debModeValue = (String) xpath.evaluate("webapp:debug-mode", docElem, XPathConstants.STRING);
+    this.debugMode = XMLUtils.getBooleanValue(debModeValue, false);
+    
+    if (context.getDebugEnable() && debugMode) {
+      Configuration config = this.configuration.getConfiguration();
+      config.setConfigurationProperty(Feature.STYLE_PARSER_CLASS, "nl.armatiek.xslweb.saxon.debug.DebugXMLReader");
+      config.setBooleanProperty(Feature.LINE_NUMBERING, true);
+      config.setBooleanProperty(Feature.ALLOW_MULTITHREADING, false);
+      config.setBooleanProperty(Feature.COMPILE_WITH_TRACING, true);
+      // config.setCompileWithTracing(true);
+      if (config.getDefaultXsltCompilerInfo() != null) {
+        config.getDefaultXsltCompilerInfo().setCodeInjector(new DebugTraceCodeInjector());
+      }
+      if (config.getDefaultStaticQueryContext() != null) {
+        config.getDefaultStaticQueryContext().setCodeInjector(new TraceCodeInjector());
+      }  
+    }
+
     String maxUploadSizeValue = (String) xpath.evaluate("webapp:max-upload-size", docElem, XPathConstants.STRING);
     this.maxUploadSize = XMLUtils.getIntegerValue(maxUploadSizeValue, 10);    
     String waitForJobsAtCloseValue = (String) xpath.evaluate("webapp:wait-for-jobs-at-close", docElem, XPathConstants.STRING);
@@ -542,6 +565,10 @@ public class WebApp implements ErrorHandler {
     return developmentMode;
   }
   
+  public boolean getDebugMode() {
+    return debugMode;
+  }
+  
   public int getMaxUploadSize() {
     return maxUploadSize;
   }
@@ -667,7 +694,12 @@ public class WebApp implements ErrorHandler {
         spf.setXIncludeAware(true);
         spf.setValidating(false);
         SAXParser parser = spf.newSAXParser();
-        XMLReader reader = parser.getXMLReader();        
+        XMLReader reader = parser.getXMLReader(); 
+        if (Context.getInstance().getDebugEnable() && debugMode) {
+          DebugXMLFilter debugXMLFilter = new DebugXMLFilter();
+          debugXMLFilter.setParent(reader);
+          reader = debugXMLFilter;
+        }
         Source source = new SAXSource(reader, new InputSource(transformationPath));         
         XsltCompiler comp = processor.newXsltCompiler();
         comp.setErrorListener(errorListener);

@@ -17,7 +17,6 @@
   <filter-mapping>
     <filter-name>Set Character Encoding</filter-name>
     <servlet-name>XSLWebServlet</servlet-name>
-    <url-pattern>/*</url-pattern>
   </filter-mapping>
 
   <filter>
@@ -27,7 +26,6 @@
   <filter-mapping>
     <filter-name>WebAppFilter</filter-name>
     <servlet-name>XSLWebServlet</servlet-name>
-    <url-pattern>/*</url-pattern>
   </filter-mapping>
   
   <filter>
@@ -37,7 +35,6 @@
   <filter-mapping>
     <filter-name>ShiroFilter</filter-name>
     <servlet-name>XSLWebServlet</servlet-name>
-    <url-pattern>/*</url-pattern>
     <dispatcher>REQUEST</dispatcher>
     <dispatcher>FORWARD</dispatcher>
     <dispatcher>INCLUDE</dispatcher>
@@ -51,7 +48,6 @@
   <filter-mapping>
     <filter-name>WebDavFilter</filter-name>
     <servlet-name>XSLWebServlet</servlet-name>
-    <url-pattern>/*</url-pattern>
   </filter-mapping>
   
   <filter>
@@ -61,7 +57,6 @@
   <filter-mapping>
     <filter-name>StaticResourceFilter</filter-name>
     <servlet-name>XSLWebServlet</servlet-name>
-    <url-pattern>/*</url-pattern>
   </filter-mapping>
   
   <filter>
@@ -71,7 +66,6 @@
   <filter-mapping>
     <filter-name>RequestSerializerFilter</filter-name>
     <servlet-name>XSLWebServlet</servlet-name>
-    <url-pattern>/*</url-pattern>
   </filter-mapping>
 
   <filter>
@@ -81,7 +75,6 @@
   <filter-mapping>
     <filter-name>PipelineGeneratorFilter</filter-name>
     <servlet-name>XSLWebServlet</servlet-name>
-    <url-pattern>/*</url-pattern>
   </filter-mapping>
 
   <filter>
@@ -91,7 +84,6 @@
   <filter-mapping>
     <filter-name>XSSEncodingFilter</filter-name>
     <servlet-name>XSLWebServlet</servlet-name>
-    <url-pattern>/*</url-pattern>
   </filter-mapping>
 
   <filter>
@@ -101,8 +93,26 @@
   <filter-mapping>
     <filter-name>CachingFilter</filter-name>
     <servlet-name>XSLWebServlet</servlet-name>
-    <url-pattern>/*</url-pattern>
   </filter-mapping>
+
+  <servlet>
+    <servlet-name>DebugServlet</servlet-name>
+    <servlet-class>nl.armatiek.xslweb.saxon.debug.DebugServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DebugServlet</servlet-name>
+    <url-pattern>/dbg-servlet/*</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>DebugSSEServlet</servlet-name>
+    <servlet-class>nl.armatiek.xslweb.saxon.debug.DebugSSEServlet</servlet-class>
+    <async-supported>true</async-supported>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DebugSSEServlet</servlet-name>
+    <url-pattern>/dbg-sse-servlet</url-pattern>
+  </servlet-mapping>
 
   <servlet>
     <servlet-name>XSLWebServlet</servlet-name>
@@ -112,7 +122,7 @@
     <servlet-name>XSLWebServlet</servlet-name>
     <url-pattern>/*</url-pattern>
   </servlet-mapping>
-
+  
   <listener>
     <listener-class>nl.armatiek.xslweb.web.listener.WebAppEventListener</listener-class>
   </listener>
