@@ -265,11 +265,23 @@ public class BreakpointInfo {
       }
       addRecord(json, recId++, "Context item", DebugUtils.getDisplayText(webApp, contextItem, "compact"), 
           addToSequenceMap(contextItem), false, false);
-      addRecord(json, recId++, "Context position", Integer.toString(context.getCurrentIterator().position()), (groupingKey == null), false); 
+      addRecord(json, recId++, "Context position", Integer.toString(context.getCurrentIterator().position()), false, false); 
       if (groupingKey != null) {
         addRecord(json, recId++, "Grouping key", DebugUtils.getDisplayText(webApp, groupingKey, "compact"), 
-            addToSequenceMap(groupingKey), true, false);
+            addToSequenceMap(groupingKey), false, false);
       }
+      String sysId = null;
+      int line = -1;
+      int col = -1;
+      if (contextItem instanceof NodeInfo) {
+        NodeInfo nodeInfo = (NodeInfo) contextItem;
+        sysId = nodeInfo.getSystemId();
+        line = nodeInfo.getLineNumber();
+        col = nodeInfo.getColumnNumber(); 
+      }
+      addRecord(json, recId++, "Source file", StringUtils.isEmpty(sysId) ? sysId : "n/a", false, false);
+      addRecord(json, recId++, "Line number", (line > -1) ? Integer.toString(line) : "n/a", false, false); 
+      addRecord(json, recId++, "Column number", (col > -1) ? Integer.toString(col) : "n/a", true, false);
     }
     json.append("],");
     

@@ -70,6 +70,18 @@ public abstract class DebugTraceListener implements TraceListener {
       logger.error("Error breaking thread", e);
     }
   }
+  
+  /*
+  protected int level(Traceable info) {
+    if (info instanceof TraceableComponent) {
+        return 1;
+    } if (info instanceof Instruction) {
+        return 2;
+    } else {
+        return 3;
+    }
+  }
+  */
 
   @Override
   public void leave(Traceable instruction) {
