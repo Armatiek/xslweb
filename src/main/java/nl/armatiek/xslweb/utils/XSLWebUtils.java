@@ -43,9 +43,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.lang3.StringUtils;
 
+import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmEmptySequence;
+import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.value.ObjectValue;
 import nl.armatiek.xslweb.configuration.Context;
@@ -162,6 +164,12 @@ public class XSLWebUtils {
     }
     if (webApp != null) {
       params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_WEBAPP, "webapp"),  XdmValue.wrap(new ObjectValue(webApp)));
+    }
+    if (req != null) {
+      NodeInfo requestXMLNode = (NodeInfo) req.getAttribute(Definitions.ATTRNAME_REQUESTXML);
+      if (requestXMLNode != null) {
+        params.put(new QName(Definitions.NAMESPACEURI_XSLWEB_REQUEST, "request-xml-doc"), new XdmNode(requestXMLNode));
+      }
     }
     
     /* Webapp parameters: */
