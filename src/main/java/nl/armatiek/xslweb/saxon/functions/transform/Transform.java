@@ -1,9 +1,12 @@
 package nl.armatiek.xslweb.saxon.functions.transform;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.ErrorListener;
 
 import net.sf.saxon.expr.StaticProperty;
@@ -27,6 +30,7 @@ import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.AtomicIterator;
 import net.sf.saxon.value.AtomicValue;
+import net.sf.saxon.value.ObjectValue;
 import net.sf.saxon.value.QNameValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
@@ -35,6 +39,7 @@ import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.saxon.debug.DebugUtils;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 import nl.armatiek.xslweb.saxon.utils.SaxonUtils;
+import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 /**
  * XPath extension function class for
@@ -63,7 +68,7 @@ public class Transform extends ExtensionFunctionDefinition {
 
   @Override
   public SequenceType[] getArgumentTypes() {    
-    return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.SINGLE_NODE, SequenceType.makeSequenceType(MapType.ANY_MAP_TYPE, StaticProperty.ALLOWS_ZERO_OR_ONE) };
+    return new SequenceType[] { SequenceType.SINGLE_STRING, SequenceType.NODE_SEQUENCE, SequenceType.makeSequenceType(MapType.ANY_MAP_TYPE, StaticProperty.ALLOWS_ZERO_OR_ONE) };
   }
 
   @Override
@@ -113,7 +118,6 @@ public class Transform extends ExtensionFunctionDefinition {
     public NodeInfo call(XPathContext context, Sequence[] arguments) throws XPathException {
       try {
         String xslPath = ((StringValue) arguments[0].head()).getStringValue(); 
-        NodeInfo contextItem = (NodeInfo) arguments[1].head(); 
         WebApp webApp = this.getWebApp(context);
         ErrorListener errorListener = ((ErrorReporterToListener) context.getErrorReporter()).getErrorListener();
         xslPath = new File(webApp.getHomeDir(), "xsl/" + xslPath).getAbsolutePath();
@@ -122,18 +126,31 @@ public class Transform extends ExtensionFunctionDefinition {
         SaxonUtils.setMessageEmitter(transformer.getUnderlyingController(), webApp.getConfiguration(), errorListener);
         transformer.setErrorListener(errorListener);
         DebugUtils.setDebugTraceListener(webApp, this.getRequest(context), transformer);
+        HttpServletRequest req = getRequest(context);
+        HttpServletResponse resp = getResponse(context);
+        Map<QName, XdmValue> stylesheetParams = XSLWebUtils.getStylesheetParameters(webApp, req, resp, webApp.getHomeDir());
         MapItem params;
         if (arguments.length > 2 && (params = (MapItem) arguments[2].head()) != null) {
           MapItem stylesheetParamsMap = (MapItem) params.get(new StringValue("stylesheet-params"));
           if (stylesheetParamsMap != null) {
-            Map<QName, XdmValue> stylesheetParams = new HashMap<QName, XdmValue>();
             processParams(stylesheetParamsMap, stylesheetParams, true);
             transformer.setStylesheetParameters(stylesheetParams);
           }
         }
-        transformer.setGlobalContextItem(new XdmNode(contextItem));
         XdmDestination dest = new XdmDestination();
-        transformer.applyTemplates(contextItem, dest);
+        ArrayList<XdmNode> nodeList = new ArrayList<XdmNode>();
+        SequenceIterator nodeIter = arguments[1].iterate();
+        Item item;
+        boolean first = true;
+        while ((item = nodeIter.next()) != null) {
+          XdmNode node = new XdmNode((NodeInfo) item);
+          if (first) {
+            transformer.setGlobalContextItem(node);
+            first = false;
+          }
+          nodeList.add(node);
+        }
+        transformer.applyTemplates(new XdmValue(nodeList), dest);
         return dest.getXdmNode().getUnderlyingNode();
       } catch (XPathException xpe) {
         throw xpe;
