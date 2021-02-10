@@ -592,7 +592,10 @@ Every XSLT stylesheet that is executed within XSLWeb is provided with a number o
 * _config:home-dir_: the path to the XSLWeb home directory (config = _\http://www.armatiek.com/xslweb/configuration_)
 * _config:webapp-dir_: the path to the base directory of the webapp.
 * _config:webapp-path_: The path in de url to the web application (“/” for the webapp _ROOT_ and _“/” + webapp-name_ for other webapps).
-* _config:development-mode_: whether the webapp runs in development-mode or production-mode.
+* _config:development-mode_: whether the webapp runs in development mode (true()) or production-mode (false()).
+* _config:debug-mode_: whether the webapp runs in debug mode or not.
+* _config:cache-buster-id_: see <<cache-busting>>.
+* _req:request-xml-doc_: the to XML serialized request object, which is also the input document of every pipeline (req = _\http://www.armatiek.com/xslweb/request_)
 * The Java HttpServletRequest, HttpServletResponse and WebApp objects. These are used in custom XPath extension functions.
 
 Pipeline stylesheets are also provided with any parameters that are defined within the element _pipeline:transformer_ in _request-dispatcher.xsl_. The parameter’s local name can be given a namespace using the attribute _uri_ and the type of the values can be specified using the attribute _type_. The value itself can be a sequence of atomic values.
@@ -735,6 +738,181 @@ The _cache-buster-id_ *does not have to be part of the filename of the physical 
 
 WARNING: Do not use the value of _cache-buster-id_ as part of the filenames of your physical files.  
 
+[#events]
+== Events
+
+A webapp's _/xsl_ folder can contain an optional stylesheet named _events.xsl_ in which xslt template rules can be specified that are executed at specific events. These events are:
+
+* _event:webapp-open_: Executed when a webapp is started/opened. In this template initialization code can be executed.
+* _event:webapp-close_: Executed when a webapp is stopped/closed.
+* _event:webapp-reload_: Executed when the webapp is reloaded, for example because a stylesheet has changed.
+
+.Events example
+[source,xml]
+----
+<xsl:stylesheet 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:file="http://expath.org/ns/file"
+  xmlns:config="http://www.armatiek.com/xslweb/configuration"
+  xmlns:webapp="http://www.armatiek.com/xslweb/functions/webapp"
+  xmlns:event="http://www.armatiek.com/xslweb/event"
+  xmlns:xw="http://www.armatiek.com/xslweb/functions"
+  exclude-result-prefixes="#all"
+  version="3.0">
+  
+  <xsl:param name="config:webapp-dir" as="xs:string"/>
+
+  <xsl:include href="../../common/xsl/lib/xslweb/xslweb.xsl"/>
+
+  <xsl:template match="event:webapp-open">
+    <xsl:call-template name="cache-valuelists"/>
+  </xsl:template>
+  
+  <xsl:template match="event:webapp-close"/>
+    
+  <xsl:template match="event:webapp-reload"/>
+  
+  <xsl:template name="cache-valuelists">
+    <xsl:variable name="valuelists-dir" select="$config:webapp-dir || file:dir-separator() || 'xsl' || file:dir-separator() || 'valuelists'" as="xs:string"/>
+    <xsl:for-each select="file:list($valuelists-dir)">
+      <xsl:variable name="valuelist-doc" select="document(xw:path-to-file-uri($valuelists-dir || file:dir-separator() || .))" as="document-node()"/>
+      <xsl:variable name="valuelist-name" select="substring-before(., '.xml')" as="xs:string"/>
+      <xsl:sequence select="webapp:set-attribute('valuelist-' || $valuelist-name, $valuelist-doc)"/>
+    </xsl:for-each>
+  </xsl:template>
+
+</xsl:stylesheet>
+----
+
+[#xss]
+== Cross Site Scripting (XSS) prevention
+
+Cross-Site Scripting (XSS) attacks are a type of injection, in which malicious scripts are injected into otherwise benign and trusted websites. XSS attacks occur when an attacker uses a web application to send malicious code, generally in the form of a browser side script, to a different end user. Flaws that allow these attacks to succeed are quite widespread and occur anywhere a web application uses input from a user within the output it generates without validating or encoding it.
+
+XSLWeb can help to prevent XSS attacks by following these steps:
+
+* Specify an _xss-filter_ pipeline step as the first step in a pipeline that must be protected. The _xss-filter_ pipeline step supports an optional attribute _methods_ in which one or more types of data (contexts) can be specified (space separated) in which unsafe/untrusted data can occur and thefore must be encoded in the final HTML (so that it can not contain executable Javascript code). For performance reasons, the _xss-filter_ pipeline step will only perform encoding of data if it finds potential unsafe/untrusted data in the HTTP request's form or query string parameters. In that case the request attribute _xslweb.xssfiltering_ is set to _true()_. The types of data that can be encoded, abbreviated by a two letter code, are:  
+** _ht_: Encodes (X)HTML text content and text attributes (the default if no atribute _methods_ is specified)
+** _cs_: Encodes strings in CSS
+** _cu_: Encodes urls in CSS
+** _js_: Encodes strings (variable values) in JavaScript
+** _ur_: Performs percent-encoding for all component of a full URI, such as a query parameter name or value, path or query-string
+** _uc_: Performs percent-encoding for a component of a URI, such as a query parameter name or value, path or query-string
+** _xm_: Encodes XML and XHTML
+** _cd_: Encodes data for an XML CDATA section
+* At the and of a pipeline, add a additional transformation step that adds markup around all possible unsafe/untrusted data. The markup that must be used is dependent on the type of data (see above) and has the syntax: +
+'[[%ht' + _text-to-encode_ + '%]]' 
+ 
+Example:
+
+.Request dispatcher stylesheet
+[source,xml]
+----
+<xsl:stylesheet
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:req="http://www.armatiek.com/xslweb/request"
+  xmlns:pipeline="http://www.armatiek.com/xslweb/pipeline"
+  version="3.0">
+  
+  <xsl:template match="/req:request[req:path = '/hello-world.html']">
+    <pipeline:pipeline>
+      <pipeline:xss-filter methods="ht js"/>
+      <pipeline:transformer name="hello-world" xsl-path="hello-world.xsl"/>
+      <pipeline:transformer name="xss-encode" xsl-path="xss-encode.xsl"/>
+    </pipeline:pipeline>
+  </xsl:template>
+  
+</xsl:stylesheet>
+---- 
+ 
+.xss-encode.xsl
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:map="http://www.w3.org/2005/xpath-functions/map"
+  xmlns:req="http://www.armatiek.com/xslweb/request"
+  xmlns:resp="http://www.armatiek.com/xslweb/response"
+  exclude-result-prefixes="#all"
+  version="3.0">
+    
+  <xsl:mode on-no-match="shallow-copy"/>
+
+  <!-- Attribute names for which the values must not be encoded: -->  
+  <xsl:variable name="attr-names" as="map(xs:string, xs:string)">
+    <xsl:map>
+      <!-- 
+      Unsafe variable data within event handler attributes must already be 
+      marked in prior transformation steps:
+      -->
+      <xsl:map-entry key="'onload'" select="''"/>	      
+      <xsl:map-entry key="'onunload'" select="''"/>	
+      <xsl:map-entry key="'onchange'" select="''"/>	
+      <xsl:map-entry key="'onfocus'" select="''"/>	      
+      <xsl:map-entry key="'oninput'" select="''"/>
+      <xsl:map-entry key="'onselect'" select="''"/>
+      <xsl:map-entry key="'onsubmit'" select="''"/>
+      <xsl:map-entry key="'onkeydown'" select="''"/>
+      <xsl:map-entry key="'onkeypress'" select="''"/>
+      <xsl:map-entry key="'onkeyup'" select="''"/>
+      <xsl:map-entry key="'onclick'" select="''"/>
+      <xsl:map-entry key="'ondblclick'" select="''"/>
+      <!-- 
+      Values of the following attributes are already safe when 
+      encode-for-uri() is used when constructing the url: 
+      -->
+      <xsl:map-entry key="'href'" select="''"/>
+      <xsl:map-entry key="'src'" select="''"/>
+      <xsl:map-entry key="'action'" select="''"/>
+    </xsl:map>
+  </xsl:variable>
+   
+  <xsl:template match="/">
+    <xsl:choose>
+      <xsl:when test="req:get-attribute('xslweb.xssfiltering')">
+        <!-- 
+        XSLWeb has found potential unsage/untrusted data, so we must
+        encode text:
+        -->
+        <xsl:apply-templates select="node()"/>  
+      </xsl:when>
+      <xsl:otherwise>
+        <!-- 
+        XSLWeb has not found potential unsage/untrusted data, so there
+        is no need to encode text:
+        -->
+        <xsl:sequence select="."/> 
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  
+  <!-- 
+  Leave Javascript untouched, unsafe data (ie variables) within 
+  javascript block and attributes must already be marked in prior 
+  transformation steps: 
+  -->
+  <xsl:template match="script|@*[map:contains($attr-names, lower-case(local-name()))]" priority="2">
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()"/>
+    </xsl:copy>
+  </xsl:template>
+  
+  <xsl:template match="@*"> 
+    <xsl:attribute name="{local-name()}">
+      <xsl:value-of select="'[[%ht' || . || '%]]'"/>
+    </xsl:attribute>
+  </xsl:template>
+  
+  <xsl:template match="text()">
+    <xsl:value-of select="'[[%ht' || . || '%]]'"/>
+  </xsl:template>
+  
+</xsl:stylesheet>
+---- 
+ 
 [#job-scheduling]
 == Job scheduling
 
@@ -2490,6 +2668,45 @@ function sql:resultset-to-node($resultset as java.sql.ResultSet) as element()
 Returns an XML representation of the complete ResultSet.
 
 See example 22 how to use some of the sql extension functions.
+
+[#transform-functions]
+=== Transformation
+
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/transformation_. In the function signatures below this namespace uri is bound to the prefix _tf_.
+
+Functions:
+
+[source,xquery]
+----
+function tf:transform($path as xs:string, $nodes as node()+, $options as map(*)) as document-node()
+----
+
+Transforms $nodes using the XSLT stylesheet on $path with $options to the result document, using the first node in $nodes as global context item. $path is a path relative to the webapp's /xsl directory. $options currently only supports the option $stylesheets-params.  
+
+This function can be used everywhere the standard XPath 3.1 function https://www.w3.org/TR/xpath-functions-31/#func-transform[fn:transform] can be used, but this function will cache the compiled XSLT stylesheet, all XSLWeb XPath extension functions will be available in the transformation, and debugging of the stylesheet is supported.
+
+Example:
+
+[source,xml]
+----
+<xsl:variable name="my-doc" as="document-node()">
+  <xsl:document>
+    <p>Hello World</p>
+  </xsl:document>
+</xsl:variable>
+
+<xsl:variable name="options" as="map(xs:string, item()*)">
+  <xsl:map>
+    <xsl:map-entry key="'stylesheet-params'">
+      <xsl:map>
+        <xsl:map-entry key="QName((),'my-param-1')" select="'my-value-1'"/>         
+        <xsl:map-entry key="QName((),'my-param-2')" select="15"/>         
+      </xsl:map>
+    </xsl:map-entry>
+  </xsl:map>
+</xsl:variable>
+<xsl:sequence select="tf:transform('my-transformation.xsl', $my-doc, $options)"/>
+----
 
 [#custom-extension-functions]
 === Custom extension functions
