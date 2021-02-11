@@ -589,13 +589,13 @@ See also example 24 of the _examples_ webapp.
 Every XSLT stylesheet that is executed within XSLWeb is provided with a number of stylesheet parameters:
 
 * The configuration parameters from the parameters section in the _webapp.xml_. The parameter’s local name can be given a namespace using the attribute _uri_ and the type of the values can be specified using the attribute _type_. The value itself can be a sequence of atomic values.
-* _config:home-dir_: the path to the XSLWeb home directory (config = _\http://www.armatiek.com/xslweb/configuration_)
-* _config:webapp-dir_: the path to the base directory of the webapp.
-* _config:webapp-path_: The path in de url to the web application (“/” for the webapp _ROOT_ and _“/” + webapp-name_ for other webapps).
-* _config:development-mode_: whether the webapp runs in development mode (true()) or production-mode (false()).
-* _config:debug-mode_: whether the webapp runs in debug mode or not.
-* _config:cache-buster-id_: see <<cache-busting>>.
-* _req:request-xml-doc_: the to XML serialized request object, which is also the input document of every pipeline (req = _\http://www.armatiek.com/xslweb/request_)
+* _config:home-dir_ (xs:string): the path to the XSLWeb home directory (config = _\http://www.armatiek.com/xslweb/configuration_)
+* _config:webapp-dir_ (xs:string): the path to the base directory of the webapp.
+* _config:webapp-path_ (xs:string): The path in de url to the web application (“/” for the webapp _ROOT_ and _“/” + webapp-name_ for other webapps).
+* _config:development-mode_ (xs:boolean): whether the webapp runs in development mode (true()) or production-mode (false()).
+* _config:debug-mode_ (xs:boolean): whether the webapp runs in debug mode or not.
+* _config:cache-buster-id_ (xs:string): see <<cache-busting>>.
+* _req:request-xml-doc_ (document-node()): the request object, serialized to XML, which is also the input document of every pipeline (req = _\http://www.armatiek.com/xslweb/request_)
 * The Java HttpServletRequest, HttpServletResponse and WebApp objects. These are used in custom XPath extension functions.
 
 Pipeline stylesheets are also provided with any parameters that are defined within the element _pipeline:transformer_ in _request-dispatcher.xsl_. The parameter’s local name can be given a namespace using the attribute _uri_ and the type of the values can be specified using the attribute _type_. The value itself can be a sequence of atomic values.
@@ -2681,7 +2681,7 @@ Functions:
 function tf:transform($path as xs:string, $nodes as node()+, $options as map(*)) as document-node()
 ----
 
-Transforms $nodes using the XSLT stylesheet on $path with $options to the result document, using the first node in $nodes as global context item. $path is a path relative to the webapp's /xsl directory. $options currently only supports the option $stylesheets-params.  
+Transforms $nodes using the XSLT stylesheet on $path with $options to the result document, using the first node in $nodes as global context item. $path is a path relative to the webapp's /xsl directory. $options currently only supports the option _stylesheets-params_.  
 
 This function can be used everywhere the standard XPath 3.1 function https://www.w3.org/TR/xpath-functions-31/#func-transform[fn:transform] can be used, but this function will cache the compiled XSLT stylesheet, all XSLWeb XPath extension functions will be available in the transformation, and debugging of the stylesheet is supported.
 
