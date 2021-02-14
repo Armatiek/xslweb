@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import info.macias.sse.servlet3.ServletEventTarget;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 
@@ -44,7 +45,13 @@ public class DebugSSEServlet extends HttpServlet {
       resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "No active session");
       return;
     }
-    session.setAttribute(Definitions.ATTRNAME_DEBUGCLIENT, new DebugClient(req));
+    ServletEventTarget eventTarget = new ServletEventTarget(req).ok().open();
+    DebugClient debugClient = (DebugClient) session.getAttribute(Definitions.ATTRNAME_DEBUGCLIENT);
+    if (debugClient == null) {
+      debugClient = new DebugClient(req);
+      session.setAttribute(Definitions.ATTRNAME_DEBUGCLIENT, debugClient);  
+    }
+    debugClient.setServletEventTarget(eventTarget);
   }
   
-}
+} 

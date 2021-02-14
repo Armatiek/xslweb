@@ -279,7 +279,7 @@ public class BreakpointInfo {
         line = nodeInfo.getLineNumber();
         col = nodeInfo.getColumnNumber(); 
       }
-      addRecord(json, recId++, "Source file", StringUtils.isEmpty(sysId) ? sysId : "n/a", false, false);
+      addRecord(json, recId++, "Source file", StringUtils.isNotEmpty(sysId) ? sysId : "n/a", false, false);
       addRecord(json, recId++, "Line number", (line > -1) ? Integer.toString(line) : "n/a", false, false); 
       addRecord(json, recId++, "Column number", (col > -1) ? Integer.toString(col) : "n/a", true, false);
     }

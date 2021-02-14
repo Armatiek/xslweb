@@ -17,15 +17,18 @@
 package nl.armatiek.xslweb.saxon.debug;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +52,7 @@ public class DebugClient {
   
   private static final int MAX_BREAKPOINTS = 256;
   
+  private HttpServletRequest req;
   private ServletEventTarget eventTarget;
   private Map<String, Map<Integer, Breakpoint>> breakpoints;
   private BreakpointInfo currentBreakpointInfo;
@@ -58,8 +62,27 @@ public class DebugClient {
   private final static Object obj = new Object();
   
   public DebugClient(HttpServletRequest req) throws IOException {
-    this.eventTarget = new ServletEventTarget(req).ok().open();
+    this.req = req;
     this.breakpoints = new TreeMap<String, Map<Integer, Breakpoint>>();
+  }
+  
+  public void setServletEventTarget(ServletEventTarget eventTarget) throws IOException {
+    this.eventTarget = eventTarget;
+    for (Cookie cookie: req.getCookies()) {
+      if ("breakpoints".equals(cookie.getName())) {
+        JSONObject breakpointJson = new JSONObject(URLDecoder.decode(cookie.getValue(), "UTF-8"));
+        for (String key: breakpointJson.keySet()) {
+          JSONObject breakpoint = breakpointJson.getJSONObject(key);
+          setBreakpoint(
+              breakpoint.getString("path"), 
+              breakpoint.getInt("line"), 
+              breakpoint.optInt("column", -1), 
+              breakpoint.optString("condition", null), 
+              breakpoint.optBoolean("active", true));
+        }
+        break;
+      }
+    }
   }
   
   public boolean isActive() {
@@ -70,10 +93,7 @@ public class DebugClient {
     this.active = active;
   }
 
-  public void setBreakpoint(String path, int line) throws IOException {
-    if (!isWebAppInDebugMode(path)) {
-      throw new XSLWebException("Webapp not found or not in debug mode");
-    }
+  public void setBreakpoint(String path, int line, int column, String condition, boolean active) throws IOException {
     if (breakpoints.size() >= MAX_BREAKPOINTS) {
       throw new XSLWebException("Maximum number of breakpoints reached");
     }
@@ -82,7 +102,7 @@ public class DebugClient {
       breakpointsForPath = new TreeMap<Integer, Breakpoint>();
       breakpoints.put(path, breakpointsForPath);
     }
-    breakpointsForPath.put(line, new Breakpoint(path, line, -1, null, true));
+    breakpointsForPath.put(line, new Breakpoint(path, line, column, condition, active));
     send("setBreakpoint", path + "#" + line);
   }
   
@@ -195,9 +215,10 @@ public class DebugClient {
     return currentBreakpointInfo.getSerializedSequence(id);
   }
   
+  /*
   public void openPipeline() {
     try {
-      send("openPipeline", "-");
+      send("openPipeline", "Pipeline opened");
     } catch (IOException ioe) {
       logger.error("Error notifying pipeline open", ioe);
     }
@@ -205,11 +226,12 @@ public class DebugClient {
   
   public void closePipeline() {
     try {
-      send("closePipeline", "-");
+      send("closePipeline", "Pipeline closed");
     } catch (IOException ioe) {
       logger.error("Error notifying pipeline close", ioe);
     }
   }
+  */
   
   public void sendError(String error) throws IOException {
     send("error", error);

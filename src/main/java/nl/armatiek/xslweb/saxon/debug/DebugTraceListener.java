@@ -106,12 +106,12 @@ public abstract class DebugTraceListener implements TraceListener {
 
   @Override
   public void open(Controller controller) { 
-    client.openPipeline();
+    // client.openPipeline();
   }
 
   @Override
   public void close() { 
-    client.closePipeline();
+    // client.closePipeline();
   }
 
   @Override

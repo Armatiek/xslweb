@@ -56,10 +56,11 @@ public class DebugServlet extends HttpServlet {
     String jsonText = null;
     String errorText = null;  
     String data = "{}";
-    HttpSession session = req.getSession(false);
-    DebugClient client = (session != null) ? (DebugClient) session.getAttribute(Definitions.ATTRNAME_DEBUGCLIENT) : null;  
+    HttpSession session = req.getSession(true);  
     try {
-      if (path.equals("/get-file-contents")) {
+      if (path.equals("/refresh-session")) {
+        responseText = "Session refreshed";
+      } else if (path.equals("/get-file-contents")) {
         File webappsDir = new File(Context.getInstance().getHomeDir(), "webapps");
         File file = new File(webappsDir, req.getParameter("path"));
         if (path.contains("..") || !file.exists()) {
@@ -88,6 +89,8 @@ public class DebugServlet extends HttpServlet {
         return;
       }
       
+      DebugClient client = (DebugClient) session.getAttribute(Definitions.ATTRNAME_DEBUGCLIENT);  
+      
       if (client == null) {
         errorText = "No active session or no debug client object available";
       } if (path.equals("/activate-debug-session")) {
@@ -101,7 +104,7 @@ public class DebugServlet extends HttpServlet {
         session.removeAttribute(Definitions.ATTRNAME_DEBUGCLIENT);
         responseText = "Debug session closed";
       } else if (path.equals("/set-breakpoint")) {
-        client.setBreakpoint(req.getParameter("path"), Integer.parseInt(req.getParameter("line")));
+        client.setBreakpoint(req.getParameter("path"), Integer.parseInt(req.getParameter("line")), -1, null, true);
         responseText = "Breakpoint set";
       } else if (path.equals("/remove-breakpoint")) {
         client.removeBreakpoint(req.getParameter("path"), Integer.parseInt(req.getParameter("line")));
@@ -130,8 +133,6 @@ public class DebugServlet extends HttpServlet {
         responseText = client.evaluateXPath(req.getParameter("expression"));
       } else if (path.equals("/get-serialized-sequence")) {
         responseText = client.getSerializedSequence(req.getParameter("id"));
-      } else if (path.equals("/refresh-session")) {
-        responseText = "Session refreshed";
       }
     } catch (Exception e) {
       errorText = e.getMessage();
