@@ -146,6 +146,22 @@
         </dependency>
       </dependencies>
     </profile>
+    <profile>
+      <!--
+      Saxon SNAPSHOT (HE):
+      - Build Saxon jar from the latest development sources (svn/trunk, git/master) and rename the jar to Saxon-HE-10.SNAPSHOT.jar 
+      - Register the jar in your local Maven repository:
+      mvn install:install-file -Dfile=Saxon-HE-10.SNAPSHOT.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-HE -Dversion=10.SNAPSHOT -Dpackaging=jar
+      -->
+      <id>Saxon-SNAPSHOT</id>
+      <dependencies>
+        <dependency>
+          <groupId>net.sf.saxon</groupId>
+          <artifactId>Saxon-HE</artifactId>            
+          <version>10.SNAPSHOT</version>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
   
   <dependencies>
