@@ -16,10 +16,6 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <xsl:template match="/req:request[req:path = '/get-file-contents']" priority="2.0">    
-    <pipeline:transformer name="get-file-contents" xsl-path="get-file-contents.xsl" log="false"/>
-  </xsl:template>
-  
   <xsl:template match="/req:request">    
     <pipeline:transformer name="debugger" xsl-path="debugger.xsl" log="false"/>
   </xsl:template>
