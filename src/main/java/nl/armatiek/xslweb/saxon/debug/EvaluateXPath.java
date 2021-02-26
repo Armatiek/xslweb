@@ -147,7 +147,7 @@ public class EvaluateXPath {
     return selector;
   }
   
-  public static String serializedStringValue(BreakpointInfo breakpointInfo, XPathContext context, String expression) throws SaxonApiException, XPathException {
+  public static String serializedStringValue(BreakpointInfo breakpointInfo, XPathContext context, String expression) throws Exception, XPathException {
     XPathSelector selector = getXPathSelector(breakpointInfo, context, expression);
     XdmValue result = selector.evaluate();
     WebApp webApp = breakpointInfo.getWebApp();

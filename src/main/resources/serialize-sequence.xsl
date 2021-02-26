@@ -93,9 +93,6 @@
                   </xsl:for-each>  
                 </dbg:map>
               </xsl:when>
-              <xsl:when test=". instance of function(*)">
-                <dbg:function name="{function-name(.)}" arity="{function-arity(.)}"/>
-              </xsl:when>
               <xsl:when test=". instance of array(*)">
                 <dbg:array count="{array:size(.)}">
                   <xsl:variable name="array" select="." as="array(*)"/>
@@ -107,6 +104,9 @@
                     </dbg:array-member>
                   </xsl:for-each>  
                 </dbg:array>  
+              </xsl:when>
+              <xsl:when test=". instance of function(*)">
+                <dbg:function name="{function-name(.)}" arity="{function-arity(.)}"/>
               </xsl:when>
             </xsl:choose>  
           </xsl:for-each>
@@ -198,7 +198,7 @@
     <xsl:text> : </xsl:text>
   </xsl:template>
   
-  <xsl:template match="(dbg:sequence|dbg:array|dbg:map)/dbg:*" mode="compact">
+  <xsl:template match="(dbg:sequence|dbg:array|dbg:map)/dbg:*" mode="compact" priority="2">
     <xsl:next-match/>
     <xsl:if test="not(position() = last())">, </xsl:if>
   </xsl:template>

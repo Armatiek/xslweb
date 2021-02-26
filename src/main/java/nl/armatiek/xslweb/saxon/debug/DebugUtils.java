@@ -21,25 +21,19 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.xml.transform.stream.StreamSource;
 
 import net.sf.saxon.lib.TraceListener;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.s9api.QName;
-import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XQueryEvaluator;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.Xslt30Transformer;
-import net.sf.saxon.s9api.XsltCompiler;
-import net.sf.saxon.s9api.XsltExecutable;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 
 public class DebugUtils {
-  
-  private static XsltExecutable serializeSequenceXsltExecutable;
   
   public static void setDebugTraceListener(WebApp webApp, HttpServletRequest req, Object controller) {
     if (Context.getInstance().getDebugEnable() && webApp.getDebugMode()) {
@@ -58,16 +52,11 @@ public class DebugUtils {
     }
   }
   
-  public static String getDisplayText(WebApp webApp, Sequence seq, String displayMode) throws SaxonApiException {
+  public static String getDisplayText(WebApp webApp, Sequence seq, String displayMode) throws Exception {
     if (seq == null) {
       return "";
     }
-    if (serializeSequenceXsltExecutable == null) {
-      StreamSource source = new StreamSource(webApp.getClass().getClassLoader().getResourceAsStream("serialize-sequence.xsl"));
-      XsltCompiler comp = webApp.getProcessor().newXsltCompiler();
-      serializeSequenceXsltExecutable = comp.compile(source);
-    }
-    Xslt30Transformer trans = serializeSequenceXsltExecutable.load30();
+    Xslt30Transformer trans = webApp.tryXsltExecutableCache("classpath:serialize-sequence.xsl", null, true).load30();
     Map<QName, XdmValue> params = new HashMap<QName, XdmValue>();
     params.put(new QName("sequence"), XdmValue.wrap(seq));
     params.put(new QName("display-mode"), new XdmAtomicValue(displayMode));

@@ -39,9 +39,7 @@ import net.sf.saxon.expr.instruct.GlobalParam;
 import net.sf.saxon.expr.instruct.GlobalVariable;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.s9api.Location;
-import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.trace.Traceable;
-import net.sf.saxon.trans.XPathException;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.error.XSLWebException;
@@ -201,14 +199,14 @@ public class DebugClient {
     }
   }
   
-  public String evaluateXPath(String expression) throws XPathException, SaxonApiException {
+  public String evaluateXPath(String expression) throws Exception {
     if (currentBreakpointInfo == null || currentBreakpointInfo.getContext() == null) {
       return "No current context";
     }
     return EvaluateXPath.serializedStringValue(currentBreakpointInfo, currentBreakpointInfo.getContext(), expression);
   }
   
-  public String getSerializedSequence(String id) throws SaxonApiException {
+  public String getSerializedSequence(String id) throws Exception {
     if (currentBreakpointInfo == null || currentBreakpointInfo.getContext() == null) {
       return "No current context";
     }
@@ -259,7 +257,7 @@ public class DebugClient {
   
   public void breakThread(WebApp webApp, Traceable instruction, Map<String, Object> properties, XPathContext context, 
       Item currentItem, List<GlobalParam> globalParams, List<GlobalVariable> globalVariables, 
-      String instructionLabel) throws IOException, SaxonApiException {
+      String instructionLabel) throws Exception {
     Location loc = instruction.getLocation();
     String path = StringUtils.substringAfterLast(loc.getSystemId(), "/webapps");
     Integer line = loc.getLineNumber() - 1;

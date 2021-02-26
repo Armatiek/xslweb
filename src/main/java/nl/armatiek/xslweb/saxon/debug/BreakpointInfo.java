@@ -16,7 +16,6 @@
  */
 package nl.armatiek.xslweb.saxon.debug;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,7 +51,6 @@ import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.s9api.Location;
-import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.trace.ContextStackFrame;
 import net.sf.saxon.trace.ContextStackFrame.ApplyTemplates;
 import net.sf.saxon.trace.ContextStackFrame.BuiltInTemplateRule;
@@ -124,11 +122,11 @@ public class BreakpointInfo {
     return globalVariables;
   }
  
-  public String getSerializedSequence(String id) throws SaxonApiException {
+  public String getSerializedSequence(String id) throws Exception {
     return DebugUtils.getDisplayText(webApp, sequenceMap.get(id), "expanded");
   }
   
-  public String toJSON() throws IOException, SaxonApiException {
+  public String toJSON() throws Exception {
     sequenceMap.clear();
     Location loc = instruction.getLocation();
     StringBuilder json = new StringBuilder();
@@ -418,7 +416,7 @@ public class BreakpointInfo {
     return key;
   }
   
-  private int showParameterSet(ParameterSet params, StringBuilder json, int recId, Set<StructuredQName> paramNames, Set<StructuredQName> skipNames) throws SaxonApiException {
+  private int showParameterSet(ParameterSet params, StringBuilder json, int recId, Set<StructuredQName> paramNames, Set<StructuredQName> skipNames) throws Exception {
     ParameterSet ps;
     try {
       ps = new ParameterSet(params, 0);

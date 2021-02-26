@@ -683,7 +683,7 @@ public class WebApp implements ErrorHandler {
     return null;
   }
   
-  public XsltExecutable tryXsltExecutableCache(String transformationPath, ErrorListener errorListener) throws Exception {
+  public XsltExecutable tryXsltExecutableCache(String transformationPath, ErrorListener errorListener, boolean cache) throws Exception {
     String key = FilenameUtils.normalize(transformationPath);
     XsltExecutable xsltExecutable = xsltExecutableCache.get(key);    
     if (xsltExecutable == null) {
@@ -700,23 +700,34 @@ public class WebApp implements ErrorHandler {
           debugXMLFilter.setParent(reader);
           reader = debugXMLFilter;
         }
-        Source source = new SAXSource(reader, new InputSource(transformationPath));         
+        Source source;
+        if (transformationPath.startsWith("classpath:")) {
+          source = new StreamSource(getClass().getClassLoader().getResourceAsStream(StringUtils.substringAfter(transformationPath, ":")));
+        } else {
+          source = new SAXSource(reader, new InputSource(transformationPath));
+        }      
         XsltCompiler comp = processor.newXsltCompiler();
-        comp.setErrorListener(errorListener);
+        if (errorListener != null) {
+          comp.setErrorListener(errorListener);
+        }
         xsltExecutable = comp.compile(source);        
       } catch (Exception e) {
         logger.error("Could not compile XSLT stylesheet \"" + transformationPath + "\"", e);
         throw e;
       }      
-      if (!developmentMode) {
+      if (!developmentMode || cache) {
         xsltExecutableCache.put(key, xsltExecutable);
       }      
     }
     return xsltExecutable;
   }
   
+  public XsltExecutable tryXsltExecutableCache(String transformationPath, ErrorListener errorListener) throws Exception {
+    return tryXsltExecutableCache(transformationPath, errorListener, false);
+  }
+  
   public Templates tryTemplatesCache(String transformationPath,  
-      ErrorListener errorListener) throws Exception {
+      ErrorListener errorListener, boolean cache) throws Exception {
     String key = FilenameUtils.normalize(transformationPath);
     Templates templates = templatesCache.get(key);    
     if (templates == null) {
@@ -727,21 +738,32 @@ public class WebApp implements ErrorHandler {
         spf.setXIncludeAware(true);
         spf.setValidating(false);
         SAXParser parser = spf.newSAXParser();
-        XMLReader reader = parser.getXMLReader();        
-        Source source = new SAXSource(reader, new InputSource(transformationPath));         
+        XMLReader reader = parser.getXMLReader(); 
+        Source source;
+        if (transformationPath.startsWith("classpath:")) {
+          source = new StreamSource(getClass().getClassLoader().getResourceAsStream(StringUtils.substringAfter(transformationPath, ":")));
+        } else {
+          source = new SAXSource(reader, new InputSource(transformationPath));
+        }
         net.sf.joost.trax.TransformerFactoryImpl tfi = new net.sf.joost.trax.TransformerFactoryImpl();
         tfi.setAttribute(TrAXConstants.MESSAGE_EMITTER_CLASS, new MessageEmitter());
-        tfi.setErrorListener(errorListener);
+        if (errorListener != null) {
+          tfi.setErrorListener(errorListener);
+        };
         templates = tfi.newTemplates(source);
       } catch (Exception e) {
         logger.error("Could not compile STX stylesheet \"" + transformationPath + "\"", e);
         throw e;
       }      
-      if (!developmentMode) {
+      if (!developmentMode || cache) {
         templatesCache.put(key, templates);
       }      
     }
     return templates;
+  }
+  
+  public Templates tryTemplatesCache(String transformationPath, ErrorListener errorListener) throws Exception {
+    return tryTemplatesCache(transformationPath, errorListener, false);
   }
   
   public XQueryExecutable tryQueryCache(String xqueryPath, ErrorListener errorListener) throws Exception {
