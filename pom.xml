@@ -10,7 +10,7 @@
   <groupId>nl.armatiek.xslweb</groupId>
   <artifactId>xslweb</artifactId>
   <packaging>war</packaging> 
-  <version>4.0.0-RC2-SNAPSHOT</version>
+  <version>4.0.0-RC3-SNAPSHOT</version>
   
   <inceptionYear>2013</inceptionYear>
 

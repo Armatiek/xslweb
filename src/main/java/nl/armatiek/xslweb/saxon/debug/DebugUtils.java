@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import net.sf.saxon.lib.TraceListener;
 import net.sf.saxon.om.Sequence;
@@ -30,24 +29,19 @@ import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import nl.armatiek.xslweb.configuration.Context;
-import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 
 public class DebugUtils {
   
   public static void setDebugTraceListener(WebApp webApp, HttpServletRequest req, Object controller) {
     if (Context.getInstance().getDebugEnable() && webApp.getDebugMode()) {
-      HttpSession session = req.getSession(false);
-      DebugClient debugClient = (session != null) ? (DebugClient) session.getAttribute(Definitions.ATTRNAME_DEBUGCLIENT) : null;
-      if (debugClient != null) {
-        if (controller instanceof Xslt30Transformer) {
-          TraceListener traceListener = new XSLTDebugTraceListener(webApp, debugClient);
-          // TraceListener traceListener = new XSLTTraceListener();
-          ((Xslt30Transformer) controller).setTraceListener(traceListener);
-        } else if (controller instanceof XQueryEvaluator) {
-          TraceListener traceListener = new XQueryDebugTraceListener(webApp, debugClient); 
-          ((XQueryEvaluator) controller).setTraceListener(traceListener);
-        }
+      if (controller instanceof Xslt30Transformer) {
+        TraceListener traceListener = new XSLTDebugTraceListener(webApp);
+        // TraceListener traceListener = new XSLTTraceListener();
+        ((Xslt30Transformer) controller).setTraceListener(traceListener);
+      } else if (controller instanceof XQueryEvaluator) {
+        TraceListener traceListener = new XQueryDebugTraceListener(webApp); 
+        ((XQueryEvaluator) controller).setTraceListener(traceListener);
       }
     }
   }

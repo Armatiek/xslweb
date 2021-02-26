@@ -159,10 +159,8 @@ function startReconnectSSE() {
   }
   reconnectSSEIntervalId = setInterval(function() { 
     console.log("Trying to reconnect to SSE debug servlet ...");
-    $.get("dbg-servlet/refresh-session", function(data) {
-      console.log("Starting SSE ...");
-      sse.start();
-    });
+    console.log("Starting SSE ...");
+    sse.start();
   }, 2000);
 }
 

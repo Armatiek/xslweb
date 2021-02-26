@@ -39,16 +39,14 @@ public abstract class DebugTraceListener implements TraceListener {
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(DebugTraceListener.class);
 
   private WebApp webApp;
-  private DebugClient client;
   private Item currentItem;
   private Stack<GlobalParam> globalParamStack = new Stack<GlobalParam>();
   private ArrayList<GlobalParam> globalParams = new ArrayList<GlobalParam>();
   private Stack<GlobalVariable> globalVariableStack = new Stack<GlobalVariable>();
   private ArrayList<GlobalVariable> globalVariables = new ArrayList<GlobalVariable>();
   
-  public DebugTraceListener(WebApp webApp, DebugClient client) {
+  public DebugTraceListener(WebApp webApp) {
     this.webApp = webApp;
-    this.client = client;
   }
 
   @Override
@@ -64,7 +62,7 @@ public abstract class DebugTraceListener implements TraceListener {
       return;
     }
     try {
-      client.breakThread(webApp, instruction, properties, context, currentItem, 
+      DebugClient.getInstance().breakThread(webApp, instruction, properties, context, currentItem, 
           globalParams, globalVariables, getInstructionLabel(instruction));
     } catch (Exception e) {
       logger.error("Error breaking thread", e);

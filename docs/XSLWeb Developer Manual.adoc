@@ -31,8 +31,8 @@
 :underscore: _
 :docinfo: shared,shared-head
 :window-blank: _blank
-:xslweb-version: 4.0.0-RC2
-:xslweb-version-download: 4-0-0-RC2 
+:xslweb-version: 4.0.0-RC3
+:xslweb-version-download: 4-0-0-RC3 
 :saxon-version: 10.3
 :saxon-version-download: 10-3J 
 
@@ -3088,21 +3088,12 @@ The downloadable binaries of XSLWeb contain the open source Home Edition (HE) of
 
 * Install Java 1.8+, maven 2.2.1+ and make a clone of the git repository https://github.com/Armatiek/xslweb.git.
 * Purchase a PE or EE license from http://www.saxonica.com/.
-* Download the PE of EE package from https://www.saxonica.com/download/SaxonPE{saxon-version-download}.zip or https://www.saxonica.com/download/SaxonEE{saxon-version-download}.zip
-* Extract and register the jars in your local Maven repository using the following commands:
-** PE:
-*** mvn install:install-file -Dfile=saxon-pe-{saxon-version}.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion={saxon-version} -Dpackaging=jar
-*** mvn install:install-file -Dfile=icu4j-59.1.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-icu -Dversion={saxon-version} -Dpackaging=jar
-*** mvn install:install-file -Dfile=saxon-sql-{saxon-version}.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-PE-sql -Dversion={saxon-version} -Dpackaging=jar
-** EE:
-*** mvn install:install-file -Dfile=saxon-ee-{saxon-version}.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE -Dversion={saxon-version} -Dpackaging=jar
-*** mvn install:install-file -Dfile=icu4j-59.1.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-icu -Dversion={saxon-version} -Dpackaging=jar
-*** mvn install:install-file -Dfile=saxon-sql-{saxon-version}.jar -DgroupId=net.sf.saxon -DartifactId=Saxon-EE-sql -Dversion={saxon-version} -Dpackaging=jar
 * Place your purchased license file _saxon-license.lic_ in <<xslweb.home>>/config
 * Build XSLWeb with the maven profile “Saxon-PE” or “Saxon-EE”:
 ** mvn -PSaxon-PE clean install +
 or
 ** mvn -PSaxon-EE clean install
+* NOTE: the Saxon PE and EE jars will be downloaded during build from Saxonica's Maven repository at https://dev.saxonica.com/maven.
 
 [#appendix-request-xml-example]
 == Appendix A: Request XML example

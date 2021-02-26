@@ -37,7 +37,7 @@ import nl.armatiek.xslweb.saxon.functions.common.GetAttributeCall;
  */
 public class GetAttribute extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_SESSION, "get-attribute");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_SESSION, "get-attribute");
 
   @Override
   public StructuredQName getFunctionQName() {

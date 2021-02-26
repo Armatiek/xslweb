@@ -35,7 +35,7 @@ import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
  */
 public class SetMaxInactiveInterval extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_SESSION, "set-max-inactive-interval");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_SESSION, "set-max-inactive-interval");
 
   @Override
   public StructuredQName getFunctionQName() {

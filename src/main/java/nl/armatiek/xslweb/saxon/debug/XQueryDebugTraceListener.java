@@ -28,8 +28,8 @@ import nl.armatiek.xslweb.configuration.WebApp;
 
 public class XQueryDebugTraceListener extends DebugTraceListener {
 
-  public XQueryDebugTraceListener(WebApp webApp, DebugClient client) {
-    super(webApp, client);
+  public XQueryDebugTraceListener(WebApp webApp) {
+    super(webApp);
   }
 
   @Override

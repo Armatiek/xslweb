@@ -29,7 +29,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -38,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
 import nl.armatiek.xslweb.configuration.Context;
-import nl.armatiek.xslweb.configuration.Definitions;
 
 @WebServlet(asyncSupported = true)
 public class DebugServlet extends HttpServlet {
@@ -56,7 +54,6 @@ public class DebugServlet extends HttpServlet {
     String jsonText = null;
     String errorText = null;  
     String data = "{}";
-    HttpSession session = req.getSession(true);  
     try {
       if (path.equals("/refresh-session")) {
         responseText = "Session refreshed";
@@ -89,11 +86,9 @@ public class DebugServlet extends HttpServlet {
         return;
       }
       
-      DebugClient client = (DebugClient) session.getAttribute(Definitions.ATTRNAME_DEBUGCLIENT);  
+      DebugClient client = DebugClient.getInstance();  
       
-      if (client == null) {
-        errorText = "No active session or no debug client object available";
-      } if (path.equals("/activate-debug-session")) {
+      if (path.equals("/activate-debug-session")) {
         client.setActive(true);
         responseText = "Debug session activated";
       } else if (path.equals("/deactivate-debug-session")) {
@@ -101,7 +96,6 @@ public class DebugServlet extends HttpServlet {
         responseText = "Debug session deactivated";
       } else if (path.equals("/close-debug-session")) {
         client.close();
-        session.removeAttribute(Definitions.ATTRNAME_DEBUGCLIENT);
         responseText = "Debug session closed";
       } else if (path.equals("/set-breakpoint")) {
         client.setBreakpoint(req.getParameter("path"), Integer.parseInt(req.getParameter("line")), -1, null, true);

@@ -33,7 +33,7 @@ import net.sf.saxon.s9api.QName;
 public class Definitions {
   
   public final static String PROJECT_NAME                      = "xslweb";
-  public final static String PROJECT_VERSION                   = "4.0.0-RC2";
+  public final static String PROJECT_VERSION                   = "4.0.0-RC3";
   public final static String PATHNAME_REQUESTDISPATCHER_XSL    = "xsl/request-dispatcher.xsl";
   public final static String FILENAME_PROPERTIES               = "xslweb.properties";
   public final static String FILENAME_QUARTZ                   = "xslweb-quartz.properties";
@@ -93,7 +93,7 @@ public class Definitions {
   public final static String NAMESPACEURI_XSLWEB_FX_QUEUE       = NAMESPACEURI_XSLWEB_FUNCTIONS + "/queue";
   public final static String NAMESPACEURI_XSLWEB_REQUEST        = NAMESPACEURI_XSLWEB + "/request";
   public final static String NAMESPACEURI_XSLWEB_RESPONSE       = NAMESPACEURI_XSLWEB + "/response";
-  public final static String NAMESPACEURI_XSLWEB_FX_SESSION     = NAMESPACEURI_XSLWEB + "/session";
+  public final static String NAMESPACEURI_XSLWEB_SESSION        = NAMESPACEURI_XSLWEB + "/session";
   public final static String NAMESPACEURI_XSLWEB_PIPELINE       = NAMESPACEURI_XSLWEB + "/pipeline";
   public final static String NAMESPACEURI_XSLWEB_ZIP_SERIALIZER = NAMESPACEURI_XSLWEB + "/zip-serializer";
   public final static String NAMESPACEURI_XSLWEB_FOP_SERIALIZER = NAMESPACEURI_XSLWEB + "/fop-serializer";
@@ -128,7 +128,7 @@ public class Definitions {
   public final static String ATTRNAME_PIPELINEHANDLER          = "xslweb.pipelinehandler";
   public final static String ATTRNAME_XSSFILTERING             = "xslweb.xssfiltering";
   public final static String ATTRNAME_TEMPFILES                = "xslweb.tempfiles";
-  public final static String ATTRNAME_DEBUGCLIENT              = "xslweb.debugclient";
+  // public final static String ATTRNAME_DEBUGCLIENT              = "xslweb.debugclient";
   
   public final static String PARAMNAME_TRACE_BASIC             = "xslweb.trace.basic";
   public final static String PARAMNAME_TRACE_TIME              = "xslweb.trace.time";

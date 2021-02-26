@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -46,11 +45,12 @@ import nl.armatiek.xslweb.error.XSLWebException;
 
 public class DebugClient {
   
+  private static DebugClient _instance;
+  
   private static final Logger logger = LoggerFactory.getLogger(DebugClient.class);
   
   private static final int MAX_BREAKPOINTS = 256;
   
-  private HttpServletRequest req;
   private ServletEventTarget eventTarget;
   private Map<String, Map<Integer, Breakpoint>> breakpoints;
   private BreakpointInfo currentBreakpointInfo;
@@ -59,14 +59,23 @@ public class DebugClient {
   
   private final static Object obj = new Object();
   
-  public DebugClient(HttpServletRequest req) throws IOException {
-    this.req = req;
+  private DebugClient() {
     this.breakpoints = new TreeMap<String, Map<Integer, Breakpoint>>();
   }
   
-  public void setServletEventTarget(ServletEventTarget eventTarget) throws IOException {
+  /**
+   * Returns the singleton DebugClient instance.
+   */
+  public static synchronized DebugClient getInstance() {
+    if (_instance == null) {
+      _instance = new DebugClient();
+    }
+    return _instance;
+  }
+  
+  public void init(Cookie[] cookies, ServletEventTarget eventTarget) throws IOException {
     this.eventTarget = eventTarget;
-    for (Cookie cookie: req.getCookies()) {
+    for (Cookie cookie: cookies) {
       if ("breakpoints".equals(cookie.getName())) {
         JSONObject breakpointJson = new JSONObject(URLDecoder.decode(cookie.getValue(), "UTF-8"));
         for (String key: breakpointJson.keySet()) {

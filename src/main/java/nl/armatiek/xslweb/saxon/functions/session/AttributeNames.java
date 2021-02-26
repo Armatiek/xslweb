@@ -39,7 +39,7 @@ import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
  */
 public class AttributeNames extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_SESSION, "attribute-names");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_SESSION, "attribute-names");
 
   @Override
   public StructuredQName getFunctionQName() {

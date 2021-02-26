@@ -31,8 +31,8 @@ import nl.armatiek.xslweb.configuration.WebApp;
 
 public class XSLTDebugTraceListener extends DebugTraceListener {
 
-  public XSLTDebugTraceListener(WebApp webApp, DebugClient client) {
-    super(webApp, client);
+  public XSLTDebugTraceListener(WebApp webApp) {
+    super(webApp);
   }
 
   @Override

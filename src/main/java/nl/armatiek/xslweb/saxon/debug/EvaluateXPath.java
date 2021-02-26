@@ -40,6 +40,7 @@ import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.value.ObjectValue;
 import net.sf.saxon.value.StringValue;
+import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 
 public class EvaluateXPath {
@@ -120,11 +121,37 @@ public class EvaluateXPath {
     compiler.setLanguageVersion("3.1");
     
     compiler.declareNamespace("fn", "http://www.w3.org/2005/xpath-functions");
+    compiler.declareNamespace("webapp", Definitions.NAMESPACEURI_XSLWEB_WEBAPP);
+    compiler.declareNamespace("config", Definitions.NAMESPACEURI_XSLWEB_CONFIGURATION);
+    compiler.declareNamespace("base64", Definitions.NAMESPACEURI_XSLWEB_FX_BASE64);
+    compiler.declareNamespace("context", Definitions.NAMESPACEURI_XSLWEB_FX_CONTEXT);
+    compiler.declareNamespace("io", Definitions.NAMESPACEURI_XSLWEB_FX_IO);
+    compiler.declareNamespace("img", Definitions.NAMESPACEURI_XSLWEB_FX_IMAGE);
+    compiler.declareNamespace("log", Definitions.NAMESPACEURI_XSLWEB_FX_LOG);
+    compiler.declareNamespace("email", Definitions.NAMESPACEURI_XSLWEB_FX_EMAIL);  
+    compiler.declareNamespace("ser", Definitions.NAMESPACEURI_XSLWEB_FX_SERIALIZE);
+    compiler.declareNamespace("sec", Definitions.NAMESPACEURI_XSLWEB_FX_SECURITY);
+    compiler.declareNamespace("json", Definitions.NAMESPACEURI_XSLWEB_FX_JSON);
+    compiler.declareNamespace("uuid", Definitions.NAMESPACEURI_XSLWEB_FX_UUID);
+    compiler.declareNamespace("webapp", Definitions.NAMESPACEURI_XSLWEB_FX_WEBAPP);
+    compiler.declareNamespace("cache", Definitions.NAMESPACEURI_XSLWEB_FX_CACHE);
+    compiler.declareNamespace("script", Definitions.NAMESPACEURI_XSLWEB_FX_SCRIPT);
+    compiler.declareNamespace("dynfunc", Definitions.NAMESPACEURI_XSLWEB_FX_DYNFUNC);
+    compiler.declareNamespace("sql", Definitions.NAMESPACEURI_XSLWEB_FX_SQL);
+    compiler.declareNamespace("util", Definitions.NAMESPACEURI_XSLWEB_FX_UTIL);
+    compiler.declareNamespace("tf", Definitions.NAMESPACEURI_XSLWEB_FX_TRANSFORM);
+    compiler.declareNamespace("zip", Definitions.NAMESPACEURI_XSLWEB_FX_ZIP);
+    compiler.declareNamespace("external", Definitions.NAMESPACEURI_XSLWEB_FX_EXEC);
+    compiler.declareNamespace("req", Definitions.NAMESPACEURI_XSLWEB_REQUEST);
+    compiler.declareNamespace("resp", Definitions.NAMESPACEURI_XSLWEB_RESPONSE);
+    compiler.declareNamespace("session", Definitions.NAMESPACEURI_XSLWEB_SESSION);
     
     if (context.getContextItem() instanceof NodeInfo) {
       NodeInfo node = (NodeInfo) context.getContextItem();
       NamespaceMap nsMap = node.getAllNamespaces();
-      nsMap.forEach(binding -> { compiler.declareNamespace(binding.getPrefix(), binding.getURI()); });
+      if (nsMap != null) {
+        nsMap.forEach(binding -> { compiler.declareNamespace(binding.getPrefix(), binding.getURI()); });
+      }
     }
     
     Iterator<StructuredQName> it = variables.keySet().iterator();

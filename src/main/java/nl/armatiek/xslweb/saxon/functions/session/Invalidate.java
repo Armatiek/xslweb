@@ -34,7 +34,7 @@ import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
  */
 public class Invalidate extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_SESSION, "invalidate");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_SESSION, "invalidate");
 
   @Override
   public StructuredQName getFunctionQName() {
