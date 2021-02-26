@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<webapp 
+  xmlns="http://www.armatiek.com/xslweb/webapp"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
+  
+  <title>XSLWeb debugger</title>
+  <description>XSLWeb debugger</description>
+  <development-mode>false</development-mode>
+  <debug-mode>false</debug-mode>
+  <max-upload-size>10</max-upload-size>
+  
+  <!-- Resources to serve straight away: -->
+  <resources> 
+    <resource pattern="/favicon.ico" media-type="image/x-icon" duration="P7DT0H0M0S"/>
+    <resource pattern="/robots.txt" media-type="text/plain" duration="P1DT0H0M0S"/> 
+    <resource pattern=".+\.png$" media-type="image/png"/>
+    <resource pattern=".+\.gif$" media-type="image/gif"/>
+    <resource pattern=".+\.(jpg|jpeg)$" media-type="image/jpg"/>
+    <resource pattern=".+\.js$" media-type="text/javascript"/>
+    <resource pattern=".+\.css$" media-type="text/css"/>
+    <resource pattern=".+\.(ttf|woff|woff2|eot)$" media-type="application/octet-stream" duration="P1DT0H0M0S"/>
+  </resources>
+  
+</webapp>

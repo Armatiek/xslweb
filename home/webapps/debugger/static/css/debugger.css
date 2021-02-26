@@ -1,0 +1,23 @@
+.CodeMirror {
+  border: 1px solid #aaa;
+}
+
+.CodeMirror * { 
+  box-sizing: content-box !important;
+}
+
+.breakpoints {
+  width: .8em;
+}
+      
+.breakpoint { 
+  color: #822; 
+}
+
+.breakarrow {
+  width: .8em;
+}
+
+.cm-grayelement {
+  color: Gray !important;
+}
