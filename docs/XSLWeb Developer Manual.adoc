@@ -720,7 +720,7 @@ The _cache-buster-id_ is then passed by XSLWeb as a stylesheet parameter to ever
             <title>My website</title>
             <link 
               rel="stylesheet" 
-              href="{$base-path}/static/css/main{$config:cache-buster-id}.css"/> # <1>   
+              href="{$base-path}/css/main{$config:cache-buster-id}.css"/> # <1>   
           </head>
           <body>
             <p class="hello">Hello World!</p>
