@@ -31,8 +31,8 @@
 :underscore: _
 :docinfo: shared,shared-head
 :window-blank: _blank
-:xslweb-version: 4.0.0-RC3
-:xslweb-version-download: 4-0-0-RC3 
+:xslweb-version: 4.0.1-RC3
+:xslweb-version-download: 4-0-1-RC3 
 :saxon-version: 10.3
 :saxon-version-download: 10-3J 
 
@@ -2835,9 +2835,9 @@ Compiled binaries of XSLWeb {xslweb-version} can be downloaded in two distributi
 
 The ready-to-run distribution can be downloaded from:
 
-* https://github.com/Armatiek/xslweb/releases/download/v{xslweb-version}/xslweb-ready-to-run-v{xslweb-version}-linux-x64.tar.gz (for Linux 64-bits machines)
-* https://github.com/Armatiek/xslweb/releases/download/v{xslweb-version}/xslweb-ready-to-run-v{xslweb-version}-osx-x64.tar.gz (for macOS 64-bits machines)
-* https://github.com/Armatiek/xslweb/releases/download/v{xslweb-version}/xslweb-ready-to-run-v{xslweb-version}-windows-x64.zip (for Windows 64-bits machines)
+* https://armatiek.nl/downloads/xslweb/v{xslweb-version}/xslweb-ready-to-run-v{xslweb-version}-linux-x64.tar.gz (for Linux 64-bits machines)
+* https://armatiek.nl/downloads/xslweb/v{xslweb-version}/xslweb-ready-to-run-v{xslweb-version}-osx-x64.tar.gz (for macOS 64-bits machines)
+* https://armatiek.nl/downloads/xslweb/v{xslweb-version}/xslweb-ready-to-run-v{xslweb-version}-windows-x64.zip (for Windows 64-bits machines)
 
 Apart from the .war file, each distribution file contains a platform specific custom OpenJDK version 13 JRE, the Jetty Java application server and several platform specific batch files or shell scripts.
 
@@ -3063,8 +3063,8 @@ This distribution contains the XSLWeb home directory and a web application archi
 
 You can download the archives from the following locations:
 
-* https://github.com/Armatiek/xslweb/releases/download/v{xslweb-version}/xslweb-war-v{xslweb-version}.tar.gz (Linux/macOS)
-* https://github.com/Armatiek/xslweb/releases/download/v{xslweb-version}/xslweb-war-v{xslweb-version}.zip (Windows)
+* https://armatiek.nl/downloads/xslweb/v{xslweb-version}/xslweb-war-v{xslweb-version}.tar.gz (Linux/macOS)
+* https://armatiek.nl/downloads/xslweb/v{xslweb-version}/xslweb-war-v{xslweb-version}.zip (Windows)
 
 ==== Install
 
