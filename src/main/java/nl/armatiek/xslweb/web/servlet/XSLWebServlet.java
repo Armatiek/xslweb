@@ -37,7 +37,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
@@ -72,7 +71,6 @@ import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltExecutable;
-import net.sf.saxon.stax.XMLStreamWriterDestination;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
@@ -106,7 +104,6 @@ import nl.armatiek.xslweb.saxon.uriresolver.XSLWebURIResolver.DefaultBehaviour;
 import nl.armatiek.xslweb.saxon.utils.SaxonUtils;
 import nl.armatiek.xslweb.utils.Closeable;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
-import nl.armatiek.xslweb.xml.CleanupXMLStreamWriter;
 
 public class XSLWebServlet extends HttpServlet {
   
@@ -248,8 +245,9 @@ public class XSLWebServlet extends HttpServlet {
           serializer.setOutputProperty(prop, value);                      
         }
       }
-      XMLStreamWriter xsw = new CleanupXMLStreamWriter(serializer.getXMLStreamWriter());
-      dest = new XMLStreamWriterDestination(xsw);
+      //XMLStreamWriter xsw = new CleanupXMLStreamWriter(serializer.getXMLStreamWriter());
+      //dest = new XMLStreamWriterDestination(xsw);
+      dest = serializer;
     } else if (nextStep instanceof TransformerStep || nextStep instanceof SchemaValidatorStep || nextStep instanceof SchematronValidatorStep) {
       dest = new XdmSourceDestination();
     } else if (nextStep instanceof JSONSerializerStep) {
