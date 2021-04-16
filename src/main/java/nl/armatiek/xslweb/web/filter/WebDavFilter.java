@@ -25,11 +25,19 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 
 public class WebDavFilter implements Filter {
+  
+  private static final Logger logger = LoggerFactory.getLogger(WebDavFilter.class);
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException { }
@@ -38,8 +46,22 @@ public class WebDavFilter implements Filter {
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     HttpServletRequest req = (HttpServletRequest) request;
     WebApp webApp = (WebApp) req.getAttribute(Definitions.ATTRNAME_WEBAPP);
-    if (webApp.getWebDavServletBean() != null && req.getPathInfo().startsWith("/" + webApp.getName() + "/webdav")) {
-      webApp.getWebDavServletBean().service(request, response);
+    if (webApp != null && webApp.getWebDavServletBean() != null && req.getPathInfo().startsWith(webApp.getPath() + "/webdav")) {
+      Subject subject = null;
+      if (webApp.getShiroWebEnvironment() != null) {
+        try {
+          subject = SecurityUtils.getSubject();
+        } catch (Exception e) {
+          logger.error("Could not get Shiro security subject", e);
+          ((HttpServletResponse) response).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Configuration error");
+          return;
+        } 
+      }
+      if (subject == null || subject.hasRole("webdav")) {
+        webApp.getWebDavServletBean().service(request, response);
+      } else {
+        ((HttpServletResponse) response).sendError(HttpServletResponse.SC_FORBIDDEN, "User does not have role \"webdav\"");
+      }
     } else {
       chain.doFilter(request, response);
     }
@@ -47,5 +69,5 @@ public class WebDavFilter implements Filter {
 
   @Override
   public void destroy() { }
-
+  
 }

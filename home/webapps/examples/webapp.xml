@@ -76,7 +76,7 @@
   <security>
     <shiro-ini><![CDATA[
 [main]
-shiro.loginUrl = /${webapp-name}/security/login.html
+shiro.loginUrl = ${webapp-path}/security/login.html
 shiro.postOnlyLogout = true
 
 authcBasic.enabled = true
@@ -103,11 +103,11 @@ user = portal:read,portal:write
 webdav = *
 
 [urls]
-/${webapp-name}/security/login.html = authc
-/${webapp-name}/security/logout.html = logout
-/${webapp-name}/security/secured-for-admin-role.html = authc, roles[admin]
-/${webapp-name}/security/secured-for-read-permission.html = authc, perms["portal:read"]
-/${webapp-name}/webdav/** = authcBasic]]>
+${webapp-path}/security/login.html = authc
+${webapp-path}/security/logout.html = logout
+${webapp-path}/security/secured-for-admin-role.html = authc, roles[admin]
+${webapp-path}/security/secured-for-read-permission.html = authc, perms["portal:read"]
+${webapp-path}/webdav/** = authcBasic]]>
     </shiro-ini>
   </security>
   

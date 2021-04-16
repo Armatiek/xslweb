@@ -201,6 +201,7 @@ public class WebApp implements ErrorHandler {
     Properties vars = new Properties(System.getProperties());
     vars.setProperty("webapp-dir", webAppDefinition.getParentFile().getAbsolutePath().replace('\\', '/'));
     vars.setProperty("webapp-name", this.name);
+    vars.setProperty("webapp-path", this.getPath());
     String resolvedDefXml = XSLWebUtils.resolveProperties(defXml, vars);
     InputSource src = new InputSource(new StringReader(resolvedDefXml));
     src.setSystemId(webAppDefinition.getAbsolutePath());
@@ -327,7 +328,7 @@ public class WebApp implements ErrorHandler {
     if (webdavEnabled) {
       webDavServletBean = new WebDavServletBean();
       webDavServletBean.init(
-          new LocalFileSystemStore(this.homeDir, "/" + this.name + "/webdav"), 
+          new LocalFileSystemStore(this.homeDir, this.getPath() + "/webdav"), 
           StringUtils.trimToNull((String) xpath.evaluate("webapp:webdav/webapp:index-file", docElem, XPathConstants.STRING)), 
           StringUtils.trimToNull((String) xpath.evaluate("webapp:webdav/webapp:instead-of-404", docElem, XPathConstants.STRING)), 
           Integer.parseInt(StringUtils.defaultString(StringUtils.trimToNull((String) xpath.evaluate("webapp:webdav/no-contentlength-header", docElem, XPathConstants.STRING)), "0")), 

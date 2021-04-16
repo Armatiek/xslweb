@@ -140,7 +140,7 @@ public class Definitions {
   public final static String PROPERTYNAME_TRUST_ALL_CERTS      = "xslweb.trustallcerts";
   public final static String PROPERTYNAME_PARSER_HARDENING     = "xslweb.parserhardening";
   public final static String PROPERTYNAME_DEBUG_ENABLE         = "xslweb.debug.enable";
-  public final static String PROPERTYNAME_WABDAV_ENABLE        = "xslweb.webdav.enable";
+  public final static String PROPERTYNAME_WEBDAV_ENABLE        = "xslweb.webdav.enable";
   public final static String PROPERTYNAME_WEBDAV_ROOT          = "xslweb.webdav.root";
   
   public final static QName EVENTNAME_WEBAPPOPEN              = new QName("event", NAMESPACEURI_XSLWEB_EVENT, "webapp-open");
