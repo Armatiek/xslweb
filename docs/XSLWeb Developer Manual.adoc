@@ -31,10 +31,10 @@
 :underscore: _
 :docinfo: shared,shared-head
 :window-blank: _blank
-:xslweb-version: 4.0.1-RC3
-:xslweb-version-download: 4-0-1-RC3 
-:saxon-version: 10.3
-:saxon-version-download: 10-3J 
+:xslweb-version: 4.0.1
+:xslweb-version-download: 4-0-1 
+:saxon-version: 10.5
+:saxon-version-download: 10-5J 
 
 = XSLWeb version {xslweb-version} Developer Manual
 Authors: Maarten Kroon, Arjan Loeffen
@@ -964,7 +964,7 @@ All of the Apache Shiro documentation on https://shiro.apache.org/documentation.
   <security>
     <shiro-ini><![CDATA[
 [main]
-shiro.loginUrl = /${webapp-name}/security/login.html
+shiro.loginUrl = ${webapp-path}/security/login.html
 shiro.postOnlyLogout = true
 
 authcBasic.enabled = true
@@ -992,11 +992,11 @@ user = portal:read,portal:write
 webdav = *
 
 [urls]
-/${webapp-name}/security/login.html = authc
-/${webapp-name}/security/secured-for-admin-role.html = authc, roles[admin]
-/${webapp-name}/security/secured-for-read-permission.html = authc, perms["portal:read"]
-/${webapp-name}/security/logout.html = logout
-/${webapp-name}/webdav/** = authcBasic]]>
+${webapp-path}/security/login.html = authc
+${webapp-path}/security/secured-for-admin-role.html = authc, roles[admin]
+${webapp-path}/security/secured-for-read-permission.html = authc, perms["portal:read"]
+${webapp-path}/security/logout.html = logout
+${webapp-path}/webdav/** = authcBasic]]>
     </shiro-ini>
   </security>
   
@@ -2764,7 +2764,7 @@ Every XSLWeb webapp has it's own WebDAV configuration. WebDAV access is disabled
 
 You can access the top-level WebDAV folder using the url http://my-domain:my-port/my-webapp/webdav/, for instance http://localhost:8080/examples/webdav/. 
 
-When you enable WebDAV access you probably want to authenticate users before accessing the resources, see <<security>>. By default there is no authentication.
+When you enable WebDAV access you probably want to authenticate users before accessing the resources, see <<security>>. By default there is no authentication. If a security/shiro-ini configuration is present in webapp.xml, users must have role "webdav" to be able to access the WebDAV functionality.
 
 Example how to configure authentication for WebDAV requests:
 
@@ -2807,7 +2807,7 @@ webdavuser = secret,webdav
 webdav = *
 
 [urls]
-/${webapp-name}/webdav/** = authcBasic]]>
+${webapp-path}/webdav/** = authcBasic]]>
     </shiro-ini>
   </security>
   
@@ -2883,7 +2883,14 @@ IMPORTANT: Do not install the XSLWeb distribution in a directory that contains s
 
 XSLWeb can be started by running the batch file `<install-dir>\bin\run-service.bat` (Windows) or `<install-dir>/bin/run-service.sh` (*nix). After the service is started, the correct installation can be tested by opening a browser and going to the url http://localhost:8152. XSLWeb can be stopped by running the corresponding batch file `stop-service.bat` or shell script `stop-service.sh` from another command prompt or shell. 
 
-IMPORTANT: To increase or decrease the Java heap memory size that is available to the XSLWeb process please alter the variable `MAXMEM` in the file `<install-dir>\bin\service\config.cmd` (Windows) or `<install-dir>/bin/run-service.sh` (Linux and macOS). The default is 256m (megabytes). 
+IMPORTANT: To increase or decrease the Java heap memory size that is available to the XSLWeb process please alter the variable `MAXMEM` in the file `<install-dir>\bin\service\config.cmd` (Windows) or `<install-dir>/bin/run-service.sh` (Linux and macOS). The default is 256m (megabytes).
+
+IMPORTANT: If you get an error message on macOS like "java cannot be opened because the developer cannot be verified" you must remove the “quarantine” attribute from the java executable (which tells the system that java should not be run automatically before being explicitly approved by the user). This can be done running a command like:
+
+[source,bash]
+----
+xattr -d com.apple.quarantine /path-to-xslweb/xslweb-ready-to-run-v4.0.0-osx-x64/jre/bin/java
+---- 
 
 === Optional: install XSLWeb as a Windows service or Linux/macOS daemon
 
@@ -3063,8 +3070,8 @@ This distribution contains the XSLWeb home directory and a web application archi
 
 You can download the archives from the following locations:
 
-* https://armatiek.nl/downloads/xslweb-war-v{xslweb-version}.tar.gz (Linux/macOS)
-* https://armatiek.nl/downloads/xslweb-war-v{xslweb-version}.zip (Windows)
+* https://armatiek.nl/downloads/xslweb/xslweb-war-v{xslweb-version}.tar.gz (Linux/macOS)
+* https://armatiek.nl/downloads/xslweb/xslweb-war-v{xslweb-version}.zip (Windows)
 
 ==== Install
 

@@ -10,7 +10,7 @@
   <groupId>nl.armatiek.xslweb</groupId>
   <artifactId>xslweb</artifactId>
   <packaging>war</packaging> 
-  <version>4.0.1-RC3-SNAPSHOT</version>
+  <version>4.0.1-SNAPSHOT</version>
   
   <inceptionYear>2013</inceptionYear>
 
@@ -37,7 +37,7 @@
     <compiler.source.version>1.8</compiler.source.version>
     <compiler.target.version>1.8</compiler.target.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <saxon.version>10.3</saxon.version>
+    <saxon.version>10.5</saxon.version>
     <shiro.version>1.6.0</shiro.version>
     <fop.version>2.5</fop.version>
     <log4j.version>1.2.17</log4j.version>

@@ -131,7 +131,6 @@ import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
 import nl.armatiek.xslweb.quartz.XSLWebJob;
 import nl.armatiek.xslweb.saxon.configuration.XSLWebConfiguration;
 import nl.armatiek.xslweb.saxon.debug.DebugTraceCodeInjector;
-import nl.armatiek.xslweb.saxon.debug.DebugXMLFilter;
 import nl.armatiek.xslweb.saxon.errrorlistener.TransformationErrorListener;
 import nl.armatiek.xslweb.saxon.errrorlistener.ValidatorErrorHandler;
 import nl.armatiek.xslweb.saxon.utils.SaxonUtils;
@@ -696,11 +695,13 @@ public class WebApp implements ErrorHandler {
         spf.setValidating(false);
         SAXParser parser = spf.newSAXParser();
         XMLReader reader = parser.getXMLReader(); 
+        /*
         if (Context.getInstance().getDebugEnable() && debugMode) {
           DebugXMLFilter debugXMLFilter = new DebugXMLFilter();
           debugXMLFilter.setParent(reader);
           reader = debugXMLFilter;
         }
+        */
         Source source;
         if (transformationPath.startsWith("classpath:")) {
           source = new StreamSource(getClass().getClassLoader().getResourceAsStream(StringUtils.substringAfter(transformationPath, ":")));
