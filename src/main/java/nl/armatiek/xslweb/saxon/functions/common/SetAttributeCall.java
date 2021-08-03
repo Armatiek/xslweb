@@ -16,7 +16,7 @@
  */
 package nl.armatiek.xslweb.saxon.functions.common;
 
-import java.util.Collection;
+import java.util.ArrayList;
 
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.om.Sequence;
@@ -28,14 +28,20 @@ import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 
 public abstract class SetAttributeCall extends ExtensionFunctionCall {
 
-  protected abstract void setAttributes(String name, Collection<Attribute> attrs, XPathContext context);
+  protected abstract void setAttributes(String name, ArrayList<Attribute> attrs, XPathContext context);
+  
+  private boolean mustSupportSerialization = false;
+  
+  public SetAttributeCall(boolean mustSupportSerialization) {
+    this.mustSupportSerialization = mustSupportSerialization;
+  }
   
   @Override
   public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
     String name = ((StringValue) arguments[0].head()).getStringValue();    
-    Collection<Attribute> attrs = null;
+    ArrayList<Attribute> attrs = null;
     if (arguments.length > 1) {
-      attrs = sequenceToAttributeCollection(arguments[1], context);
+      attrs = sequenceToAttributeCollection(arguments[1], context, mustSupportSerialization);
     }            
     setAttributes(name, attrs, context);
     return EmptySequence.getInstance();        

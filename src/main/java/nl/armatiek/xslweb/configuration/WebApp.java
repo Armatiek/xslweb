@@ -75,6 +75,12 @@ import org.apache.fop.apps.FopFactory;
 import org.apache.shiro.config.Ini;
 import org.apache.shiro.web.env.IniWebEnvironment;
 import org.apache.shiro.web.env.WebEnvironment;
+import org.ehcache.Cache;
+import org.ehcache.CacheManager;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.ehcache.xml.XmlConfiguration;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerFactory;
@@ -96,12 +102,6 @@ import org.xml.sax.XMLReader;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.config.CacheConfiguration;
-import net.sf.ehcache.config.PersistenceConfiguration;
-import net.sf.ehcache.config.PersistenceConfiguration.Strategy;
-import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 import net.sf.joost.trax.TrAXConstants;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.TransformerFactoryImpl;
@@ -125,6 +125,7 @@ import net.sf.saxon.trace.TraceCodeInjector;
 import net.sf.saxon.xpath.XPathFactoryImpl;
 import net.sf.webdav.LocalFileSystemStore;
 import net.sf.webdav.WebDavServletBean;
+import nl.armatiek.xslweb.ehcache.DefaultExpiryPolicy;
 import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.joost.MessageEmitter;
 import nl.armatiek.xslweb.quartz.NonConcurrentExecutionXSLWebJob;
@@ -146,12 +147,14 @@ public class WebApp implements ErrorHandler {
   private Map<String, Templates> templatesCache =  new ConcurrentHashMap<String, Templates>();
   private Map<String, Schema> schemaCache = new ConcurrentHashMap<String, Schema>();
   private Map<String, byte[]> stylesheetExportFileCache = new ConcurrentHashMap<String, byte[]>();
-  private Map<String, Collection<Attribute>> attributes = new ConcurrentHashMap<String, Collection<Attribute>>();
+  private Map<String, ArrayList<Attribute>> attributes = new ConcurrentHashMap<String, ArrayList<Attribute>>();
   private Map<String, ComboPooledDataSource> dataSourceCache = new ConcurrentHashMap<String, ComboPooledDataSource>();
   private Map<String, FopFactory> fopFactoryCache = new ConcurrentHashMap<String, FopFactory>();
   private Map<String, ExecutorService> executorServiceCache = new ConcurrentHashMap<String, ExecutorService>();
   private Map<String, ExtensionFunctionDefinition> extensionFunctionDefinitions = new ConcurrentHashMap<String, ExtensionFunctionDefinition>();
   private Map<String, ExtensionFunction> extensionFunctions = new ConcurrentHashMap<String, ExtensionFunction>();
+  private CacheManager cacheManager;
+  private CacheConfigurationBuilder<String, ArrayList> cacheConfig;
       
   private volatile boolean isClosed = true;
   private File definition;
@@ -210,6 +213,7 @@ public class WebApp implements ErrorHandler {
     DualHashBidiMap<String, String> map = new DualHashBidiMap<String, String>();
     map.put("webapp", Definitions.NAMESPACEURI_XSLWEB_WEBAPP);
     map.put("saxon-config", NamespaceConstant.SAXON_CONFIGURATION);
+    map.put("ehcache", Definitions.NAMESPACEURI_EHCACHE);
     xpath.setNamespaceContext(XMLUtils.getNamespaceContext(map));    
     Node docElem = webAppDoc.getDocumentElement();
     
@@ -334,6 +338,21 @@ public class WebApp implements ErrorHandler {
           XMLUtils.getBooleanValue((String) xpath.evaluate("webapp:webdav/webapp:lazy-folder-creation-on-put", docElem, XPathConstants.STRING), false));
     }
     
+    Node ehCacheConfigNode = (Node) xpath.evaluate("ehcache:config", docElem, XPathConstants.NODE);
+    
+    if (ehCacheConfigNode != null) {
+      String ehCacheConfigXML = XMLUtils.nodeToString(ehCacheConfigNode);
+      Document ehCacheConfigDoc = XMLUtils.stringToDocument(ehCacheConfigXML);
+      XmlConfiguration xmlConfig = new XmlConfiguration(ehCacheConfigDoc);
+      cacheManager = CacheManagerBuilder.newCacheManager(xmlConfig); 
+    } else {
+      cacheManager = CacheManagerBuilder.newCacheManagerBuilder().build();
+    }
+    
+    this.cacheConfig = CacheConfigurationBuilder.newCacheConfigurationBuilder(
+      String.class, ArrayList.class, ResourcePoolsBuilder.heap(32))
+        .withExpiry(new DefaultExpiryPolicy());
+    
     // initClassLoader();
             
     initFileAlterationObservers();    
@@ -348,6 +367,11 @@ public class WebApp implements ErrorHandler {
     if (scheduler != null) {
       logger.info("Starting Quartz scheduler ...");    
       scheduler.start();    
+    }
+    
+    if (cacheManager != null) {
+      logger.info("Initializing cache manager ...");
+      cacheManager.init();
     }
     
     logger.info("Executing handler for webapp-open event ...");
@@ -390,6 +414,11 @@ public class WebApp implements ErrorHandler {
       }
       scheduler.shutdown(false);
       logger.info("Shutdown of Quartz scheduler complete.");
+    }
+    
+    if (cacheManager != null) {
+      logger.info("Closing cache manager ...");
+      cacheManager.close();
     }
     
     logger.info("Executing handler for webapp-close event ...");
@@ -909,15 +938,15 @@ public class WebApp implements ErrorHandler {
     return sef;
   }
   
-  public Map<String, Collection<Attribute>> getAttributes() {
+  public Map<String, ArrayList<Attribute>> getAttributes() {
     return this.attributes;
   }
   
-  public void setAttributes(Map<String, Collection<Attribute>> attributes) {
+  public void setAttributes(Map<String, ArrayList<Attribute>> attributes) {
     this.attributes = attributes;
   }
   
-  public Collection<Attribute> getAttribute(String name) {
+  public ArrayList<Attribute> getAttribute(String name) {
     return attributes.get(name);
   }
   
@@ -925,7 +954,7 @@ public class WebApp implements ErrorHandler {
     attributes.remove(name);
   }
   
-  public void setAttribute(String name, Collection<Attribute> attrs) {
+  public void setAttribute(String name, ArrayList<Attribute> attrs) {
     if (attrs != null) {
       attributes.put(name, attrs);
     } else {
@@ -933,34 +962,38 @@ public class WebApp implements ErrorHandler {
     }
   }
   
-  @SuppressWarnings("unchecked")
-  public Collection<Attribute> getCacheValue(String cacheName, String keyName) {
-    Cache cache = Context.getInstance().getCacheManager().getCache(cacheName);
+  private Cache<String, ArrayList> getCache(String cacheName) throws XSLWebException {
+    if (cacheManager == null) {
+      throw new XSLWebException("Caching is not configured in webapp.xml");
+    }
+    Cache<String, ArrayList> cache = cacheManager.getCache(cacheName, String.class, ArrayList.class);
     if (cache == null) {
-      return null;
-    }    
-    net.sf.ehcache.Element elem = cache.get(keyName);
-    if (elem != null) {    
-      return (Collection<Attribute>) elem.getObjectValue();
-    } 
-    return null;
+      cache = cacheManager.createCache(cacheName, cacheConfig);
+    }
+    return cache;
   }
   
-  public void setCacheValue(String cacheName, String keyName, Collection<Attribute> attrs, int tti, int ttl) {
-    CacheManager manager = Context.getInstance().getCacheManager();
-    Cache cache = manager.getCache(cacheName); 
-    if (cache == null) {      
-      cache = new Cache(
-          new CacheConfiguration(cacheName, 1000)
-            .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LRU)
-            .eternal(false)
-            .timeToLiveSeconds(60)
-            .timeToIdleSeconds(60)
-            .diskExpiryThreadIntervalSeconds(120)
-            .persistence(new PersistenceConfiguration().strategy(Strategy.LOCALTEMPSWAP)));
-      manager.addCache(cache);
-    }            
-    cache.put(new net.sf.ehcache.Element(keyName, attrs, false, tti, ttl));
+  @SuppressWarnings("unchecked")
+  public ArrayList<Attribute> getCacheValue(String cacheName, String keyName) throws XSLWebException {
+    return getCache(cacheName).get(keyName);
+  }
+  
+  public void setCacheValue(String cacheName, String keyName, ArrayList<Attribute> attrs, 
+      int tti, int ttl) throws XSLWebException {
+    try {
+      if (ttl > -1)
+        DefaultExpiryPolicy.setTTL(ttl);
+      if (tti > -1)
+        DefaultExpiryPolicy.setTTI(tti);
+      getCache(cacheName).put(keyName, attrs);
+    } finally {
+      DefaultExpiryPolicy.setTTL(-1);
+      DefaultExpiryPolicy.setTTI(-1);
+    }
+  }
+  
+  public void removeCacheValue(String cacheName, String keyName) {
+    getCache(cacheName).remove(keyName);
   }
   
   @Override

@@ -64,6 +64,7 @@ public class Definitions {
   public final static String NAMESPACEURI_STX                   = "http://stx.sourceforge.net/2002/ns";
  
   public final static String NAMESPACEURI_SAXON_CONFIGURATION   = "urn:net.sf.saxon.Configuration";
+  public final static String NAMESPACEURI_EHCACHE               = "http://www.ehcache.org/v3";
   public final static String NAMESPACEURI_XSLWEB                = "http://www.armatiek.com/xslweb";
   public final static String NAMESPACEURI_XSLWEB_WEBAPP         = NAMESPACEURI_XSLWEB + "/webapp";
   public final static String NAMESPACEURI_XSLWEB_CONFIGURATION  = NAMESPACEURI_XSLWEB + "/configuration";

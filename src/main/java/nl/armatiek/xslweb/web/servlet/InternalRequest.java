@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.WebApp;
-import nl.armatiek.xslweb.web.filter.CachingFilter;
 import nl.armatiek.xslweb.web.filter.PipelineGeneratorFilter;
 import nl.armatiek.xslweb.web.filter.RequestSerializerFilter;
 import nl.armatiek.xslweb.web.filter.SetCharacterEncodingFilter;
@@ -68,9 +67,11 @@ public class InternalRequest {
       filter.init(emptyConfig);
       filters.add(filter);
       
+      /*
       filter = new CachingFilter();
       filter.init(emptyConfig);
       filters.add(filter);
+      */
       
       HttpServlet servlet = new XSLWebServlet();
       servlet.init();

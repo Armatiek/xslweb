@@ -16,17 +16,22 @@
  */
 package nl.armatiek.xslweb.saxon.utils;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.io.StringReader;
 import java.util.function.Predicate;
 
-import javax.xml.transform.stream.StreamSource;
+import javax.xml.stream.XMLStreamReader;
+
+import com.sun.xml.fastinfoset.stax.StAXDocumentParser;
+import com.sun.xml.fastinfoset.stax.StAXDocumentSerializer;
 
 import net.sf.saxon.Configuration;
 import net.sf.saxon.event.Receiver;
+import net.sf.saxon.lib.ParseOptions;
 import net.sf.saxon.om.AtomicSequence;
 import net.sf.saxon.om.Genre;
 import net.sf.saxon.om.Item;
@@ -34,37 +39,41 @@ import net.sf.saxon.om.NamespaceBinding;
 import net.sf.saxon.om.NamespaceMap;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.TreeInfo;
-import net.sf.saxon.s9api.DocumentBuilder;
+import net.sf.saxon.pull.PullSource;
+import net.sf.saxon.pull.StaxBridge;
 import net.sf.saxon.s9api.Location;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.SaxonApiException;
-import net.sf.saxon.s9api.Serializer;
 import net.sf.saxon.s9api.XdmNode;
+import net.sf.saxon.stax.XMLStreamWriterDestination;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.AxisIterator;
 import net.sf.saxon.tree.util.FastStringBuffer;
 import net.sf.saxon.type.SchemaType;
+import nl.armatiek.xslweb.configuration.Context;
+import nl.armatiek.xslweb.configuration.WebApp;
 
 public class SerializableNodeInfo implements NodeInfo, Serializable {
   
   private static final long serialVersionUID = 3233046816831468756L;
   
-  private static final transient Processor processor = new Processor(false);
-  
-  // private transient WebApp webApp;
   private transient NodeInfo nodeInfo;
- 
-  public SerializableNodeInfo(NodeInfo nodeInfo) {
+  private transient WebApp webApp;
+  
+  public SerializableNodeInfo(NodeInfo nodeInfo, WebApp webApp) {
     this.nodeInfo = nodeInfo;
+    this.webApp = webApp;
   }
   
   private void writeObject(ObjectOutputStream oos) throws IOException {
     oos.defaultWriteObject();
     try {
-      Serializer serializer = processor.newSerializer();
-      serializer.setOutputProperty(Serializer.Property.ENCODING, "UTF-8");
-      String xml = serializer.serializeNodeToString(new XdmNode(nodeInfo));
-      oos.writeObject(xml);
+      oos.writeObject(webApp.getPath());
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      StAXDocumentSerializer serializer = new StAXDocumentSerializer(baos);
+      Processor processor = webApp.getProcessor();
+      processor.writeXdmValue(new XdmNode(nodeInfo), new XMLStreamWriterDestination(serializer));
+      oos.writeObject(baos.toByteArray());
       oos.flush();
     } catch (SaxonApiException e) {
       throw new IOException("Error serializing NodeInfo", e);
@@ -74,11 +83,21 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
   private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
     ois.defaultReadObject();
     try {
-      String xml = (String) ois.readObject();
-      DocumentBuilder builder = processor.newDocumentBuilder();
-      XdmNode node = builder.build(new StreamSource(new StringReader(xml)));
-      nodeInfo = node.getUnderlyingNode();
-    } catch (SaxonApiException e) {
+      String webAppPath = (String) ois.readObject();
+      if (webApp == null) {
+        webApp =  Context.getInstance().getWebApp(webAppPath);
+      }
+      byte[] buffer = (byte[]) ois.readObject();
+      ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
+      XMLStreamReader streamReader = new StAXDocumentParser(bais);
+      StaxBridge staxBridge = new StaxBridge();
+      staxBridge.setXMLStreamReader(streamReader);
+      PullSource source = new PullSource(staxBridge);
+      Configuration config = webApp.getConfiguration();
+      ParseOptions parseOptions = new ParseOptions(config.getParseOptions());
+      parseOptions.setXIncludeAware(false);
+      nodeInfo = config.buildDocumentTree(source, parseOptions).getRootNode();
+    } catch (XPathException e) {
       throw new IOException("Error deserializing NodeInfo", e);
     }
   }

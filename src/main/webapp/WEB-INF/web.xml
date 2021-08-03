@@ -86,15 +86,6 @@
     <servlet-name>XSLWebServlet</servlet-name>
   </filter-mapping>
 
-  <filter>
-    <filter-name>CachingFilter</filter-name>
-    <filter-class>nl.armatiek.xslweb.web.filter.CachingFilter</filter-class>
-  </filter>
-  <filter-mapping>
-    <filter-name>CachingFilter</filter-name>
-    <servlet-name>XSLWebServlet</servlet-name>
-  </filter-mapping>
-
   <servlet>
     <servlet-name>DebugServlet</servlet-name>
     <servlet-class>nl.armatiek.xslweb.saxon.debug.DebugServlet</servlet-class>

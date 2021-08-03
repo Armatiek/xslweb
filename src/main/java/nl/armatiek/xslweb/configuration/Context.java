@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.configuration;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,11 +14,13 @@ package nl.armatiek.xslweb.configuration;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.configuration;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -57,7 +57,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.medsea.mimeutil.MimeUtil;
-import net.sf.ehcache.CacheManager;
 import net.sf.saxon.om.NamePool;
 import net.sf.saxon.tree.util.DocumentNumberAllocator;
 import nl.armatiek.xslweb.error.XSLWebException;
@@ -65,7 +64,7 @@ import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 /**
  * Singleton holding all global objects such as the collection of WebApp objects, 
- * the CacheManager, the FileMonitor, Scheduler and such.
+ * the FileMonitor, Scheduler and such.
  * 
  * @author Maarten Kroon
  */
@@ -76,8 +75,7 @@ public class Context {
   private static Context _instance;
   
   private Map<String, WebApp> webApps = Collections.synchronizedMap(new HashMap<String, WebApp>());
-  private Map<String, Collection<Attribute>> attributes = Collections.synchronizedMap(new HashMap<String, Collection<Attribute>>());
-  private CacheManager cacheManager;
+  private Map<String, ArrayList<Attribute>> attributes = Collections.synchronizedMap(new HashMap<String, ArrayList<Attribute>>());
   private ServletContext servletContext;
   private String classPath;
   private FileAlterationMonitor monitor;
@@ -119,7 +117,6 @@ public class Context {
     initMimeUtil();
     initXMLSchemas();
     initFileAlterationObservers();
-    initCacheManager();
     initWebApps();
     
     logger.info("Starting webapps file alteration monitor ...");
@@ -146,10 +143,6 @@ public class Context {
     for (WebApp app : webApps.values()) {
       app.close();      
     }
-    
-    logger.info("Shutting down cache manager ...");
-    if (cacheManager != null)
-      cacheManager.shutdown();
     
     logger.info("Unregistering MIME detectors ...");
     MimeUtil.unregisterMimeDetector("eu.medsea.mimeutil.detector.ExtensionMimeDetector");
@@ -267,7 +260,7 @@ public class Context {
     synchronized(webApps) {
       String webAppName = webAppDefFile.getParentFile().getName();             
       WebApp webApp = webApps.get(webAppName);
-      Map<String, Collection<Attribute>> attributes = null;
+      Map<String, ArrayList<Attribute>> attributes = null;
       NamePool namePool = null;
       DocumentNumberAllocator documentNumberAllocator = null;
       if (webApp != null) {
@@ -359,22 +352,7 @@ public class Context {
       }
     }    
   }
-  
-  private void initCacheManager() {
-    logger.info("Initializing cache manager ...");
-    File confFile = new File(getHomeDir(), "config" + File.separatorChar + Definitions.FILENAME_EHCACHE);
-    if (confFile.isFile()) {
-      cacheManager = new CacheManager(confFile.getAbsolutePath());
-    } else {
-      logger.error("Could not load cache manager configuration file \"" + confFile.getAbsolutePath() + "\"");
-      cacheManager = CacheManager.getInstance();      
-    }    
-  }
-  
-  public CacheManager getCacheManager() {
-    return cacheManager;
-  }
-  
+    
   public ServletContext getServletContext() {
     return this.servletContext;
   }
@@ -459,7 +437,7 @@ public class Context {
     return this.webInfDir;
   }
   
-  public Collection<Attribute> getAttribute(String name) {
+  public ArrayList<Attribute> getAttribute(String name) {
     return attributes.get(name);
   }
   
@@ -467,7 +445,7 @@ public class Context {
     attributes.remove(name);
   }
   
-  public void setAttribute(String name, Collection<Attribute> attrs) {
+  public void setAttribute(String name, ArrayList<Attribute> attrs) {
     if (attrs != null) {
       attributes.put(name, attrs);
     } else {

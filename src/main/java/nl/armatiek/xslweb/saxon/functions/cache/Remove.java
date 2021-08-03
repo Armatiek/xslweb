@@ -16,9 +16,7 @@
  */
 package nl.armatiek.xslweb.saxon.functions.cache;
 
-import net.sf.ehcache.Cache;
 import net.sf.saxon.expr.XPathContext;
-import net.sf.saxon.lib.ExtensionFunctionCall;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
@@ -26,8 +24,8 @@ import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.value.EmptySequence;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
-import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
+import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 
 /**
  * 
@@ -46,17 +44,19 @@ public class Remove extends ExtensionFunctionDefinition {
 
   @Override
   public int getMinimumNumberOfArguments() {
-    return 1;
+    return 2;
   }
 
   @Override
   public int getMaximumNumberOfArguments() {
-    return 1;
+    return 2;
   }
 
   @Override
   public SequenceType[] getArgumentTypes() {
-    return new SequenceType[] { SequenceType.SINGLE_STRING };
+    return new SequenceType[] { 
+        SequenceType.SINGLE_STRING,
+        SequenceType.SINGLE_STRING};
   }
 
   @Override
@@ -66,17 +66,17 @@ public class Remove extends ExtensionFunctionDefinition {
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {
-    return new ClearCall();
+    return new RemoveCall();
   }
   
-  private static class ClearCall extends ExtensionFunctionCall {
+  private static class RemoveCall extends ExtensionFunctionCall {
 
     @Override
     public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
       try {
-        String key = ((StringValue) arguments[0].head()).getStringValue(); 
-        Cache cache = Context.getInstance().getCacheManager().getCache(Definitions.CACHENAME_RESPONSECACHINGFILTER);
-        cache.remove(key);
+        String cacheName = ((StringValue) arguments[0].head()).getStringValue();
+        String keyName = ((StringValue) arguments[1].head()).getStringValue();
+        getWebApp(context).removeCacheValue(cacheName, keyName);
         return EmptySequence.getInstance();        
       } catch (Exception e) {
         throw new XPathException("Could not remove element from cache", e);

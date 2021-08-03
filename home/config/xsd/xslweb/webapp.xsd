@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema 
-  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:xslweb="http://www.armatiek.com/xslweb/webapp"
   xmlns:saxon-config="http://saxon.sf.net/ns/configuration"
-  targetNamespace="http://www.armatiek.com/xslweb/webapp" 
+  xmlns:ehcache="http://www.ehcache.org/v3"
+  targetNamespace="http://www.armatiek.com/xslweb/webapp"
   elementFormDefault="qualified">
 
   <xs:import schemaLocation="../fop/fop-configuration.xsd"/>
+  <xs:import schemaLocation="../ehcache/ehcache-core.xsd" namespace="http://www.ehcache.org/v3"/>
 
   <xs:import namespace="http://saxon.sf.net/ns/configuration" schemaLocation="../saxon/config.xsd"/>
 
@@ -69,9 +70,10 @@
             <xs:sequence>
               <xs:element name="enabled" type="xs:boolean" minOccurs="0" default="false"/>
               <xs:element name="index-file" type="xs:string" minOccurs="0"/>
-              <xs:element name="instead-of-404" type="xs:string" minOccurs="0"/>  
+              <xs:element name="instead-of-404" type="xs:string" minOccurs="0"/>
               <xs:element name="no-contentlength-header" type="xs:integer" minOccurs="0"/>
-              <xs:element name="lazy-folder-creation-on-put" type="xs:boolean" minOccurs="0" default="false"/>
+              <xs:element name="lazy-folder-creation-on-put" type="xs:boolean" minOccurs="0"
+                default="false"/>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
@@ -109,7 +111,8 @@
                     <xs:element name="jdbc-url" type="xs:string"/>
                     <xs:element name="username" type="xs:string" minOccurs="0"/>
                     <xs:element name="password" type="xs:string" minOccurs="0"/>
-                    <xs:element name="property" minOccurs="0" maxOccurs="unbounded" type="xslweb:property-type"/>
+                    <xs:element name="property" minOccurs="0" maxOccurs="unbounded"
+                      type="xslweb:property-type"/>
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
@@ -132,6 +135,7 @@
           </xs:complexType>
         </xs:element>
         <xs:element ref="saxon-config:configuration" minOccurs="0"/>
+        <xs:element ref="ehcache:config" minOccurs="0"/>
         <xs:element name="fop-configs" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
@@ -149,7 +153,7 @@
       </xs:all>
     </xs:complexType>
   </xs:element>
-  
+
   <xs:complexType name="property-type">
     <xs:simpleContent>
       <xs:extension base="xs:string">
@@ -157,5 +161,5 @@
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
-  
+
 </xs:schema>

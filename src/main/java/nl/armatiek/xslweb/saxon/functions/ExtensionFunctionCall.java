@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.saxon.functions;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,6 +14,7 @@ package nl.armatiek.xslweb.saxon.functions;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.saxon.functions;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,7 +26,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -46,7 +44,9 @@ import org.w3c.dom.Node;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.dom.DocumentWrapper;
 import net.sf.saxon.expr.XPathContext;
+import net.sf.saxon.ma.map.HashTrieMap;
 import net.sf.saxon.om.AxisInfo;
+import net.sf.saxon.om.Function;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.Sequence;
@@ -69,6 +69,7 @@ import net.sf.saxon.value.BigIntegerValue;
 import net.sf.saxon.value.BooleanValue;
 import net.sf.saxon.value.DateTimeValue;
 import net.sf.saxon.value.DoubleValue;
+import net.sf.saxon.value.ExternalObject;
 import net.sf.saxon.value.FloatValue;
 import net.sf.saxon.value.Int64Value;
 import net.sf.saxon.value.ObjectValue;
@@ -230,38 +231,41 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
     return props;
   }
     
-  protected Collection<Attribute> sequenceToAttributeCollection(Sequence seq, XPathContext context) throws XPathException {
+  protected ArrayList<Attribute> sequenceToAttributeCollection(Sequence seq, XPathContext context, 
+      boolean mustSupportSerialization) throws XPathException {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
     Item item;
     SequenceIterator iter = seq.iterate();
     while ((item = iter.next()) != null) {                
       Object value;
       String type;
-      // boolean isSerialized;
       if (item instanceof NodeInfo) {
-        // value = serialize((NodeInfo) item);
-        // value = new SerializableNodeInfo(NodeInfoUtils.cloneNodeInfo((NodeInfo) item));
-        value = new SerializableNodeInfo((NodeInfo) item);
+        if (mustSupportSerialization) {
+          WebApp webApp = getWebApp(context);
+          value = new SerializableNodeInfo((NodeInfo) item, webApp);  
+        } else {
+          value = (NodeInfo) item;
+        }
         type = "node()";
-        // isSerialized = true;
+      } else if (mustSupportSerialization && (item instanceof HashTrieMap || item instanceof Function || item instanceof ExternalObject)) {
+        throw new XPathException("Cannot cache maps, functions or external objects");
       } else {                             
         value = SequenceTool.convertToJava(item);
         ItemType itemType = Type.getItemType(item, null);
         type = itemType.toString();
-        // isSerialized = false;
       }
       attrs.add(new Attribute(value, type));
     }
     return attrs;
   }
   
-  protected ZeroOrMore<Item> attributeCollectionToSequence(Collection<Attribute> attrs, XPathContext context) throws Exception {                    
+  protected ZeroOrMore<Item> attributeCollectionToSequence(ArrayList<Attribute> attrs, XPathContext context) throws Exception {                    
     ArrayList<Item> results = new ArrayList<Item>();
     if (attrs != null) {
       for (Attribute attr : attrs) {
         Object value = attr.getValue();      
         if (value instanceof NodeInfo) {             
-          results.add(new SerializableNodeInfo((NodeInfo) value));
+          results.add((NodeInfo) value);        
         } else {          
           results.add(convertJavaObjectToAtomicValue(value));          
         }        

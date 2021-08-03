@@ -22,7 +22,7 @@ import java.io.Serializable;
 /**
  * Attribute that is stored by XPath extension functions in the Context, 
  * a WebApp or Session object and can contain primitive types or 
- * NodeInfo objectsL.
+ * NodeInfo objects.
  * 
  * @author Maarten Kroon
  */

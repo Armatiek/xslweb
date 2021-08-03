@@ -1,4 +1,3 @@
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -17,9 +16,10 @@
  */
 package nl.armatiek.xslweb.saxon.functions.common;
 
-import java.util.Collection;
+import java.util.ArrayList;
 
 import net.sf.saxon.expr.XPathContext;
+import net.sf.saxon.om.Item;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.value.EmptySequence;
@@ -30,17 +30,25 @@ import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 
 public abstract class SetCacheValueCall extends ExtensionFunctionCall {
 
-  protected abstract void setAttributes(String cacheName, String keyName, Collection<Attribute> attrs, 
+  protected abstract void setAttributes(String cacheName, String keyName, ArrayList<Attribute> attrs, 
       int tti, int ttl, XPathContext context);
 
   @Override
   public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
     String cacheName = ((StringValue) arguments[0].head()).getStringValue();
     String keyName = ((StringValue) arguments[1].head()).getStringValue();        
-    int tti = (int) ((IntegerValue) arguments[3].head()).longValue();
-    int ttl = (int) ((IntegerValue) arguments[4].head()).longValue();
-    Collection<Attribute> attrs = sequenceToAttributeCollection(arguments[2], context);       
+    ArrayList<Attribute> attrs = sequenceToAttributeCollection(arguments[2], context, true);
+    int tti = -1;
+    int ttl = -1;
+    Item item;
+    if (arguments.length > 3 && (item = (IntegerValue) arguments[3].head()) != null) {
+      tti = (int) ((IntegerValue) item).longValue();
+    }
+    if (arguments.length > 4 && (item = (IntegerValue) arguments[4].head()) != null) {
+      ttl = (int) ((IntegerValue) item).longValue();
+    }      
     setAttributes(cacheName, keyName, attrs, tti, ttl, context);
     return EmptySequence.getInstance();
   }
+
 }

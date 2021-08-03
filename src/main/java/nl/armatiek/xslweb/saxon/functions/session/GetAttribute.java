@@ -74,12 +74,12 @@ public class GetAttribute extends ExtensionFunctionDefinition {
     return new GetAttributeCall() {      
       @SuppressWarnings("unchecked")
       @Override
-      protected Collection<Attribute> getAttributes(String name, XPathContext context) {                               
+      protected ArrayList<Attribute> getAttributes(String name, XPathContext context) {                               
         Object attr = getSession(context).getAttribute(name);
         if (attr == null) {
           return null;
         } else if (attr instanceof Collection<?>) {
-          return (Collection<Attribute>) attr;
+          return (ArrayList<Attribute>) attr;
         } else {
           ArrayList<Attribute> list = new ArrayList<Attribute>();
           list.add(new Attribute(attr, "unknown"));
