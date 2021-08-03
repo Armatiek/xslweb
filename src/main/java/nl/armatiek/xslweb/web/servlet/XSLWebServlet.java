@@ -78,6 +78,7 @@ import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.error.XSLWebException;
 import nl.armatiek.xslweb.joost.MessageEmitter;
+import nl.armatiek.xslweb.pipeline.BinarySerializerStep;
 import nl.armatiek.xslweb.pipeline.FopSerializerStep;
 import nl.armatiek.xslweb.pipeline.IdentityTransformerStep;
 import nl.armatiek.xslweb.pipeline.JSONSerializerStep;
@@ -254,6 +255,8 @@ public class XSLWebServlet extends HttpServlet {
       dest = new XdmSourceDestination();
     } else if (nextStep instanceof JSONSerializerStep) {
       dest = ((JSONSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties, errorListener);             
+    } else if (nextStep instanceof BinarySerializerStep) {
+      dest = ((BinarySerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties, errorListener);
     } else if (nextStep instanceof ZipSerializerStep) {
       dest = ((ZipSerializerStep) nextStep).getDestination(webApp, req, resp, os, outputProperties, errorListener);
     } else if (nextStep instanceof ResourceSerializerStep) {

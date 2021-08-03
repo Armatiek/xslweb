@@ -186,6 +186,8 @@ public class ZipSerializer extends AbstractSerializer {
       } else if (StringUtils.equals(localName, "inline-entry")) {
         processInlineEntry(uri, localName, qName, attributes);
       }
+    } catch (SAXException e) {
+      throw e;
     } catch (Exception e) {
       throw new SAXException(e);
     }

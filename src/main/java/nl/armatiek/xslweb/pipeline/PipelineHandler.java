@@ -232,6 +232,9 @@ public class PipelineHandler implements ContentHandler {
         } else if (localName.equals("namespace-declarations")) {
         } else if (localName.equals("namespace-declaration")) {
           ((JSONSerializerStep) pipelineSteps.peek()).addNamespaceDeclaration(getAttribute(atts, "namespace-uri", null), getAttribute(atts, "name", null));
+        } else if (localName.equals("binary-serializer")) {                                       
+          BinarySerializerStep step = new BinarySerializerStep(atts);
+          pipelineSteps.add(step);
         } else if (localName.equals("zip-serializer")) {                                       
           ZipSerializerStep step = new ZipSerializerStep(atts);
           pipelineSteps.add(step);
