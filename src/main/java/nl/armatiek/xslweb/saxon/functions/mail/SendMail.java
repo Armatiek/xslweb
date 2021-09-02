@@ -155,8 +155,10 @@ public class SendMail extends ExtensionFunctionDefinition {
         boolean useSSL = useSSLVal.equals("true") || useSSLVal.equals("1");
         String startTLSEnabled = (String) xpath.evaluate("email:start-tls-enabled", mailElem, XPathConstants.STRING);
         String startTLSRequired = (String) xpath.evaluate("email:start-tls-required", mailElem, XPathConstants.STRING);
+        String SSLCheckServerIdentityVal = (String) xpath.evaluate("email:ssl-check-server-identity", mailElem, XPathConstants.STRING); 
+        boolean SSLCheckServerIdentity = SSLCheckServerIdentityVal.equals("true") || SSLCheckServerIdentityVal.equals("1");
         
-        email.setHostName(hostName);        
+        email.setHostName(hostName); 
         if (StringUtils.isNotBlank(port)) {
           if (useSSL) {
             email.setSslSmtpPort(port);
@@ -164,6 +166,7 @@ public class SendMail extends ExtensionFunctionDefinition {
             email.setSmtpPort(Integer.parseInt(port));
           }         
         }
+        email.setSSLCheckServerIdentity(SSLCheckServerIdentity);
         if (StringUtils.isNotBlank(username)) {        
           email.setAuthenticator(new DefaultAuthenticator(username, password));        
         }                

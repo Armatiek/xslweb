@@ -19,7 +19,7 @@
   <xsl:param name="email:use-ssl" as="xs:boolean"/>
   <xsl:param name="email:start-tls-enabled" as="xs:boolean"/>
   <xsl:param name="email:start-tls-required" as="xs:boolean"/>
-  
+  <xsl:param name="email:ssl-check-server-identity" as="xs:boolean"/>
   
   <xsl:template name="title" as="xs:string">Example 12: E-mail extension function and webapp parameters</xsl:template>
   
@@ -47,6 +47,9 @@
         <email:start-tls-required>
           <xsl:value-of select="$email:start-tls-required"/>
         </email:start-tls-required>
+        <email:ssl-check-server-identity>
+          <xsl:value-of select="$email:ssl-check-server-identity"/>
+        </email:ssl-check-server-identity>
         <xsl:variable name="params" select="/*/req:parameters/req:parameter" as="element()*"/>
         <email:from>
           <email:email>

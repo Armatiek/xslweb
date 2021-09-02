@@ -49,6 +49,9 @@
     <parameter name="start-tls-required" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:boolean">
       <value>true</value>
     </parameter>
+    <parameter name="ssl-check-server-identity" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:boolean">
+      <value>false</value>
+    </parameter>
   </parameters>
 
   <!-- Scheduled job definitions: -->
