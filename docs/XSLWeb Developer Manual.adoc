@@ -517,6 +517,7 @@ In this example the stylesheet _resource-serialization.xsl_ must generate a XML 
 * *path*: the local path to the file that must be returned to the client.
 * *content-type* (optional): the content type (mime type) that must be set on the response. If this attribute is not set, XSLWeb will try to determine the content type automatically.
 * *content-disposition-filename* (optional): this attribute can be used to force the browser to display a “Save as” dialog (instead of display the file “inline”). The specified filename will be used as the default filename in de dialog.
+* *expire-time* (optional): The time the resource may be cached by the client before it expires (in seconds).
 
 An example of the output of the XSLT stylesheet _resource-serialization.xsl_ is:
 
@@ -526,7 +527,8 @@ An example of the output of the XSLT stylesheet _resource-serialization.xsl_ is:
 <res:resource-serializer
   path="webapps/examples/xsl/resource/leaves.jpg" 
   content-type="image/jpg" 
-  content-disposition-filename="my-image.jpg"/>
+  content-disposition-filename="my-image.jpg"
+  expire-time="30"/>
 ----
 
 See also example 26 of the _examples_ webapp

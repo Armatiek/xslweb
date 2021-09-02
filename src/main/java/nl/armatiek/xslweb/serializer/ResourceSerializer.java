@@ -51,6 +51,8 @@ public class ResourceSerializer extends AbstractSerializer {
     
     final String contentDispositionFilename = attributes.getValue("", "content-disposition-filename");
     
+    final String expireTimeSeconds = attributes.getValue("", "expire-time");
+    
     FileServlet fileServlet = new FileServlet() {
 
       private static final long serialVersionUID = 1L;
@@ -85,6 +87,14 @@ public class ResourceSerializer extends AbstractSerializer {
       @Override
       protected String getAttachmentName(HttpServletRequest request, File file) {
         return contentDispositionFilename;
+      }
+
+      @Override
+      protected long getExpireTime(HttpServletRequest request, File file) {
+        if (expireTimeSeconds != null) {
+          return Long.parseLong(expireTimeSeconds);
+        } 
+        return super.getExpireTime(request, file);
       }
       
     };
