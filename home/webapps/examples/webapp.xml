@@ -43,6 +43,12 @@
     <parameter name="use-ssl" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:boolean">
       <value>true</value>
     </parameter>
+    <parameter name="start-tls-enabled" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:boolean">
+      <value>true</value>
+    </parameter>
+    <parameter name="start-tls-required" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:boolean">
+      <value>true</value>
+    </parameter>
   </parameters>
 
   <!-- Scheduled job definitions: -->

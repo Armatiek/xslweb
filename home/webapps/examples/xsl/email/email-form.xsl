@@ -15,7 +15,7 @@
   
   <xsl:template name="tab-contents-1">
     <h3>N.B. First set the correct values for the parameters <i>hostname</i>, <i>port</i>, <i>username</i>, 
-      <i>password</i> and <i>use-ssl</i> in <i>webapp.xml</i>.</h3>
+      <i>password</i> <i>use-ssl</i>, <i>start-tls-enabled</i> and <i>start-tls-required</i> in <i>webapp.xml</i>.</h3>
     
     <form 
       method="post"
