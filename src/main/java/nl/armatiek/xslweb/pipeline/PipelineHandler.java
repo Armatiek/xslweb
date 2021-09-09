@@ -42,12 +42,6 @@ import nl.armatiek.xslweb.xml.SerializingContentHandler;
 public class PipelineHandler implements ContentHandler {
   
   private Stack<PipelineStep> pipelineSteps = new Stack<PipelineStep>();
-  private boolean cache;
-  private String cacheKey;
-  private int cacheTimeToLive = 60;
-  private int cacheTimeToIdle = 60;
-  private String cacheScope;
-  private boolean cacheHeaders;
   private int xssFilterFlags = 0;
   private SerializingContentHandler serializingHandler;
   private OutputStream os;
@@ -218,14 +212,6 @@ public class PipelineHandler implements ContentHandler {
         } else if (localName.equals("schema-path")) {
         } else if (localName.equals("schema-paths")) {
         } else if (localName.equals("pipeline")) {
-          cache = getAttribute(atts, "cache", "false").equals("true");
-          if (cache) {
-            cacheKey = getAttribute(atts, "cache-key", null);          
-            cacheTimeToLive = Integer.parseInt(getAttribute(atts, "cache-time-to-live", "60"));
-            cacheTimeToIdle = Integer.parseInt(getAttribute(atts, "cache-time-to-idle", "60"));
-            cacheScope = getAttribute(atts, "cache-scope", "webapp");
-            cacheHeaders = getAttribute(atts, "cache-headers", "false").equals("true");
-          }
         } else if (localName.equals("json-serializer")) {                                      
           JSONSerializerStep step = new JSONSerializerStep(atts);
           pipelineSteps.add(step);
@@ -304,30 +290,6 @@ public class PipelineHandler implements ContentHandler {
   
   public List<PipelineStep> getPipelineSteps() {
     return this.pipelineSteps;
-  }
-  
-  public boolean getCache() {
-    return cache;
-  }
-  
-  public String getCacheKey() {
-    return cacheKey;
-  }
-  
-  public int getCacheTimeToLive() {
-    return cacheTimeToLive;
-  }
-  
-  public int getCacheTimeToIdle() {
-    return cacheTimeToIdle;
-  }
-  
-  public String getCacheScope() {
-    return cacheScope;
-  }
-  
-  public boolean getCacheHeaders() {
-    return cacheHeaders;
   }
   
   public int getXSSFilterFlags() {
