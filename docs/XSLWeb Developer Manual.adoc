@@ -179,8 +179,6 @@ A pipeline consists of:
 
 See <<pipeline-steps>> for a more in depth overview of these different pipeline steps.
 
-The output of the pipeline can be cached by specifying extra attributes on the _<pipeline:pipeline/>_ element, see <<response-caching>>.
-
 In development-mode, the output of the (intermediate) transformation steps can be logged to a log file, see chapters <<development-mode>> and <<logging>>.
 
 [#pipeline]
@@ -414,7 +412,7 @@ The json-serializer step serializes XML to a http://www.json.org/[JSON] represen
 ----
 <pipeline:pipeline>
   <pipeline:transformer
-    name="my-transformation "
+    name="my-transformation"
     xsl-path="my-transformation.xsl"/>
   <pipeline:json-serializer
     name="json-serialization"
@@ -623,7 +621,6 @@ where _examples_ is the name of the webapp of the nested pipeline. The result of
 In webapp.xml a web application can be configured to run in _development mode_ or _production mode_. The differences between development and production mode are:
 
 * In development mode, compiled XSLT stylesheets are not cached. That means that for every request all stylesheets in the pipeline are reread from disk and recompiled and therefore changes will be visible immediately. In production mode, stylesheets are compiled and cached the first time they are used. However, in production mode, changes in stylesheets will automatically be detected by the file alteration monitor and the complete web application will be reloaded. So there is no need to restart the application server when deploying stylesheets in production mode. The file alteration monitor will also detect and pick up changes in the webapp.xml configuration file and plugin extension function library jars.
-* In development mode, the caching framework (using the cache attributes on the pipeline element) is disabled, so no caching is performed.
 * In development mode, the output of a pipeline is not streamed directly to the client (e.g. the browser) but instead buffered until the complete pipeline is executed. If an error occurs during the execution of the pipeline, the error message and stack trace are sent to the client, making it easier to debug the error. If an error occurs in production mode, only a HTTP status code 500 (internal server error) is sent to the client (that is, if the response is not already committed by the application server).
 * In development mode a pipeline step can be configured to log its (intermediate) output to the log file _«xslweb-home»/logs/pipeline.log_, by specifying _log=”true”_ on the pipeline step. In production mode all logging of the output of pipeline steps is disabled.
 * In development mode, the generated XSLT of a Schematron schema is logged to the log file (with severity INFO).
@@ -643,6 +640,8 @@ XSLWeb makes use of the standard logging framework http://www.slf4j.org/[slf4j] 
 
 [#response-caching]
 == Response caching
+
+IMPORTANT: Because of the upgrade of the Ehcache framework from version 2.6 to 3.9, this functionality will be removed in version 4.1 of XSLWeb (Ehcache dropped the support for SimpleCachingHeadersPageCachingFilter on which the response caching functionality was built). 
 
 The output of a pipeline can be cached by providing optional caching attributes on the element _pipeline:pipeline_ in the stylesheet _request-dispatcher.xsl_. The purpose of caching the response output is to gain performance; a response that can be served from cache will be returned quicker because no transformations are necessary and also the load on the server is decreased.
 
@@ -1219,9 +1218,9 @@ Specifies the time, in seconds, between client requests before the servlet conta
 See example 7 how to use the session functions to set and get session attributes.
 
 [#webapp-functions]
-=== Webapp functions
+=== Webapp and caching functions
 
-These functions can be used to get and set web application specific attributes. These can be used to share session independent attribute between multiple requests within one web application.
+These functions can be used to get and set web application specific attributes and cache entries. They can be used to share session independent data between multiple requests and multiple users within one web application.
 
 Namespace uri: _\http://www.armatiek.com/xslweb/functions/webapp_. In the function signatures below this namespace uri is bound to the prefix _webapp_.
 
@@ -1229,23 +1228,118 @@ Functions:
 
 [source,xquery]
 ----
+function webapp:set-attribute($name as xs:string, attr as item()*) as xs:boolean?
+----
+
+Stores a sequence _$attr_ under name _$name_ in de webapp context, so it is available over multiple requests and for multiple users within the same webapp.
+
+[source,xquery]
+----
 function webapp:get-attribute($name as xs:string) as item()*
 ----
+
+Retrieves a previously stored sequence with name _$name_ from the webapp context.
+
+[source,xquery]
+----
+function webapp:set-cache-value($cache-name as xs:string, $key-name as xs:string, $value as item()*, $time-to-idle as xs:integer, $time-to-live as xs:integer) as xs:boolean?
+----
+
+Caches a sequence _$value_ under key _$key-name_ in the cache with name _$cache-name_. The cache must be configured in the webapp.xml. _$time-to-idle_ is the maximum number of seconds an entry can exist in the cache without being accessed. The entry expires at this limit and will no longer be returned from the cache. The default value is 0, which means no TTI eviction takes place (infinite lifetime). _$time-to-live_ is the maximum number of seconds an entry can exist in the cache regardless of use. The element expires at this limit and will no longer be returned from the cache. The default value is 0, which means no TTL eviction takes place (infinite lifetime). 
+
+IMPORTANT: This function is deprecated, the caching framework that XSLWeb uses (Ehcache) does not (really) support tti and ttl on individual cache entries anymore. From XSLWeb 4.1 please use _webapp:set-cache-value($cache-name as xs:string, $key-name as xs:string, $value as item()*) as xs:boolean?_ and specify the times in the configuration for a particular cache in webapp.xml. 
 
 [source,xquery]
 ----
 function webapp:get-cache-value($cache-name as xs:string, $key-name as xs:string) as item()*
 ----
 
-[source,xquery]
-----
-function webapp:set-attribute($name as xs:string, attr as item()*) as xs:boolean?
-----
+Retrieves a previously cached sequence with key _$key-name_ from the cache with name _$cache-name_. The cache must be configured in the webapp.xml.
+
+NOTE: The information below (including section 14.6) does only apply to XSLWeb version 4.1 or the master of XSLWeb git.
 
 [source,xquery]
 ----
-function webapp:set-cache-value($cache-name as xs:string, $key-name as xs:string, $attrs as item()*, $time-to-idle as xs:integer, $time-to-live as xs:integer) as xs:boolean?
+function webapp:set-cache-value($cache-name as xs:string, $key-name as xs:string, $value as item()*) as xs:boolean?
 ----
+
+Caches a sequence _$value_ under key _$key-name_ in the cache with name _$cache-name_. The cache must be configured in the webapp.xml.
+
+[source,xquery]
+----
+function webapp:remove-cache-value($cache-name as xs:string, $key-name as xs:string) as xs:boolean?
+----
+
+Removes a previously cached sequence with key _$key-name_ from the cache with name _$cache-name_.
+
+=== Cache configuration
+
+Caches must be configured within the webapp.xml. Each webapp.xml can contain zero or more cache configurations. The XML format that is used to configure a cache is exactly the same as the format Ehcache uses to configure a cache in XML, see https://www.ehcache.org/documentation/3.0/xml.html[XML Configuration,window={window-blank}]. In fact, the configuration XML schema of Ehcache is imported in the XML schema of webapp.xml, see _«xslweb-home»/config/xsd/xslweb/webapp.xsd_ and _«xslweb-home»/config/xsd/ehcache/ehcache-core.xsd_. 
+
+Example of a cache configuration:
+
+[source,xml]
+----
+<?xml version="1.0"?>
+<webapp 
+  xmlns="http://www.armatiek.com/xslweb/webapp" 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:saxon-config="http://saxon.sf.net/ns/configuration"
+  xmlns:ehcache="http://www.ehcache.org/v3"
+  xsi:schemaLocation="http://www.armatiek.com/xslweb/webapp ../../config/xsd/xslweb/webapp.xsd">
+
+  <title>Caching example</title>
+  <description>Caching example</description>
+  <development-mode>true</development-mode>
+
+  <!-- ... -->
+
+  <ehcache:config>
+    <ehcache:persistence directory="${webapp-dir}/cache"/> # <1>
+    
+    <ehcache:cache-template name="default-template"> # <2>  
+      <ehcache:key-type>java.lang.String</ehcache:key-type>
+      <ehcache:value-type>java.util.ArrayList</ehcache:value-type>
+      <ehcache:expiry>
+        <ehcache:class>nl.armatiek.xslweb.ehcache.DefaultExpiryPolicy</ehcache:class>
+      </ehcache:expiry>
+      <ehcache:heap-store-settings>
+        <ehcache:max-object-graph-size>9223372036854775807</ehcache:max-object-graph-size>
+      </ehcache:heap-store-settings>
+    </ehcache:cache-template>
+    
+    <ehcache:cache alias="my-cache" uses-template="default-template"> # <3>     
+      <ehcache:expiry> # <4>
+        <ehcache:tti unit="seconds">900</ehcache:tti>
+      </ehcache:expiry>
+      <ehcache:resources> # <5> 
+        <ehcache:heap unit="entries">32</ehcache:heap>
+        <ehcache:offheap unit="MB">64</ehcache:offheap> <!-- Also set Java option -XX:MaxDirectMemorySize! --> 
+        <ehcache:disk unit="GB" persistent="true">2</ehcache:disk>
+      </ehcache:resources>
+    </ehcache:cache>
+    
+    <ehcache:cache alias="another-cache" uses-template="default-template">    
+      <!-- ... -->
+    </ehcache:cache>
+    
+  </ehcache:config>
+  
+</webapp>
+----
+<1> The location where cache entries are stored that must be serialized to disk. 
+<2> The default template that cache definitions can refer to. The information in the default-template *must* be specified for each cache definition.
+<3> The definition of a cache named "my-cache". This name must be used in the extension function webapp:set-cache-value()/webapp:get-cache-value().
+<4> The expiry times for all cache entries within this cache definition. The time-to-idle (tti) *or* time-to-live can be specified here (see Ehcache documentation).
+<5> The configuration of the capacity of the heap memory (within the JVM), off-heap memory (outside the JVM) and disk that is used for caching entries. 
+
+Please note the following:
+
+* Caching in heap memory is the fastest option (especially when nodes are cached), because objects that are cached in heap memory do not have to be serialized and deserialized, unlike objects that are cached off-heap or to disk. However when serialization of nodes is necessary, XSLWeb serializes the node to a compact binary form called the https://en.wikipedia.org/wiki/Fast_Infoset[Fast Infoset,window={window-blank}], that can be deserialized/parsed more quickly than the original XML document.
+* The unit of the capacity of the heap memory can be specified in number of entries, but also in B, kB, MB, GB. (off-heap and disk only in bytes). Because cache entries in the heap are not serialized, their size is far more difficult to calculate than in case of off-heap or disk memory, in which case the entries are serialized. In the case of a byte-sized heap, Ehcache must traverse the object graph of the cache entry, which in the case of XSLWeb can be a node. Byte sizing of the heap therefore has a runtime performance impact that depends on the size and graph complexity of the data cached.
+
+IMPORTANT: Byte sizing of heap capacity currently does not work within XSLWeb (investigation is ongoing...). Therefore it is recommended for now to only specify the capacity of heap memory in number of entries, not in bytes. 
 
 See example 7 how to use the webapp functions to set and get webapp attributes, and example 14 how to use the caching functions.
 
