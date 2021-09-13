@@ -175,6 +175,7 @@ A pipeline consists of:
 ** _json-serializer_: serializes XML output to a JSON representation.
 ** _zip-serializer_: serializes a XML ZIP specification to an actual ZIP file.
 ** _resource-serializer_: serializes a text or binary file to the response.
+** _binary-serializer_: serializes xs:base64Binary data as binary file to the response.
 ** _fop-serializer_: serializes XSL-FO generated in a previous pipeline step to PDF using the Apache FOP XSL-FO processor.
 
 See <<pipeline-steps>> for a more in depth overview of these different pipeline steps.
@@ -400,6 +401,7 @@ In case the output of the pipeline should not be XML, XHTML, HTML or text, a spe
 * json-serializer
 * zip-serializer
 * resource-serializer
+* binary-serializer
 * fop-serializer
 
 [#json-serializer-step]
@@ -530,6 +532,34 @@ An example of the output of the XSLT stylesheet _resource-serialization.xsl_ is:
 ----
 
 See also example 26 of the _examples_ webapp
+
+[#binary-serializer-step]
+==== binary-serializer step
+
+The binary serializer returns xs:base64Binary data as a binary file to the client. It is typically used in scenarios where binary data is fetched from a HTTP server using EXPath HttpClient and this data must be returned to the client as a binary file.
+
+The binary serializer pipeline step can be added as the last step in a pipeline like this:
+
+.Binary serializer pipeline step
+[source,xml]
+----
+<pipeline:pipeline>
+  <pipeline:transformer
+    name="binary-serialization" 
+    xsl-path="binary-serialization.xsl"/>
+  <pipeline:binary-serializer name="binary"/>  
+</pipeline:pipeline>
+----
+
+In this example the stylesheet _binary-serialization.xsl_ must generate a XML fragment containing information that the binary serializer uses to create the desired response. The stylesheet must generate an element _binary-serializer_ in the namespace _\http://www.armatiek.com/xslweb/binary-serializer_. The contents of this element must be an base64 encoded string.
+
+An example of the output of the XSLT stylesheet _binary-serialization.xsl_ is:
+
+.Binary 
+[source,xml]
+----
+<res:binary-serializer>iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==</res:binary-serializer>
+----
 
 [#fop-serializer-step]
 ==== fop-serializer step
@@ -1256,7 +1286,7 @@ function webapp:get-cache-value($cache-name as xs:string, $key-name as xs:string
 
 Retrieves a previously cached sequence with key _$key-name_ from the cache with name _$cache-name_. The cache must be configured in the webapp.xml.
 
-NOTE: The information below (including section 14.6) does only apply to XSLWeb version 4.1 or the master of XSLWeb git.
+NOTE: The information below (including section 14.5.1) does only apply to XSLWeb version 4.1 or the master of XSLWeb git.
 
 [source,xquery]
 ----
@@ -1272,7 +1302,7 @@ function webapp:remove-cache-value($cache-name as xs:string, $key-name as xs:str
 
 Removes a previously cached sequence with key _$key-name_ from the cache with name _$cache-name_.
 
-=== Cache configuration
+==== Cache configuration
 
 Caches must be configured within the webapp.xml. Each webapp.xml can contain zero or more cache configurations. The XML format that is used to configure a cache is exactly the same as the format Ehcache uses to configure a cache in XML, see https://www.ehcache.org/documentation/3.0/xml.html[XML Configuration,window={window-blank}]. In fact, the configuration XML schema of Ehcache is imported in the XML schema of webapp.xml, see _«xslweb-home»/config/xsd/xslweb/webapp.xsd_ and _«xslweb-home»/config/xsd/ehcache/ehcache-core.xsd_. 
 
