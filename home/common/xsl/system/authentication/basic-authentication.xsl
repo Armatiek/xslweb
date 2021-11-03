@@ -24,6 +24,14 @@
     <xsl:sequence select="if ($authorization-header) then tokenize(base64:decode(substring-after(normalize-space($authorization-header), ' ')), ':') else ()"/> 
   </xsl:function>
   
+  <xsl:template name="auth:store-profile-in-session" as="xs:boolean">
+    <xsl:sequence select="true()"/>
+  </xsl:template>
+  
+  <xsl:template name="auth:store-profile-in-request" as="xs:boolean">
+    <xsl:sequence select="true()"/>
+  </xsl:template>
+  
   <xsl:template match="/req:request[auth:must-authenticate(/)]" priority="9">
     <xsl:variable name="user-profile" select="session:get-attribute($session:attr-name-userprofile)" as="element()?"/>
     <xsl:choose>
@@ -37,7 +45,14 @@
             <xsl:variable name="user-profile" select="auth:login($credentials[1], $credentials[2])" as="element()?"/>
             <xsl:choose>
               <xsl:when test="$user-profile">
-                <xsl:value-of select="session:set-attribute($session:attr-name-userprofile, $user-profile)"/>                
+                <xsl:variable name="store-profile-in-session" as="xs:boolean">
+                  <xsl:call-template name="auth:store-profile-in-session"/>
+                </xsl:variable>
+                <xsl:variable name="store-profile-in-request" as="xs:boolean">
+                  <xsl:call-template name="auth:store-profile-in-request"/>
+                </xsl:variable>
+                <xsl:sequence select="if ($store-profile-in-session) then session:set-attribute($session:attr-name-userprofile, $user-profile) else ()"/>
+                <xsl:sequence select="if ($store-profile-in-request) then req:set-attribute($session:attr-name-userprofile, $user-profile) else ()"/>
                 <xsl:next-match/>    
               </xsl:when>
               <xsl:otherwise>
