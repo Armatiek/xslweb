@@ -81,12 +81,12 @@ public class ResourceSerializer extends AbstractSerializer {
       
       @Override
       protected boolean isAttachment(HttpServletRequest request, String contentType) {
-        return StringUtils.isNoneEmpty(contentDispositionFilename); 
+        return StringUtils.isNotEmpty(contentDispositionFilename); 
       }
       
       @Override
       protected String getAttachmentName(HttpServletRequest request, File file) {
-        return contentDispositionFilename;
+        return (StringUtils.isEmpty(contentDispositionFilename)) ? super.getAttachmentName(request, file) : contentDispositionFilename;
       }
 
       @Override
