@@ -29,7 +29,7 @@
   <!-- Stylesheet parameters: -->
   <parameters>
     <parameter name="hostname" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:string">
-      <value>smtp.googlemail.com</value>
+      <value>smtp.gmail.com</value>
     </parameter>
     <parameter name="port" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:integer">
       <value>465</value>
@@ -44,10 +44,10 @@
       <value>true</value>
     </parameter>
     <parameter name="start-tls-enabled" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:boolean">
-      <value>true</value>
+      <value>false</value>
     </parameter>
     <parameter name="start-tls-required" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:boolean">
-      <value>true</value>
+      <value>false</value>
     </parameter>
     <parameter name="ssl-check-server-identity" uri="http://www.armatiek.com/xslweb/functions/email" type="xs:boolean">
       <value>false</value>
@@ -82,7 +82,7 @@
     <!-- Overriding RFC 2518, the folders of resources being created, can be created too if they do not exist. -->
     <lazy-folder-creation-on-put>true</lazy-folder-creation-on-put>
   </webdav>
-  
+    
   <security>
     <shiro-ini><![CDATA[
 [main]
