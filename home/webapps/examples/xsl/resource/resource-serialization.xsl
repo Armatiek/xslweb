@@ -22,7 +22,7 @@
   </xsl:template>
   
   <xsl:template name="body">
-    <res:resource-serializer path="webapps/examples/xsl/resource/leaves.jpg"/>
+    <res:resource-serializer path="webapps/examples/xsl/resource/leaves.jpg" expire-time="86400"/>
     <!--
     <res:resource-serializer path="webapps/examples/xsl/resource/leaves.jpg" content-type="image/jpg" content-disposition-filename="my-image.jpg"/>
     -->
