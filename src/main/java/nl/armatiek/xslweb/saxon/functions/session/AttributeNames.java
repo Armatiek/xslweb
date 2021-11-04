@@ -20,6 +20,8 @@ package nl.armatiek.xslweb.saxon.functions.session;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
+import javax.servlet.http.HttpSession;
+
 import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
@@ -80,11 +82,14 @@ public class AttributeNames extends ExtensionFunctionDefinition {
     
     @Override
     public ZeroOrMore<StringValue> call(XPathContext context, Sequence[] arguments) throws XPathException {      
-      Enumeration<String> names = getSession(context).getAttributeNames();                  
       ArrayList<StringValue> nameList = new ArrayList<StringValue>();
-      if (names != null) {
-        while (names.hasMoreElements()) {
-          nameList.add(new StringValue(names.nextElement()));
+      HttpSession session = getSession(context, false);
+      if (session != null) {
+        Enumeration<String> names = session.getAttributeNames();                   
+        if (names != null) {
+          while (names.hasMoreElements()) {
+            nameList.add(new StringValue(names.nextElement()));
+          }
         }
       }
       return new ZeroOrMore<StringValue>(nameList.toArray(new StringValue[nameList.size()]));

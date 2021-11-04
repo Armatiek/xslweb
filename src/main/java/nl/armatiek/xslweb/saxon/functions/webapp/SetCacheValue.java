@@ -60,7 +60,7 @@ public class SetCacheValue extends ExtensionFunctionDefinition {
       @Override
       protected void setAttributes(String cacheName, String keyName, ArrayList<Attribute> attrs, 
           int tti, int ttl, XPathContext context) {               
-        getWebApp(context).setCacheValue(cacheName, keyName, attrs, tti, ttl);        
+        getWebApp(context).setCacheValue(cacheName, keyName, attrs, tti, ttl);       
       }
     };
   }

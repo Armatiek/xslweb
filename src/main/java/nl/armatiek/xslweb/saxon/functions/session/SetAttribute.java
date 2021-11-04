@@ -54,7 +54,7 @@ public class SetAttribute extends ExtensionFunctionDefinition {
     return new SetAttributeCall(true) {
       @Override
       protected void setAttributes(String name, ArrayList<Attribute> attrs, XPathContext context) {               
-        getSession(context).setAttribute(name, attrs);        
+        getSession(context, true).setAttribute(name, attrs);        
       }
     };
   }

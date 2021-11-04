@@ -21,6 +21,8 @@ import java.util.ArrayList;
 
 import java.util.Collection;
 
+import javax.servlet.http.HttpSession;
+
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.StructuredQName;
@@ -75,7 +77,11 @@ public class GetAttribute extends ExtensionFunctionDefinition {
       @SuppressWarnings("unchecked")
       @Override
       protected ArrayList<Attribute> getAttributes(String name, XPathContext context) {                               
-        Object attr = getSession(context).getAttribute(name);
+        HttpSession session = getSession(context, false);
+        if (session == null) {
+          return null;
+        }
+        Object attr = session.getAttribute(name);
         if (attr == null) {
           return null;
         } else if (attr instanceof Collection<?>) {

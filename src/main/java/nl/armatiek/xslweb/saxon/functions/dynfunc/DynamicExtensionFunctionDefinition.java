@@ -340,7 +340,7 @@ public class DynamicExtensionFunctionDefinition extends ExtensionFunctionDefinit
               implicitObjects.add(getWebApp(context));
               continue;
             } else if (paramType.equals(HttpSession.class)) {
-              implicitObjects.add(getSession(context));
+              implicitObjects.add(getSession(context, true));
               continue;
             } else if (paramType.equals(HttpServletRequest.class)) {
               implicitObjects.add(getRequest(context));

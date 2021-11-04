@@ -291,8 +291,8 @@ public abstract class ExtensionFunctionCall extends net.sf.saxon.lib.ExtensionFu
         new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_RESPONSE, "response"))).getObject();
   }
   
-  protected HttpSession getSession(XPathContext context) {    
-    return getRequest(context).getSession();
+  protected HttpSession getSession(XPathContext context, boolean create) {    
+    return getRequest(context).getSession(create);
   }
   
   protected WebApp getWebApp(XPathContext context) {

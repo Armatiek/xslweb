@@ -1,5 +1,7 @@
 package nl.armatiek.xslweb.saxon.functions.session;
 
+import javax.servlet.http.HttpSession;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -75,7 +77,10 @@ public class Invalidate extends ExtensionFunctionDefinition {
 
     @Override
     public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
-      getSession(context).invalidate();
+      HttpSession session = getSession(context, false);
+      if (session != null) {
+        session.invalidate();  
+      }
       return EmptySequence.getInstance();
     }
   }

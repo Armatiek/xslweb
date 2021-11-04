@@ -1,5 +1,7 @@
 package nl.armatiek.xslweb.saxon.functions.session;
 
+import javax.servlet.http.HttpSession;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -77,7 +79,10 @@ public class SetMaxInactiveInterval extends ExtensionFunctionDefinition {
     @Override
     public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {      
       int interval = (int) ((Int64Value) arguments[0].head()).longValue();
-      getSession(context).setMaxInactiveInterval(interval);
+      HttpSession session = getSession(context, false);
+      if (session != null) {
+        session.setMaxInactiveInterval(interval);  
+      }
       return EmptySequence.getInstance();
     }
   }
