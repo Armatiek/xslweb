@@ -1369,7 +1369,23 @@ Please note the following:
 * Caching in heap memory is the fastest option (especially when nodes are cached), because objects that are cached in heap memory do not have to be serialized and deserialized, unlike objects that are cached off-heap or to disk. However when serialization of nodes is necessary, XSLWeb serializes the node to a compact binary form called the https://en.wikipedia.org/wiki/Fast_Infoset[Fast Infoset,window={window-blank}], that can be deserialized/parsed more quickly than the original XML document.
 * The unit of the capacity of the heap memory can be specified in number of entries, but also in B, kB, MB, GB. (off-heap and disk only in bytes). Because cache entries in the heap are not serialized, their size is far more difficult to calculate than in case of off-heap or disk memory, in which case the entries are serialized. In the case of a byte-sized heap, Ehcache must traverse the object graph of the cache entry, which in the case of XSLWeb can be a node. Byte sizing of the heap therefore has a runtime performance impact that depends on the size and graph complexity of the data cached.
 
-IMPORTANT: Byte sizing of heap capacity currently does not work within XSLWeb (investigation is ongoing...). Therefore it is recommended for now to only specify the capacity of heap memory in number of entries, not in bytes. 
+If you are byte sizing the heap capacity and you receive errors like: _Unable to make java.lang.ClassLoader.defineClass accessible: module java.base does not "opens java.lang" to unnamed module @1941a8ff_ it may be necessary to specify the following Java options:
+
+[source]
+----
+--add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED
+--add-opens jdk.management.jfr/jdk.management.jfr=ALL-UNNAMED
+--add-opens java.base/jdk.internal.ref=ALL-UNNAMED
+--add-opens java.xml/javax.xml.catalog=ALL-UNNAMED
+--add-opens java.base/jdk.internal.loader=ALL-UNNAMED
+--add-opens java.base/java.lang.module=ALL-UNNAMED
+--add-opens java.base/jdk.internal.module=ALL-UNNAMED
+--add-opens java.base/jdk.internal.math=ALL-UNNAMED
+----
+
+IMPORTANT: Byte sizing of heap capacity currently does not work very accurate for nodes (investigation is ongoing...). Therefore it is recommended that if you want to cache nodes to specify the capacity of heap memory in number of entries, not in bytes. 
+
+IMPORTANT: Do not forget to define in the java options the -XX:MaxDirectMemorySize option, according to the off-heap size you intend to use.
 
 See example 7 how to use the webapp functions to set and get webapp attributes, and example 14 how to use the caching functions.
 
