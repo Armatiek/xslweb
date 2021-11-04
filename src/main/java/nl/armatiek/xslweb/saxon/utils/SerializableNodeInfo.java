@@ -26,6 +26,8 @@ import java.util.function.Predicate;
 
 import javax.xml.stream.XMLStreamReader;
 
+import org.ehcache.sizeof.annotations.IgnoreSizeOf;
+
 import com.sun.xml.fastinfoset.stax.StAXDocumentParser;
 import com.sun.xml.fastinfoset.stax.StAXDocumentSerializer;
 
@@ -58,6 +60,8 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
   private static final long serialVersionUID = 3233046816831468756L;
   
   private transient NodeInfo nodeInfo;
+  
+  @IgnoreSizeOf
   private transient WebApp webApp;
   
   public SerializableNodeInfo(NodeInfo nodeInfo, WebApp webApp) {
@@ -127,7 +131,7 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
     return nodeInfo.getTreeInfo();
   }
 
-  @Override
+  @Override  
   public Configuration getConfiguration() {
     return nodeInfo.getConfiguration();
   }
