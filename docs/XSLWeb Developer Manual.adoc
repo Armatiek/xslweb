@@ -643,8 +643,10 @@ It is possible to call another pipeline from a stylesheet using the standard XSL
 <xsl:sequence select="document('xslweb:///examples/nestedpipeline.html')"/>
 ----
 
-where _examples_ is the name of the webapp of the nested pipeline. The result of the nested pipeline will be available in the calling stylesheet as a document node. The nested pipeline request will follow the flow of a normal HTTP request, including the request dispatcher stylesheet. A nested pipeline call can be seen as an “internal request”, it does not go through the HTTP stack. [#_Response_serialization_1 .anchor]##
+where _examples_ is the name of the webapp of the nested pipeline. The result of the nested pipeline will be available in the calling stylesheet as a document node. The nested pipeline request will follow the flow of a normal HTTP request, including the request dispatcher stylesheet. A nested pipeline call can be seen as an “internal request”, it does not go through the HTTP stack. 
 
+You can pass data to the nested pipeline using reqular request parameters added to the url, but you can also pass data as attributes using the <<request-functions, req:set-attribute($name, $value)>> extension function. These attributes will be available using <<request-functions, req:get-attribute($name)>> in the nested pipeline. That is especially convenient when you want to pas (sequences) of nodes without the performance penalty of serialization.
+        
 [#development-mode]
 == Development mode and production mode
 

@@ -4,6 +4,7 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
   xmlns:xhtml="http://www.w3.org/1999/xhtml" 
+  xmlns:req="http://www.armatiek.com/xslweb/request"
   xmlns:config="http://www.armatiek.com/xslweb/configuration"
   exclude-result-prefixes="#all"
   version="3.0">
@@ -21,6 +22,11 @@
     standard XSLT function <i>document()</i> with an URL that starts with the custom scheme "xslweb". The path
     part of the URI starts with the name of the webapp.</p>
         
+    <xsl:variable name="node-1" as="element(greeting)">
+      <greeting xmlns="">Hello World!</greeting>
+    </xsl:variable>    
+        
+    <xsl:sequence select="req:set-attribute('node-1', $node-1)"/>    
     <xsl:sequence select="document('xslweb:///examples/nestedpipeline.html?a=b&amp;c=d&amp;a=e')"/>
   </xsl:template>
   

@@ -20,6 +20,7 @@ package nl.armatiek.xslweb.web.servlet;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 import javax.servlet.Filter;
 import javax.servlet.ServletContext;
@@ -27,6 +28,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
@@ -43,7 +45,7 @@ public class InternalRequest {
   
   private static final Logger logger = LoggerFactory.getLogger(InternalRequest.class);
   
-  public int execute(String path, OutputStream os, boolean isJobRequest) throws ServletException, IOException {
+  public int execute(String path, OutputStream os, boolean isJobRequest, HttpServletRequest parentRequest) throws ServletException, IOException {
     try {
       ArrayList<Filter> filters = new ArrayList<Filter>();
       XSLWebFilterConfig emptyConfig = new XSLWebFilterConfig();
@@ -80,19 +82,27 @@ public class InternalRequest {
       
       ServletContext servletContext = Context.getInstance().getServletContext();
       
-      ServletRequest request = new XSLWebHttpServletRequest(servletContext, path);
+      ServletRequest internalRequest = new XSLWebHttpServletRequest(servletContext, path);
+      if (parentRequest != null) {
+        /* Copy all request attributes from parent/container request to internal request */ 
+        Enumeration<String> names = parentRequest.getAttributeNames();
+        while (names.hasMoreElements()) {
+          String name = names.nextElement();
+          internalRequest.setAttribute(name, parentRequest.getAttribute(name));
+        }
+      }
       ServletResponse response = new XSLWebHttpServletResponse(os);
       
       WebApp webApp = null;
       if (isJobRequest) {
-        webApp = WebAppFilter.getWebApp(request);
+        webApp = WebAppFilter.getWebApp(internalRequest);
         if (webApp != null) {
           webApp.incJobRequestCount();
         }
       }
       
       try {
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(internalRequest, response);
       } finally {
         if (webApp != null) {
           webApp.decJobRequestCount();
@@ -105,6 +115,10 @@ public class InternalRequest {
       logger.error("Error executing internal servlet request to \"" + path + "\"", e);
       throw e;
     }            
+  }
+  
+  public int execute(String path, OutputStream os, boolean isJobRequest) throws ServletException, IOException {
+    return execute(path, os, isJobRequest, null);
   }
   
   public int execute(String path, OutputStream os) throws ServletException, IOException {

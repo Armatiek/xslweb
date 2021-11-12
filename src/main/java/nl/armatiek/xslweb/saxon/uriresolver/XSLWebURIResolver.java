@@ -27,6 +27,7 @@ import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
@@ -42,6 +43,7 @@ public class XSLWebURIResolver extends StandardURIResolver {
   public enum DefaultBehaviour { SAXON, STREAM } 
   
   private DefaultBehaviour defaultBehaviour;
+  private HttpServletRequest request = null;
   
   public XSLWebURIResolver() {
     this.defaultBehaviour = DefaultBehaviour.SAXON;
@@ -49,6 +51,11 @@ public class XSLWebURIResolver extends StandardURIResolver {
   
   public XSLWebURIResolver(DefaultBehaviour defaultBehaviour) {
     this.defaultBehaviour = defaultBehaviour;
+  }
+  
+  public XSLWebURIResolver(DefaultBehaviour defaultBehaviour, HttpServletRequest request) {
+    this.defaultBehaviour = defaultBehaviour;
+    this.request = request;
   }
   
   @Override
@@ -66,14 +73,14 @@ public class XSLWebURIResolver extends StandardURIResolver {
         proxyPort = params.get("proxyPort");
       }
       if (uri.isAbsolute() && uri.getScheme().equals(Definitions.SCHEME_XSLWEB)) {      
-        InternalRequest request = new InternalRequest();
+        InternalRequest internalRequest = new InternalRequest();
         ByteArrayOutputStream boas = new ByteArrayOutputStream();        
         String path = uri.getPath();
         String query = uri.getRawQuery();        
         if (query != null) {
           path = path + "?" + query;
         }        
-        request.execute(path, boas);
+        internalRequest.execute(path, boas, false, request);
         return new StreamSource(new ByteArrayInputStream(boas.toByteArray()), href);                
       } else if (uri.isAbsolute() && uri.getScheme().startsWith("http") && proxyHost != null && proxyPort != null) {               
         Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost.get(0), Integer.parseInt(proxyPort.get(0))));                       

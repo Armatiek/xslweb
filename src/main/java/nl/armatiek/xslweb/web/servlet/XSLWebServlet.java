@@ -390,6 +390,7 @@ public class XSLWebServlet extends HttpServlet {
         destination = getDestination(webApp, req, resp, os, outputProperties, step, nextStep, errorListener);
         NodeInfo nodeInfo = (NodeInfo) makeNodeInfoSource(source, webApp, errorListener);
         transformer.setGlobalContextItem(new XdmNode(nodeInfo));
+        transformer.setURIResolver(new XSLWebURIResolver(DefaultBehaviour.SAXON, req));
         transformer.applyTemplates(nodeInfo, destination);
       } else if (step instanceof QueryStep) {
         String xqueryPath = ((QueryStep) step).getXQueryPath();
@@ -411,7 +412,7 @@ public class XSLWebServlet extends HttpServlet {
         Templates templates = webApp.getTemplates(stxPath, errorListener);
         Transformer transformer = templates.newTransformer();
         transformer.setErrorListener(errorListener);
-        transformer.setURIResolver(new XSLWebURIResolver(DefaultBehaviour.STREAM));
+        transformer.setURIResolver(new XSLWebURIResolver(DefaultBehaviour.STREAM, req));
         ((net.sf.joost.trax.TransformerImpl)transformer).getStxProcessor().setMessageEmitter(new MessageEmitter());
         Map<String, Object> stylesheetParameters = getStylesheetParametersJAXP((ParameterizablePipelineStep) step, 
             baseStylesheetParameters, extraStylesheetParameters);

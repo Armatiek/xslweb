@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
@@ -80,6 +81,7 @@ public class AddRequest extends ExtensionFunctionDefinition {
         String queueName = ((StringValue) arguments[0].head()).getStringValue();
         String path = ((StringValue) arguments[1].head()).getStringValue();
         WebApp webApp = getWebApp(context);
+        HttpServletRequest request = getRequest(context);
         String extraInfo = arguments.length > 2 ? serialize((NodeInfo) arguments[2].head(), webApp.getProcessor()) : null;
         ExecutorService service = webApp.getExecutorService(queueName);
         String ticket = UUID.randomUUID().toString();
@@ -89,7 +91,7 @@ public class AddRequest extends ExtensionFunctionDefinition {
         File lockFile = new File(queueDir, ticket + ".lck");
         FileUtils.touch(lockFile);
         try {
-          service.execute(new QueuedRequest(ticket, webApp.getPath() + "/" + path, extraInfo));
+          service.execute(new QueuedRequest(ticket, webApp.getPath() + "/" + path, extraInfo, request));
         } catch (RejectedExecutionException ree) {
           FileUtils.deleteQuietly(lockFile);
           return StringValue.makeStringValue("rejected");
@@ -106,11 +108,13 @@ public class AddRequest extends ExtensionFunctionDefinition {
     private String ticket;
     private String path;
     private String extraInfo;
+    private HttpServletRequest request;
     
-    public QueuedRequest(String ticket, String path, String extraInfo) {
+    public QueuedRequest(String ticket, String path, String extraInfo, HttpServletRequest request) {
       this.ticket = ticket;
       this.path = path;
       this.extraInfo = extraInfo;
+      this.request = request;
     }
     
     @Override
@@ -125,7 +129,7 @@ public class AddRequest extends ExtensionFunctionDefinition {
             FileUtils.write(new File(queueDir, ticket + ".xml"), extraInfo, StandardCharsets.UTF_8);
           ClosedStatusOutputStream os = new ClosedStatusOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
           try {
-            int status = new InternalRequest().execute(path, os, false);
+            int status = new InternalRequest().execute(path, os, false, request);
             if (status != HttpServletResponse.SC_OK) {
               exceptionThrown = true;
               FileUtils.write(new File(queueDir, ticket + ".err"), "HTTP status " + status, StandardCharsets.UTF_8);
