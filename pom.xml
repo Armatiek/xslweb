@@ -10,7 +10,7 @@
   <groupId>nl.armatiek.xslweb</groupId>
   <artifactId>xslweb</artifactId>
   <packaging>war</packaging> 
-  <version>4.0.1-SNAPSHOT</version>
+  <version>4.1.0-SNAPSHOT</version>
   
   <inceptionYear>2013</inceptionYear>
 
@@ -38,7 +38,7 @@
     <compiler.target.version>1.8</compiler.target.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <saxon.version>10.6</saxon.version>
-    <shiro.version>1.6.0</shiro.version>
+    <shiro.version>1.8.0</shiro.version>
     <fop.version>2.5</fop.version>
     <ehcache.version>3.9.6</ehcache.version>
     <log4j.version>1.2.17</log4j.version>
@@ -171,12 +171,14 @@
       <artifactId>javax.servlet-api</artifactId>
       <version>3.0.1</version>
       <scope>provided</scope>
-    </dependency>           
+    </dependency>
+    <!--           
     <dependency>
       <groupId>org.codehaus.woodstox</groupId>
       <artifactId>woodstox-core-asl</artifactId>
       <version>4.4.1</version>
     </dependency>
+    -->
     <dependency>
       <groupId>net.sf.joost</groupId>
       <artifactId>joost</artifactId>
@@ -386,6 +388,10 @@
       <version>2.1.3</version>
       <exclusions>
         <exclusion> 
+          <groupId>org.apache.logging.log4j</groupId> 
+          <artifactId>log4j-core</artifactId>
+        </exclusion>
+        <exclusion> 
           <groupId>org.slf4j</groupId> 
           <artifactId>slf4j-log4j12</artifactId>
         </exclusion>
@@ -396,6 +402,17 @@
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-web</artifactId>
       <version>${shiro.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.pac4j</groupId>
+      <artifactId>pac4j-oidc</artifactId>
+      <version>5.1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>io.buji</groupId>
+      <artifactId>buji-pac4j</artifactId>
+      <version>6.0.0</version>
     </dependency>
     
     <dependency>
@@ -433,6 +450,14 @@
       <artifactId>FastInfoset</artifactId>
       <version>2.0.0</version>
     </dependency>
+    
+    <!--
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
+      <version>2.13.0</version>
+    </dependency>
+    -->
     
   </dependencies>
   
