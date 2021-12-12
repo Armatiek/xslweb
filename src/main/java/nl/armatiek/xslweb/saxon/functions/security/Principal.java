@@ -3,18 +3,30 @@ package nl.armatiek.xslweb.saxon.functions.security;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.IOException;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+
+import net.sf.saxon.Configuration;
+import net.sf.saxon.event.PipelineConfiguration;
+import net.sf.saxon.event.Receiver;
+import net.sf.saxon.event.StreamWriterToReceiver;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
+import net.sf.saxon.lib.ParseOptions;
+import net.sf.saxon.lib.SerializerFactory;
+import net.sf.saxon.om.Item;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.om.ZeroOrOne;
+import net.sf.saxon.serialize.SerializationProperties;
 import net.sf.saxon.trans.XPathException;
+import net.sf.saxon.tree.tiny.TinyBuilder;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
@@ -53,7 +65,7 @@ public class Principal extends ExtensionFunctionDefinition {
 
   @Override
   public SequenceType getResultType(SequenceType[] suppliedArgumentTypes) {
-    return SequenceType.OPTIONAL_STRING;
+    return SequenceType.OPTIONAL_ITEM;
   }
   
   @Override
@@ -118,12 +130,12 @@ public class Principal extends ExtensionFunctionDefinition {
     }
     
     @Override
-    public ZeroOrOne<StringValue> call(XPathContext context, Sequence[] arguments) throws XPathException {                            
+    public ZeroOrOne<Item> call(XPathContext context, Sequence[] arguments) throws XPathException {                            
       Subject subject = SecurityUtils.getSubject();
       if (subject == null) {
         return ZeroOrOne.empty();
       }
-      String strValue = null;
+      Object value = null;
       Object principal;
       if (arguments.length == 0 || arguments[0].head() == null) {
         principal = subject.getPrincipal();  
@@ -133,13 +145,34 @@ public class Principal extends ExtensionFunctionDefinition {
       }
       if (principal != null) {
         if (arguments.length < 2) {
-          strValue = principal.toString();
+          value = principal;
         } else {
           String property = ((StringValue) arguments[1].head()).getStringValue();
-          strValue = getPrincipalProperty(principal, property);
+          value = getPrincipalProperty(principal, property);
         }
       }
-      return new ZeroOrOne<StringValue>(strValue == null ? null : new StringValue(strValue));
+      if (value == null) {
+        return new ZeroOrOne<Item>(null);
+      } else if (value instanceof String) {
+        return new ZeroOrOne<Item>(new StringValue((String) value));  
+      } else {
+        try {
+          Configuration config = context.getConfiguration();        
+          PipelineConfiguration pipe = config.makePipelineConfiguration();
+          pipe.getParseOptions().getParserFeatures().remove("http://apache.org/xml/features/xinclude");        
+          TinyBuilder builder = new TinyBuilder(pipe);        
+          SerializerFactory sf = config.getSerializerFactory();
+          Receiver receiver = sf.getReceiver(builder, new SerializationProperties());               
+          ParseOptions options = pipe.getParseOptions();
+          options.setContinueAfterValidationErrors(true);
+          XmlMapper xmlMapper = new XmlMapper();
+          xmlMapper.writeValue(new StreamWriterToReceiver(receiver), value);
+          return new ZeroOrOne<Item>(builder.getCurrentRoot());
+        } catch (IOException ioe) {
+          throw new XPathException("Error serializing Principal", ioe);
+        }
+      }
+      
     }
     
   }
