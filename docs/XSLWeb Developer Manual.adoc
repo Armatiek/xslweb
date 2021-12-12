@@ -31,10 +31,10 @@
 :underscore: _
 :docinfo: shared,shared-head
 :window-blank: _blank
-:xslweb-version: 4.0.1
-:xslweb-version-download: 4-0-1 
-:saxon-version: 10.5
-:saxon-version-download: 10-5J 
+:xslweb-version: 4.1.0
+:xslweb-version-download: 4-1-0 
+:saxon-version: 10.6
+:saxon-version-download: 10-6J 
 
 = XSLWeb version {xslweb-version} Developer Manual
 Authors: Maarten Kroon, Arjan Loeffen
@@ -975,6 +975,8 @@ The elements have the following meaning:
 
 For authentication and authorization XSLWeb makes use of the Java security framework https://shiro.apache.org/[Apache Shiro,window={window-blank}]. Apache Shiro is a powerful, easy-to-use and "battle-tested" Java security framework that performs authentication (Basic, Token based, LDAP, JDBC, ActiveDirectory, etc), authorization (subject/role/permission based), cryptography, and session management.
 
+If you want to use authentication mechanisms like OAuth, SAML, CAS, OpenID Connect, JWT, Kerberos (SPNEGO), REST API or authorization mechanisms like Roles/permissions, Anonymous/remember-me/(fully) authenticated, CORS, CSRF, HTTP Security headers, XSLWeb is bundled with https://www.pac4j.org/[PAC4J,window={window-blank}] and especially https://github.com/bujiio/buji-pac4j[PAC4J for Apache Shiro,window={window-blank}]. This means you can configure these advanced authentication and authorization mechanisms as part of the Shiro configuration in webapp.xml.
+
 All of the Apache Shiro documentation on https://shiro.apache.org/documentation.html[window={window-blank}] and https://shiro.apache.org/web.html[window={window-blank}] is relevant to the integration of Shiro in XSLWeb except for the following points:
  
 * https://shiro.apache.org/web.html[window={window-blank}] describes how to configure Shiro in a Java webapplication using a single WebEnvironment/SecurityManager that is configured in a single INI file in /WEB-INF/shiro.ini or at the root of the class path. In XSLWeb, every webapp has it's own WebEnvironment/SecurityManager that is configured within the security/shiro-ini section of it's webapp.xml configuration file, for example:
@@ -1440,46 +1442,35 @@ This function returns true() if the current Subject has successfully authenticat
 
 [source,xquery]
 ----
-function sec:principal() as xs:string?
+function sec:principal() as item()?
 ----
-This function will return the Subject’s principal (identifying attribute, like a username). Without any parameters, this function will render the toString() value of the principal.
+This function will return the Subject’s principal (the identifying information of the Subject, like it's username). Without any parameters, this function will return (depending on your exact Shiro configuration in webapp.xml):
 
-The Java equivalent of this function is:
-
-[source,java]
-----
-SecurityUtils.getSubject().getPrincipal().toString()
----- 
+* an empty sequence if no principal is available for the current subject
+* an xs:string if the principal is only a simple string object
+* a node() containing an XML structure of the principal's complex information
 
 [source,xquery]
 ----
-function sec:principal($type as xs:string?) as xs:string?
+function sec:principal($type as xs:string?) as item()?
 ----
-The _principal()_ function assumes by default that the principal to return is the subject.getPrincipal() value. But if you wanted to obtain a value that is not the primary principal, but another value in the Subject's https://shiro.apache.org/static/1.5.3/apidocs/org/apache/shiro/subject/Subject.html#getPrincipals--[principal collection,window={window-blank}], you can acquire that principal by type. The type is a qualified Java class name, like "java.lang.Integer".
+The _principal()_ function returns the primary principal. If you want to obtain a non-primary principal, you can acquire that principal by type. The type is a qualified Java class name, like "io.buji.pac4j.subject.Pac4jPrincipal". This function will return (depending on your exact Shiro configuration in webapp.xml):
 
-The Java equivalent of this function is:
-
-[source,java]
-----
-SecurityUtils.getSubject().getPrincipals().oneByType(Integer.class).toString()
-----
+* an empty sequence if no principal is available for the current subject
+* an xs:string if the principal is only a simple string object
+* a node() containing an XML structure of the principal's complex information
 
 [source,xquery]
 ----
 function sec:principal($type as xs:string?, $property as xs:string) as xs:string?
 ----
-But what if the principal (either the default primary principal or 'typed' principal above) is a complex object and not a simple string, and you wanted to reference a property on that principal? You can use the _$property_ parameter to indicate the name of the property to obtain (must be accessible via a JavaBeans-compatible getter method). For example (assuming the primary principal is a User object), the Java equivalent of:
+In the case the principal (either the default primary principal or 'typed' principal above) is a complex object and not a simple string, you can use this function to get a property on the principal. You can use the _$property_ parameter to indicate the name of the property to obtain (must be accessible via a JavaBeans-compatible getter method). 
+
+Example
 
 [source,xquery]
 ----
-sec:principal('com.foo.User', 'firstName')
-----
-
-is:
-
-[source,java]
-----
-SecurityUtils.getSubject().getPrincipals().oneByType(com.foo.User.class).getFirstName().toString()
+sec:principal('io.buji.pac4j.subject.Pac4jPrincipal', 'name')
 ----
 
 [source,xquery]
@@ -2333,7 +2324,7 @@ Functions:
 
 [source,xquery]
 ----
-function email:send-email($email as element(email:email)) as xs:boolean
+function email:send-mail($email as element(email:email)) as xs:boolean
 ----
 
 See example 12 how to use the send-email example and an example of the structure of _element(email:email)_.
