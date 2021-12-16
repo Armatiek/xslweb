@@ -37,19 +37,28 @@
     </triggeringPolicy>
   </appender>
   
+  <appender name="jetty" class="ch.qos.logback.core.rolling.RollingFileAppender">    
+    <Append>true</Append>
+    <File>${xslweb.home}/logs/jetty.log</File>
+    <encoder>
+      <pattern>%-5p [%t] %c - [%m] %d{ISO8601}%n</pattern>
+    </encoder>    
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <maxIndex>8</maxIndex>
+      <FileNamePattern>${xslweb.home}/logs/jetty.log.%i</FileNamePattern>
+    </rollingPolicy>
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <MaxFileSize>10MB</MaxFileSize>
+    </triggeringPolicy>
+  </appender>
+  
   <logger name="nl.armatiek.xslweb.web.servlet" level="DEBUG" additivity="false">
     <appender-ref ref="pipeline"/>
   </logger>
   
-  <!--
-  <logger name="org.apache.http" level="DEBUG" additivity="false">
-    <appender-ref ref="console"/>
+  <logger name="org.eclipse.jetty" level="INFO" additivity="false">
+    <appender-ref ref="jetty"/>
   </logger>
-  
-  <logger name="org.apache.http.wire" level="DEBUG" additivity="false">
-    <appender-ref ref="console"/>
-  </logger>
-  -->
   
   <root level="INFO">
     <appender-ref ref="console"/>
