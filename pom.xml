@@ -39,9 +39,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <saxon.version>10.6</saxon.version>
     <shiro.version>1.8.0</shiro.version>
-    <fop.version>2.5</fop.version>
+    <fop.version>2.6</fop.version>
     <ehcache.version>3.9.8</ehcache.version>
-    <slf4j.version>1.7.5</slf4j.version>
+    <logback.version>1.2.8</logback.version>
+    <slf4j.version>1.7.32</slf4j.version>
   </properties>
   
   <repositories>
@@ -49,17 +50,6 @@
       <id>repos-saxonica</id>
       <name>Saxonica Repository</name>
       <url>https://dev.saxonica.com/maven</url>
-    </repository>
-    <repository>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </releases>
-      <id>clapper-org-maven-repo</id>
-      <name>org.clapper Maven Repo</name>
-      <url>http://maven.clapper.org/</url>
-      <layout>default</layout>
     </repository>
     <repository>
       <id>apache.snapshots</id>
@@ -159,6 +149,23 @@
           <groupId>net.sf.saxon</groupId>
           <artifactId>Saxon-HE</artifactId>            
           <version>10.SNAPSHOT</version>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>jetty</id>
+      <dependencies>
+        <dependency>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+          <version>${logback.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+          <version>${slf4j.version}</version>
+          <scope>provided</scope>
         </dependency>
       </dependencies>
     </profile>
@@ -273,8 +280,13 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.2.8</version>
+      <version>${logback.version}</version>
     </dependency> 
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
@@ -286,39 +298,18 @@
       <version>1.1.3</version>
       <scope>provided</scope>
     </dependency>
+    
     <dependency>
-      <groupId>org.clapper</groupId>
-      <artifactId>javautil</artifactId>
-      <version>3.2.0</version>
-      <exclusions>
-        <exclusion> 
-          <groupId>org.slf4j</groupId> 
-          <artifactId>slf4j-jdk14</artifactId>
-        </exclusion>
-        <exclusion> 
-          <groupId>javax.mail</groupId> 
-          <artifactId>mail</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>io.github.classgraph</groupId>
+      <artifactId>classgraph</artifactId>
+      <version>4.8.138</version>
     </dependency>
+      
     <dependency>
       <groupId>de.odysseus.staxon</groupId>
       <artifactId>staxon</artifactId>
       <version>1.3</version>
     </dependency>
-    
-    <!--
-    <dependency>
-      <groupId>net.sf.ehcache</groupId>
-      <artifactId>ehcache-core</artifactId>
-      <version>2.6.10</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sf.ehcache</groupId>
-      <artifactId>ehcache-web</artifactId>
-      <version>2.0.4</version>
-    </dependency> 
-    -->
     
     <dependency>
       <groupId>org.ehcache</groupId>

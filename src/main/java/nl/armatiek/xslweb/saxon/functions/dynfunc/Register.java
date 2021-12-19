@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,7 +46,6 @@ import javax.tools.ToolProvider;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
-import org.clapper.util.classutil.ClassLoaderBuilder;
 
 import net.sf.saxon.event.PipelineConfiguration;
 import net.sf.saxon.expr.StaticProperty;
@@ -314,9 +315,13 @@ public class Register extends ExtensionFunctionDefinition {
           if (libClassFiles == null) {
             classLoader = getClass().getClassLoader();
           } else {
-            ClassLoaderBuilder builder = new ClassLoaderBuilder();    
-            builder.add(libClassFiles);
-            classLoader = builder.createClassLoader();
+            URL[] urls = new URL[libClassFiles.size()];
+            int i=0;
+            Iterator<File> fileIter = libClassFiles.iterator();
+            while (fileIter.hasNext()) {
+              urls[i++] = fileIter.next().toURI().toURL();
+            }
+            classLoader = new URLClassLoader(urls, getClass().getClassLoader());
           }
           
           CompiledClassLoader compiledClassLoader = new CompiledClassLoader(classLoader, fileManager.getGeneratedOutputFiles());  

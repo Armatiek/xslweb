@@ -174,6 +174,7 @@ public class XSLWebInitializer implements Initializer {
     registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.SetAttribute(), configuration);
     registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.GetCacheValue(), configuration);
     registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.SetCacheValue(), configuration);
+    registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.webapp.RemoveCacheValue(), configuration);
     
     /* Email */
     registerXPathFunction(new SendMail(), configuration);

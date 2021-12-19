@@ -2,6 +2,8 @@ package nl.armatiek.xslweb.saxon.configuration;
 
 import java.io.File;
 import java.io.StringReader;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -15,18 +17,13 @@ import org.apache.commons.io.IOCase;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.clapper.util.classutil.AbstractClassFilter;
-import org.clapper.util.classutil.AndClassFilter;
-import org.clapper.util.classutil.ClassFilter;
-import org.clapper.util.classutil.ClassFinder;
-import org.clapper.util.classutil.ClassInfo;
-import org.clapper.util.classutil.ClassLoaderBuilder;
-import org.clapper.util.classutil.NotClassFilter;
-import org.clapper.util.classutil.SubclassClassFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ClassInfoList;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import nl.armatiek.xslweb.configuration.Context;
@@ -71,46 +68,43 @@ public class XSLWebConfiguration {
     if (!libDir.isDirectory()) {
       return;
     }
-    List<File> classPath = new ArrayList<File>();                
-    classPath.addAll(FileUtils.listFiles(libDir, new WildcardFileFilter("*.jar"), DirectoryFileFilter.DIRECTORY));
-    if (classPath.isEmpty() && !XSLWebUtils.hasSubDirectories(libDir)) {
+    List<File> jarPaths = new ArrayList<File>();                
+    jarPaths.addAll(FileUtils.listFiles(libDir, new WildcardFileFilter("*.jar"), DirectoryFileFilter.DIRECTORY));
+    if (jarPaths.isEmpty() && !XSLWebUtils.hasSubDirectories(libDir)) {
       return;
     }
-    classPath.add(libDir);
+    jarPaths.add(libDir);
     Collection<File> saxonJars = FileUtils.listFiles(new File(Context.getInstance().getWebInfDir(), "lib"), 
         new WildcardFileFilter("*saxon*.jar", IOCase.INSENSITIVE), FalseFileFilter.INSTANCE);    
-    classPath.addAll(saxonJars);
+    // jarPaths.addAll(saxonJars);
     
     logger.info("Initializing custom extension functions ...");
+    int count = 0;
     
-    ClassFinder finder = new ClassFinder();
-    finder.add(classPath);    
-    
-    ClassFilter filter =
-        new AndClassFilter(            
-            // Must extend ExtensionFunctionDefinition class
-            new SubclassClassFilter (ExtensionFunctionDefinition.class),
-            // Must not be abstract
-            new NotClassFilter (new AbstractClassFilter()));
-    
-    Collection<ClassInfo> foundClasses = new ArrayList<ClassInfo>();    
-    finder.findClasses(foundClasses, filter);
-    if (foundClasses.isEmpty()) {
-      logger.info("No custom extension functions found.");
-      return;
-    }    
-    ClassLoaderBuilder builder = new ClassLoaderBuilder();    
-    builder.add(classPath);    
-    ClassLoader classLoader = builder.createClassLoader();    
-    for (ClassInfo classInfo : foundClasses) { 
-      String className = classInfo.getClassName();
-      if (initializer.isFunctionRegistered(className) || saxonJars.contains(classInfo.getClassLocation())) {
-        continue;
-      }      
-      Class<?> clazz = classLoader.loadClass(className);
-      logger.info(String.format("Adding custom extension function class \"%s\" ...", className));     
-      registerExtensionFunction((ExtensionFunctionDefinition) clazz.newInstance());      
+    URL[] urls = new URL[jarPaths.size()];
+    for (int i=0; i<jarPaths.size(); i++) {
+      urls[i] = jarPaths.get(i).toURI().toURL();
     }
+    URLClassLoader childClassLoader = new URLClassLoader(urls, this.getClass().getClassLoader());
+    
+    ClassInfoList extensionFunctionClasses = new ClassGraph().enableAllInfo().overrideClassLoaders(childClassLoader).scan().getSubclasses(ExtensionFunctionDefinition.class);
+    for (ClassInfo classInfo: extensionFunctionClasses) {
+      if (classInfo.isAbstract()) {
+        continue;
+      }
+      String className = classInfo.getName();
+      if (initializer.isFunctionRegistered(className) || saxonJars.contains(classInfo.getClasspathElementFile()) || className.endsWith("DynamicExtensionFunctionDefinition")) {
+        continue;
+      }  
+      count++;
+      logger.info(String.format("Adding custom extension function class \"%s\" ...", className)); 
+      Class clazz = classInfo.loadClass();
+      registerExtensionFunction((ExtensionFunctionDefinition) clazz.newInstance());
+    }
+    if (count == 0) {
+      logger.info("No custom extension functions found.");
+    }
+    
   }
 
   public void registerExtensionFunction(ExtensionFunctionDefinition function) {    

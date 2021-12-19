@@ -135,7 +135,8 @@ public class XSLWebUtils {
     }        
   }
   
-  @SuppressWarnings({ "unchecked", "rawtypes" })
+  
+  @SuppressWarnings("unchecked")
   public static Map<QName, XdmValue> getStylesheetParameters(WebApp webApp, HttpServletRequest req, 
       HttpServletResponse resp, File homeDir) throws Exception {
     Map<QName, XdmValue> params = new HashMap<QName, XdmValue>();
