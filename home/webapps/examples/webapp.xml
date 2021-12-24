@@ -10,6 +10,7 @@
   <title>XSLWeb examples</title>
   <description>XSLWeb examples</description>
   <development-mode>true</development-mode>
+  <debug-mode>false</debug-mode>
   <max-upload-size>10</max-upload-size>
   <wait-for-jobs-at-close>true</wait-for-jobs-at-close>
   <!-- 10MB -->
@@ -148,7 +149,9 @@ ${webapp-path}/webdav/** = authcBasic]]>
   
   <ehcache:config>
    
+    <!--
     <ehcache:persistence directory="${webapp-dir}/cache"/>
+    -->
    
     <ehcache:cache-template name="default-template"> 
       <ehcache:key-type>java.lang.String</ehcache:key-type>
@@ -170,7 +173,9 @@ ${webapp-path}/webdav/** = authcBasic]]>
       <ehcache:resources>
         <ehcache:heap unit="entries">32</ehcache:heap>
         <ehcache:offheap unit="MB">64</ehcache:offheap> <!-- Also set Java option -XX:MaxDirectMemorySize! --> 
+        <!--
         <ehcache:disk unit="GB" persistent="true">2</ehcache:disk>
+        -->
       </ehcache:resources>
       
     </ehcache:cache>
