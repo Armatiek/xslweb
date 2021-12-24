@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,7 +37,7 @@ import org.apache.commons.text.StringEscapeUtils;
 
 import nl.armatiek.xslweb.configuration.Context;
 
-@WebServlet(asyncSupported = true)
+// @WebServlet(asyncSupported = true)
 public class DebugServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;

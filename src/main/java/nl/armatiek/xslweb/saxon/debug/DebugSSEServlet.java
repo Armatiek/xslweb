@@ -19,7 +19,6 @@ package nl.armatiek.xslweb.saxon.debug;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,7 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import info.macias.sse.servlet3.ServletEventTarget;
 import nl.armatiek.xslweb.configuration.Context;
 
-@WebServlet(asyncSupported = true)
+// @WebServlet(asyncSupported = true)
 public class DebugSSEServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;

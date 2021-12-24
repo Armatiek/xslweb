@@ -89,6 +89,7 @@
   <servlet>
     <servlet-name>DebugServlet</servlet-name>
     <servlet-class>nl.armatiek.xslweb.saxon.debug.DebugServlet</servlet-class>
+    <async-supported>true</async-supported>
   </servlet>
   <servlet-mapping>
     <servlet-name>DebugServlet</servlet-name>
