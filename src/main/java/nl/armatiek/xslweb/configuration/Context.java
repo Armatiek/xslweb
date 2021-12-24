@@ -109,6 +109,30 @@ public class Context {
   }
 
   public void open() throws Exception {
+    /* Scan for duplicate classes on classpath: */
+    /*
+    logger.info("Scanning for duplicate classes ...");
+    for (Entry<String, ResourceList> dup : new ClassGraph().scan().getAllResources().classFilesOnly().findDuplicatePaths()) {
+      if (dup.getKey().contains("module-info.class")) {
+        continue;
+      }
+      boolean nonFilePath = false;
+      for (io.github.classgraph.Resource res : dup.getValue()) {
+        if (!"file".equals(res.getURI().getScheme())) {
+          nonFilePath = true;
+          break;
+        }
+      }
+      if (nonFilePath) {
+        logger.warn("Duplicate class: " + dup.getKey());
+        int i=1;
+        for (io.github.classgraph.Resource res : dup.getValue()) {
+          logger.warn("  {}: " + res.getURI(), i++);
+        }
+      }
+    }
+    */
+    
     logger.info("Opening XSLWeb Context ...");
     
     initHomeDir();      
