@@ -39,6 +39,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <saxon.version>10.6</saxon.version>
     <shiro.version>1.8.0</shiro.version>
+    <pac4j.version>5.2.1</pac4j.version>
     <fop.version>2.6</fop.version>
     <ehcache.version>3.9.8</ehcache.version>
     <logback.version>1.2.8</logback.version>
@@ -250,6 +251,12 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-email</artifactId>
       <version>1.5</version>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.activation</groupId>
+          <artifactId>activation</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -316,11 +323,23 @@
       <artifactId>ehcache</artifactId>
       <version>${ehcache.version}</version>
     </dependency>
+    <!--
     <dependency>
       <groupId>org.ehcache.modules</groupId>
       <artifactId>ehcache-xml</artifactId>
       <version>${ehcache.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.ehcache.modules</groupId>
+          <artifactId>ehcache-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.ehcache.modules</groupId>
+          <artifactId>ehcache-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
+    -->
     
     <!--
     <dependency>
@@ -392,17 +411,58 @@
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-web</artifactId>
       <version>${shiro.version}</version>
+      <exclusions>
+        <exclusion> 
+          <groupId>org.apache.shiro</groupId> 
+          <artifactId>shiro-lang</artifactId>
+        </exclusion>
+        <exclusion> 
+          <groupId>org.apache.shiro</groupId> 
+          <artifactId>shiro-cache</artifactId>
+        </exclusion>
+        <exclusion> 
+          <groupId>org.apache.shiro</groupId> 
+          <artifactId>shiro-crypto-hash</artifactId>
+        </exclusion>
+        <exclusion> 
+          <groupId>org.apache.shiro</groupId> 
+          <artifactId>shiro-crypto-cipher</artifactId>
+        </exclusion>
+        <exclusion> 
+          <groupId>org.apache.shiro</groupId> 
+          <artifactId>shiro-config-core</artifactId>
+        </exclusion>
+        <exclusion> 
+          <groupId>org.apache.shiro</groupId> 
+          <artifactId>shiro-config-ogdl</artifactId>
+        </exclusion>
+        <exclusion> 
+          <groupId>org.apache.shiro</groupId> 
+          <artifactId>shiro-event</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!--  Because of the Shiro exclusions: -->
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>1.9.4</version>
     </dependency>
     
     <dependency>
       <groupId>org.pac4j</groupId>
       <artifactId>pac4j-oidc</artifactId>
-      <version>5.1.4</version>
+      <version>${pac4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.pac4j</groupId>
+      <artifactId>pac4j-http</artifactId>
+      <version>${pac4j.version}</version>
     </dependency>
     <dependency>
       <groupId>io.buji</groupId>
       <artifactId>buji-pac4j</artifactId>
-      <version>6.0.0</version>
+      <version>6.1.0</version>
     </dependency>
     
     <dependency>
