@@ -416,10 +416,14 @@ public class RequestSerializer {
             xsw.writeStartElement(URI, "item");
             if (a.getValue() instanceof NodeInfo) {
               NodeInfo node = unwrapNodeInfo((NodeInfo) a.getValue());
-              Receiver receiver = new ReceiverToXMLStreamWriter(xsw);
-              PipelineConfiguration config = node.getConfiguration().makePipelineConfiguration();
-              receiver.setPipelineConfiguration(config);
-              node.copy(receiver, CopyOptions.ALL_NAMESPACES | CopyOptions.TYPE_ANNOTATIONS, Loc.NONE);            
+              if (node != null) {
+                Receiver receiver = new ReceiverToXMLStreamWriter(xsw);
+                PipelineConfiguration config = node.getConfiguration().makePipelineConfiguration();
+                receiver.setPipelineConfiguration(config);
+                node.copy(receiver, CopyOptions.ALL_NAMESPACES | CopyOptions.TYPE_ANNOTATIONS, Loc.NONE);
+              } else {
+                xsw.writeComment(" empty document ");
+              }
             } else {              
               xsw.writeAttribute("type", a.getType());
               xsw.writeCharacters(a.getValue().toString());
