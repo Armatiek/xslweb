@@ -27,6 +27,8 @@ import java.util.function.Predicate;
 import javax.xml.stream.XMLStreamReader;
 
 import org.ehcache.sizeof.annotations.IgnoreSizeOf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sun.xml.fastinfoset.stax.StAXDocumentParser;
 import com.sun.xml.fastinfoset.stax.StAXDocumentSerializer;
@@ -35,12 +37,14 @@ import net.sf.saxon.Configuration;
 import net.sf.saxon.event.Receiver;
 import net.sf.saxon.lib.ParseOptions;
 import net.sf.saxon.om.AtomicSequence;
+import net.sf.saxon.om.AxisInfo;
 import net.sf.saxon.om.Genre;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.NamespaceBinding;
 import net.sf.saxon.om.NamespaceMap;
 import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.TreeInfo;
+import net.sf.saxon.pattern.NodeKindTest;
 import net.sf.saxon.pull.PullSource;
 import net.sf.saxon.pull.StaxBridge;
 import net.sf.saxon.s9api.Location;
@@ -52,12 +56,15 @@ import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.tree.iter.AxisIterator;
 import net.sf.saxon.tree.util.FastStringBuffer;
 import net.sf.saxon.type.SchemaType;
+import net.sf.saxon.type.Type;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.WebApp;
 
 public class SerializableNodeInfo implements NodeInfo, Serializable {
   
   private static final long serialVersionUID = 3233046816831468756L;
+  
+  private transient static final Logger logger = LoggerFactory.getLogger(SerializableNodeInfo.class);
   
   private transient NodeInfo nodeInfo;
   
@@ -70,6 +77,15 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
   }
   
   private void writeObject(ObjectOutputStream oos) throws IOException {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Serializing SerializableNodeInfo ...");  
+      if (nodeInfo.getNodeKind() == Type.DOCUMENT) {
+        NodeInfo testNodeInfo = nodeInfo.iterateAxis(AxisInfo.CHILD, NodeKindTest.ELEMENT).next();
+        if (testNodeInfo == null) {
+          logger.debug("Serializing document node without document element!");
+        }
+      }
+    }
     oos.defaultWriteObject();
     try {
       oos.writeObject(webApp.getPath());
@@ -85,6 +101,9 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
   }
 
   private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Deserializing SerializableNodeInfo ...");
+    }
     ois.defaultReadObject();
     try {
       String webAppPath = (String) ois.readObject();
