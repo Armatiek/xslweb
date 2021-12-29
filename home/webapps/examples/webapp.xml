@@ -92,10 +92,10 @@ shiro.postOnlyLogout = true
 
 authcBasic.enabled = true
 
-sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
+# sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
 
-securityManager.sessionManager = $sessionManager
-securityManager.sessionManager.sessionIdUrlRewritingEnabled = false
+# securityManager.sessionManager = $sessionManager
+# securityManager.sessionManager.sessionIdUrlRewritingEnabled = false
 
 # We need to set the cipherKey, if you want the rememberMe cookie to work after restarting or on multiple nodes.
 # YOU MUST SET THIS TO A UNIQUE STRING
