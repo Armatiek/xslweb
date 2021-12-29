@@ -79,12 +79,9 @@ public class SerializableNodeInfo implements NodeInfo, Serializable {
   private void writeObject(ObjectOutputStream oos) throws IOException {
     if (logger.isDebugEnabled()) {
       logger.debug("Serializing SerializableNodeInfo ...");  
-      if (nodeInfo.getNodeKind() == Type.DOCUMENT) {
-        NodeInfo testNodeInfo = nodeInfo.iterateAxis(AxisInfo.CHILD, NodeKindTest.ELEMENT).next();
-        if (testNodeInfo == null) {
-          logger.debug("Serializing document node without document element!");
-        }
-      }
+    }
+    if (nodeInfo.getNodeKind() == Type.DOCUMENT && (nodeInfo.iterateAxis(AxisInfo.CHILD, NodeKindTest.ELEMENT).next() == null)) {
+      logger.error("Serializing document node without document element");
     }
     oos.defaultWriteObject();
     try {
