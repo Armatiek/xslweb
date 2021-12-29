@@ -1,0 +1,9 @@
+version: '3.0'
+services:
+  xslweb:
+    image: "armatiek/xslweb"
+    container_name: "xslweb"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${LOCAL_XSLWEB_HOME}:/usr/local/xslweb/home

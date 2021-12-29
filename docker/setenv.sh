@@ -1,0 +1,1 @@
+export CLASSPATH="$INSTALL_DIR/home/config:$CLASSPATH"

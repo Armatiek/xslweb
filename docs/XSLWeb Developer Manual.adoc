@@ -3224,6 +3224,24 @@ http://localhost:<port>/xslweb
 
 where port is the port your application server runs on. A web page with the text “It works!” should appear. From here you can go to the examples and the documentation.
 
+[#xslweb-docker]
+=== Installation of XSLWeb inside a Docker container
+
+==== Requirements
+Install Docker on your computer or server, see https://docs.docker.com/get-docker/[Get Docker,window={window-blank}]. 
+
+==== Instructions
+* Build the docker image by running `build_docker.sh` (Linux/macOS) or `build_docker.bat` (Windows). This runs the Dockerfile to build a local container image using Apache Tomcat version 10.0.14 and OpenJDK version 17.0.1+12.
+* Set the environment variable `LOCAL_XSLWEB_HOME` to point to your local XSLWeb home directory. This variable is referred to in the Docker Compose configuration file `docker-compose.yml`
+* Run `docker-compose up` and navigate your browser to http://localhost:8080. If you want to run it in the background, run `docker-compose up -d`.
+* In `Dockerfile` you can optionally change the environment variables `PORT` and `CONTEXT_PATH`, XSLWeb wil run on http://localhost:$PORT/$CONTEXT_PATH. 
+
+Some tips:
+
+* The command `docker ps` will show you the running containers, including their id's
+* If you want to log into a container do this: `docker exec -it xslweb bash`
+* If you run in background, and want to tail the log, do this: `docker logs xslweb --tail 1000 -f`
+
 == Support for Saxon PE (Professional) and EE (Enterprise Edition)
 
 The downloadable binaries of XSLWeb contain the open source Home Edition (HE) of the Saxon XSLT processor. You can build a version of XSLWeb that contains Saxon PE or EE by following these steps:
