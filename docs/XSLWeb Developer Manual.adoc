@@ -281,7 +281,7 @@ Example:
 [source,xml]
 ----
 <pipeline:pipeline>
-  <pipeline:transformer name="my-xquery-step" xquery-path="my-query.xq"/>
+  <pipeline:query name="my-xquery-step" xquery-path="my-query.xq"/>
 </pipeline:pipeline>
 ----
 
