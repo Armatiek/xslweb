@@ -281,7 +281,7 @@ Example:
 [source,xml]
 ----
 <pipeline:pipeline>
-  <pipeline:transformer name="my-xquery-step" xquery-path="my-query.xq"/>
+  <pipeline:query name="my-xquery-step" xquery-path="my-query.xq"/>
 </pipeline:pipeline>
 ----
 
@@ -3238,7 +3238,7 @@ A prebuilt image is available from https://hub.docker.com/u/armatiek[Docker Hub,
 `docker pull armatiek/xslweb:{xslweb-version}`
 * Run the image:
 +
-`docker run -v {XSLWEB-HOME}:/usr/local/xslweb/home -p 8081:8080 --name xslweb-{xslweb-version} armatiek/xslweb:{xslweb-version}`
+`docker run -v {XSLWEB-HOME}:/usr/local/xslweb/home -p 8081:8080 --name xslweb armatiek/xslweb:{xslweb-version}`
 +
 where {XSLWEB-HOME} must be changed to your XSLWeb home directory **on your host machine** and port 8080 of the container is bound to TCP port 80 on 127.0.0.1 of your host machine.
 * XSLWeb should now be accessible via `http://localhost:8081`
