@@ -31,6 +31,14 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathConstants;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.mail.DefaultAuthenticator;
+import org.apache.commons.mail.EmailAttachment;
+import org.apache.commons.mail.EmailException;
+import org.apache.commons.mail.HtmlEmail;
+import org.slf4j.LoggerFactory;
+
 import net.sf.saxon.Configuration;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.lib.ExtensionFunctionDefinition;
@@ -44,15 +52,12 @@ import net.sf.saxon.xpath.XPathEvaluator;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.mail.DefaultAuthenticator;
-import org.apache.commons.mail.EmailAttachment;
-import org.apache.commons.mail.HtmlEmail;
-
 public class SendMail extends ExtensionFunctionDefinition {
 
   private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_EMAIL, "send-mail");
 
+  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SendMail.class);
+  
   @Override
   public StructuredQName getFunctionQName() {
     return qName;
@@ -147,6 +152,10 @@ public class SendMail extends ExtensionFunctionDefinition {
         });
                         
         HtmlEmail email = new HtmlEmail();
+        String debug = (String) xpath.evaluate("email:debug", mailElem, XPathConstants.STRING);  
+        if ("true".equals(debug)) {
+          email.setDebug(true);
+        }
         String hostName = (String) xpath.evaluate("email:hostname", mailElem, XPathConstants.STRING);        
         String port = (String) xpath.evaluate("email:port", mailElem, XPathConstants.STRING);
         String username = (String) xpath.evaluate("email:username", mailElem, XPathConstants.STRING);
@@ -244,6 +253,9 @@ public class SendMail extends ExtensionFunctionDefinition {
         email.send();
         
         return EmptySequence.getInstance();
+      } catch (EmailException e) {
+        logger.error("Error sending mail, root cause: " + ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getRootCause(e));
+        throw new XPathException(e);
       } catch (Exception e) {
         throw new XPathException(e);
       }
