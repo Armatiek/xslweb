@@ -251,12 +251,6 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-email</artifactId>
       <version>1.5</version>
-      <exclusions>
-        <exclusion>
-          <groupId>javax.activation</groupId>
-          <artifactId>activation</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -353,12 +347,24 @@
       <groupId>javax.xml.bind</groupId>
       <artifactId>jaxb-api</artifactId>
       <version>2.3.1</version>
+      <exclusions>
+      	<exclusion>
+      		<groupId>javax.activation</groupId>
+      		<artifactId>javax.activation-api</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     
     <dependency>
       <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-runtime</artifactId>
       <version>2.3.1</version>
+      <exclusions>
+      	<exclusion>
+      		<groupId>javax.activation</groupId>
+      		<artifactId>javax.activation-api</artifactId>
+      	</exclusion>
+      </exclusions>
     </dependency>
     
     <dependency>
