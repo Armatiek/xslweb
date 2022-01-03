@@ -46,7 +46,7 @@ public class XSLWebJob implements Job {
    */  
   @Override
   public void execute(JobExecutionContext context) throws JobExecutionException {
-    logger.info(String.format("Executing job \"%s\"", context.getJobDetail().getKey().getName()));
+    logger.debug(String.format("Executing job \"%s\"", context.getJobDetail().getKey().getName()));
     try {      
       JobDataMap dataMap = context.getMergedJobDataMap();
       String webAppPath = dataMap.getString("webapp-path");
