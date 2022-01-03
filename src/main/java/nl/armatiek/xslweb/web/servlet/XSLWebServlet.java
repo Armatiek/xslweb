@@ -296,6 +296,8 @@ public class XSLWebServlet extends HttpServlet {
       return source;
     } else if (source instanceof NodeInfo) {
       return new DOMSource(NodeOverNodeInfo.wrap((NodeInfo) source));
+    } else if (source instanceof XdmSourceDestination) {
+      return ((XdmSourceDestination) source).asSource();
     } else {
       throw new XSLWebException("Could not create JAXP Source for Source of class " + source.getClass());
     }
