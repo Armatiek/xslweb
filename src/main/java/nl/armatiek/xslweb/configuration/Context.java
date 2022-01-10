@@ -39,7 +39,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletContext;
-import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
@@ -60,6 +59,7 @@ import eu.medsea.mimeutil.MimeUtil;
 import net.sf.saxon.om.NamePool;
 import net.sf.saxon.tree.util.DocumentNumberAllocator;
 import nl.armatiek.xslweb.error.XSLWebException;
+import nl.armatiek.xslweb.utils.XMLUtils;
 import nl.armatiek.xslweb.utils.XSLWebUtils;
 
 /**
@@ -265,7 +265,7 @@ public class Context {
   }
   
   private void initXMLSchemas() throws Exception {   
-    SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    SchemaFactory factory = XMLUtils.getNonSaxonJAXPSchemaFactory();
     File schemaFile = new File(homeDir, "config/xsd/xslweb/webapp.xsd");
     if (!schemaFile.isFile()) {
       logger.warn(String.format("XML Schema \"%s\" not found", schemaFile.getAbsolutePath()));

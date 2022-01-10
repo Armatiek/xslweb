@@ -40,7 +40,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParser;
@@ -832,7 +831,7 @@ public class WebApp implements ErrorHandler {
           }
           schemaSources.add(new StreamSource(file));
         }
-        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);       
+        SchemaFactory schemaFactory = XMLUtils.getNonSaxonJAXPSchemaFactory();       
         schemaFactory.setErrorHandler(new ValidatorErrorHandler("Schema file(s)"));
         schema = schemaFactory.newSchema(schemaSources.toArray(new Source[schemaSources.size()]));
       } catch (Exception e) {

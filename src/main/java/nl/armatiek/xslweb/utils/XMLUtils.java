@@ -34,6 +34,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.validation.SchemaFactory;
 
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +45,9 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ClassInfoList;
 import nl.armatiek.xslweb.error.XSLWebException;
 
 /**
@@ -52,6 +56,8 @@ import nl.armatiek.xslweb.error.XSLWebException;
  * @author Maarten Kroon
  */
 public class XMLUtils {
+  
+  private static String factoryClassName;
   
   public static DocumentBuilder getDocumentBuilder(boolean validate, 
       boolean namespaceAware, boolean xincludeAware) throws XSLWebException {
@@ -373,6 +379,23 @@ public class XMLUtils {
       return getNamespace((Element) parent, searchPrefix);
     }
     return null;
+  }
+  
+  public static SchemaFactory getNonSaxonJAXPSchemaFactory() throws Exception {
+    if (factoryClassName == null) {
+      SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+      if (!factory.getClass().getName().startsWith("com.saxonica")) {
+        return factory;
+      }
+      ClassInfoList schemaFactoryClasses = new ClassGraph().enableClassInfo().enableSystemJarsAndModules().scan().getSubclasses(SchemaFactory.class);
+      for (ClassInfo classInfo: schemaFactoryClasses) {
+        if (classInfo.isAbstract() || classInfo.getName().startsWith("com.saxonica")) {
+          continue;
+        }
+        factoryClassName = classInfo.getName();
+      }
+    }
+    return SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI, factoryClassName, null);
   }
   
 }
