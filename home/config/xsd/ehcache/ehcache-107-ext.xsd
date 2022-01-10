@@ -20,7 +20,7 @@
            xmlns:eh="http://www.ehcache.org/v3"
            xmlns:xs="http://www.w3.org/2001/XMLSchema"
            elementFormDefault="qualified" targetNamespace="http://www.ehcache.org/v3/jsr107">
-  <xs:import schemaLocation="ehcache-core.xsd" namespace="http://www.ehcache.org/v3"/>
+  <xs:import namespace="http://www.ehcache.org/v3"/>
 
   <xs:element name="mbeans" type="jsr107:mbeans-type" substitutionGroup="eh:service-configuration"/>
 
