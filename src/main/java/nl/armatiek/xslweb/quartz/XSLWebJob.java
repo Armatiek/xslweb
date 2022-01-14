@@ -54,7 +54,9 @@ public class XSLWebJob implements Job {
       ByteArrayOutputStream boas = new ByteArrayOutputStream();
       InternalRequest request = new InternalRequest();
       request.execute(webAppPath + "/" + path, boas, true);
-      logger.info(new String(boas.toByteArray()));            
+      if (boas.size() > 0) {
+        logger.info(new String(boas.toByteArray()));
+      }
     } catch (Exception e) {
       logger.error(String.format("Error executing job \"%s\"", context.getJobDetail().getKey().getName()), e);
     }
