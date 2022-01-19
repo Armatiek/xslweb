@@ -2247,7 +2247,9 @@ function external:exec-external(
   $time-out as xs:integer?, 
   $async as xs:boolean?,
   $work-dir as xs:string?,
-  $handle-quoting as xs:boolean?) as xs:integer
+  $handle-quoting as xs:boolean?,
+  $log-stdout-and-stderr as xs:boolean?,
+  $environment-variables as map(*)?) as xs:integer?
 ----
 
 * $command-line: the path to the executable.
@@ -2256,6 +2258,8 @@ function external:exec-external(
 * $async: indicates if the process must be started asynchronous or not.
 * $work-dir: the working directory for the subprocess.
 * $handle-quoting: indicates if the function should automatically handle the quoting (the default) or not.
+* $log-stdout-and-stderr: write stdout/stderr of the executable also to the log file. 
+* $environment-variables: a optional map of environment variables for the subprocess. 
 
 The return value is an empty sequence in case of an asynchronous process. In case of a synchronous process the return value is the exit value returned by the process.
 
