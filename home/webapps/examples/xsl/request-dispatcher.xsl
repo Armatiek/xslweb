@@ -220,10 +220,10 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 20: SOAP client/SOAP server -->
-  <xsl:template name="soap-client" match="/req:request[req:path = '/soap-client.html']">    
+  <!-- Example 20: Script extension function -->
+  <xsl:template name="script" match="/req:request[req:path = '/script.html']">    
     <pipeline:pipeline>
-      <pipeline:transformer name="soap-client" xsl-path="soap/soap-client.xsl" log="true"/>       
+      <pipeline:transformer name="script" xsl-path="script/script.xsl" log="true"/>       
     </pipeline:pipeline>
   </xsl:template>
   
@@ -241,6 +241,13 @@
     </pipeline:pipeline>
   </xsl:template>
   
+  <!-- Example 23: SOAP client/SOAP server -->
+  <xsl:template name="soap-client" match="/req:request[req:path = '/soap-client.html']">    
+    <pipeline:pipeline>
+      <pipeline:transformer name="soap-client" xsl-path="soap/soap-client.xsl" log="true"/>       
+    </pipeline:pipeline>
+  </xsl:template>
+  
   <xsl:template match="/req:request[req:path = '/Calculator']">    
     <pipeline:pipeline>
       <xsl:choose>
@@ -254,14 +261,14 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 22: Relational database access -->
+  <!-- Example 24: Relational database access -->
   <xsl:template name="relational-database" match="/req:request[req:path = '/relational-database.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="relational-database" xsl-path="relational-database/relational-database.xsl" log="true"/>       
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 23: Zip serialization -->
+  <!-- Example 25: Zip serialization -->
   <xsl:template match="/req:request[req:path = '/zip-serialization.zip']">    
     <pipeline:pipeline>
       <pipeline:transformer name="zip-serialization" xsl-path="zip/zip-serialization.xsl" log="true"/>
@@ -269,7 +276,7 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 24: Apache FOP/PDF serialization -->
+  <!-- Example 26: Apache FOP/PDF serialization -->
   <xsl:template name="fop-serialization" match="/req:request[req:path = '/fop-serialization.pdf']">    
     <pipeline:pipeline>
       <pipeline:transformer name="fop-serialization" xsl-path="fop/fop-serialization.xsl" log="true"/>
@@ -277,7 +284,7 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 25: XML Validation -->
+  <!-- Example 27: XML Validation -->
   <xsl:template name="xml-validation" match="/req:request[req:path = '/xml-validation.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="generate-sample" xsl-path="xml-validation/generate-sample.xsl" log="true"/>   
@@ -304,31 +311,11 @@
     </pipeline:pipeline>
   </xsl:template>
   
-  <!-- Example 26: Resource serialization -->
+  <!-- Example 28: Resource serialization -->
   <xsl:template name="resource-serialization" match="/req:request[req:path = '/resource-serialization.jpg']">    
     <pipeline:pipeline>
       <pipeline:transformer name="resource-serialization" xsl-path="resource/resource-serialization.xsl" log="true"/>
       <pipeline:resource-serializer name="resource" log="false"/>  
-    </pipeline:pipeline>
-  </xsl:template>
-  
-  <!-- Example 27: XML Differencing file upload -->
-  <xsl:template name="differencing-fileupload" match="/req:request[req:path = '/diff-fileupload.html']">    
-    <pipeline:pipeline>
-      <pipeline:transformer name="differencing-fileupload" xsl-path="diff/diff.xsl" log="true"/>  
-    </pipeline:pipeline>
-  </xsl:template>
-  
-  <xsl:template name="differencing-download" match="/req:request[req:path = '/diff-download.html']">    
-    <pipeline:pipeline>
-      <pipeline:transformer name="differencing-download" xsl-path="diff/diff-download.xsl" log="true"/>  
-    </pipeline:pipeline>
-  </xsl:template>
-  
-  <!-- Example 28: XML Differencing sandbox -->
-  <xsl:template name="differencing-sandbox" match="/req:request[req:path = '/diff-sandbox.html']">    
-    <pipeline:pipeline>
-      <pipeline:transformer name="differencing-sandbox" xsl-path="diff/diff-sandbox.xsl" log="true"/>  
     </pipeline:pipeline>
   </xsl:template>
   
