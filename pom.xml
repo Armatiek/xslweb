@@ -42,6 +42,7 @@
     <fop.version>2.6</fop.version>
     <ehcache.version>3.9.8</ehcache.version>
     <logback.version>1.2.8</logback.version>
+    <logback.contrib.version>0.1.5</logback.contrib.version>
     <slf4j.version>1.7.32</slf4j.version>
   </properties>
   
@@ -504,6 +505,20 @@
       <groupId>com.sun.xml.fastinfoset</groupId>
       <artifactId>FastInfoset</artifactId>
       <version>2.0.0</version>
+    </dependency>
+    
+    <!-- ch.qos.logback.contrib.jackson.JacksonJsonFormatter -->
+    <dependency>
+      <groupId>ch.qos.logback.contrib</groupId>
+      <artifactId>logback-jackson</artifactId>
+      <version>${logback.contrib.version}</version>
+    </dependency>
+    
+    <!-- ch.qos.logback.contrib.json.classic.JsonLayout -->
+    <dependency>
+      <groupId>ch.qos.logback.contrib</groupId>
+      <artifactId>logback-json-classic</artifactId>
+      <version>${logback.contrib.version}</version>
     </dependency>
     
     <dependency>
