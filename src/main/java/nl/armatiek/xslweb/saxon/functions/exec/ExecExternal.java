@@ -52,7 +52,6 @@ import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
-import nl.armatiek.xslweb.utils.Slf4JOutputStream;
 
 /**
  * 

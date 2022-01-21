@@ -14,42 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.armatiek.xslweb.utils;
+package nl.armatiek.xslweb.saxon.functions.exec;
 
-import java.io.OutputStream;
-
+import org.apache.commons.exec.LogOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
-/**
- * This class logs all bytes written to it as output stream with a specified
- * logging level.
- */
-public class Slf4JOutputStream extends OutputStream {
-
+public class Slf4JOutputStream extends LogOutputStream {
+  
   private final Logger logger;
   private final Level level;
   private final String messagePrefix;
-  private StringBuffer buffer;
 
   public Slf4JOutputStream(Logger logger, Level level, String messagePrefix) {
     this.logger = logger;
     this.level = level;
     this.messagePrefix = "";
-    buffer = new StringBuffer();
   }
 
   @Override
-  public void write(final int b) {
-    if ((char) b == '\n') {
-      flush();
-      return;
-    }
-    buffer = buffer.append((char) b);
-  }
-
-  public void flush() {
-    String message = messagePrefix + buffer.toString();
+  protected void processLine(String line, int logLevel) {
+    String message = messagePrefix + line;
     switch (level) {
     case INFO:
       logger.info(message);
@@ -67,7 +52,6 @@ public class Slf4JOutputStream extends OutputStream {
       logger.trace(message);
       break;
     }
-    buffer = new StringBuffer();
   }
 
 }
