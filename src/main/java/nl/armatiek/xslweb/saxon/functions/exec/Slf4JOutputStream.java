@@ -20,6 +20,8 @@ import org.apache.commons.exec.LogOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
+import com.nimbusds.oauth2.sdk.util.StringUtils;
+
 public class Slf4JOutputStream extends LogOutputStream {
   
   private final Logger logger;
@@ -29,11 +31,14 @@ public class Slf4JOutputStream extends LogOutputStream {
   public Slf4JOutputStream(Logger logger, Level level, String messagePrefix) {
     this.logger = logger;
     this.level = level;
-    this.messagePrefix = "";
+    this.messagePrefix = messagePrefix;
   }
 
   @Override
   protected void processLine(String line, int logLevel) {
+    if (StringUtils.isBlank(line)) {
+      return;
+    }
     String message = messagePrefix + line;
     switch (level) {
     case INFO:
