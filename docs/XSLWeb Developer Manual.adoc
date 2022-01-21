@@ -2726,6 +2726,70 @@ A complete example:
 </xsl:stylesheet>
 ----
 
+[#javascript-functions]
+=== Javascript extension function
+
+Namespace uri: _\http://www.armatiek.com/xslweb/functions/script_. In the function signatures below this namespace uri is bound to the prefix _script_.
+
+Functions:
+
+[source,xquery]
+----
+function script:invoke(
+  $javascript as xs:string, 
+  $function-name as xs:string, 
+  $arg-1 as xs:anyAtomicType*, 
+  $arg-2 as xs:anyAtomicType*, 
+  .... , 
+  $arg-n as xs:anyAtomicType*) as xs:anyAtomicType*
+----
+This function executes the function _$function-name_ within the Javascript code _$javascript_. The arguments of the Javascript function can be specified by _$arg-1_ to _$arg-n_. Each argument can be a single atomic type or an array of atomic types. The arguments must be atomic types that can be converted to a Java/Javascript object equivalent. The result of the Javascript function must be a single object or an array of objects that can be converted back to a (sequence of) atomic type(s) (see https://en.wikipedia.org/wiki/XQuery_API_for_Java#Default_data_type_mapping[Default data type mapping,window={window-blank}]). 
+
+When XSLWeb calls the Javascript function four more arguments (Java objects) are passed to the actual Javascript function: the global XSLWeb Context object, the current Webapp object, the https://docs.oracle.com/javaee/7/api/javax/servlet/http/HttpServletRequest.html[HttpServletRequest,window={window-blank}] object and the https://docs.oracle.com/javaee/7/api/javax/servlet/http/HttpServletResponse.html[HttpServletResponse,window={window-blank}] object.
+
+XSLWeb uses the https://docs.oracle.com/javase/10/nashorn/introduction.htm#JSNUG136[Java Nashorn scripting engine,window={window-blank}] to execute the Javascript code.
+
+A complete example:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"  
+  xmlns:script="http://www.armatiek.com/xslweb/functions/script"
+  exclude-result-prefixes="#all"
+  version="3.0">
+  
+  <!-- ... -->
+  
+  <xsl:template name="my-template">
+    
+    <xsl:variable name="script" as="xs:string">
+      <![CDATA[function getLengthsOfStrings(context, webapp, request, response, arrayOfStrings) { 
+        var arrayOfInteger = new Array();
+        for (i = 0; i < arrayOfStrings.length; i++) {
+          arrayOfInteger.push(arrayOfStrings[i].length());
+        }
+        return arrayOfInteger;
+      }
+      ]]>
+    </xsl:variable>
+    
+    <xsl:sequence select="script:invoke($script, 'getLengthsOfStrings', ('France', 'Germany', 'Spain'))"/>
+    
+  </xsl:template>
+  
+  <!-- ... -->  
+  
+</xsl:stylesheet>
+----
+
+IMPORTANT: With the release of Java 11, Nashorn is deprecated, and has been removed from JDK 15 onwards, but https://github.com/openjdk/nashorn[OpenJDK Nashorn,window={window-blank}] supports Java starting with version 15.3.
+
+See also example 20 of the _examples_ webapp.
+
+
 [#sql-functions]
 === SQL
 
