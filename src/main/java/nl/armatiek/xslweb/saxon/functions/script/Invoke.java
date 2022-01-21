@@ -147,6 +147,12 @@ public class Invoke extends ExtensionFunctionDefinition {
             valueList.add(convertJavaObjectToAtomicValue(obj));
           }          
           return new AtomicArray(valueList);
+        } else if (result instanceof Object[]) {
+          ArrayList<AtomicValue> valueList = new ArrayList<AtomicValue>();
+          for (Object obj : (Object[]) result) {
+            valueList.add(convertJavaObjectToAtomicValue(obj));
+          }
+          return new AtomicArray(valueList);
         } else {
           return convertJavaObjectToAtomicValue(result);
         }       
