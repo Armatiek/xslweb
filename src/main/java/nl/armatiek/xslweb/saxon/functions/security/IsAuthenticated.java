@@ -57,10 +57,13 @@ public class IsAuthenticated extends ExtensionFunctionDefinition {
     return new IsAuthenticatedCall();
   }
 
-  private static class IsAuthenticatedCall extends ExtensionFunctionCall {
+  private static class IsAuthenticatedCall extends SecurityExtensionFunctionCall {
     
     @Override
     public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {                            
+      if (!isSecurityContextAvailable(context)) {
+        return BooleanValue.get(false);
+      }
       Subject subject = SecurityUtils.getSubject();
       return BooleanValue.get(subject != null && subject.isAuthenticated());               
     }

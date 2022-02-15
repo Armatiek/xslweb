@@ -61,10 +61,13 @@ public class HasRole extends ExtensionFunctionDefinition {
     return new HasRoleCall();
   }
 
-  private static class HasRoleCall extends ExtensionFunctionCall {
+  private static class HasRoleCall extends SecurityExtensionFunctionCall {
     
     @Override
     public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {
+      if (!isSecurityContextAvailable(context)) {
+        return BooleanValue.get(false);
+      }
       boolean hasAnyRole = false;
       Subject subject = SecurityUtils.getSubject();
       if (subject != null) {

@@ -34,7 +34,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import nl.armatiek.xslweb.configuration.Attribute;
 import nl.armatiek.xslweb.configuration.Context;
+import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 import nl.armatiek.xslweb.web.filter.PipelineGeneratorFilter;
 import nl.armatiek.xslweb.web.filter.RequestSerializerFilter;
@@ -82,15 +84,21 @@ public class InternalRequest {
       
       ServletContext servletContext = Context.getInstance().getServletContext();
       
-      ServletRequest internalRequest = new XSLWebHttpServletRequest(servletContext, path);
+      HttpServletRequest internalRequest = new XSLWebHttpServletRequest(servletContext, parentRequest, path);
       if (parentRequest != null) {
-        /* Copy all request attributes from parent/container request to internal request */ 
+        /* Copy all request attributes from parent/container request to internal request: */ 
         Enumeration<String> names = parentRequest.getAttributeNames();
         while (names.hasMoreElements()) {
           String name = names.nextElement();
           internalRequest.setAttribute(name, parentRequest.getAttribute(name));
         }
+        setAttribute(internalRequest, Definitions.ATTRNAME_ISNESTEDREQUEST, Boolean.TRUE);
       }
+      
+      if (isJobRequest) {
+        setAttribute(internalRequest, Definitions.ATTRNAME_ISJOBREQUEST, Boolean.TRUE);
+      }
+      
       ServletResponse response = new XSLWebHttpServletResponse(os);
       
       WebApp webApp = null;
@@ -115,6 +123,12 @@ public class InternalRequest {
       logger.error("Error executing internal servlet request to \"" + path + "\"", e);
       throw e;
     }            
+  }
+  
+  private void setAttribute(ServletRequest request, String name, Object value) {
+    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+    attrs.add(new Attribute(value, null));
+    request.setAttribute(name, attrs);
   }
   
   public int execute(String path, OutputStream os, boolean isJobRequest) throws ServletException, IOException {

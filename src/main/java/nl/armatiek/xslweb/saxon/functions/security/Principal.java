@@ -78,7 +78,7 @@ public class Principal extends ExtensionFunctionDefinition {
     return new PrincipalCall();
   }
 
-  private static class PrincipalCall extends ExtensionFunctionCall {
+  private static class PrincipalCall extends SecurityExtensionFunctionCall {
     
     @SuppressWarnings({ "unchecked" })
     private Object getPrincipalFromClassName(Subject subject, String type) {
@@ -131,6 +131,9 @@ public class Principal extends ExtensionFunctionDefinition {
     
     @Override
     public ZeroOrOne<Item> call(XPathContext context, Sequence[] arguments) throws XPathException {                            
+      if (!isSecurityContextAvailable(context)) {
+        return ZeroOrOne.empty();
+      }
       Subject subject = SecurityUtils.getSubject();
       if (subject == null) {
         return ZeroOrOne.empty();

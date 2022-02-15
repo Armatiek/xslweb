@@ -129,6 +129,8 @@ public class Definitions {
   public final static String ATTRNAME_PIPELINEHANDLER          = "xslweb.pipelinehandler";
   public final static String ATTRNAME_XSSFILTERING             = "xslweb.xssfiltering";
   public final static String ATTRNAME_TEMPFILES                = "xslweb.tempfiles";
+  public final static String ATTRNAME_ISJOBREQUEST             = "xslweb.isjobrequest";
+  public final static String ATTRNAME_ISNESTEDREQUEST          = "xslweb.isnestedrequest";
   // public final static String ATTRNAME_DEBUGCLIENT              = "xslweb.debugclient";
   
   public final static String PARAMNAME_TRACE_BASIC             = "xslweb.trace.basic";

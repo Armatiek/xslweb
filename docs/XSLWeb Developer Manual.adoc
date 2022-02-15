@@ -1093,6 +1093,20 @@ function req:get-attribute($name as xs:string) as item()*
 
 Returns the attribute bound with the specified $name in this request, or an empty sequence if no attribute is bound under the name.
 
+[source,xquery]
+----
+function req:is-job-request() as xs:boolean
+----
+
+Specifies if the current request was executed by the job scheduler instead of an external user.
+
+[source,xquery]
+----
+function req:is-nested-request() as xs:boolean
+----
+
+Specifies if the current request is a nested request, see <<nested-pipelines>>.
+
 [#response-functions]
 === Response functions
 

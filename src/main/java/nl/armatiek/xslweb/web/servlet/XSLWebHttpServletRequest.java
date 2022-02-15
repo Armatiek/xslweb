@@ -57,11 +57,11 @@ public class XSLWebHttpServletRequest implements HttpServletRequest {
   private Map<String, Object> attributes = new HashMap<String, Object>();
   private Map<String, String[]> parameters = new HashMap<String, String[]>();
   private ServletContext context;
-  private HttpSession session;  
+  private HttpServletRequest parentRequest;  
   
-  public XSLWebHttpServletRequest(ServletContext context, String path) {
+  public XSLWebHttpServletRequest(ServletContext context, HttpServletRequest parentRequest, String path) {
     this.context = context;
-    this.session = new XSLWebHttpSession(context);
+    this.parentRequest = parentRequest;
     String[] parts = path.split("\\?");
     if (parts.length > 1) {
       this.pathInfo = parts[0];            
@@ -376,12 +376,18 @@ public class XSLWebHttpServletRequest implements HttpServletRequest {
 
   @Override
   public HttpSession getSession(boolean create) {
-    return session;
+    if (parentRequest == null) {
+      return null;
+    }
+    return parentRequest.getSession(create);
   }
 
   @Override
   public HttpSession getSession() {
-    return session;
+    if (parentRequest == null) {
+      return null;
+    }
+    return parentRequest.getSession();
   }
 
   @Override

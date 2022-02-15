@@ -57,10 +57,13 @@ public class IsGuest extends ExtensionFunctionDefinition {
     return new IsGuestCall();
   }
 
-  private static class IsGuestCall extends ExtensionFunctionCall {
+  private static class IsGuestCall extends SecurityExtensionFunctionCall {
     
     @Override
     public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {                            
+      if (!isSecurityContextAvailable(context)) {
+        return BooleanValue.get(false);
+      }
       Subject subject = SecurityUtils.getSubject();
       return BooleanValue.get(subject == null || subject.getPrincipal() == null);              
     }

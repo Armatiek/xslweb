@@ -59,10 +59,13 @@ public class HasPermission extends ExtensionFunctionDefinition {
     return new HasPermissionCall();
   }
 
-  private static class HasPermissionCall extends ExtensionFunctionCall {
+  private static class HasPermissionCall extends SecurityExtensionFunctionCall {
     
     @Override
     public BooleanValue call(XPathContext context, Sequence[] arguments) throws XPathException {                            
+      if (!isSecurityContextAvailable(context)) {
+        return BooleanValue.get(false);
+      }
       Subject subject = SecurityUtils.getSubject();
       String name = ((StringValue) arguments[0].head()).getStringValue();
       return BooleanValue.get(subject != null && StringUtils.isNoneBlank(name) && subject.isPermitted(name)); 
