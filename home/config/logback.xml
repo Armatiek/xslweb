@@ -9,13 +9,13 @@
   
   <appender name="global" class="ch.qos.logback.core.rolling.RollingFileAppender">    
     <Append>true</Append>
-    <File>${xslweb.home}/logs/xslweb.log</File>
+    <File>/xslweb-log/xslweb.log</File>
     <encoder>
-      <pattern>%-5p [%t] %c - [%m] %d{ISO8601}%n</pattern>
+      <pattern>%-5p [%t] %c{15} - [%m] %d{ISO8601}%n</pattern>
     </encoder>
     <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
       <maxIndex>8</maxIndex>
-      <FileNamePattern>${xslweb.home}/logs/xslweb.log.%i</FileNamePattern>
+      <FileNamePattern>/xslweb-log/xslweb.log.%i</FileNamePattern>
     </rollingPolicy>
     <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
       <MaxFileSize>10MB</MaxFileSize>
@@ -24,13 +24,13 @@
   
   <appender name="pipeline" class="ch.qos.logback.core.rolling.RollingFileAppender">    
     <Append>true</Append>
-    <File>${xslweb.home}/logs/pipeline.log</File>
+    <File>/xslweb-log/pipeline.log</File>
     <encoder>
-      <pattern>%-5p [%t] %c - [%m] %d{ISO8601}%n</pattern>
+      <pattern>%-5p [%t] %c{15} - [%m] %d{ISO8601}%n</pattern>
     </encoder>    
     <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
       <maxIndex>8</maxIndex>
-      <FileNamePattern>${xslweb.home}/logs/pipeline.log.%i</FileNamePattern>
+      <FileNamePattern>/xslweb-log/pipeline.log.%i</FileNamePattern>
     </rollingPolicy>
     <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
       <MaxFileSize>10MB</MaxFileSize>
@@ -39,13 +39,13 @@
   
   <appender name="jetty" class="ch.qos.logback.core.rolling.RollingFileAppender">    
     <Append>true</Append>
-    <File>${xslweb.home}/logs/jetty.log</File>
+    <File>/xslweb-log/jetty.log</File>
     <encoder>
-      <pattern>%-5p [%t] %c - [%m] %d{ISO8601}%n</pattern>
+      <pattern>%-5p [%t] %c{15} - [%m] %d{ISO8601}%n</pattern>
     </encoder>    
     <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
       <maxIndex>8</maxIndex>
-      <FileNamePattern>${xslweb.home}/logs/jetty.log.%i</FileNamePattern>
+      <FileNamePattern>/xslweb-log/jetty.log.%i</FileNamePattern>
     </rollingPolicy>
     <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
       <MaxFileSize>10MB</MaxFileSize>
