@@ -193,7 +193,7 @@ public class ExecExternal extends ExtensionFunctionDefinition {
         } else {
           try {
             int exitCode = executor.execute(cmdLine, environment);
-            logger.info(String.format("External process %s completed with exit value %d", cmdLine.toString(), exitCode));
+            logger.info(String.format("Finished external process %s with exit value %d", cmdLine.toString(), exitCode));
             return Int64Value.makeIntegerValue(exitCode);
           } catch (ExecuteException e) {
             return Int64Value.makeIntegerValue(e.getExitValue());
