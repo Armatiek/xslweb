@@ -62,7 +62,7 @@ public class RequestUtils {
       final int bodyCount, final XPathContext context) throws XPathException {
     String mediaTypeAttr = bodyElem.getAttributeValue("", "media-type");
     if (StringUtils.isBlank(mediaTypeAttr)) {
-      throw new XPathException("http:body/@media-type must be specified", "HC005");
+      throw new XPathException("http:body/@media-type and http:multipart/@media-type must be specified", "HC005");
     }
     MediaType mediaType = MediaType.parse(mediaTypeAttr);
     if (mediaType == null) {
