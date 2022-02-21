@@ -558,8 +558,16 @@ An example of the output of the XSLT stylesheet _binary-serialization.xsl_ is:
 .Binary 
 [source,xml]
 ----
-<res:binary-serializer>iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==</res:binary-serializer>
+<res:binary-serializer 
+  content-type="image/gif" 
+  content-disposition-filename="warning.gif">R0lGODlhEAAQAOYAAP7+/Pv1Uvv2W/rwS/TqSfbtS/XsS/rxTvvzT/r [... ETC ... ETC ...]  fbqR/HlaMHECArdhgh8iIHFCdNnGh8AiXKFCosiBSpQbKkSZNFQoUKBAA7</res:binary-serializer>
 ----
+
+On this element the following additional attributes can be set:
+
+* *content-type* (optional): the content type (mime type) that must be set on the response, otherwise the HTTP header "Content-Type" is set to "application/octet-stream".
+* *content-disposition-filename* (optional): this attribute can be used to force the browser to display a “Save as” dialog (instead of display the file “inline”). The specified filename will be used as the default filename in de dialog.
+* *expire-time* (optional): The time the resource may be cached by the client before it expires (in seconds).
 
 [#fop-serializer-step]
 ==== fop-serializer step

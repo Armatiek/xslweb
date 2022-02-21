@@ -16,6 +16,9 @@
  */
 package nl.armatiek.xslweb.serializer;
 
+import static java.lang.String.format;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,13 +29,16 @@ import java.util.Base64;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.configuration.WebApp;
 
 /**
@@ -43,8 +49,11 @@ public class BinarySerializer extends AbstractSerializer {
   
   protected static final Logger logger = LoggerFactory.getLogger(BinarySerializer.class);
   
+  private static final String CONTENT_DISPOSITION_HEADER = "%s;filename=\"%2$s\"; filename*=UTF-8''%2$s";
+  
   private OutputStream bos;    
   private StringBuilder sb;
+  private static final URLCodec codec = new URLCodec();
   
   public BinarySerializer(WebApp webApp, HttpServletRequest req, HttpServletResponse resp, OutputStream os) {    
     super(webApp, req, resp, os);       
@@ -61,7 +70,31 @@ public class BinarySerializer extends AbstractSerializer {
   }
   
   private void processBinarySerializer(String uri, String localName, String qName, Attributes attributes) throws Exception {    
-    String path = attributes.getValue("", "path");            
+    
+    final String contentType = attributes.getValue("", "content-type");
+    resp.setContentType(contentType != null ? contentType : Definitions.MIMETYPE_BINARY);
+    
+    final String contentDispositionFilename = attributes.getValue("", "content-disposition-filename");
+    boolean attachment = StringUtils.isNotEmpty(contentDispositionFilename);
+    String fileName = attachment ?  contentDispositionFilename : "unknown";
+    resp.setHeader("Content-Disposition", 
+        format(CONTENT_DISPOSITION_HEADER, (attachment ? "attachment" : "inline"), codec.encode(fileName, "UTF-8")));
+    
+    final String expireTimeSeconds = attributes.getValue("", "expire-time");
+    if (expireTimeSeconds != null) {
+      long expires = Long.parseLong(expireTimeSeconds);
+      if (expires > 0) {
+        resp.setHeader("Cache-Control", "public,max-age=" + expires + ",must-revalidate");
+        resp.setDateHeader("Expires", System.currentTimeMillis() + SECONDS.toMillis(expires));
+        resp.setHeader("Pragma", ""); // Explicitly set pragma to prevent container from overriding it.
+      } else {
+        resp.setHeader("Cache-Control", "no-cache,no-store,must-revalidate");
+        resp.setDateHeader("Expires", 0);
+        resp.setHeader("Pragma", "no-cache"); // Backwards compatibility for HTTP 1.0.
+      }
+    }
+    
+    final String path = attributes.getValue("", "path");
     if (path == null) {
       /* Write to HTTP response: */
       if (resp == null) {
