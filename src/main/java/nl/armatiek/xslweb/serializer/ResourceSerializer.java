@@ -44,7 +44,8 @@ public class ResourceSerializer extends AbstractSerializer {
   
   private void processResourceSerializer(String uri, String localName, String qName, Attributes attributes) throws Exception {    
     String method = req.getMethod().toUpperCase();
-    if (!method.equals("HEAD") && !method.equals("GET")) {
+    
+    if (!StringUtils.equalsAny(method, "GET", "POST", "HEAD")) {
       resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Method \"" + method + "\" not supported");
       return;
     }
@@ -99,7 +100,7 @@ public class ResourceSerializer extends AbstractSerializer {
       
     };
     
-    if (method.equals("GET")) {
+    if (method.equals("GET") || method.equals("POST")) {
       fileServlet.doGet(req, resp);
     } else if (method.equals("HEAD")) {
       fileServlet.doHead(req, resp);
