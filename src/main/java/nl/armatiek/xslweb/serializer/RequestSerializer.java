@@ -339,7 +339,7 @@ public class RequestSerializer {
     }
     if (Types.isXmlType(contentType)) {
       getFilteredXMLReader().parse(new InputSource(new BOMInputStream(pbis)));
-    } else if ((contentType != null) && contentType.startsWith("text/plain")) {      
+    } else if (Types.isTextType(contentType)) {      
       xsw.writeCharacters(IOUtils.toString(pbis, StringUtils.defaultString(req.getCharacterEncoding(), "UTF-8")));      
     } else {
       xsw.writeCData(Base64.getEncoder().encodeToString(IOUtils.toByteArray(pbis)));
@@ -347,7 +347,6 @@ public class RequestSerializer {
     xsw.writeEndElement();
   }
 
-  @SuppressWarnings("rawtypes")
   private void serializeAttributes() throws Exception {
     Enumeration attrNames = req.getAttributeNames();
     if (attrNames.hasMoreElements()) {
