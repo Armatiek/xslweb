@@ -43,7 +43,7 @@ public class Types {
     XML_TYPES.add("application/xml-external-parsed-entity");
   }
   
-  public enum Type { XML, HTML, XHTML, TEXT, BINARY, BASE64, HEXBIN, MULTIPART, SRC }
+  public enum Type { XML, HTML, XHTML, TEXT, JSON, BINARY, BASE64, HEXBIN, MULTIPART, SRC }
   
   public static String getMethodForMediaType(final MediaType mediaType) {
     Type type = parseType(mediaType.type() + '/' + mediaType.subtype());
@@ -61,6 +61,8 @@ public class Types {
       return Type.XML;
     } else if (type.startsWith("text/") || TEXT_TYPES.contains(type)) {
       return Type.TEXT;
+    } else if (type.equals("application/json") || type.endsWith("+json")) {
+      return Type.JSON;
     } else {
       return Type.BINARY;
     }
@@ -68,6 +70,14 @@ public class Types {
   
   public static boolean isXmlType(final String type) {
     return type != null && (type.endsWith("+xml") || XML_TYPES.contains(type));
+  }
+  
+  public static boolean isTextType(final String type) {
+    return type != null && (type.startsWith("text/") || TEXT_TYPES.contains(type));
+  }
+  
+  public static boolean isJsonType(final String type) {
+    return type != null && (type.equals("application/json") || type.endsWith("+json"));
   }
 
 }
