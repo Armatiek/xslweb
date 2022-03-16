@@ -16,11 +16,19 @@
  */
 package nl.armatiek.xslweb.saxon.utils;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import javax.xml.transform.ErrorListener;
 
 import net.sf.saxon.Configuration;
 import net.sf.saxon.lib.Feature;
+import net.sf.saxon.ma.map.KeyValuePair;
+import net.sf.saxon.ma.map.MapItem;
+import net.sf.saxon.om.SequenceTool;
 import net.sf.saxon.serialize.MessageWarner;
+import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.trans.XsltController;
 import nl.armatiek.xslweb.saxon.errrorlistener.ErrorListenerMessageListener;
 import nl.armatiek.xslweb.saxon.errrorlistener.MessageListenerProxy;
@@ -101,6 +109,19 @@ public class SaxonUtils {
     } else {
       controller.setMessageEmitter(new MessageWarner());
     }
+  }
+  
+  public static Map<String, Object> trieMapToMap(MapItem mapItem) throws XPathException {
+    if (mapItem == null) {
+      return null;
+    }
+    HashMap<String, Object> params = new HashMap<String, Object>();
+    Iterator<KeyValuePair> iter =  mapItem.keyValuePairs().iterator();
+    while (iter.hasNext()) {
+      KeyValuePair pair = iter.next();
+      params.put(pair.key.getStringValue(), SequenceTool.convertToJava(pair.value.head()));
+    }
+    return params;
   }
   
 }
