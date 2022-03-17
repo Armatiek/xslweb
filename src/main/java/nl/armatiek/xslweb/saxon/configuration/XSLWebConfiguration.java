@@ -63,6 +63,7 @@ public class XSLWebConfiguration {
     return config;
   }
   
+  @SuppressWarnings("deprecation")
   private void addCustomExtensionFunctions(WebApp webApp) throws Exception {            
     File libDir = new File(webApp.getHomeDir(), "lib");
     if (!libDir.isDirectory()) {

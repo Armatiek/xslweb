@@ -39,7 +39,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
+import javax.script.Bindings;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParser;
@@ -148,6 +153,7 @@ public class WebApp implements ErrorHandler {
   private Map<String, byte[]> stylesheetExportFileCache = new ConcurrentHashMap<String, byte[]>();
   private Map<String, ArrayList<Attribute>> attributes = new ConcurrentHashMap<String, ArrayList<Attribute>>();
   private Map<String, ComboPooledDataSource> dataSourceCache = new ConcurrentHashMap<String, ComboPooledDataSource>();
+  private Map<String, ScriptEngine> scriptEngineCache = new ConcurrentHashMap<String, ScriptEngine>();
   private Map<String, FopFactory> fopFactoryCache = new ConcurrentHashMap<String, FopFactory>();
   private Map<String, ExecutorService> executorServiceCache = new ConcurrentHashMap<String, ExecutorService>();
   private Map<String, ExtensionFunctionDefinition> extensionFunctionDefinitions = new ConcurrentHashMap<String, ExtensionFunctionDefinition>();
@@ -1037,6 +1043,24 @@ public class WebApp implements ErrorHandler {
       dataSourceCache.put(name, cpds);
     }
     return cpds;
+  }
+  
+  public ScriptEngine getScriptEngine(String instanceName, String engineName, Map<String, Object> extraBindings) {
+    ScriptEngine engine = scriptEngineCache.get(instanceName);
+    if (engine == null) {
+      System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
+      engine = new ScriptEngineManager().getEngineByName(engineName);
+      if (engine.getClass().getName().endsWith("GraalJSScriptEngine")) {
+        Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+        bindings.put("polyglot.js.allowHostAccess", true);
+        bindings.put("polyglot.js.allowHostClassLookup", (Predicate<String>) s -> true);
+        if (extraBindings != null) {
+          bindings.putAll(extraBindings);
+        }
+      }
+      scriptEngineCache.put(instanceName, engine);
+    }
+    return engine;
   }
   
   public FopFactory getFopFactory(String configName) throws Exception {

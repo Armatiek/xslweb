@@ -1,5 +1,3 @@
-package nl.armatiek.xslweb.saxon.functions.script;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,6 +14,7 @@ package nl.armatiek.xslweb.saxon.functions.script;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package nl.armatiek.xslweb.saxon.functions.script;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,10 +22,10 @@ import java.util.Map;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 
+import net.sf.saxon.Configuration;
+import net.sf.saxon.expr.StaticProperty;
 import net.sf.saxon.expr.XPathContext;
-import net.sf.saxon.lib.ExtensionFunctionDefinition;
 import net.sf.saxon.om.AtomicArray;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.Sequence;
@@ -34,22 +33,29 @@ import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.om.SequenceTool;
 import net.sf.saxon.om.StructuredQName;
 import net.sf.saxon.trans.XPathException;
+import net.sf.saxon.type.JavaExternalObjectType;
 import net.sf.saxon.value.AtomicValue;
+import net.sf.saxon.value.ObjectValue;
 import net.sf.saxon.value.SequenceType;
 import net.sf.saxon.value.StringValue;
 import nl.armatiek.xslweb.configuration.Context;
 import nl.armatiek.xslweb.configuration.Definitions;
 import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionCall;
+import nl.armatiek.xslweb.saxon.functions.ExtensionFunctionDefinition;
 
 /**
  * 
  * 
  * @author Maarten Kroon
  */
-public class Invoke extends ExtensionFunctionDefinition {
+public class InvokeFunction extends ExtensionFunctionDefinition {
 
-  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_SCRIPT, "invoke");
+  private static final StructuredQName qName = new StructuredQName("", Definitions.NAMESPACEURI_XSLWEB_FX_SCRIPT, "invoke-function");
 
+  public InvokeFunction(Configuration configuration) {
+    super(configuration);
+  }  
+  
   @Override
   public StructuredQName getFunctionQName() {
     return qName;
@@ -68,8 +74,8 @@ public class Invoke extends ExtensionFunctionDefinition {
   @Override
   public SequenceType[] getArgumentTypes() {
     return new SequenceType[] { 
-        SequenceType.SINGLE_STRING, 
-        SequenceType.SINGLE_STRING, 
+        SequenceType.makeSequenceType(new JavaExternalObjectType(configuration, ScriptEngine.class), StaticProperty.ALLOWS_ONE),
+        SequenceType.SINGLE_STRING,
         SequenceType.ATOMIC_SEQUENCE,
         SequenceType.ATOMIC_SEQUENCE,
         SequenceType.ATOMIC_SEQUENCE,
@@ -87,20 +93,10 @@ public class Invoke extends ExtensionFunctionDefinition {
 
   @Override
   public ExtensionFunctionCall makeCallExpression() {
-    return new InvokeCall();
+    return new InvokeFunctionCall();
   }
   
-  private static class InvokeCall extends ExtensionFunctionCall {
-    
-    private static ScriptEngine engine;
-    
-    private synchronized ScriptEngine getScriptEngine() {
-      if (engine == null) {
-        ScriptEngineManager factory = new ScriptEngineManager();
-        engine = factory.getEngineByName("nashorn");
-      }
-      return engine;
-    }
+  private static class InvokeFunctionCall extends ExtensionFunctionCall {
     
     private Object[] sequenceToObjectArray(Sequence seq) throws XPathException {
       ArrayList<Object> objectList = new ArrayList<Object>();
@@ -116,7 +112,7 @@ public class Invoke extends ExtensionFunctionDefinition {
     @Override
     public Sequence call(XPathContext context, Sequence[] arguments) throws XPathException {            
       try {
-        String script = ((StringValue) arguments[0].head()).getStringValue();        
+        ScriptEngine engine = ((ObjectValue<ScriptEngine>) arguments[0].head()).getObject();
         String functionName = ((StringValue) arguments[1].head()).getStringValue();
     
         ArrayList<Object> args = new ArrayList<Object>();                
@@ -130,8 +126,6 @@ public class Invoke extends ExtensionFunctionDefinition {
           args.add(sequenceToObjectArray(seq));          
         }
         
-        ScriptEngine engine = getScriptEngine();
-        engine.eval(script);
         Invocable inv = (Invocable) engine;                                              
         Object result = inv.invokeFunction(functionName, args.toArray(new Object[args.size()]));
         
@@ -157,7 +151,7 @@ public class Invoke extends ExtensionFunctionDefinition {
           return convertJavaObjectToAtomicValue(result);
         }       
       } catch (Exception e) {
-        throw new XPathException("Error running script", e);
+        throw new XPathException("Error invoking script function", e);
       }
     }
   }

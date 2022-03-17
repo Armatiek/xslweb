@@ -2757,28 +2757,66 @@ Functions:
 
 [source,xquery]
 ----
-function script:invoke(
-  $javascript as xs:string, 
-  $function-name as xs:string, 
+function script:get-script-engine(
+  $instance-name as xs:string, 
+  $engine-name as xs:string, 
+  $bindings as map(xs:string, item())) as java:javax.script.ScriptEngine
+----
+This function creates and caches or gets from cache an instance of the Java ScriptEngine. The script engine can be passed as the first parameter to the _script:evaluate()_ and _script:invoke-function()_ functions. _$instance-name_ is a custom name you give the script engine, _$engine-name_ is the name of the engine type (eg 'nashorn' or 'graal.js') and _$bindings_ a map of state parameters for the specific script engine.
+
+IMPORTANT: With the release of Java 11, the Nashorn scripting engine is deprecated, and has been removed from JDK 15 onwards.
+
+IMPORTANT: If you want to use the https://www.graalvm.org/22.0/reference-manual/js/ScriptEngine/['graal.js' script engine,window={window-blank}] you must build XSLWeb with the Maven profile 'graal-js'.
+    
+NOTE: If you use the 'graal.js' script engine and want it to be compatible with the 'nashorn' engine pass the binding 'polyglot.js.nashorn-compat=true' (see the script example).     
+
+[source,xquery]
+----
+function script:get-script-engine(
+  $instance-name as xs:string, 
+  $engine-name as xs:string) as java:javax.script.ScriptEngine
+----
+Overloaded function with empty bindings.
+
+[source,xquery]
+----
+function script:get-script-engine($instance-name as xs:string) as java:javax.script.ScriptEngine
+----
+Overloaded function with _$engine-name_ 'JavaScript'.
+
+[source,xquery]
+----
+function script:evaluate(
+  $script-engine as java:javax.script.ScriptEngine,
+  $script as xs:string) as xs:boolean?
+----
+This function compiles and evaluates Javascript code. This Javascript code must not return a result but can contain functions that can be called using _script:invoke-function()_ in a next step. 
+
+IMPORTANT: If you use the Javascript in a multiuser/multithreaded environment, the Javascript code must not contain mutable-state variables in the Javascript global scope.
+
+[source,xquery]
+----
+function script:invoke-function(
+  $script-engine as java:javax.script.ScriptEngine,
+  $function-name as xs:string,
   $arg-1 as xs:anyAtomicType*, 
   $arg-2 as xs:anyAtomicType*, 
   .... , 
   $arg-n as xs:anyAtomicType*) as xs:anyAtomicType*
 ----
-This function executes the function _$function-name_ within the Javascript code _$javascript_. The arguments of the Javascript function can be specified by _$arg-1_ to _$arg-n_. Each argument can be a single atomic type or an array of atomic types. The arguments must be atomic types that can be converted to a Java/Javascript object equivalent. The result of the Javascript function must be a single object or an array of objects that can be converted back to a (sequence of) atomic type(s) (see https://en.wikipedia.org/wiki/XQuery_API_for_Java#Default_data_type_mapping[Default data type mapping,window={window-blank}]). 
+This function executes the function _$function-name_ within the Javascript code that was previously evaluated using _script:evaluate()_. The arguments of the Javascript function can be specified by _$arg-1_ to _$arg-n_. Each argument must be a sequence of atomic types that can be converted to a Java/Javascript object equivalent. The arguments will be passed to the Javascript function as arrays of these Java/Javascript objects. The result of the Javascript function must be a single object or an array of objects that can be converted back to a (sequence of) atomic type(s) (see https://en.wikipedia.org/wiki/XQuery_API_for_Java#Default_data_type_mapping[Default data type mapping,window={window-blank}]). 
 
 When XSLWeb calls the Javascript function four more arguments (Java objects) are passed to the actual Javascript function: the global XSLWeb Context object, the current Webapp object, the https://docs.oracle.com/javaee/7/api/javax/servlet/http/HttpServletRequest.html[HttpServletRequest,window={window-blank}] object and the https://docs.oracle.com/javaee/7/api/javax/servlet/http/HttpServletResponse.html[HttpServletResponse,window={window-blank}] object.
 
-XSLWeb uses the https://docs.oracle.com/javase/10/nashorn/introduction.htm#JSNUG136[Java Nashorn scripting engine,window={window-blank}] to execute the Javascript code.
-
-A complete example:
+A complete example for the 'graal-js' scripting engine:
 
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet 
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:xs="http://www.w3.org/2001/XMLSchema"  
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:java="http://saxon.sf.net/java-type"  
   xmlns:script="http://www.armatiek.com/xslweb/functions/script"
   exclude-result-prefixes="#all"
   version="3.0">
@@ -2798,8 +2836,15 @@ A complete example:
       ]]>
     </xsl:variable>
     
-    <xsl:sequence select="script:invoke($script, 'getLengthsOfStrings', ('France', 'Germany', 'Spain'))"/>
-    
+    <xsl:variable name="bindings" as="map(xs:string, item())">
+      <xsl:map>
+        <xsl:map-entry key="'polyglot.js.nashorn-compat'" select="true()"/>
+      </xsl:map>
+    </xsl:variable>
+    <xsl:variable name="script-engine" select="script:get-script-engine('my-script-engine', 'graal.js', $bindings)" as="java:javax.script.ScriptEngine"/>
+    <xsl:sequence select="script:evaluate($script-engine, $script)"/>
+    <xsl:sequence select="script:invoke-function($script-engine, 'getLengthsOfStrings', ('France', 'Germany', 'Spain'))"/>  
+        
   </xsl:template>
   
   <!-- ... -->  
@@ -2807,10 +2852,26 @@ A complete example:
 </xsl:stylesheet>
 ----
 
-IMPORTANT: With the release of Java 11, Nashorn is deprecated, and has been removed from JDK 15 onwards, but https://github.com/openjdk/nashorn[OpenJDK Nashorn,window={window-blank}] supports Java starting with version 15.3.
-
 See also example 20 of the _examples_ webapp.
 
+[source,xquery]
+----
+function script:invoke(
+  $javascript as xs:string, 
+  $function-name as xs:string, 
+  $arg-1 as xs:anyAtomicType*, 
+  $arg-2 as xs:anyAtomicType*, 
+  .... , 
+  $arg-n as xs:anyAtomicType*) as xs:anyAtomicType*
+----
+
+WARNING: *Deprecated:* please use _script:invoke-function()_ in combination with _script:evaluate()_ and _script:get-script-engine()_.
+
+This function executes the function _$function-name_ within the Javascript code _$javascript_. The arguments of the Javascript function can be specified by _$arg-1_ to _$arg-n_. Each argument can be a single atomic type or an array of atomic types. The arguments must be atomic types that can be converted to a Java/Javascript object equivalent. The result of the Javascript function must be a single object or an array of objects that can be converted back to a (sequence of) atomic type(s) (see https://en.wikipedia.org/wiki/XQuery_API_for_Java#Default_data_type_mapping[Default data type mapping,window={window-blank}]). 
+
+When XSLWeb calls the Javascript function four more arguments (Java objects) are passed to the actual Javascript function: the global XSLWeb Context object, the current Webapp object, the https://docs.oracle.com/javaee/7/api/javax/servlet/http/HttpServletRequest.html[HttpServletRequest,window={window-blank}] object and the https://docs.oracle.com/javaee/7/api/javax/servlet/http/HttpServletResponse.html[HttpServletResponse,window={window-blank}] object.
+
+This function uses the https://docs.oracle.com/javase/10/nashorn/introduction.htm#JSNUG136[Java Nashorn scripting engine,window={window-blank}] to execute the Javascript code.
 
 [#sql-functions]
 === SQL

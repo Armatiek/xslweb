@@ -91,7 +91,10 @@ import nl.armatiek.xslweb.saxon.functions.response.EncodeURL;
 import nl.armatiek.xslweb.saxon.functions.response.IsCommitted;
 import nl.armatiek.xslweb.saxon.functions.response.SetBufferSize;
 import nl.armatiek.xslweb.saxon.functions.response.SetStatus;
+import nl.armatiek.xslweb.saxon.functions.script.Evaluate;
+import nl.armatiek.xslweb.saxon.functions.script.GetScriptEngine;
 import nl.armatiek.xslweb.saxon.functions.script.Invoke;
+import nl.armatiek.xslweb.saxon.functions.script.InvokeFunction;
 import nl.armatiek.xslweb.saxon.functions.security.HasPermission;
 import nl.armatiek.xslweb.saxon.functions.security.HasRole;
 import nl.armatiek.xslweb.saxon.functions.security.IsAuthenticated;
@@ -239,6 +242,10 @@ public class XSLWebInitializer implements Initializer {
     
     /* Script */
     registerXPathFunction(new Invoke(), configuration);
+    registerXPathFunction(new GetScriptEngine(configuration), configuration);
+    registerXPathFunction(new InvokeFunction(configuration), configuration);
+    registerXPathFunction(new Evaluate(configuration), configuration);
+    
     registerXPathFunction(new Register(), configuration);
     registerXPathFunction(new IsRegistered(), configuration);
     registerXPathFunction(new Call(), configuration);

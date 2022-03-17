@@ -3,6 +3,7 @@
   xmlns="http://www.w3.org/1999/xhtml"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"  
+  xmlns:java="http://saxon.sf.net/java-type"
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
   xmlns:script="http://www.armatiek.com/xslweb/functions/script"
   exclude-result-prefixes="#all"
@@ -43,18 +44,32 @@
       <xsl:sequence select="$script"/>
     </pre>       
     <p>Output of function call <i>getLengthsOfStrings</i>:</p>
+    <!-- Create/get 'nashorn' or 'graal.js' scripting engine: -->
+    <xsl:variable name="engine-name" select="'nashorn'" as="xs:string"/>
+    <xsl:variable name="bindings" as="map(xs:string, item())?">
+      <xsl:choose>
+        <xsl:when test="$engine-name = 'graal.js'">
+          <xsl:map>
+            <xsl:map-entry key="'polyglot.js.nashorn-compat'" select="true()"/>
+          </xsl:map>
+        </xsl:when>
+        <xsl:otherwise/>
+      </xsl:choose>
+    </xsl:variable>
+    
+    <xsl:variable name="script-engine" select="script:get-script-engine('my-script-engine', $engine-name, $bindings)" as="java:javax.script.ScriptEngine"/>
+    <xsl:sequence select="script:evaluate($script-engine, $script)"/>
     <p>
-      <xsl:sequence select="script:invoke($script, 'getLengthsOfStrings', ('France', 'Germany', 'Spain'))"/>  
+      <xsl:sequence select="script:invoke-function($script-engine, 'getLengthsOfStrings', ('France', 'Germany', 'Spain'))"/>  
     </p>
     <p>Output of function call <i>getDevelopmentModeFromWebApp</i>:</p>
     <p>
-      <xsl:sequence select="script:invoke($script, 'getDevelopmentModeFromWebApp')"/>  
+      <xsl:sequence select="script:invoke-function($script-engine, 'getDevelopmentModeFromWebApp')"/>  
     </p>
     <p>Output of function call <i>format</i>:</p>
     <p>
-      <xsl:sequence select="script:invoke($script, 'format')"/>  
+      <xsl:sequence select="script:invoke-function($script-engine, 'format')"/>  
     </p>
-    
   </xsl:template>
   
   <!-- These variables can be ignored: -->
