@@ -39,10 +39,11 @@
     <saxon.version>10.6</saxon.version>
     <shiro.version>1.8.0</shiro.version>
     <pac4j.version>5.2.1</pac4j.version>
-    <fop.version>2.6</fop.version>
+    <fop.version>2.7</fop.version>
     <ehcache.version>3.9.8</ehcache.version>
     <logback.version>1.2.8</logback.version>
     <slf4j.version>1.7.32</slf4j.version>
+    <graaljs.version>22.0.0.2</graaljs.version>
   </properties>
   
   <repositories>
@@ -166,6 +167,21 @@
           <artifactId>slf4j-api</artifactId>
           <version>${slf4j.version}</version>
           <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>graal-js</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.graalvm.js</groupId>
+          <artifactId>js</artifactId>
+          <version>${graaljs.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.graalvm.js</groupId>
+          <artifactId>js-scriptengine</artifactId>
+          <version>${graaljs.version}</version>
         </dependency>
       </dependencies>
     </profile>
@@ -381,6 +397,10 @@
           <groupId>javax.servlet</groupId>
           <artifactId>servlet-api</artifactId>
         </exclusion>
+        <exclusion> 
+          <groupId>xml-apis</groupId>
+	      <artifactId>xml-apis</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     
@@ -510,6 +530,12 @@
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
       <version>2.13.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.exquery</groupId>
+      <artifactId>exquery-xquery</artifactId>
+      <version>0.2.0</version>
     </dependency>
     
   </dependencies>
