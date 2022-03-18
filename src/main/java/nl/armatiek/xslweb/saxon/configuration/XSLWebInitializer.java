@@ -82,6 +82,7 @@ import nl.armatiek.xslweb.saxon.functions.queue.GetInfo;
 import nl.armatiek.xslweb.saxon.functions.queue.GetStatus;
 import nl.armatiek.xslweb.saxon.functions.request.IsJobRequest;
 import nl.armatiek.xslweb.saxon.functions.request.IsNestedRequest;
+import nl.armatiek.xslweb.saxon.functions.request.MatchAcceptHeader;
 import nl.armatiek.xslweb.saxon.functions.response.AddCookie;
 import nl.armatiek.xslweb.saxon.functions.response.AddDateHeader;
 import nl.armatiek.xslweb.saxon.functions.response.AddHeader;
@@ -149,6 +150,8 @@ public class XSLWebInitializer implements Initializer {
     registerXPathFunction(new nl.armatiek.xslweb.saxon.functions.request.SetAttribute(), configuration);
     registerXPathFunction(new IsNestedRequest(), configuration);
     registerXPathFunction(new IsJobRequest(), configuration);
+    registerXPathFunction(new MatchAcceptHeader(), configuration);
+    
     
     /* Response */
     registerXPathFunction(new AddCookie(), configuration);
