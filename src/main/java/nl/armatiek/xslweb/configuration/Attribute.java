@@ -38,7 +38,7 @@ public class Attribute implements Serializable {
     this.type = type;
   }
   
-  public Object getValue() throws Exception {
+  public Object getValue() {
     return value;
   }
   
