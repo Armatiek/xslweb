@@ -42,6 +42,7 @@ import nl.armatiek.xslweb.xml.SerializingContentHandler;
 public class PipelineHandler implements ContentHandler {
   
   private Stack<PipelineStep> pipelineSteps = new Stack<PipelineStep>();
+  private Stack<ConditionalPipelineStep> conditionalPipelineSteps = new Stack<ConditionalPipelineStep>();
   private int xssFilterFlags = 0;
   private SerializingContentHandler serializingHandler;
   private OutputStream os;
@@ -80,6 +81,8 @@ public class PipelineHandler implements ContentHandler {
           ((TransformerStep) pipelineSteps.peek()).getParameters().peek().addValue(chars.toString());
         } else if (localName.equals("schema-path")) {
           ((SchemaValidatorStep) pipelineSteps.peek()).addSchemaPath(chars.toString());
+        } else if (localName.equals("conditional-pipeline")) {
+          conditionalPipelineSteps.pop();
         }
       } else if (StringUtils.equals(uri, Definitions.NAMESPACEURI_XSLWEB_RESPONSE)) {
         if (localName.equals("response")) {
@@ -262,6 +265,25 @@ public class PipelineHandler implements ContentHandler {
             }
           }
         } else if (localName.equals("value")) {          
+        } else if (localName.equals("conditional-pipeline")) {
+          String name = getAttribute(atts, "name", "conditional-" + Integer.toString(pipelineSteps.size()+1));
+          ConditionalPipelineStep conditionalPipelineStep = new ConditionalPipelineStep(name);
+          pipelineSteps.add(conditionalPipelineStep);
+          conditionalPipelineSteps.add(conditionalPipelineStep);
+        } else if (localName.equals("when")) {
+          if (!conditionalPipelineSteps.empty()) {
+            Condition condition = new WhenCondition(getAttribute(atts, "attr-name", "?"), getAttribute(atts, "attr-value", "?"));
+            conditionalPipelineSteps.peek().addCondition(condition);
+          } else {
+            throw new SAXException("\"when\" element not properly nested within \"conditional-pipeline\" element");
+          }
+        } else if (localName.equals("otherwise")) {
+          if (!conditionalPipelineSteps.empty()) {
+            Condition condition = new OtherwiseCondition();
+            conditionalPipelineSteps.peek().addCondition(condition);
+          } else {
+            throw new SAXException("\"otherwise\" element not properly nested within \"conditional-pipeline\" element");
+          }  
         } else {
           throw new SAXException(String.format("Pipeline element \"%s\" not supported", localName));
         }
@@ -299,6 +321,22 @@ public class PipelineHandler implements ContentHandler {
   private String getAttribute(Attributes attr, String name, String defaultValue) {
     int index = -1;
     return ((index = attr.getIndex(name)) >= 0) ? attr.getValue(index) : defaultValue;
+  }
+  
+  private void addPipelineStep(final PipelineStep pipelineStep) {
+    if (conditionalPipelineSteps.empty()) {
+      pipelineSteps.push(pipelineStep);
+    } else {
+      conditionalPipelineSteps.peek().getConditions().peek().getPipelineSteps().push(pipelineStep);
+    }
+  }
+  
+  private PipelineStep getCurrentPipelineStep() {
+    if (conditionalPipelineSteps.empty()) {
+      return pipelineSteps.peek();
+    } else {
+      return conditionalPipelineSteps.peek().getConditions().peek().getPipelineSteps().peek();
+    }
   }
   
 }
