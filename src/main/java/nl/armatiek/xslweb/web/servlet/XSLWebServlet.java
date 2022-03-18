@@ -333,7 +333,7 @@ public class XSLWebServlet extends HttpServlet {
     for (int i=0; i<steps.size(); i++) {
       PipelineStep step = steps.get(i);
       if (step instanceof TransformerSTXStep && i<steps.size()) {
-        /* Add extra identity tranformation after STX transformation that is not the 
+        /* Add extra identity transformation after STX transformation that is not the 
          * last transformation in the pipeline: */
         steps.add(i+1, new IdentityTransformerStep());
       }
