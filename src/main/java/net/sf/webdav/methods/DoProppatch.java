@@ -114,7 +114,7 @@ public class DoProppatch extends AbstractMethod {
         if (lo != null && lo.isExclusive() && !lockTokenMatchesIfHeader) {
           // Object on specified path is LOCKED
           errorList = new Hashtable<String, Integer>();
-          errorList.put(path, new Integer(WebdavStatus.SC_LOCKED));
+          errorList.put(path, Integer.valueOf(WebdavStatus.SC_LOCKED));
           sendReport(req, resp, errorList);
           return;
         }

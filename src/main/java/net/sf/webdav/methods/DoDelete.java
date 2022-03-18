@@ -178,11 +178,11 @@ public class DoDelete extends AbstractMethod {
 
         }
       } catch (AccessDeniedException e) {
-        errorList.put(path + children[i], new Integer(WebdavStatus.SC_FORBIDDEN));
+        errorList.put(path + children[i], Integer.valueOf(WebdavStatus.SC_FORBIDDEN));
       } catch (ObjectNotFoundException e) {
-        errorList.put(path + children[i], new Integer(WebdavStatus.SC_NOT_FOUND));
+        errorList.put(path + children[i], Integer.valueOf(WebdavStatus.SC_NOT_FOUND));
       } catch (WebdavException e) {
-        errorList.put(path + children[i], new Integer(WebdavStatus.SC_INTERNAL_SERVER_ERROR));
+        errorList.put(path + children[i], Integer.valueOf(WebdavStatus.SC_INTERNAL_SERVER_ERROR));
       }
     }
     so = null;

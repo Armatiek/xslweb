@@ -238,7 +238,7 @@ public class Context {
   private void initProperties() throws Exception {
     File propsFile = new File(homeDir, "config" + File.separatorChar + Definitions.FILENAME_PROPERTIES);
     this.properties = XSLWebUtils.readProperties(propsFile);
-    this.trustAllCerts = new Boolean(properties.getProperty(Definitions.PROPERTYNAME_TRUST_ALL_CERTS, "false"));
+    this.trustAllCerts = Boolean.parseBoolean(properties.getProperty(Definitions.PROPERTYNAME_TRUST_ALL_CERTS, "false"));
     if (trustAllCerts) {
       TrustManager[] trustAllCertsManager = new TrustManager[] { new X509TrustManager() {
         public java.security.cert.X509Certificate[] getAcceptedIssuers() { return null; }
@@ -249,9 +249,9 @@ public class Context {
       sc.init(null, trustAllCertsManager, new java.security.SecureRandom());
       HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
     }
-    this.parserHardening = new Boolean(this.properties.getProperty(Definitions.PROPERTYNAME_PARSER_HARDENING, "false"));
-    this.debugEnable = new Boolean(this.properties.getProperty(Definitions.PROPERTYNAME_DEBUG_ENABLE, "false"));
-    this.webDAVEnable = new Boolean(this.properties.getProperty(Definitions.PROPERTYNAME_WEBDAV_ENABLE, "false"));
+    this.parserHardening = Boolean.parseBoolean(this.properties.getProperty(Definitions.PROPERTYNAME_PARSER_HARDENING, "false"));
+    this.debugEnable = Boolean.parseBoolean(this.properties.getProperty(Definitions.PROPERTYNAME_DEBUG_ENABLE, "false"));
+    this.webDAVEnable = Boolean.parseBoolean(this.properties.getProperty(Definitions.PROPERTYNAME_WEBDAV_ENABLE, "false"));
     this.webDAVRoot = new File(this.properties.getProperty(Definitions.PROPERTYNAME_WEBDAV_ROOT, this.getHomeDir().getAbsolutePath()));
     if (this.webDAVEnable && !this.webDAVRoot.isDirectory()) {
       logger.error("WebDAV root directory {} not found or is not a directory", this.webDAVRoot.getAbsolutePath());

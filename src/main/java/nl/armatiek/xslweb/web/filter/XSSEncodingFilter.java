@@ -99,7 +99,7 @@ public class XSSEncodingFilter implements Filter {
     }
     boolean xssFiltering = getXssFiltering(request, xssFilterFlags);
     ArrayList<Attribute> seq = new ArrayList<Attribute>();
-    seq.add(new Attribute(new Boolean(xssFiltering), "xs:boolean"));  
+    seq.add(new Attribute(Boolean.valueOf(xssFiltering), "xs:boolean"));  
     request.setAttribute(Definitions.ATTRNAME_XSSFILTERING, seq);
     ServletResponse newResponse;
     if (xssFiltering) {

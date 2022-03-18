@@ -256,8 +256,8 @@ public abstract class AbstractMethod implements IMethodExecutor {
     String lastModified = "";
 
     if (so != null && so.isResource()) {
-      resourceLength = new Long(so.getResourceLength()).toString();
-      lastModified = new Long(so.getLastModified().getTime()).toString();
+      resourceLength = Long.valueOf(so.getResourceLength()).toString();
+      lastModified = Long.valueOf(so.getLastModified().getTime()).toString();
     }
 
     return "W/\"" + resourceLength + "-" + lastModified + "\"";

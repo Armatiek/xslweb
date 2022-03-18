@@ -63,7 +63,6 @@ public class XSLWebConfiguration {
     return config;
   }
   
-  @SuppressWarnings("deprecation")
   private void addCustomExtensionFunctions(WebApp webApp) throws Exception {            
     File libDir = new File(webApp.getHomeDir(), "lib");
     if (!libDir.isDirectory()) {
@@ -99,8 +98,8 @@ public class XSLWebConfiguration {
       }  
       count++;
       logger.info(String.format("Adding custom extension function class \"%s\" ...", className)); 
-      Class clazz = classInfo.loadClass();
-      registerExtensionFunction((ExtensionFunctionDefinition) clazz.newInstance());
+      Class<?> clazz = classInfo.loadClass();
+      registerExtensionFunction((ExtensionFunctionDefinition) clazz.getDeclaredConstructor().newInstance());
     }
     if (count == 0) {
       logger.info("No custom extension functions found.");
