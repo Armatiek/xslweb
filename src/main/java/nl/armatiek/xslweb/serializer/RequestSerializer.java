@@ -36,6 +36,9 @@ import java.util.UUID;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -55,7 +58,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLFilterImpl;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.sun.xml.ws.util.xml.ContentHandlerToXMLStreamWriter;
 
@@ -101,7 +103,7 @@ public class RequestSerializer {
     Object securityManager = null;
     try {
       Class<?> securityManagerClass = Class.forName("org.apache.xerces.util.SecurityManager");
-      securityManager = securityManagerClass.newInstance();
+      securityManager = securityManagerClass.getDeclaredConstructor().newInstance();
       Method setEntityExpansionLimit = securityManagerClass.getMethod("setEntityExpansionLimit", int.class);
       setEntityExpansionLimit.invoke(securityManager, 5000);
     } catch (ClassNotFoundException ex) {
@@ -472,11 +474,13 @@ public class RequestSerializer {
     }
   }
   
-  private XMLReader getFilteredXMLReader() throws SAXException {
+  private XMLReader getFilteredXMLReader() throws SAXException, ParserConfigurationException {
     if (this.xmlReader == null) {
       XMLFilterImpl filter = new BodyFilter();
-      filter.setContentHandler(new ContentHandlerToXMLStreamWriter(xsw));           
-      this.xmlReader = XMLReaderFactory.createXMLReader();              
+      filter.setContentHandler(new ContentHandlerToXMLStreamWriter(xsw)); 
+      SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+      SAXParser parser = parserFactory.newSAXParser();
+      this.xmlReader = parser.getXMLReader();           
       this.xmlReader.setFeature("http://xml.org/sax/features/validation", false);
       this.xmlReader.setFeature("http://xml.org/sax/features/namespaces", true);
       this.xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", false); 
