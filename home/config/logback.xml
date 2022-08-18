@@ -10,9 +10,15 @@
   <appender name="global" class="ch.qos.logback.core.rolling.RollingFileAppender">    
     <Append>true</Append>
     <File>/xslweb-log/xslweb.log</File>
+    <!-- Use the JSON logging encoder -->
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <customFields>{"application":"my_app"}</customFields>
+    </encoder>
+    <!-- Original encoder:
     <encoder>
       <pattern>%-5p [%t] %c{15} - [%m] %d{ISO8601}%n</pattern>
     </encoder>
+    -->
     <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
       <maxIndex>8</maxIndex>
       <FileNamePattern>/xslweb-log/xslweb.log.%i</FileNamePattern>
