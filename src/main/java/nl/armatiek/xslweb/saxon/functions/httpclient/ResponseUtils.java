@@ -131,6 +131,7 @@ public class ResponseUtils {
     Type contentType = Types.parseType(fullType);
     switch (contentType) {
     case TEXT:
+	case JSON:
       return new StringValue(body.string());
     case XML:
     case XHTML:

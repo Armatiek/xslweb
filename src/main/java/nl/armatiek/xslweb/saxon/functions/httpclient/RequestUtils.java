@@ -133,7 +133,7 @@ public class RequestUtils {
         throw new XPathException("Error serializing request body: " + sae.getMessage(), sae);
       }
       return RequestBody.create(baos.toByteArray(), mediaType);
-    } else if (method.equals("text") || method.equals("html")) {
+    } else if (method.equals("text") || method.equals("html") || method.equals("json")) {
       String value;
       if (bodyElem.hasChildNodes()) {
         value = bodyElem.getStringValue().trim();
