@@ -199,11 +199,6 @@
   <xsl:template match="/req:request[req:path = '/json-serialization.html']">    
     <pipeline:pipeline>
       <pipeline:transformer name="json-serialization" xsl-path="json/json-serialization.xsl" log="true"/>
-      <pipeline:json-serializer 
-        name="json" 
-        log="true"
-        auto-array="false"
-        pretty-print="true"/>  
     </pipeline:pipeline>
   </xsl:template>
   
@@ -357,7 +352,6 @@
   <xsl:template name="queued-request-call" match="/req:request[req:path = '/queued-request-call']">    
     <pipeline:pipeline>
       <pipeline:transformer name="queued-request-call" xsl-path="queued-request/queued-request-call.xsl" log="false"/>
-      <pipeline:json-serializer name="json" log="true" auto-array="false" pretty-print="true" namespace-declarations="false" auto-primitive="true"/>
     </pipeline:pipeline>
   </xsl:template>
   
@@ -371,7 +365,6 @@
   <xsl:template name="queued-request-status" match="/req:request[req:path = '/queued-request-status']">    
     <pipeline:pipeline>
       <pipeline:transformer name="queued-request-status" xsl-path="queued-request/queued-request-status.xsl" log="false"/>
-      <pipeline:json-serializer name="json" log="true" auto-array="false" pretty-print="true" namespace-declarations="false" auto-primitive="true"/>
     </pipeline:pipeline>
   </xsl:template>
   
