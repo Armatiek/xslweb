@@ -13,7 +13,7 @@
   <xsl:template match="/response:response">
     <!-- HTTP Status: -->
     <xsl:if test="@status">
-      <xsl:value-of select="if (empty(response:set-status(@status))) then () else error(xs:QName('error:response-status'), 'Could not set status of response')"/>
+      <xsl:sequence select="if (empty(response:set-status(@status))) then () else error(xs:QName('error:response-status'), 'Could not set status of response')"/>
     </xsl:if>
     
     <!-- Headers: -->
