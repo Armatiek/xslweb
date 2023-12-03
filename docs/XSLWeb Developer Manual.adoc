@@ -31,8 +31,8 @@
 :underscore: _
 :docinfo: shared,shared-head
 :window-blank: _blank
-:xslweb-version: 4.2.0
-:xslweb-version-download: 4-2-0 
+:xslweb-version: 4.2.1
+:xslweb-version-download: 4-2-1 
 :saxon-version: 10.6
 :saxon-version-download: 10-6J 
 
