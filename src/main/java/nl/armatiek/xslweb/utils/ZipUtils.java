@@ -24,6 +24,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -31,6 +34,8 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class ZipUtils {
+  
+  private static final int BUFFER_SIZE = 8192;
   
   public static void zip(File directory, File base, ZipOutputStream zos) throws IOException {
     File[] files = directory.listFiles();
@@ -99,37 +104,65 @@ public class ZipUtils {
     }
   }
   
-  public static void unzipStream(InputStream is, File extractTo) throws IOException {
-    byte[] buffer = new byte[8192];
-    int size;
-    ZipInputStream zis = new ZipInputStream(is);
-    ZipEntry entry;
-    try {
-      while ((entry = zis.getNextEntry()) != null) {
-        File file = new File(extractTo, entry.getName());
+  /**
+   * Unzips all entries from the given input stream into the destination directory.
+   * The method guards against Zip Slip by validating each entry's resolved path.
+   */
+  public static void unzipStream(InputStream input, File destinationDir) throws IOException {
+    if (destinationDir == null) {
+      throw new IOException("Destination directory must not be null");
+    }
+    // Ensure destination directory exists
+    if (!destinationDir.exists() && !destinationDir.mkdirs()) {
+      throw new IOException("Could not create destination directory: " + destinationDir);
+    }
+
+    Path destRoot = destinationDir.toPath().toRealPath();
+    boolean hasEntry = false;
+
+    try (ZipInputStream zipIn = new ZipInputStream(input)) {
+      ZipEntry entry;
+      byte[] buffer = new byte[BUFFER_SIZE];
+
+      while ((entry = zipIn.getNextEntry()) != null) {
+        hasEntry = true;
+
+        Path targetPath = resolveEntryPath(destRoot, entry);
+
         if (entry.isDirectory()) {
-          if (!file.exists()) {
-            file.mkdirs();
-          }
+          Files.createDirectories(targetPath);
         } else {
-          if (!file.getParentFile().exists()) {
-            file.getParentFile().mkdirs();
+          Path parent = targetPath.getParent();
+          if (parent != null) {
+            Files.createDirectories(parent);
           }
-          BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
-          try {
-            while ((size = zis.read(buffer, 0, buffer.length)) != -1) {
-              bos.write(buffer, 0, size);
+          try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(targetPath))) {
+            int len;
+            while ((len = zipIn.read(buffer)) != -1) {
+              os.write(buffer, 0, len);
             }
-            bos.flush();
-          } finally {
-            zis.closeEntry();
-            bos.close();
           }
         }
+        zipIn.closeEntry();
       }
-    } finally {
-      zis.close();
     }
+
+    if (!hasEntry) {
+      throw new IOException("Empty ZIP archive");
+    }
+  }
+
+  /**
+   * Resolves and validates the output path for a ZipEntry to prevent Zip Slip.
+   */
+  private static Path resolveEntryPath(Path destRoot, ZipEntry entry) throws IOException {
+    // Normalize ensures that any ../ segments are removed before validation
+    Path resolved = destRoot.resolve(entry.getName()).normalize();
+
+    if (!resolved.startsWith(destRoot)) {
+      throw new IOException("Zip Slip detected for entry: " + entry.getName());
+    }
+    return resolved;
   }
   
 }
